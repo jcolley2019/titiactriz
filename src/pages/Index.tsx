@@ -193,16 +193,6 @@ const Index = () => {
                   <Link to="/work">Portfolio</Link>
                 </Button>
               </div>
-
-              {/* CTA Button */}
-              <div className="opacity-0 animate-[fadeIn_0.8s_ease-out_0.8s_forwards]">
-                <Button variant="gold" size="lg" asChild>
-                  <a href="#contact" className="group">
-                    {t("hero.cta")}
-                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </a>
-                </Button>
-              </div>
             </div>
 
             {/* Right - Hero Image */}
