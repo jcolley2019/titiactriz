@@ -25,7 +25,7 @@
     --muted: 0 0% 12%;
     --muted-foreground: 30 10% 60%;
 
-    --accent: 35 40% 65%; /* Muted gold #C4A86C */
+    --accent: 43 75% 55%; /* Rich gold #D4A520 */
     --accent-foreground: 0 0% 7%;
 
     --destructive: 0 84% 60%;
@@ -33,7 +33,7 @@
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 35 40% 65%;
+    --ring: 43 75% 55%;
 
     --radius: 0.5rem;
 
@@ -44,9 +44,9 @@
     --taupe-light: 30 15% 70%;
     --charcoal: 0 0% 7%;
     --charcoal-light: 0 0% 25%;
-    --gold: 35 40% 65%;
-    --gold-light: 35 35% 78%;
-    --gold-dark: 35 45% 50%;
+    --gold: 43 75% 55%;
+    --gold-light: 45 70% 65%;
+    --gold-dark: 40 80% 45%;
 
     /* Highlight effect color */
     --highlight: 35 30% 85%;
