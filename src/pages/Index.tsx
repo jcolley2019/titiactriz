@@ -467,6 +467,7 @@ const Index = () => {
             description={t("featured.titans.description")}
             href="/titans-agency"
             image={titansLogo}
+            imageBackground="white"
           />
           <LinkCard
             title={t("featured.greenWorld.title")}
@@ -480,6 +481,7 @@ const Index = () => {
             description={t("featured.work.description")}
             href="/work"
             image={danceImage}
+            imageFit="cover"
           />
         </div>
       </Section>

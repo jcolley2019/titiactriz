@@ -39,6 +39,7 @@ interface LinkCardProps {
   external?: boolean;
   className?: string;
   imageBackground?: "transparent" | "white";
+  imageFit?: "contain" | "cover";
 }
 
 const LinkCard = ({
@@ -49,6 +50,7 @@ const LinkCard = ({
   external = false,
   className,
   imageBackground = "transparent",
+  imageFit = "contain",
 }: LinkCardProps) => {
   const CardContent = () => (
     <div
@@ -59,13 +61,17 @@ const LinkCard = ({
     >
       {image && (
         <div className={cn(
-          "aspect-[16/10] overflow-hidden flex items-center justify-center p-6",
-          imageBackground === "white" ? "bg-white" : "bg-background/50"
+          "aspect-[16/10] overflow-hidden flex items-center justify-center",
+          imageBackground === "white" ? "bg-white" : "bg-background/50",
+          imageFit === "contain" && "p-6"
         )}>
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+            className={cn(
+              "w-full h-full grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105",
+              imageFit === "cover" ? "object-cover" : "object-contain"
+            )}
           />
         </div>
       )}
