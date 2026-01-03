@@ -1,0 +1,342 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "titansAgency": "Titans Agency Latam",
+    "greenWorld": "Green World",
+    "workResume": "Trabajo / Currículum",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "tagline": "Actriz Colombiana • Bailarina Profesional • Empresaria",
+    "subtitle": "Presencia, actuación y propósito—en el escenario y en la pantalla.",
+    "description": "Dando vida a historias a través del movimiento y la emoción. Cada papel es un viaje, cada actuación una conexión.",
+    "cta": "Trabaja con Cristyna"
+  },
+  "about": {
+    "eyebrow": "Sobre Mí",
+    "title": "Conoce a Cristyna",
+    "p1": "Soy Cristyna—actriz colombiana, bailarina profesional y empresaria con sede en el corazón de América Latina. Mi viaje comenzó en el escenario, donde descubrí que el movimiento y la emoción son lenguajes que todos entienden.",
+    "p2": "Ya sea frente a la cámara, dirigiendo una producción de danza o construyendo negocios que importan, traigo el mismo compromiso: autenticidad, disciplina y una búsqueda incansable de la excelencia.",
+    "p3": "Creo en el poder de contar historias para crear conexión e inspirar cambios. Cada proyecto que emprendo es una oportunidad para compartir esa creencia con el mundo.",
+    "strengths": {
+      "presence": "Presencia en cámara",
+      "discipline": "Disciplina escénica",
+      "creative": "Dirección creativa",
+      "brand": "Construcción de marca"
+    },
+    "viewWork": "Ver Trabajo / Currículum"
+  },
+  "strengths": {
+    "eyebrow": "Fortalezas",
+    "title": "Lo Que Aporto",
+    "subtitle": "Las cualidades que definen mi trabajo e impulsan cada actuación.",
+    "presence": {
+      "title": "Presencia",
+      "description": "Cada momento en el escenario o la pantalla es una oportunidad para cautivar. Comando atención a través de la autenticidad e intención."
+    },
+    "creativity": {
+      "title": "Creatividad",
+      "description": "El arte vive en lo inesperado. Traigo perspectivas frescas y elecciones audaces a cada papel y proyecto que emprendo."
+    },
+    "discipline": {
+      "title": "Disciplina",
+      "description": "Años de entrenamiento en danza me enseñaron que la maestría viene de la dedicación. Me presento preparada, enfocada y lista para entregar."
+    },
+    "adaptability": {
+      "title": "Adaptabilidad",
+      "description": "Desde roles dramáticos hasta coreografías dinámicas y emprendimientos—prospero en nuevos entornos y abrazo cada desafío."
+    }
+  },
+  "featured": {
+    "eyebrow": "Explorar",
+    "title": "Destacados",
+    "subtitle": "Descubre más sobre mi trabajo, emprendimientos y proyectos creativos.",
+    "titans": {
+      "title": "Titans Agency Latam",
+      "description": "Crecimiento en TikTok, apoyo a creadores y estrategia de monetización para creadores latinoamericanos."
+    },
+    "greenWorld": {
+      "title": "Green World",
+      "description": "Una muestra curada de productos de bienestar con enlaces de compra limpios."
+    },
+    "work": {
+      "title": "Trabajo / Currículum",
+      "description": "Portafolio de actuación, presentaciones de danza y currículum profesional."
+    }
+  },
+  "contact": {
+    "eyebrow": "Contáctame",
+    "title": "Contacto",
+    "subtitle": "Para reservas, colaboraciones o simplemente para saludar—me encantaría saber de ti.",
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Correo",
+      "emailPlaceholder": "tu@correo.com",
+      "message": "Mensaje",
+      "messagePlaceholder": "Cuéntame sobre tu proyecto o consulta...",
+      "submit": "Enviar Mensaje",
+      "sending": "Enviando...",
+      "success": "¡Gracias! Tu mensaje ha sido recibido."
+    },
+    "formNote": "El formulario se puede conectar después. Para consultas inmediatas, por favor envía un correo directamente."
+  },
+  "footer": {
+    "description": "Actriz colombiana, bailarina profesional y empresaria. Creando impacto a través de presencia, actuación y propósito.",
+    "quickLinks": "Enlaces Rápidos",
+    "connect": "Conectar",
+    "copyright": "© {{year}} Cristyna Polentino. Todos los derechos reservados.",
+    "madeWith": "Hecho con pasión en Colombia"
+  },
+  "gallery": {
+    "scrollLeft": "Desplazar izquierda",
+    "scrollRight": "Desplazar derecha",
+    "close": "Cerrar",
+    "imageAlt": "Imagen de galería {{number}}"
+  },
+  "titans": {
+    "hero": {
+      "subtitle": "Crecimiento en TikTok, apoyo a creadores, estrategia de monetización y alianzas de marca para creadores latinoamericanos.",
+      "workWithUs": "Trabaja con Nosotros"
+    },
+    "services": {
+      "eyebrow": "Qué Hacemos",
+      "title": "Nuestros Servicios",
+      "subtitle": "Soluciones integrales de crecimiento en TikTok diseñadas para creadores latinoamericanos.",
+      "growthStrategy": {
+        "title": "Estrategia de Crecimiento",
+        "description": "Incorporación de creadores con hojas de ruta personalizadas diseñadas para maximizar tu alcance y engagement."
+      },
+      "contentSystems": {
+        "title": "Sistemas de Contenido",
+        "description": "Marcos de estrategia de contenido probados y sistemas de publicación que mantienen a tu audiencia regresando."
+      },
+      "liveCoaching": {
+        "title": "Coaching en Vivo",
+        "description": "Coaching experto para transmisiones en vivo y contenido corto que construye conexiones auténticas con tu audiencia."
+      },
+      "brandPartnerships": {
+        "title": "Alianzas de Marca",
+        "description": "Acuerdos estratégicos con marcas y paquetes de campañas que se alinean con tu marca personal y valores."
+      },
+      "analytics": {
+        "title": "Analítica y Optimización",
+        "description": "Análisis profundo de retención, ganchos y conversión para mejorar continuamente tu rendimiento."
+      },
+      "monetization": {
+        "title": "Monetización",
+        "description": "Desarrollo de múltiples fuentes de ingresos desde fondos de creadores hasta patrocinios de marcas y más."
+      },
+      "fullOverview": "Resumen Completo de Servicios",
+      "list": {
+        "onboarding": "Incorporación de creadores + hoja de ruta de crecimiento",
+        "content": "Estrategia de contenido + sistemas de publicación",
+        "coaching": "Coaching en vivo / formato corto",
+        "deals": "Acuerdos con marcas + paquetes de campañas",
+        "analytics": "Analítica: retención, ganchos, conversión"
+      }
+    },
+    "creators": {
+      "eyebrow": "Nuestro Talento",
+      "title": "Creadores Destacados",
+      "subtitle": "Conoce a algunos de los talentosos creadores con los que trabajamos en toda América Latina.",
+      "followers": "Seguidores",
+      "likes": "Me gusta",
+      "viewProfile": "Ver Perfil"
+    },
+    "results": {
+      "eyebrow": "Resultados",
+      "title": "Resultados que Hablan",
+      "subtitle": "Nuestro historial con creadores en toda América Latina.",
+      "stats": {
+        "views": "Crecimiento Promedio de Vistas",
+        "revenue": "Ingresos Mensuales de Creadores",
+        "creators": "Creadores Gestionados"
+      },
+      "testimonials": {
+        "t1": {
+          "name": "María Valentina",
+          "quote": "Titans Agency transformó mi presencia en TikTok. En solo 3 meses, pasé de 10K a 100K seguidores y conseguí mi primer gran acuerdo con una marca.",
+          "stat": "+900% crecimiento de seguidores"
+        },
+        "t2": {
+          "name": "Carlos Rodríguez",
+          "quote": "El coaching y estrategia de Titans me ayudó a entender qué contenido realmente funciona. ¡Mi engagement se triplicó en el primer mes!",
+          "stat": "3x tasa de engagement"
+        },
+        "t3": {
+          "name": "Luciana Pérez",
+          "quote": "¡Por fin una agencia que entiende a los creadores latinos! Me ayudaron a monetizar mi contenido y negociar acuerdos que nunca pensé posibles.",
+          "stat": "$15K+ ingresos mensuales"
+        }
+      }
+    },
+    "cta": {
+      "eyebrow": "¿Listo para Crecer?",
+      "title": "Hablemos",
+      "subtitle": "Agenda una llamada de descubrimiento para discutir cómo podemos ayudarte a crecer en TikTok.",
+      "button": "Solicitar una Llamada"
+    },
+    "join": {
+      "eyebrow": "Únete al Equipo",
+      "title": "Solicitar unirse a TITANS AGENCY LATAM",
+      "admin": "Administrador: TITANS AGENCY",
+      "scanText": "Escanea el código QR para obtener más información sobre la agencia y enviar una solicitud para unirte.",
+      "instructions": {
+        "download": "Descargar y guardar la imagen en tu dispositivo",
+        "open": "Abrir TikTok > Perfil > Añadir Amigos > Escanear"
+      },
+      "disclaimer": "Escanear el código QR solo sirve para obtener información sobre la agencia.",
+      "contactTitle": "Contáctanos Directamente",
+      "contactSubtitle": "¿Prefieres contactarnos directamente? Envíanos un mensaje por WhatsApp para una respuesta más rápida.",
+      "whatsappNote": "Normalmente respondemos en 24 horas. Disponible de lunes a sábado."
+    },
+    "showcase": {
+      "eyebrow": "Contenido de Creadores",
+      "title": "Mira a Nuestros Creadores en Acción",
+      "subtitle": "Observa cómo los creadores de Titans Agency dominan TikTok con contenido viral y engagement auténtico.",
+      "video1": {
+        "title": "Estrategia de Contenido Viral",
+        "description": "Aprende cómo nuestros creadores crean contenido que alcanza millones."
+      },
+      "video2": {
+        "title": "Éxito en Lives",
+        "description": "Dominando el engagement en vivo y construyendo comunidades leales."
+      },
+      "video3": {
+        "title": "Colaboraciones con Marcas",
+        "description": "Detrás de escenas de alianzas exitosas con marcas."
+      },
+      "watchOnTiktok": "Ver en TikTok",
+      "followUs": "Seguir @titansagencylatam"
+    }
+  },
+  "greenWorld": {
+    "hero": {
+      "intro": "Descubre un estilo de vida más saludable con nuestra selección premium de suplementos de salud y productos nutricionales.",
+      "title": "Bienvenido a",
+      "titleBrand": "Green World",
+      "subtitle": "Productos de bienestar premium diseñados para mejorar tu bienestar. Confiado por millones en todo el mundo.",
+      "shopNow": "Comprar Ahora",
+      "viewProducts": "Ver Productos",
+      "representative": "Tu Representante de Green World"
+    },
+    "categories": {
+      "title": "Salud y Bienestar",
+      "subtitle": "Explora nuestro diverso portafolio de productos formulados científicamente.",
+      "natural": "Productos de Salud Natural",
+      "energy": "Serie de Joyería Energética",
+      "beauty": "Serie de Belleza y Cuerpo"
+    },
+    "products": {
+      "eyebrow": "Comprar Ahora",
+      "title": "Productos Destacados",
+      "subtitle": "Suplementos premium y productos de bienestar para apoyar tu estilo de vida saludable.",
+      "buyNow": "Comprar",
+      "details": "Detalles",
+      "viewAll": "Ver Todos los Productos",
+      "sale": "OFERTA",
+      "items": {
+        "blueberry": {
+          "name": "Súper Nutrición de Arándano",
+          "description": "Extracto premium de arándano con antioxidantes para apoyo inmunológico y bienestar general.",
+          "category": "Suplementos de Salud"
+        },
+        "proslim": {
+          "name": "Té Pro-Slim",
+          "description": "Mezcla de té herbal totalmente natural para apoyar el metabolismo saludable y el control de peso.",
+          "category": "Colección de Tés"
+        },
+        "kuding": {
+          "name": "Té Kuding Plus",
+          "description": "Té amargo chino tradicional conocido por promover la salud digestiva y la desintoxicación.",
+          "category": "Colección de Tés"
+        },
+        "calcium": {
+          "name": "Cápsulas de Calcio Softgel",
+          "description": "Calcio de alta absorción con Vitamina D3 para la salud y fortaleza ósea.",
+          "category": "Suplementos de Salud"
+        },
+        "spirulina": {
+          "name": "Tabletas de Espirulina",
+          "description": "Tabletas de superalimento ricas en nutrientes, llenas de vitaminas, minerales y proteínas.",
+          "category": "Suplementos de Salud"
+        },
+        "ginseng": {
+          "name": "Cápsulas de Ginseng RHS",
+          "description": "Extracto premium de ginseng para aumentar la energía, el enfoque y la vitalidad naturalmente.",
+          "category": "Suplementos de Salud"
+        }
+      }
+    },
+    "features": {
+      "title": "Bienestar Premium en Todo el Mundo",
+      "subtitle": "En Green World, nos especializamos en entregar productos de salud de calidad premium diseñados para mejorar tu bienestar.",
+      "natural": {
+        "title": "100% Natural",
+        "description": "Todos los productos están hechos con ingredientes naturales de alta calidad."
+      },
+      "wellness": {
+        "title": "Enfocado en el Bienestar",
+        "description": "Formulados científicamente para mejorar tu bienestar."
+      },
+      "countries": {
+        "title": "50+ Países",
+        "description": "Confiado por millones de clientes en todo el mundo."
+      },
+      "quality": {
+        "title": "Calidad Premium",
+        "description": "Productos impulsados por investigación que redefinen la excelencia."
+      }
+    },
+    "business": {
+      "title": "Vive Saludable, Comienza tu Camino a la Riqueza",
+      "subtitle": "Únete a nuestra comunidad global de emprendedores de bienestar. Green World ofrece una oportunidad para construir un negocio exitoso mientras promueves la salud y el bienestar.",
+      "startBusiness": "Iniciar un Negocio",
+      "contactMe": "Contáctame"
+    },
+    "disclaimer": "Estas declaraciones no han sido evaluadas por la FDA. Los productos no están destinados a diagnosticar, tratar, curar o prevenir ninguna enfermedad. Siempre consulta con un profesional de la salud antes de comenzar cualquier nueva rutina de bienestar.",
+    "cta": {
+      "title": "¿Listo para Comenzar tu Viaje de Bienestar?",
+      "subtitle": "Contacta a Cristyna Polentino para recomendaciones personalizadas de productos y oportunidades de negocio.",
+      "shop": "Comprar Green World",
+      "contact": "Contactar para Info"
+    }
+  },
+  "work": {
+    "hero": {
+      "eyebrow": "Portafolio",
+      "subtitle": "Actuación • Danza • Medios",
+      "youtubeChannel": "Canal de YouTube"
+    },
+    "dance": {
+      "eyebrow": "Actuación",
+      "title": "Danza Profesional",
+      "performances": {
+        "p1": { "title": "Showcase Contemporáneo 2024", "venue": "Teatro Nacional, Bogotá" },
+        "p2": { "title": "Festival de Ritmos Latinos", "venue": "Centro Cultural, Medellín" },
+        "p3": { "title": "Tour Evolución de la Danza", "venue": "Múltiples Venues, Colombia" }
+      }
+    },
+    "acting": {
+      "eyebrow": "Pantalla y Escenario",
+      "title": "Actuación",
+      "credits": {
+        "resume": "Currículum de Actuación",
+        "dramatic": "Reel de Actuación — Escenas Dramáticas",
+        "commercial": "Reel de Actuación — Trabajo Comercial"
+      }
+    },
+    "reel": {
+      "eyebrow": "Destacado",
+      "title": "Video Reel",
+      "subtitle": "Una muestra de trabajos y actuaciones recientes."
+    },
+    "bookings": {
+      "eyebrow": "Reservas",
+      "title": "Trabajemos Juntos",
+      "subtitle": "Disponible para roles de actuación, presentaciones de danza y colaboraciones creativas.",
+      "button": "Email para Reservas"
+    }
+  }
+}

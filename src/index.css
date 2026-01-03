@@ -1,0 +1,285 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm Editorial Palette for Cristyna Polentino */
+    --background: 30 50% 97%; /* Warm ivory #FDF8F4 */
+    --foreground: 20 12% 15%; /* Charcoal #2D2926 */
+
+    --card: 30 40% 98%;
+    --card-foreground: 20 12% 15%;
+
+    --popover: 30 50% 97%;
+    --popover-foreground: 20 12% 15%;
+
+    --primary: 30 20% 55%; /* Soft taupe #9A8A78 */
+    --primary-foreground: 30 50% 97%;
+
+    --secondary: 20 30% 88%; /* Blush pink #E8D5D0 */
+    --secondary-foreground: 20 12% 15%;
+
+    --muted: 30 20% 92%;
+    --muted-foreground: 20 10% 45%;
+
+    --accent: 43 50% 59%; /* Muted gold #C9A962 */
+    --accent-foreground: 20 12% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 30 50% 97%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 43 50% 59%;
+
+    --radius: 0.75rem;
+
+    /* Custom brand colors */
+    --cream: 30 50% 97%;
+    --ivory: 35 45% 95%;
+    --taupe: 30 20% 55%;
+    --taupe-light: 30 15% 75%;
+    --charcoal: 20 12% 15%;
+    --charcoal-light: 20 10% 35%;
+    --blush: 20 30% 88%;
+    --blush-deep: 15 35% 78%;
+    --gold: 43 50% 59%;
+    --gold-light: 43 40% 75%;
+    --gold-dark: 43 55% 45%;
+
+    /* Titans Agency brand colors */
+    --titans-red: 0 70% 40%;
+    --titans-dark: 0 0% 8%;
+    --titans-accent: 0 0% 100%;
+
+    /* Green World brand colors */
+    --gw-green: 145 60% 35%;
+    --gw-green-light: 145 55% 45%;
+    --gw-green-dark: 145 65% 25%;
+    --gw-white: 0 0% 100%;
+    --gw-gray: 0 0% 95%;
+    --gw-text: 0 0% 20%;
+
+    /* Typography */
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'DM Sans', system-ui, sans-serif;
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(30 20% 50% / 0.15);
+    --shadow-card: 0 8px 30px -8px hsl(30 20% 50% / 0.12);
+    --shadow-elevated: 0 20px 50px -15px hsl(30 20% 50% / 0.2);
+
+    /* Transitions */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --sidebar-background: 30 50% 97%;
+    --sidebar-foreground: 20 12% 15%;
+    --sidebar-primary: 30 20% 55%;
+    --sidebar-primary-foreground: 30 50% 97%;
+    --sidebar-accent: 20 30% 88%;
+    --sidebar-accent-foreground: 20 12% 15%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 43 50% 59%;
+  }
+
+  .dark {
+    --background: 20 15% 8%;
+    --foreground: 30 30% 92%;
+
+    --card: 20 12% 12%;
+    --card-foreground: 30 30% 92%;
+
+    --popover: 20 15% 8%;
+    --popover-foreground: 30 30% 92%;
+
+    --primary: 43 50% 59%;
+    --primary-foreground: 20 15% 8%;
+
+    --secondary: 20 20% 18%;
+    --secondary-foreground: 30 30% 92%;
+
+    --muted: 20 15% 18%;
+    --muted-foreground: 30 15% 60%;
+
+    --accent: 30 20% 55%;
+    --accent-foreground: 30 30% 92%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 30 30% 92%;
+
+    --border: 20 15% 20%;
+    --input: 20 15% 20%;
+    --ring: 43 50% 59%;
+
+    --sidebar-background: 20 15% 8%;
+    --sidebar-foreground: 30 30% 92%;
+    --sidebar-primary: 43 50% 59%;
+    --sidebar-primary-foreground: 20 15% 8%;
+    --sidebar-accent: 20 20% 18%;
+    --sidebar-accent-foreground: 30 30% 92%;
+    --sidebar-border: 20 15% 20%;
+    --sidebar-ring: 43 50% 59%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  /* Gold accent line */
+  .gold-line {
+    @apply h-px bg-gradient-to-r from-transparent via-accent to-transparent;
+  }
+
+  .gold-line-vertical {
+    @apply w-px bg-gradient-to-b from-transparent via-accent to-transparent;
+  }
+
+  /* Image frame with gold border */
+  .image-frame {
+    @apply relative rounded-lg overflow-hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  .image-frame::before {
+    content: '';
+    @apply absolute inset-0 rounded-lg pointer-events-none z-10;
+    border: 1px solid hsl(var(--gold) / 0.3);
+  }
+
+  /* Editorial text styles */
+  .text-editorial {
+    @apply font-serif tracking-tight;
+  }
+
+  .text-caps {
+    @apply uppercase tracking-[0.2em] text-sm font-sans font-medium;
+  }
+
+  /* Soft hover effect */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Section styling */
+  .section-padding {
+    @apply py-20 md:py-28 lg:py-32;
+  }
+
+  .container-editorial {
+    @apply max-w-6xl xl:max-w-7xl mx-auto px-6 md:px-8 lg:px-12;
+  }
+
+  /* Underline animation for links */
+  .link-underline {
+    @apply relative inline-block;
+  }
+
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-px bg-accent scale-x-0 origin-right transition-transform duration-300;
+  }
+
+  .link-underline:hover::after {
+    @apply scale-x-100 origin-left;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  /* Gradient text */
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent via-gold-light to-accent;
+  }
+
+  /* Background patterns */
+  .bg-cream {
+    background-color: hsl(var(--cream));
+  }
+
+  .bg-ivory {
+    background-color: hsl(var(--ivory));
+  }
+
+  /* Animation utilities */
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Stagger animations */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+}
