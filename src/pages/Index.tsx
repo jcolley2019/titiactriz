@@ -298,13 +298,27 @@ const Index = () => {
             <div
               key={i}
               onClick={() => setSelectedImage(img)}
-              className="flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group"
+              className="flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative"
             >
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+              
+              {/* Accent border glow effect */}
+              <div className="absolute inset-0 rounded-sm border-2 border-accent/0 group-hover:border-accent/60 transition-all duration-500 z-20 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]" />
+              
+              {/* Image with creative hover effects */}
               <img
                 src={img}
                 alt={t("gallery.imageAlt", { number: i + 1 })}
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1"
               />
+              
+              {/* View indicator */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
+                <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
+                  View
+                </span>
+              </div>
             </div>
           ))}
         </div>
