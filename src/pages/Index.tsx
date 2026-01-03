@@ -17,7 +17,7 @@ import heroImage from "@/assets/cristyna-hero.jpg";
 import aboutImage from "@/assets/cristyna-meet.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
 import titansLogo from "@/assets/titans-logo.png";
-import greenworldLogo from "@/assets/greenworld-logo.png";
+import greenworldLogo from "@/assets/greenworld-logo-hd.png";
 import sunsetImage from "@/assets/cristyna-sunset.jpg";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
 import poolImage from "@/assets/cristyna-pool.jpg";
