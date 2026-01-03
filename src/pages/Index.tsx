@@ -11,6 +11,7 @@ import { Section, SectionHeader } from "@/components/Section";
 import { FeatureCard, LinkCard } from "@/components/Cards";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
+import HeroPortrait from "@/components/HeroPortrait";
 
 // Images
 import heroImage from "@/assets/cristyna-hero.jpg";
@@ -117,19 +118,14 @@ const Index = () => {
 
       {/* Hero Section - Full Screen with Overlay Card */}
       <section className="min-h-screen relative flex items-center overflow-hidden">
-        {/* Background gradient overlay */}
-        <div className="absolute inset-0 z-0 bg-background" />
-
-        {/* Contained Hero Image - Center Right on Desktop */}
-        <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-y-1/2 translate-x-[-15%] z-0 opacity-0 animate-scale-in stagger-1">
-          <div className="relative w-[500px] xl:w-[550px] 2xl:w-[600px]">
-            <img
+        {/* Contained Hero Image with Background Removed - Center Right on Desktop */}
+        <div className="hidden lg:block absolute top-1/2 right-[5%] xl:right-[10%] -translate-y-1/2 z-[1] opacity-0 animate-scale-in stagger-1">
+          <div className="relative w-[550px] xl:w-[620px] 2xl:w-[700px]">
+            <HeroPortrait
               src={aboutImage}
               alt="Cristyna Polentino"
-              className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-700"
+              className="w-full h-auto object-cover drop-shadow-2xl"
             />
-            {/* Decorative frame */}
-            <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 -z-10" />
           </div>
         </div>
 
@@ -138,10 +134,10 @@ const Index = () => {
             {/* Left - Hero Image (visible on mobile/tablet only) */}
             <div className="lg:hidden order-1 opacity-0 animate-scale-in stagger-1">
               <div className="relative max-w-sm mx-auto">
-                <img
+                <HeroPortrait
                   src={aboutImage}
                   alt="Cristyna Polentino"
-                  className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
+                  className="w-full h-auto rounded-sm"
                 />
               </div>
             </div>
