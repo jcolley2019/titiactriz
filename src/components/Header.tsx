@@ -93,7 +93,7 @@ const Header = () => {
           style={{ textShadow: '0 0 20px hsl(var(--accent) / 0.2)' }}
         >
           <span className="font-light tracking-wide">Cristyna</span>{" "}
-          <span className="text-accent italic font-medium">Polentino</span>
+          <span className="text-accent italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-accent/50">Polentino</span>
         </Link>
 
         {/* Right Nav */}
