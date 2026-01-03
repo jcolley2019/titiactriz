@@ -3,7 +3,7 @@
     "home": "Home",
     "titansAgency": "Titans Agency Latam",
     "greenWorld": "Green World",
-    "workResume": "Work / Resume",
+    "portfolio": "Portfolio",
     "contact": "Contact"
   },
   "hero": {
@@ -24,7 +24,7 @@
       "creative": "Creative direction",
       "brand": "Brand-building"
     },
-    "viewWork": "View Work / Resume"
+    "viewWork": "View Portfolio"
   },
   "strengths": {
     "eyebrow": "Strengths",
@@ -60,7 +60,7 @@
       "description": "A curated showcase of wellness products with clean purchase links."
     },
     "work": {
-      "title": "Work / Resume",
+      "title": "Portfolio",
       "description": "Acting portfolio, dance performances, and professional resume."
     }
   },

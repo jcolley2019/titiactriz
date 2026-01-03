@@ -190,7 +190,7 @@ const Index = () => {
                   <Link to="/green-world">Green World</Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/work-resume">Work / Resume</Link>
+                  <Link to="/work">Portfolio</Link>
                 </Button>
               </div>
 

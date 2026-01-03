@@ -25,12 +25,12 @@ const WorkResume = () => {
   return (
     <>
       <Helmet>
-        <title>Work & Resume | Cristyna Polentino - Acting & Dance Portfolio</title>
+        <title>Portfolio | Cristyna Polentino - Acting & Dance</title>
         <meta
           name="description"
           content="Cristyna Polentino's professional portfolio - Acting credits, dance performances, and media work. View resume, reels, and booking information."
         />
-        <meta property="og:title" content="Work & Resume - Cristyna Polentino" />
+        <meta property="og:title" content="Portfolio - Cristyna Polentino" />
         <meta
           property="og:description"
           content="Acting credits, dance performances, and media work from Colombian actress and dancer Cristyna Polentino."
@@ -46,7 +46,7 @@ const WorkResume = () => {
           </span>
 
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.1] mb-6 opacity-0 animate-fade-up stagger-1">
-            {t("nav.workResume").split(" / ")[0]} / <span className="text-accent italic">{t("nav.workResume").split(" / ")[1]}</span>
+            {t("nav.portfolio")}
           </h1>
 
           <p className="text-xl text-muted-foreground mb-8 opacity-0 animate-fade-up stagger-2">
