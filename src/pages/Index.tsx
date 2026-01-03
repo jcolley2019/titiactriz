@@ -215,7 +215,7 @@ const Index = () => {
                   <img
                     src={heroImage}
                     alt="Cristyna Polentino"
-                    className="w-full h-auto max-h-[75vh] object-cover object-top transition-all duration-500"
+                    className="w-full h-auto max-h-[75vh] object-cover object-top transition-all duration-500 animate-color-reveal"
                   />
                   {/* Subtle overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
@@ -257,7 +257,7 @@ const Index = () => {
             <img
               src={aboutImage}
               alt="Cristyna Polentino portrait"
-              className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
+              className="w-full h-auto rounded-sm animate-color-reveal hover:grayscale-0 transition-all duration-700"
             />
             {/* Decorative frame */}
             <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
@@ -356,7 +356,7 @@ const Index = () => {
               <img
                 src={img}
                 alt={t("gallery.imageAlt", { number: i + 1 })}
-                className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1"
+                className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1 animate-color-reveal"
               />
               
               {/* View indicator */}
