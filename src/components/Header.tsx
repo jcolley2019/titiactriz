@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "./ui/button";
 import LanguageToggle from "./LanguageToggle";
 
 const Header = () => {
@@ -126,6 +127,14 @@ const Header = () => {
           ))}
           <li>
             <LanguageToggle variant="default" />
+          </li>
+          <li>
+            <Button variant="gold" size="sm" asChild>
+              <a href="/#contact" onClick={() => handleNavClick("/#contact")} className="group">
+                {t("hero.cta")}
+                <ArrowRight className="ml-1.5 w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              </a>
+            </Button>
           </li>
         </ul>
 
