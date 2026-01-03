@@ -153,12 +153,12 @@ const Index = () => {
       <CosmicBackground />
 
       {/* Hero Section - Side-by-Side Split */}
-      <section className="min-h-screen relative flex items-center overflow-hidden">
+      <section className="min-h-[110vh] relative flex items-center overflow-hidden">
         {/* Subtle background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20 z-0" />
         
-        <div className="container-editorial relative z-10 py-24 lg:py-0">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[85vh]">
+        <div className="container-editorial relative z-10 py-32 lg:py-16">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center min-h-[90vh]">
             
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
@@ -173,7 +173,7 @@ const Index = () => {
               
               {/* Main headline */}
               <h1 
-                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
+                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-10 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
                 <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
                   {t("hero.headline")}
@@ -181,7 +181,7 @@ const Index = () => {
               </h1>
               
               {/* Roles - centered below headline */}
-              <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-muted-foreground text-center opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
+              <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-muted-foreground text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
                 {t("hero.roles")}
               </p>
 
