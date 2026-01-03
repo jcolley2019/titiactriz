@@ -165,23 +165,27 @@ const Index = () => {
             
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
-              {/* Name - centered above headline */}
-              <h2 
-                className="font-serif text-4xl md:text-5xl lg:text-6xl text-center mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]"
-                style={{ textShadow: '0 0 40px hsl(var(--accent) / 0.3), 0 2px 10px hsl(var(--background) / 0.5)' }}
-              >
-                <span className="font-light tracking-wide">Cristyna</span>{" "}
-                <span className="text-accent italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/40 after:scale-x-0 after:animate-[scaleX_0.8s_ease-out_0.8s_forwards]">Polentino</span>
-              </h2>
+              {/* Name - stacked layout matching reference */}
+              <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
+                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[1.1] mb-1">
+                  Cristyna
+                </h2>
+                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[1.1]">
+                  Polentino
+                </h2>
+              </div>
               
-              {/* Main headline */}
+              {/* Main headline - tagline style */}
               <h1 
-                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-10 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
+                className="font-serif text-xl md:text-2xl lg:text-3xl text-accent/80 italic leading-relaxed mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
-                <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
-                  {t("hero.headline")}
-                </span>
+                {t("hero.headline")}
               </h1>
+              
+              {/* Description text */}
+              <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-10 max-w-md opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]">
+                Bringing stories to life through movement and emotion. Every role is a journey, every performance a connection.
+              </p>
               
               {/* Roles - centered below headline */}
               <p className="text-[10px] sm:text-xs md:text-sm tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase text-muted-foreground text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
