@@ -163,7 +163,10 @@ const Index = () => {
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
               {/* Name - centered above headline */}
-              <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-center mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
+              <h2 
+                className="font-serif text-4xl md:text-5xl lg:text-6xl text-center mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]"
+                style={{ textShadow: '0 0 40px hsl(var(--accent) / 0.3), 0 2px 10px hsl(var(--background) / 0.5)' }}
+              >
                 <span className="font-light tracking-wide">Cristyna</span>{" "}
                 <span className="text-accent italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/40 after:scale-x-0 after:animate-[scaleX_0.8s_ease-out_0.8s_forwards]">Polentino</span>
               </h2>
