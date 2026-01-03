@@ -162,9 +162,14 @@ const Index = () => {
             
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
+              {/* Name - centered above headline */}
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-center mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.1s_forwards]">
+                Cristyna <span className="text-accent italic">Polentino</span>
+              </h2>
+              
               {/* Main headline */}
               <h1 
-                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.2s_forwards]"
+                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
                 <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
                   {t("hero.headline")}
@@ -172,7 +177,7 @@ const Index = () => {
               </h1>
               
               {/* Roles - centered below headline */}
-              <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-muted-foreground text-center opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]">
+              <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-muted-foreground text-center opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
                 {t("hero.roles")}
               </p>
 
