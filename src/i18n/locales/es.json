@@ -4,6 +4,7 @@
     "titansAgency": "Titans Agency Latam",
     "greenWorld": "Green World",
     "portfolio": "Portafolio",
+    "socials": "Redes Sociales",
     "contact": "Contacto"
   },
   "hero": {
@@ -336,6 +337,29 @@
       "title": "Trabajemos Juntos",
       "subtitle": "Disponible para roles de actuación, presentaciones de danza y colaboraciones creativas.",
       "button": "Email para Reservas"
+    }
+  },
+  "socials": {
+    "eyebrow": "Conecta",
+    "title": "Sígueme",
+    "subtitle": "Mantente conectado y sigue mi trayectoria en todas las plataformas sociales.",
+    "tiktok": {
+      "description": "Contenido diario, videos de baile y momentos detrás de cámaras."
+    },
+    "instagram": {
+      "description": "Fotos, historias y actualizaciones de mi vida y trabajo."
+    },
+    "youtube": {
+      "description": "Videos completos, vlogs y proyectos creativos."
+    },
+    "facebook": {
+      "comingSoon": "Próximamente",
+      "description": "Página de Facebook próximamente. ¡Mantente atento!"
+    },
+    "cta": {
+      "eyebrow": "Mantente Informado",
+      "title": "No Te Pierdas Nada",
+      "subtitle": "Sígueme en tu plataforma favorita para estar al día con mis últimos proyectos y contenido."
     }
   }
 }
