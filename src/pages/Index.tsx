@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles, Target, Zap, Heart, ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -65,9 +65,46 @@ type ContactFormData = z.infer<typeof contactSchema>;
 const Index = () => {
   const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
+  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Intersection Observer for entrance animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute('data-index'));
+            setVisibleImages((prev) => new Set([...prev, index]));
+          }
+        });
+      },
+      { threshold: 0.2, rootMargin: '50px' }
+    );
+
+    imageRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleImageClick = (img: string, index: number) => {
+    setSelectedImage(img);
+    setSelectedIndex(index);
+  };
+
+  const navigateLightbox = (direction: 'prev' | 'next') => {
+    const newIndex = direction === 'prev' 
+      ? (selectedIndex - 1 + galleryImages.length) % galleryImages.length
+      : (selectedIndex + 1) % galleryImages.length;
+    setSelectedIndex(newIndex);
+    setSelectedImage(galleryImages[newIndex]);
+  };
 
   const {
     register,
@@ -297,8 +334,15 @@ const Index = () => {
           {galleryImages.map((img, i) => (
             <div
               key={i}
-              onClick={() => setSelectedImage(img)}
-              className="flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative"
+              ref={(el) => (imageRefs.current[i] = el)}
+              data-index={i}
+              onClick={() => handleImageClick(img, i)}
+              className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out ${
+                visibleImages.has(i) 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-8'
+              }`}
+              style={{ transitionDelay: `${(i % 6) * 100}ms` }}
             >
               {/* Gradient overlay on hover */}
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
@@ -327,20 +371,47 @@ const Index = () => {
       {/* Lightbox Modal */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+          {/* Close button */}
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background transition-all duration-300"
+            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
             aria-label={t("gallery.close")}
           >
             <X className="w-5 h-5 text-foreground" />
           </button>
+          
+          {/* Previous button */}
+          <button
+            onClick={() => navigateLightbox('prev')}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
+            aria-label="Previous image"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground" />
+          </button>
+          
+          {/* Next button */}
+          <button
+            onClick={() => navigateLightbox('next')}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
+            aria-label="Next image"
+          >
+            <ChevronRight className="w-5 h-5 text-foreground" />
+          </button>
+          
           {selectedImage && (
             <img
               src={selectedImage}
               alt="Enlarged gallery image"
-              className="w-full h-auto max-h-[85vh] object-contain rounded-sm"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-sm animate-[fadeIn_0.3s_ease-out]"
             />
           )}
+          
+          {/* Image counter */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50">
+            <span className="text-sm text-foreground/80 bg-background/60 backdrop-blur px-4 py-2 rounded-full border border-border/30">
+              {selectedIndex + 1} / {galleryImages.length}
+            </span>
+          </div>
         </DialogContent>
       </Dialog>
 
