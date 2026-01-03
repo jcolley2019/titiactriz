@@ -194,14 +194,14 @@ const Index = () => {
               </p>
 
               {/* Quick Link Buttons */}
-              <div className="flex flex-wrap justify-center gap-6 mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
-                <Button variant="outline" size="lg" className="min-w-[160px] text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
+                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
                   <Link to="/titans-agency">Titans Agency</Link>
                 </Button>
-                <Button variant="outline" size="lg" className="min-w-[160px] text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
+                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
                   <Link to="/green-world">Green World</Link>
                 </Button>
-                <Button variant="outline" size="lg" className="min-w-[160px] text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
+                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
                   <Link to="/work">Portfolio</Link>
                 </Button>
               </div>
