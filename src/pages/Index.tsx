@@ -167,10 +167,10 @@ const Index = () => {
             <div className="order-2 lg:order-1 flex flex-col justify-center">
               {/* Name - stacked layout matching reference */}
               <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
-                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[1.1] mb-1">
+                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[0.95]">
                   Cristyna
                 </h2>
-                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[1.1]">
+                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[0.95]">
                   Polentino
                 </h2>
               </div>
