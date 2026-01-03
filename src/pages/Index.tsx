@@ -117,20 +117,25 @@ const Index = () => {
 
       {/* Hero Section - Full Screen with Overlay Card */}
       <section className="min-h-screen relative flex items-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={aboutImage}
-            alt="Cristyna Polentino"
-            className="w-full h-full object-cover object-top grayscale opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 z-0 bg-background" />
+
+        {/* Contained Hero Image - Center Right on Desktop */}
+        <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-y-1/2 translate-x-[-15%] z-0 opacity-0 animate-scale-in stagger-1">
+          <div className="relative w-[500px] xl:w-[550px] 2xl:w-[600px]">
+            <img
+              src={aboutImage}
+              alt="Cristyna Polentino"
+              className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-700"
+            />
+            {/* Decorative frame */}
+            <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 -z-10" />
+          </div>
         </div>
 
         <div className="container-editorial relative z-10 pt-24">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[80vh]">
-            {/* Left - Hero Image (visible on mobile/tablet) */}
+            {/* Left - Hero Image (visible on mobile/tablet only) */}
             <div className="lg:hidden order-1 opacity-0 animate-scale-in stagger-1">
               <div className="relative max-w-sm mx-auto">
                 <img
@@ -141,8 +146,8 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right - Text Card Overlay */}
-            <div className="order-2 lg:col-start-2 flex justify-center lg:justify-end">
+            {/* Left - Text Card on Desktop */}
+            <div className="order-2 lg:order-1 lg:col-start-1 flex justify-center lg:justify-start">
               <div className="hero-card max-w-xl opacity-0 animate-slide-up stagger-2">
                 {/* Tagline */}
                 <p className="text-caps text-charcoal/60 mb-6 opacity-0 animate-fade-up stagger-3">
