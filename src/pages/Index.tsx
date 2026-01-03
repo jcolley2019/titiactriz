@@ -181,8 +181,8 @@ const Index = () => {
               </h1>
               
               {/* Roles - centered below headline */}
-              <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-muted-foreground text-center mb-12 whitespace-nowrap opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
-                <span className="inline-flex items-center justify-center gap-4 md:gap-6">
+              <p className="text-[10px] sm:text-xs md:text-sm tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase text-muted-foreground text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
+                <span className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
                   <span>Colombian Actress</span>
                   <span className="text-accent">|</span>
                   <span>Professional Dancer</span>
