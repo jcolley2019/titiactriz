@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "./ui/button";
 import LanguageToggle from "./LanguageToggle";
 
 const Header = () => {
@@ -56,17 +55,17 @@ const Header = () => {
     >
       <nav className="container-editorial flex items-center justify-between">
         {/* Left Nav */}
-        <ul className="hidden lg:flex items-center gap-8">
+        <ul className="hidden lg:flex items-center gap-10">
           {navLinks.slice(0, 3).map((link) => (
             <li key={link.name}>
               {link.path.includes("#") ? (
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     isTitansPage || isGreenWorldPage
-                      ? "text-foreground/70 hover:text-foreground" 
-                      : "text-foreground/70 hover:text-foreground"
+                      ? "text-foreground/80 hover:text-foreground" 
+                      : "text-foreground/80 hover:text-foreground"
                   }`}
                 >
                   {link.name}
@@ -74,10 +73,10 @@ const Header = () => {
               ) : (
                 <Link
                   to={link.path}
-                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     location.pathname === link.path
                       ? "text-foreground"
-                      : "text-foreground/70 hover:text-foreground"
+                      : "text-foreground/80 hover:text-foreground"
                   }`}
                 >
                   {link.name}
@@ -96,17 +95,17 @@ const Header = () => {
         </Link>
 
         {/* Right Nav */}
-        <ul className="hidden lg:flex items-center gap-8">
+        <ul className="hidden lg:flex items-center gap-10">
           {navLinks.slice(3).map((link) => (
             <li key={link.name}>
               {link.path.includes("#") ? (
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     isTitansPage || isGreenWorldPage
-                      ? "text-foreground/70 hover:text-foreground" 
-                      : "text-foreground/70 hover:text-foreground"
+                      ? "text-foreground/80 hover:text-foreground" 
+                      : "text-foreground/80 hover:text-foreground"
                   }`}
                 >
                   {link.name}
@@ -114,10 +113,10 @@ const Header = () => {
               ) : (
                 <Link
                   to={link.path}
-                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     location.pathname === link.path
                       ? "text-foreground"
-                      : "text-foreground/70 hover:text-foreground"
+                      : "text-foreground/80 hover:text-foreground"
                   }`}
                 >
                   {link.name}
@@ -129,12 +128,13 @@ const Header = () => {
             <LanguageToggle variant="default" />
           </li>
           <li>
-            <Button variant="gold" size="sm" asChild>
-              <a href="/#contact" onClick={() => handleNavClick("/#contact")} className="group">
-                {t("hero.cta")}
-                <ArrowRight className="ml-1.5 w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-              </a>
-            </Button>
+            <a 
+              href="/#contact" 
+              onClick={() => handleNavClick("/#contact")} 
+              className="text-base font-medium tracking-wide link-underline transition-all duration-300 text-foreground/80 hover:text-foreground"
+            >
+              {t("hero.cta")}
+            </a>
           </li>
         </ul>
 
