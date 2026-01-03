@@ -89,7 +89,7 @@ const Header = () => {
         {/* Center Logo */}
         <Link
           to="/"
-          className="font-serif text-2xl md:text-3xl tracking-tight transition-all duration-300 text-foreground hover:text-accent"
+          className="relative font-serif text-2xl md:text-3xl tracking-tight transition-all duration-300 text-foreground hover:text-accent px-4 py-2 border-2 border-foreground/30 hover:border-accent/60 rounded-sm bg-background/50 backdrop-blur-sm hover:shadow-glow"
         >
           <span className="font-light">C</span><span className="text-accent italic font-medium">P</span>
         </Link>
