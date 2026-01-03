@@ -175,11 +175,13 @@ const Index = () => {
                 </h2>
               </div>
               
-              {/* Main headline - tagline style */}
+              {/* Main headline - tagline style with accent box */}
               <h1 
                 className="font-serif text-xl md:text-2xl lg:text-3xl text-accent/80 italic leading-relaxed mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
-                {t("hero.headline")}
+                <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
+                  {t("hero.headline")}
+                </span>
               </h1>
               
               {/* Description text */}
