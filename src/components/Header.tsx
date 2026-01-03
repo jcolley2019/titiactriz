@@ -86,8 +86,13 @@ const Header = () => {
           ))}
         </ul>
 
-        {/* Spacer for balanced layout */}
-        <div className="hidden lg:block" />
+        {/* Center Logo */}
+        <Link
+          to="/"
+          className="font-serif text-2xl md:text-3xl tracking-tight transition-all duration-300 text-foreground hover:text-accent"
+        >
+          <span className="font-light">C</span><span className="text-accent italic font-medium">P</span>
+        </Link>
 
         {/* Right Nav */}
         <ul className="hidden lg:flex items-center gap-10">
