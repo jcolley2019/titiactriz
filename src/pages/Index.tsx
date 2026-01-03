@@ -119,7 +119,7 @@ const Index = () => {
       {/* Hero Section - Full Screen with Overlay Card */}
       <section className="min-h-screen relative flex items-center overflow-hidden">
         {/* Contained Hero Image with Background Removed - Center Right on Desktop */}
-        <div className="hidden lg:block absolute top-1/2 right-[5%] xl:right-[10%] -translate-y-1/2 z-[1] opacity-0 animate-scale-in stagger-1">
+        <div className="hidden lg:block absolute top-[42%] right-[5%] xl:right-[10%] -translate-y-1/2 z-[1] opacity-0 animate-scale-in stagger-1">
           <div className="relative w-[550px] xl:w-[620px] 2xl:w-[700px]">
             <HeroPortrait
               src={aboutImage}
