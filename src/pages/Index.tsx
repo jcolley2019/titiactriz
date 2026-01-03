@@ -11,7 +11,6 @@ import { Section, SectionHeader } from "@/components/Section";
 import { FeatureCard, LinkCard } from "@/components/Cards";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
-import HeroPortrait from "@/components/HeroPortrait";
 
 // Images
 import heroImage from "@/assets/cristyna-hero.jpg";
@@ -118,32 +117,32 @@ const Index = () => {
 
       {/* Hero Section - Full Screen with Overlay Card */}
       <section className="min-h-screen relative flex items-center overflow-hidden">
-        {/* Contained Hero Image with Background Removed - Center Right on Desktop */}
-        <div className="hidden lg:block absolute top-[28%] right-[5%] xl:right-[10%] -translate-y-1/2 z-[1] opacity-0 animate-scale-in stagger-1">
-          <div className="relative w-[550px] xl:w-[620px] 2xl:w-[700px]">
-            <HeroPortrait
-              src={aboutImage}
-              alt="Cristyna Polentino"
-              className="w-full h-auto object-cover drop-shadow-2xl"
-            />
-          </div>
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage}
+            alt="Cristyna Polentino"
+            className="w-full h-full object-cover object-top grayscale opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
         </div>
 
         <div className="container-editorial relative z-10 pt-24">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[80vh]">
-            {/* Left - Hero Image (visible on mobile/tablet only) */}
+            {/* Left - Hero Image (visible on mobile/tablet) */}
             <div className="lg:hidden order-1 opacity-0 animate-scale-in stagger-1">
               <div className="relative max-w-sm mx-auto">
-                <HeroPortrait
-                  src={aboutImage}
+                <img
+                  src={heroImage}
                   alt="Cristyna Polentino"
-                  className="w-full h-auto rounded-sm"
+                  className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
                 />
               </div>
             </div>
 
-            {/* Left - Text Card on Desktop */}
-            <div className="order-2 lg:order-1 lg:col-start-1 flex justify-center lg:justify-start">
+            {/* Right - Text Card Overlay */}
+            <div className="order-2 lg:col-start-2 flex justify-center lg:justify-end">
               <div className="hero-card max-w-xl opacity-0 animate-slide-up stagger-2">
                 {/* Tagline */}
                 <p className="text-caps text-charcoal/60 mb-6 opacity-0 animate-fade-up stagger-3">
@@ -256,7 +255,7 @@ const Index = () => {
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <div className="relative opacity-0 animate-scale-in">
             <img
-              src={heroImage}
+              src={aboutImage}
               alt="Cristyna Polentino portrait"
               className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
             />
