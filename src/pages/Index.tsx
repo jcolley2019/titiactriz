@@ -120,7 +120,7 @@ const Index = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
-            src={heroImage}
+            src={aboutImage}
             alt="Cristyna Polentino"
             className="w-full h-full object-cover object-top grayscale opacity-60"
           />
@@ -134,7 +134,7 @@ const Index = () => {
             <div className="lg:hidden order-1 opacity-0 animate-scale-in stagger-1">
               <div className="relative max-w-sm mx-auto">
                 <img
-                  src={heroImage}
+                  src={aboutImage}
                   alt="Cristyna Polentino"
                   className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
                 />
@@ -255,7 +255,7 @@ const Index = () => {
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <div className="relative opacity-0 animate-scale-in">
             <img
-              src={aboutImage}
+              src={heroImage}
               alt="Cristyna Polentino portrait"
               className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
             />
