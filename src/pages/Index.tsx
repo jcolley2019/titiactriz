@@ -260,7 +260,13 @@ const Index = () => {
       </Section>
 
       {/* Image Gallery Strip */}
-      <section className="py-8 relative z-10">
+      <section className="py-16 relative z-10">
+        {/* Section Header */}
+        <div className="container-editorial text-center mb-10">
+          <p className="text-caps text-accent mb-4">{t("gallery.eyebrow", "A glimpse into")}</p>
+          <h2 className="font-serif text-3xl md:text-4xl text-foreground">{t("gallery.title", "Moments & Memories")}</h2>
+        </div>
+
         {/* Scroll Buttons */}
         <button
           onClick={() => scroll("left")}
