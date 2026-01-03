@@ -167,6 +167,10 @@ export default {
           from: { transform: "scaleX(0)" },
           to: { transform: "scaleX(1)" },
         },
+        colorReveal: {
+          "0%": { filter: "grayscale(100%)" },
+          "100%": { filter: "grayscale(0%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -180,6 +184,7 @@ export default {
         "float-slow": "float-slow 5s ease-in-out infinite",
         "pulse-glow": "pulse-glow 4s ease-in-out infinite",
         twinkle: "twinkle 4s ease-in-out infinite",
+        "color-reveal": "colorReveal 5s ease-out forwards",
       },
     },
   },
