@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 
-import actingImage from "@/assets/cristyna-acting.jpg";
+import actingImage from "@/assets/cristyna-acting-headshot.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
 
 const WorkResume = () => {
