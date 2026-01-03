@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import TitansAgency from "./pages/TitansAgency";
 import GreenWorld from "./pages/GreenWorld";
 import WorkResume from "./pages/WorkResume";
+import Socials from "./pages/Socials";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/titans-agency" element={<TitansAgency />} />
                 <Route path="/green-world" element={<GreenWorld />} />
                 <Route path="/work" element={<WorkResume />} />
+                <Route path="/socials" element={<Socials />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
