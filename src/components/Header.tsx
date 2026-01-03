@@ -120,15 +120,6 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <a 
-              href="/#contact" 
-              onClick={() => handleNavClick("/#contact")} 
-              className="text-base font-medium tracking-wide link-underline transition-all duration-300 text-foreground/80 hover:text-foreground"
-            >
-              {t("hero.cta")}
-            </a>
-          </li>
-          <li>
             <LanguageToggle variant="default" />
           </li>
         </ul>
