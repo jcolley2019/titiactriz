@@ -15,7 +15,7 @@ const Footer = () => {
     { name: t("nav.home"), path: "/" },
     { name: t("nav.titansAgency"), path: "/titans-agency" },
     { name: t("nav.greenWorld"), path: "/green-world" },
-    { name: t("nav.workResume"), path: "/work" },
+    { name: t("nav.portfolio"), path: "/work" },
   ];
 
   return (
