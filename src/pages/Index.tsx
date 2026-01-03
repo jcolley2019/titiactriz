@@ -115,66 +115,80 @@ const Index = () => {
 
       <CosmicBackground />
 
-      {/* Hero Section - Full Screen with Overlay Card */}
+      {/* Hero Section - Side-by-Side Split */}
       <section className="min-h-screen relative flex items-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="Cristyna Polentino"
-            className="w-full h-full object-cover object-top grayscale opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
-        </div>
+        {/* Subtle background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20 z-0" />
+        
+        <div className="container-editorial relative z-10 py-24 lg:py-0">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[85vh]">
+            
+            {/* Left - Text Content */}
+            <div className="order-2 lg:order-1 flex flex-col justify-center">
+              {/* Tagline */}
+              <p 
+                className="text-caps text-accent mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.2s_forwards]"
+              >
+                {t("hero.tagline")}
+              </p>
 
-        <div className="container-editorial relative z-10 pt-24">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[80vh]">
-            {/* Left - Hero Image (visible on mobile/tablet) */}
-            <div className="lg:hidden order-1 opacity-0 animate-scale-in stagger-1">
-              <div className="relative max-w-sm mx-auto">
-                <img
-                  src={heroImage}
-                  alt="Cristyna Polentino"
-                  className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
-                />
+              {/* Main headline with highlight effect */}
+              <h1 
+                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]"
+              >
+                <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
+                  {t("hero.subtitle")}
+                </span>
+                <span className="block mt-4 text-foreground/90">
+                  that inspire presence, performance, and purpose.
+                </span>
+              </h1>
+
+              {/* Subtitle line */}
+              <p 
+                className="text-lg md:text-xl text-muted-foreground max-w-lg mb-10 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]"
+              >
+                Colombian actress, dancer & entrepreneur
+              </p>
+
+              {/* CTA Button */}
+              <div className="opacity-0 animate-[fadeIn_0.8s_ease-out_0.8s_forwards]">
+                <Button variant="gold" size="lg" asChild>
+                  <a href="#contact" className="group">
+                    {t("hero.cta")}
+                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </a>
+                </Button>
               </div>
             </div>
 
-            {/* Right - Text Card Overlay */}
-            <div className="order-2 lg:col-start-2 flex justify-center lg:justify-end">
-              <div className="hero-card max-w-xl opacity-0 animate-slide-up stagger-2">
-                {/* Tagline */}
-                <p className="text-caps text-charcoal/60 mb-6 opacity-0 animate-fade-up stagger-3">
-                  {t("hero.tagline")}
-                </p>
-
-                {/* Main headline with highlight effect */}
-                <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-charcoal leading-[1.2] mb-8">
-                  <span className="inline bg-gold/20 px-2 py-1 -mx-2">{t("hero.subtitle")}</span>{" "}
-                  <span className="block mt-3">
-                    that inspire presence, performance, and purpose.
-                  </span>
-                </h1>
-
-                {/* CTA Button */}
-                <div className="opacity-0 animate-fade-up stagger-4">
-                  <Button variant="editorial" size="lg" asChild>
-                    <a href="#contact">
-                      {t("hero.cta")}
-                    </a>
-                  </Button>
+            {/* Right - Hero Image */}
+            <div className="order-1 lg:order-2 opacity-0 animate-[fadeIn_1s_ease-out_0.3s_forwards]">
+              <div className="relative">
+                {/* Main image */}
+                <div className="relative overflow-hidden rounded-sm">
+                  <img
+                    src={heroImage}
+                    alt="Cristyna Polentino"
+                    className="w-full h-auto max-h-[75vh] object-cover object-top grayscale hover:grayscale-0 transition-all duration-1000"
+                  />
+                  {/* Subtle overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
                 </div>
+                
+                {/* Decorative frame */}
+                <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/30 rounded-sm -z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_0.8s_forwards]" />
+                <div className="absolute -top-4 -left-4 w-24 h-24 border-t border-l border-accent/20 -z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1s_forwards]" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-fade-in stagger-6">
-          <div className="flex flex-col items-center gap-2 text-foreground/50">
-            <span className="text-xs tracking-widest uppercase">Scroll</span>
-            <div className="w-px h-8 bg-gradient-to-b from-foreground/50 to-transparent" />
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
+          <div className="flex flex-col items-center gap-2 text-foreground/50 hover:text-accent transition-colors duration-300">
+            <span className="text-xs tracking-[0.2em] uppercase">Scroll</span>
+            <div className="w-px h-10 bg-gradient-to-b from-foreground/50 to-transparent animate-[pulse_2s_ease-in-out_infinite]" />
           </div>
         </div>
       </section>
