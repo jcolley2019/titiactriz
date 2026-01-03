@@ -16,6 +16,8 @@ import CosmicBackground from "@/components/CosmicBackground";
 import heroImage from "@/assets/cristyna-hero.jpg";
 import aboutImage from "@/assets/cristyna-meet.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
+import titansLogo from "@/assets/titans-logo.png";
+import greenworldLogo from "@/assets/greenworld-premium.png";
 import sunsetImage from "@/assets/cristyna-sunset.jpg";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
 import poolImage from "@/assets/cristyna-pool.jpg";
@@ -464,13 +466,13 @@ const Index = () => {
             title={t("featured.titans.title")}
             description={t("featured.titans.description")}
             href="/titans-agency"
-            image={heroImage}
+            image={titansLogo}
           />
           <LinkCard
             title={t("featured.greenWorld.title")}
             description={t("featured.greenWorld.description")}
             href="/green-world"
-            image={danceImage}
+            image={greenworldLogo}
           />
           <LinkCard
             title={t("featured.work.title")}
