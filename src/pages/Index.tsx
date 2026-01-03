@@ -473,6 +473,7 @@ const Index = () => {
             description={t("featured.greenWorld.description")}
             href="/green-world"
             image={greenworldLogo}
+            imageBackground="white"
           />
           <LinkCard
             title={t("featured.work.title")}
