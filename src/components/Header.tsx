@@ -89,15 +89,11 @@ const Header = () => {
         {/* Center Logo */}
         <Link
           to="/"
-          className="group relative font-serif text-2xl md:text-3xl tracking-tight transition-all duration-300 text-foreground hover:text-accent px-5 py-2.5 bg-background/50 backdrop-blur-sm hover:shadow-glow"
+          className="font-serif text-xl md:text-2xl tracking-tight transition-all duration-300 hover:opacity-80"
+          style={{ textShadow: '0 0 20px hsl(var(--accent) / 0.2)' }}
         >
-          {/* Corner accents */}
-          <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-accent/60 transition-all duration-300 group-hover:w-4 group-hover:h-4 group-hover:border-accent" />
-          <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-accent/60 transition-all duration-300 group-hover:w-4 group-hover:h-4 group-hover:border-accent" />
-          <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-accent/60 transition-all duration-300 group-hover:w-4 group-hover:h-4 group-hover:border-accent" />
-          <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent/60 transition-all duration-300 group-hover:w-4 group-hover:h-4 group-hover:border-accent" />
-          
-          <span className="font-light">C</span><span className="text-accent italic font-medium">P</span>
+          <span className="font-light tracking-wide">Cristyna</span>{" "}
+          <span className="text-accent italic font-medium">Polentino</span>
         </Link>
 
         {/* Right Nav */}
