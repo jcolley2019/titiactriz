@@ -38,6 +38,7 @@ interface LinkCardProps {
   image?: string;
   external?: boolean;
   className?: string;
+  imageBackground?: "transparent" | "white";
 }
 
 const LinkCard = ({
@@ -47,6 +48,7 @@ const LinkCard = ({
   image,
   external = false,
   className,
+  imageBackground = "transparent",
 }: LinkCardProps) => {
   const CardContent = () => (
     <div
@@ -56,7 +58,10 @@ const LinkCard = ({
       )}
     >
       {image && (
-        <div className="aspect-[16/10] overflow-hidden bg-background/50 flex items-center justify-center p-6">
+        <div className={cn(
+          "aspect-[16/10] overflow-hidden flex items-center justify-center p-6",
+          imageBackground === "white" ? "bg-white" : "bg-background/50"
+        )}>
           <img
             src={image}
             alt={title}
