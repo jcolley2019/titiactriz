@@ -14,7 +14,7 @@ import CosmicBackground from "@/components/CosmicBackground";
 
 // Images
 import heroImage from "@/assets/cristyna-hero.jpg";
-import aboutImage from "@/assets/cristyna-about.jpg";
+import aboutImage from "@/assets/cristyna-meet.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
 import sunsetImage from "@/assets/cristyna-sunset.jpg";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
