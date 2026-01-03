@@ -13,8 +13,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
 
 // Images
-import newHeroImage from "@/assets/cristyna-new-hero.png";
 import heroImage from "@/assets/cristyna-hero.jpg";
+import aboutImage from "@/assets/cristyna-about.jpg";
 import danceImage from "@/assets/cristyna-dance.jpg";
 import sunsetImage from "@/assets/cristyna-sunset.jpg";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
@@ -168,9 +168,9 @@ const Index = () => {
                 {/* Main image */}
                 <div className="relative overflow-hidden rounded-sm">
                   <img
-                    src={newHeroImage}
+                    src={heroImage}
                     alt="Cristyna Polentino"
-                    className="w-full h-auto max-h-[75vh] object-cover object-top hover:scale-[1.02] transition-all duration-1000"
+                    className="w-full h-auto max-h-[75vh] object-cover object-top grayscale hover:grayscale-0 transition-all duration-1000"
                   />
                   {/* Subtle overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
@@ -269,7 +269,7 @@ const Index = () => {
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <div className="relative opacity-0 animate-scale-in">
             <img
-              src={heroImage}
+              src={aboutImage}
               alt="Cristyna Polentino portrait"
               className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
             />
