@@ -80,7 +80,7 @@ const LinkCard = ({
           <h3 className="font-serif text-xl text-foreground">{title}</h3>
           <ArrowRight className="w-5 h-5 text-accent opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
         </div>
-        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+        <p className="text-muted-foreground text-base leading-relaxed">{description}</p>
       </div>
       {/* Accent line on hover */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
