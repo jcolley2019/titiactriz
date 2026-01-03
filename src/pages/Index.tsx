@@ -170,7 +170,7 @@ const Index = () => {
                   <img
                     src={heroImage}
                     alt="Cristyna Polentino"
-                    className="w-full h-auto max-h-[75vh] object-cover object-top grayscale hover:grayscale-0 transition-all duration-1000"
+                    className="w-full h-auto max-h-[75vh] object-cover object-top transition-all duration-500"
                   />
                   {/* Subtle overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
