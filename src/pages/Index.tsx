@@ -205,6 +205,60 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Meet Cristyna Section */}
+      <Section id="about">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          <div className="relative opacity-0 animate-scale-in">
+            <img
+              src={aboutImage}
+              alt="Cristyna Polentino portrait"
+              className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
+            />
+            {/* Decorative frame */}
+            <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
+          </div>
+
+          <div className="opacity-0 animate-fade-up stagger-1">
+            <SectionHeader
+              eyebrow={t("about.eyebrow")}
+              title={t("about.title")}
+              centered={false}
+              className="text-left"
+            />
+
+            <div className="space-y-5 text-muted-foreground leading-relaxed mb-10">
+              <p>{t("about.p1")}</p>
+              <p>{t("about.p2")}</p>
+              <p>{t("about.p3")}</p>
+            </div>
+
+            {/* Signature Strengths */}
+            <div className="flex flex-wrap gap-3 mb-10">
+              {[
+                t("about.strengths.presence"),
+                t("about.strengths.discipline"),
+                t("about.strengths.creative"),
+                t("about.strengths.brand"),
+              ].map((strength) => (
+                <span
+                  key={strength}
+                  className="px-4 py-2 rounded-none bg-secondary/50 text-foreground/80 text-sm border border-border/50"
+                >
+                  {strength}
+                </span>
+              ))}
+            </div>
+
+            <Button variant="editorial-outline" size="lg" asChild>
+              <Link to="/work">
+                {t("about.viewWork")}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </Section>
+
       {/* Image Gallery Strip */}
       <section className="py-8 relative z-10">
         {/* Scroll Buttons */}
@@ -263,60 +317,6 @@ const Index = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Meet Cristyna Section */}
-      <Section id="about">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-          <div className="relative opacity-0 animate-scale-in">
-            <img
-              src={aboutImage}
-              alt="Cristyna Polentino portrait"
-              className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
-            />
-            {/* Decorative frame */}
-            <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
-          </div>
-
-          <div className="opacity-0 animate-fade-up stagger-1">
-            <SectionHeader
-              eyebrow={t("about.eyebrow")}
-              title={t("about.title")}
-              centered={false}
-              className="text-left"
-            />
-
-            <div className="space-y-5 text-muted-foreground leading-relaxed mb-10">
-              <p>{t("about.p1")}</p>
-              <p>{t("about.p2")}</p>
-              <p>{t("about.p3")}</p>
-            </div>
-
-            {/* Signature Strengths */}
-            <div className="flex flex-wrap gap-3 mb-10">
-              {[
-                t("about.strengths.presence"),
-                t("about.strengths.discipline"),
-                t("about.strengths.creative"),
-                t("about.strengths.brand"),
-              ].map((strength) => (
-                <span
-                  key={strength}
-                  className="px-4 py-2 rounded-none bg-secondary/50 text-foreground/80 text-sm border border-border/50"
-                >
-                  {strength}
-                </span>
-              ))}
-            </div>
-
-            <Button variant="editorial-outline" size="lg" asChild>
-              <Link to="/work">
-                {t("about.viewWork")}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </Section>
 
       {/* What I Bring Section */}
       <Section background="muted">
