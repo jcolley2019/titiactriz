@@ -125,31 +125,37 @@ const Index = () => {
             
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
-              {/* Tagline */}
-              <p 
-                className="text-caps text-accent mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.2s_forwards]"
-              >
-                {t("hero.tagline")}
-              </p>
-
-              {/* Main headline with highlight effect */}
+              {/* Main headline */}
               <h1 
-                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]"
+                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.2s_forwards]"
               >
                 <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
-                  {t("hero.subtitle")}
+                  Inspiring presence, performance, and purpose...
                 </span>
                 <span className="block mt-4 text-foreground/90">
-                  that inspire presence, performance, and purpose.
+                  on stage, on screen, and in business.
                 </span>
               </h1>
 
-              {/* Subtitle line */}
+              {/* Subtitle - roles */}
               <p 
-                className="text-lg md:text-xl text-muted-foreground max-w-lg mb-10 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]"
+                className="text-lg md:text-xl text-muted-foreground max-w-lg mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]"
               >
-                Colombian actress, dancer & entrepreneur
+                Colombian Actress, Dancer, Entrepreneur and TikTok Creator
               </p>
+
+              {/* Quick Link Buttons */}
+              <div className="flex flex-wrap gap-3 mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/titans-agency">Titans Agency</Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/green-world">Green World</Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/work-resume">Work / Resume</Link>
+                </Button>
+              </div>
 
               {/* CTA Button */}
               <div className="opacity-0 animate-[fadeIn_0.8s_ease-out_0.8s_forwards]">
