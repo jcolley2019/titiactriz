@@ -56,11 +56,11 @@ const LinkCard = ({
       )}
     >
       {image && (
-        <div className="aspect-[16/10] overflow-hidden">
+        <div className="aspect-[16/10] overflow-hidden bg-background/50 flex items-center justify-center p-6">
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+            className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
           />
         </div>
       )}
