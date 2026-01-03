@@ -120,9 +120,6 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <LanguageToggle variant="default" />
-          </li>
-          <li>
             <a 
               href="/#contact" 
               onClick={() => handleNavClick("/#contact")} 
@@ -130,6 +127,9 @@ const Header = () => {
             >
               {t("hero.cta")}
             </a>
+          </li>
+          <li>
+            <LanguageToggle variant="default" />
           </li>
         </ul>
 
