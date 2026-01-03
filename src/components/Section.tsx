@@ -15,15 +15,15 @@ const Section = ({
   background = "default",
 }: SectionProps) => {
   const bgClasses = {
-    default: "bg-background",
-    muted: "bg-muted/50",
-    accent: "bg-secondary/30",
+    default: "bg-transparent",
+    muted: "bg-secondary/30",
+    accent: "bg-muted/50",
   };
 
   return (
     <section
       id={id}
-      className={cn("section-padding", bgClasses[background], className)}
+      className={cn("section-padding relative z-10", bgClasses[background], className)}
     >
       <div className="container-editorial">{children}</div>
     </section>
@@ -48,23 +48,23 @@ const SectionHeader = ({
   return (
     <div
       className={cn(
-        "mb-12 md:mb-16",
+        "mb-16 md:mb-20",
         centered && "text-center",
         className
       )}
     >
       {eyebrow && (
-        <span className="text-caps text-accent mb-3 block">{eyebrow}</span>
+        <span className="text-caps text-accent mb-4 block">{eyebrow}</span>
       )}
-      <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-4">
+      <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-5 leading-tight">
         {title}
       </h2>
       {subtitle && (
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
           {subtitle}
         </p>
       )}
-      <div className="gold-line max-w-32 mx-auto mt-6" />
+      <div className="gold-line max-w-24 mx-auto mt-8" />
     </div>
   );
 };

@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 import { FeatureCard, LinkCard } from "@/components/Cards";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import CosmicBackground from "@/components/CosmicBackground";
+
 // Images
 import heroImage from "@/assets/cristyna-hero.jpg";
 import aboutImage from "@/assets/cristyna-about.jpg";
@@ -78,8 +80,6 @@ const Index = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
-    // Form submission logic can be added here when backend is ready
-    // For now, just simulate success after validation
     await new Promise(resolve => setTimeout(resolve, 500));
     setSubmitSuccess(true);
     reset();
@@ -113,107 +113,97 @@ const Index = () => {
         <meta property="og:type" content="website" />
       </Helmet>
 
-      {/* Hero Section */}
-      <section className="min-h-screen flex items-center pt-20">
-        <div className="container-editorial">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 xl:gap-24 items-center">
-            {/* Text Content */}
-            <div className="order-2 lg:order-1">
-              <div className="opacity-0 animate-fade-up">
-                <span className="text-caps text-muted-foreground mb-4 block">
-                  {t("hero.tagline")}
-                </span>
-              </div>
+      <CosmicBackground />
 
-              <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.1] mb-6 opacity-0 animate-fade-up stagger-1">
-                Cristyna{" "}
-                <span className="text-accent italic">Polentino</span>
-              </h1>
+      {/* Hero Section - Full Screen with Overlay Card */}
+      <section className="min-h-screen relative flex items-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage}
+            alt="Cristyna Polentino"
+            className="w-full h-full object-cover object-top grayscale opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+        </div>
 
-              <p className="font-serif text-2xl md:text-3xl text-primary/80 mb-6 opacity-0 animate-fade-up stagger-2">
-                {t("hero.subtitle")}
-              </p>
-
-              <p className="text-muted-foreground text-lg mb-8 max-w-lg opacity-0 animate-fade-up stagger-3">
-                {t("hero.description")}
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 xl:gap-4 mb-8 opacity-0 animate-fade-up stagger-4">
-                <Button variant="editorial" size="default" className="xl:h-12 xl:px-7" asChild>
-                  <a href="#contact">
-                    {t("hero.cta")}
-                    <ArrowRight className="w-4 h-4 xl:w-5 xl:h-5" />
-                  </a>
-                </Button>
-                <Button variant="gold-outline" size="default" className="xl:h-12 xl:px-7" asChild>
-                  <Link to="/titans-agency">Titans Agency</Link>
-                </Button>
-                <Button variant="gold-outline" size="default" className="xl:h-12 xl:px-7" asChild>
-                  <Link to="/green-world">Green World</Link>
-                </Button>
-              </div>
-
-              {/* Social Row */}
-              <div className="flex gap-4 opacity-0 animate-fade-up stagger-5">
-                <a
-                  href="https://www.tiktok.com/@titina_polen?_r=1&_t=ZT-92aYp2I0zF1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-accent link-underline transition-colors"
-                >
-                  TikTok
-                </a>
-                <a
-                  href="https://www.instagram.com/cristinapolentino_actriz?igsh=aTJuZXJjNWhsOGZh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-accent link-underline transition-colors"
-                >
-                  Instagram
-                </a>
-                <a
-                  href="https://youtube.com/@mimundoderoles6875?si=Zc74Dd2fgQjQrNpG"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-accent link-underline transition-colors"
-                >
-                  YouTube
-                </a>
+        <div className="container-editorial relative z-10 pt-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[80vh]">
+            {/* Left - Hero Image (visible on mobile/tablet) */}
+            <div className="lg:hidden order-1 opacity-0 animate-scale-in stagger-1">
+              <div className="relative max-w-sm mx-auto">
+                <img
+                  src={heroImage}
+                  alt="Cristyna Polentino"
+                  className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
+                />
               </div>
             </div>
 
-            {/* Hero Image */}
-            <div className="order-1 lg:order-2 opacity-0 animate-scale-in stagger-2">
-              <div className="relative">
-                <div className="image-frame">
-                  <img
-                    src={heroImage}
-                    alt="Cristyna Polentino - Colombian actress and dancer"
-                    className="w-full h-auto rounded-lg"
-                  />
+            {/* Right - Text Card Overlay */}
+            <div className="order-2 lg:col-start-2 flex justify-center lg:justify-end">
+              <div className="hero-card max-w-xl opacity-0 animate-slide-up stagger-2">
+                {/* Tagline */}
+                <p className="text-caps text-charcoal/60 mb-6 opacity-0 animate-fade-up stagger-3">
+                  {t("hero.tagline")}
+                </p>
+
+                {/* Main headline with highlight effect */}
+                <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-charcoal leading-[1.2] mb-8">
+                  <span className="inline bg-gold/20 px-2 py-1 -mx-2">{t("hero.subtitle")}</span>{" "}
+                  <span className="block mt-3">
+                    that inspire presence, performance, and purpose.
+                  </span>
+                </h1>
+
+                {/* CTA Button */}
+                <div className="opacity-0 animate-fade-up stagger-4">
+                  <Button variant="editorial" size="lg" asChild>
+                    <a href="#contact">
+                      {t("hero.cta")}
+                    </a>
+                  </Button>
                 </div>
-                {/* Decorative elements */}
-                <div className="absolute -bottom-4 -right-4 w-32 h-32 border border-accent/30 rounded-lg -z-10 animate-float animate-pulse-glow" />
-                <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary/50 rounded-lg -z-10 animate-float-slow" />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-fade-in stagger-6">
+          <div className="flex flex-col items-center gap-2 text-foreground/50">
+            <span className="text-xs tracking-widest uppercase">Scroll</span>
+            <div className="w-px h-8 bg-gradient-to-b from-foreground/50 to-transparent" />
+          </div>
+        </div>
+      </section>
+
+      {/* Guided By Section */}
+      <section className="py-20 md:py-28 relative z-10">
+        <div className="container-editorial text-center">
+          <p className="text-caps text-accent mb-4 opacity-0 animate-fade-up">
+            Guided by a desire to...
+          </p>
+          <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl text-foreground leading-tight max-w-3xl mx-auto opacity-0 animate-fade-up stagger-1">
+            awaken curiosity, creativity, and connection.
+          </h2>
+        </div>
       </section>
 
       {/* Image Gallery Strip */}
-      <section className="py-8 bg-muted/30 relative">
+      <section className="py-8 relative z-10">
         {/* Scroll Buttons */}
         <button
           onClick={() => scroll("left")}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 shadow-lg flex items-center justify-center hover:bg-background transition-colors"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
           aria-label={t("gallery.scrollLeft")}
         >
           <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <button
           onClick={() => scroll("right")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-background/90 shadow-lg flex items-center justify-center hover:bg-background transition-colors"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
           aria-label={t("gallery.scrollRight")}
         >
           <ChevronRight className="w-5 h-5 text-foreground" />
@@ -221,19 +211,19 @@ const Index = () => {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide px-4 scroll-smooth"
+          className="flex gap-4 overflow-x-auto scrollbar-hide px-6 scroll-smooth"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {galleryImages.map((img, i) => (
             <div
               key={i}
               onClick={() => setSelectedImage(img)}
-              className="flex-shrink-0 w-48 h-56 rounded-lg overflow-hidden bg-muted/50 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+              className="flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group"
             >
               <img
                 src={img}
                 alt={t("gallery.imageAlt", { number: i + 1 })}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
               />
             </div>
           ))}
@@ -245,7 +235,7 @@ const Index = () => {
         <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-background/90 shadow-lg flex items-center justify-center hover:bg-background transition-colors"
+            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background transition-all duration-300"
             aria-label={t("gallery.close")}
           >
             <X className="w-5 h-5 text-foreground" />
@@ -254,7 +244,7 @@ const Index = () => {
             <img
               src={selectedImage}
               alt="Enlarged gallery image"
-              className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+              className="w-full h-auto max-h-[85vh] object-contain rounded-sm"
             />
           )}
         </DialogContent>
@@ -262,16 +252,18 @@ const Index = () => {
 
       {/* Meet Cristyna Section */}
       <Section id="about">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <div className="image-frame">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          <div className="relative opacity-0 animate-scale-in">
             <img
               src={aboutImage}
               alt="Cristyna Polentino portrait"
-              className="w-full h-auto rounded-lg"
+              className="w-full h-auto rounded-sm grayscale hover:grayscale-0 transition-all duration-700"
             />
+            {/* Decorative frame */}
+            <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
           </div>
 
-          <div>
+          <div className="opacity-0 animate-fade-up stagger-1">
             <SectionHeader
               eyebrow={t("about.eyebrow")}
               title={t("about.title")}
@@ -279,14 +271,14 @@ const Index = () => {
               className="text-left"
             />
 
-            <div className="space-y-4 text-muted-foreground leading-relaxed mb-8">
+            <div className="space-y-5 text-muted-foreground leading-relaxed mb-10">
               <p>{t("about.p1")}</p>
               <p>{t("about.p2")}</p>
               <p>{t("about.p3")}</p>
             </div>
 
             {/* Signature Strengths */}
-            <div className="flex flex-wrap gap-3 mb-8">
+            <div className="flex flex-wrap gap-3 mb-10">
               {[
                 t("about.strengths.presence"),
                 t("about.strengths.discipline"),
@@ -295,7 +287,7 @@ const Index = () => {
               ].map((strength) => (
                 <span
                   key={strength}
-                  className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm border border-accent/20"
+                  className="px-4 py-2 rounded-none bg-secondary/50 text-foreground/80 text-sm border border-border/50"
                 >
                   {strength}
                 </span>
@@ -383,18 +375,18 @@ const Index = () => {
             subtitle={t("contact.subtitle")}
           />
 
-          <div className="mb-8">
+          <div className="mb-10">
             <a
               href="mailto:yourname@email.com"
-              className="font-serif text-2xl text-foreground hover:text-accent transition-colors"
+              className="font-serif text-2xl md:text-3xl text-foreground hover:text-accent transition-colors duration-300"
             >
               yourname@email.com
             </a>
           </div>
 
           {/* Contact Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-left">
-            <div className="grid sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 text-left">
+            <div className="grid sm:grid-cols-2 gap-5">
               <div>
                 <label
                   htmlFor="name"
@@ -406,7 +398,7 @@ const Index = () => {
                   type="text"
                   id="name"
                   {...register("name")}
-                  className={`w-full h-11 px-4 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent ${
+                  className={`w-full h-12 px-4 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent transition-all duration-300 ${
                     errors.name ? "border-destructive" : "border-border"
                   }`}
                   placeholder={t("contact.form.namePlaceholder")}
@@ -426,7 +418,7 @@ const Index = () => {
                   type="email"
                   id="email"
                   {...register("email")}
-                  className={`w-full h-11 px-4 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent ${
+                  className={`w-full h-12 px-4 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent transition-all duration-300 ${
                     errors.email ? "border-destructive" : "border-border"
                   }`}
                   placeholder={t("contact.form.emailPlaceholder")}
@@ -446,8 +438,8 @@ const Index = () => {
               <textarea
                 id="message"
                 {...register("message")}
-                rows={4}
-                className={`w-full px-4 py-3 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none ${
+                rows={5}
+                className={`w-full px-4 py-3 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent resize-none transition-all duration-300 ${
                   errors.message ? "border-destructive" : "border-border"
                 }`}
                 placeholder={t("contact.form.messagePlaceholder")}
@@ -457,7 +449,7 @@ const Index = () => {
               )}
             </div>
             {submitSuccess && (
-              <div className="p-3 rounded-lg bg-green-100 text-green-800 text-sm">
+              <div className="p-4 rounded-none bg-accent/20 border border-accent/50 text-foreground text-sm">
                 {t("contact.form.success") || "Thank you! Your message has been received."}
               </div>
             )}
@@ -472,7 +464,7 @@ const Index = () => {
             </Button>
           </form>
 
-          <p className="text-sm text-muted-foreground mt-6">
+          <p className="text-sm text-muted-foreground mt-8">
             {t("contact.formNote")}
           </p>
         </div>

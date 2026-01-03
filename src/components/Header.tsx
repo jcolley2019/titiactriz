@@ -18,10 +18,9 @@ const Header = () => {
     { name: t("nav.contact"), path: "/#contact" },
   ];
   
-  // Check if on special pages for custom text styling
+  // Check if on special pages for custom styling
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
-  const isSpecialPage = isTitansPage || isGreenWorldPage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,41 +43,29 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
         isScrolled
           ? isTitansPage 
-            ? "bg-titans-dark/95 backdrop-blur-md shadow-soft py-3"
+            ? "bg-titans-dark/98 backdrop-blur-xl py-4"
             : isGreenWorldPage
-              ? "bg-gw-green-dark/95 backdrop-blur-md shadow-soft py-3"
-              : "bg-background/95 backdrop-blur-md shadow-soft py-3"
-          : "bg-transparent py-5"
+              ? "bg-gw-green-dark/98 backdrop-blur-xl py-4"
+              : "bg-background/95 backdrop-blur-xl py-4 border-b border-border/50"
+          : "bg-transparent py-6"
       }`}
     >
       <nav className="container-editorial flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          to="/"
-          className={`font-serif text-xl md:text-2xl tracking-tight transition-colors ${
-            isSpecialPage 
-              ? "text-white hover:text-white/80" 
-              : "text-foreground hover:text-primary"
-          }`}
-        >
-          Cristyna <span className={isTitansPage ? "text-titans-red" : isGreenWorldPage ? "text-gw-white" : "text-accent"}>Polentino</span>
-        </Link>
-
-        {/* Desktop Navigation */}
+        {/* Left Nav */}
         <ul className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {navLinks.slice(0, 3).map((link) => (
             <li key={link.name}>
               {link.path.includes("#") ? (
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className={`text-sm font-medium link-underline transition-colors ${
-                    isSpecialPage 
-                      ? "text-white/80 hover:text-white" 
-                      : "text-muted-foreground hover:text-foreground"
+                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                    isTitansPage || isGreenWorldPage
+                      ? "text-foreground/70 hover:text-foreground" 
+                      : "text-foreground/70 hover:text-foreground"
                   }`}
                 >
                   {link.name}
@@ -86,14 +73,50 @@ const Header = () => {
               ) : (
                 <Link
                   to={link.path}
-                  className={`text-sm font-medium link-underline transition-colors ${
-                    isSpecialPage
-                      ? location.pathname === link.path
-                        ? "text-white"
-                        : "text-white/80 hover:text-white"
-                      : location.pathname === link.path
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
+                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                    location.pathname === link.path
+                      ? "text-foreground"
+                      : "text-foreground/70 hover:text-foreground"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/* Center Logo */}
+        <Link
+          to="/"
+          className="font-serif text-xl md:text-2xl tracking-tight transition-all duration-300 text-foreground hover:text-accent"
+        >
+          Cristyna <span className="text-accent italic">Polentino</span>
+        </Link>
+
+        {/* Right Nav */}
+        <ul className="hidden lg:flex items-center gap-8">
+          {navLinks.slice(3).map((link) => (
+            <li key={link.name}>
+              {link.path.includes("#") ? (
+                <a
+                  href={link.path}
+                  onClick={() => handleNavClick(link.path)}
+                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                    isTitansPage || isGreenWorldPage
+                      ? "text-foreground/70 hover:text-foreground" 
+                      : "text-foreground/70 hover:text-foreground"
+                  }`}
+                >
+                  {link.name}
+                </a>
+              ) : (
+                <Link
+                  to={link.path}
+                  className={`text-sm font-light tracking-wide link-underline transition-all duration-300 ${
+                    location.pathname === link.path
+                      ? "text-foreground"
+                      : "text-foreground/70 hover:text-foreground"
                   }`}
                 >
                   {link.name}
@@ -102,20 +125,16 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <LanguageToggle variant={isSpecialPage ? "light" : "default"} />
+            <LanguageToggle variant="default" />
           </li>
         </ul>
 
         {/* Mobile Menu Button */}
-        <div className="lg:hidden flex items-center gap-2">
-          <LanguageToggle variant={isSpecialPage ? "light" : "default"} />
+        <div className="lg:hidden flex items-center gap-3">
+          <LanguageToggle variant="default" />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`p-2 transition-colors ${
-              isSpecialPage 
-                ? "text-white hover:text-white/80" 
-                : "text-foreground hover:text-primary"
-            }`}
+            className="p-2 text-foreground/80 hover:text-foreground transition-colors"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -125,20 +144,24 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden absolute top-full left-0 right-0 z-50 bg-background shadow-lg border-t border-border transition-all duration-300 ${
+        className={`lg:hidden absolute top-full left-0 right-0 z-50 bg-background/98 backdrop-blur-xl border-t border-border/50 transition-all duration-500 ${
           isMobileMenuOpen
             ? "opacity-100 visible translate-y-0"
             : "opacity-0 invisible -translate-y-4"
         }`}
       >
-        <ul className="container-editorial py-6 space-y-4">
-          {navLinks.map((link) => (
-            <li key={link.name}>
+        <ul className="container-editorial py-8 space-y-4">
+          {navLinks.map((link, index) => (
+            <li 
+              key={link.name}
+              className="opacity-0 animate-fade-up"
+              style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+            >
               {link.path.includes("#") ? (
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className="block py-2 text-lg font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="block py-3 text-xl font-serif text-foreground/70 hover:text-foreground transition-colors"
                 >
                   {link.name}
                 </a>
@@ -146,10 +169,10 @@ const Header = () => {
                 <Link
                   to={link.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block py-2 text-lg font-medium transition-colors ${
+                  className={`block py-3 text-xl font-serif transition-colors ${
                     location.pathname === link.path
                       ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-foreground/70 hover:text-foreground"
                   }`}
                 >
                   {link.name}

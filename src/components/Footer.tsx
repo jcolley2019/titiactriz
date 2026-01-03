@@ -19,31 +19,31 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-foreground text-primary-foreground">
-      <div className="container-editorial py-16">
+    <footer className="relative z-10 border-t border-border/30 bg-background/80 backdrop-blur-sm">
+      <div className="container-editorial py-20">
         {/* Gold accent line */}
-        <div className="gold-line mb-12" />
+        <div className="gold-line mb-16" />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8">
           {/* Brand */}
           <div>
-            <h3 className="font-serif text-2xl mb-4">
-              Cristyna <span className="text-accent">Polentino</span>
+            <h3 className="font-serif text-2xl mb-5">
+              Cristyna <span className="text-accent italic">Polentino</span>
             </h3>
-            <p className="text-primary-foreground/70 text-sm leading-relaxed max-w-xs">
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               {t("footer.description")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-caps text-accent mb-4">{t("footer.quickLinks")}</h4>
-            <ul className="space-y-2">
+            <h4 className="text-caps text-accent mb-6">{t("footer.quickLinks")}</h4>
+            <ul className="space-y-3">
               {footerLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm"
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-300 text-sm link-underline"
                   >
                     {link.name}
                   </Link>
@@ -54,15 +54,15 @@ const Footer = () => {
 
           {/* Connect */}
           <div>
-            <h4 className="text-caps text-accent mb-4">{t("footer.connect")}</h4>
-            <div className="flex gap-4 mb-6">
+            <h4 className="text-caps text-accent mb-6">{t("footer.connect")}</h4>
+            <div className="flex gap-4 mb-8">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border border-primary-foreground/20 flex items-center justify-center text-primary-foreground/70 hover:text-accent hover:border-accent transition-colors"
+                  className="w-11 h-11 border border-border/50 flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent transition-all duration-300"
                   aria-label={social.name}
                 >
                   <SocialIcon name={social.icon} />
@@ -71,7 +71,7 @@ const Footer = () => {
             </div>
             <a
               href="mailto:yourname@email.com"
-              className="text-sm text-primary-foreground/70 hover:text-accent transition-colors"
+              className="text-sm text-muted-foreground hover:text-accent transition-colors duration-300 link-underline"
             >
               yourname@email.com
             </a>
@@ -79,11 +79,11 @@ const Footer = () => {
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-primary-foreground/50">
+        <div className="mt-16 pt-8 border-t border-border/20 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-muted-foreground/70">
             {t("footer.copyright", { year: currentYear })}
           </p>
-          <p className="text-xs text-primary-foreground/50">
+          <p className="text-xs text-muted-foreground/70">
             {t("footer.madeWith")}
           </p>
         </div>

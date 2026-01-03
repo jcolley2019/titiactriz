@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["'Playfair Display'", "Georgia", "serif"],
-        sans: ["'DM Sans'", "system-ui", "sans-serif"],
+        serif: ["'Cormorant Garamond'", "Georgia", "serif"],
+        sans: ["'Outfit'", "system-ui", "sans-serif"],
         titans: ["'Anton'", "Impact", "sans-serif"],
         'titans-script': ["'Caveat'", "cursive"],
       },
@@ -74,14 +74,14 @@ export default {
           DEFAULT: "hsl(var(--charcoal))",
           light: "hsl(var(--charcoal-light))",
         },
-        blush: {
-          DEFAULT: "hsl(var(--blush))",
-          deep: "hsl(var(--blush-deep))",
-        },
         gold: {
           DEFAULT: "hsl(var(--gold))",
           light: "hsl(var(--gold-light))",
           dark: "hsl(var(--gold-dark))",
+        },
+        highlight: {
+          DEFAULT: "hsl(var(--highlight))",
+          bg: "hsl(var(--highlight-bg))",
         },
         // Titans Agency brand colors
         titans: {
@@ -108,6 +108,7 @@ export default {
         soft: "var(--shadow-soft)",
         card: "var(--shadow-card)",
         elevated: "var(--shadow-elevated)",
+        glow: "var(--shadow-glow)",
       },
       keyframes: {
         "accordion-down": {
@@ -119,7 +120,7 @@ export default {
           to: { height: "0" },
         },
         fadeUp: {
-          from: { opacity: "0", transform: "translateY(20px)" },
+          from: { opacity: "0", transform: "translateY(30px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
         fadeIn: {
@@ -127,8 +128,12 @@ export default {
           to: { opacity: "1" },
         },
         scaleIn: {
-          from: { opacity: "0", transform: "scale(0.95)" },
+          from: { opacity: "0", transform: "scale(0.92)" },
           to: { opacity: "1", transform: "scale(1)" },
+        },
+        slideUp: {
+          from: { opacity: "0", transform: "translateY(60px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
@@ -136,23 +141,33 @@ export default {
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-8px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-15px)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 8px hsl(var(--accent) / 0.2)" },
-          "50%": { boxShadow: "0 0 20px hsl(var(--accent) / 0.4)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--accent) / 0.1)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--accent) / 0.25)" },
+        },
+        twinkle: {
+          "0%, 100%": { opacity: "0.2", transform: "scale(1)" },
+          "50%": { opacity: "0.6", transform: "scale(1.2)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-up": "fadeUp 0.6s ease-out forwards",
-        "fade-in": "fadeIn 0.5s ease-out forwards",
-        "scale-in": "scaleIn 0.4s ease-out forwards",
+        "fade-up": "fadeUp 0.8s ease-out forwards",
+        "fade-in": "fadeIn 0.6s ease-out forwards",
+        "scale-in": "scaleIn 0.5s ease-out forwards",
+        "slide-up": "slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         shimmer: "shimmer 2s linear infinite",
-        float: "float 3s ease-in-out infinite",
-        "float-slow": "float-slow 4s ease-in-out infinite",
-        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        float: "float 4s ease-in-out infinite",
+        "float-slow": "float-slow 5s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 4s ease-in-out infinite",
+        twinkle: "twinkle 4s ease-in-out infinite",
       },
     },
   },

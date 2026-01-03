@@ -5,38 +5,41 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-card rounded-lg",
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-card rounded-sm",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-sm",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-sm",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg",
-        ghost: "hover:bg-accent hover:text-accent-foreground rounded-lg",
-        link: "text-primary underline-offset-4 hover:underline",
-        // Custom editorial variants
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-sm",
+        ghost: "hover:bg-accent/10 hover:text-accent-foreground rounded-sm",
+        link: "text-accent underline-offset-4 hover:underline",
+        // Cosmic editorial variants
         editorial:
-          "bg-foreground text-background hover:bg-foreground/90 shadow-soft hover:shadow-card hover:scale-[1.02] rounded-lg",
+          "bg-cream text-charcoal hover:bg-cream/90 shadow-card hover:shadow-elevated tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
         "editorial-outline":
-          "border-2 border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background hover:scale-[1.02] rounded-lg",
-        gold: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-soft hover:shadow-lg hover:shadow-accent/20 hover:scale-[1.02] rounded-lg",
+          "border border-foreground/30 bg-transparent text-foreground hover:bg-foreground/5 hover:border-foreground/50 tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
+        gold: 
+          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-soft hover:shadow-glow tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
         "gold-outline":
-          "border border-accent bg-transparent text-accent hover:bg-accent hover:text-accent-foreground hover:shadow-lg hover:shadow-accent/25 hover:scale-[1.02] rounded-lg",
+          "border border-accent/50 bg-transparent text-accent hover:bg-accent/10 hover:border-accent tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
+        cosmic:
+          "relative bg-transparent border border-foreground/20 text-foreground hover:border-accent hover:text-accent tracking-[0.2em] uppercase text-xs font-sans font-medium rounded-none overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-accent/10 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700",
         blush:
-          "bg-secondary text-foreground hover:bg-blush-deep shadow-soft rounded-lg",
+          "bg-secondary text-foreground hover:bg-secondary/80 shadow-soft rounded-sm",
         subtle:
-          "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground rounded-lg",
+          "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground rounded-sm",
       },
       size: {
-        default: "h-11 px-6 py-2",
-        sm: "h-9 px-4 text-xs",
-        lg: "h-12 px-8 py-3 text-base",
-        xl: "h-14 px-10 py-4 text-base font-semibold",
+        default: "h-12 px-8 py-3",
+        sm: "h-10 px-5 text-xs",
+        lg: "h-14 px-10 py-4",
+        xl: "h-16 px-12 py-5 text-sm",
         icon: "h-10 w-10",
       },
     },
