@@ -162,15 +162,17 @@ const Index = () => {
             
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
+              {/* Roles - smaller text above */}
+              <p className="text-sm md:text-base tracking-[0.15em] uppercase text-muted-foreground mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.1s_forwards]">
+                {t("hero.roles")}
+              </p>
+              
               {/* Main headline */}
               <h1 
-                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.2s_forwards]"
+                className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-foreground leading-[1.15] mb-8 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
                 <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
                   {t("hero.headline")}
-                </span>
-                <span className="block mt-4 text-foreground/90">
-                  {t("hero.subheadline")}
                 </span>
               </h1>
 
