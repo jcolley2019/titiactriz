@@ -25,6 +25,7 @@ import titi5Image from "@/assets/cristyna-titi5.jpg";
 import miami1Image from "@/assets/cristyna-miami1.jpg";
 import miami3Image from "@/assets/cristyna-miami3.jpg";
 import miami2Image from "@/assets/cristyna-miami2.jpg";
+import miami4Image from "@/assets/cristyna-miami4.jpg";
 import gallery1Image from "@/assets/cristyna-gallery1.jpg";
 import gallery2Image from "@/assets/cristyna-gallery2.jpg";
 import gallery3Image from "@/assets/cristyna-gallery3.jpg";
@@ -37,7 +38,7 @@ import gallery9Image from "@/assets/cristyna-gallery9.jpg";
 import gallery10Image from "@/assets/cristyna-gallery10.jpg";
 
 const galleryImages = [
-  titi5Image, sunsetImage, lifestyleImage, 
+  miami4Image, titi5Image, sunsetImage, lifestyleImage, 
   poolImage, titi3Image, miami1Image, miami3Image,
   gallery1Image, gallery2Image, gallery3Image, gallery4Image,
   gallery5Image, gallery6Image, gallery7Image, miami2Image,
