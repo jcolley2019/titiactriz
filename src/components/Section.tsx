@@ -1,11 +1,15 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import ScrollReveal from "./ScrollReveal";
 
 interface SectionProps {
   children: ReactNode;
   className?: string;
   id?: string;
   background?: "default" | "muted" | "accent";
+  animate?: boolean;
+  animationDirection?: "up" | "down" | "left" | "right" | "none";
+  animationDelay?: number;
 }
 
 const Section = ({
@@ -13,6 +17,9 @@ const Section = ({
   className,
   id,
   background = "default",
+  animate = true,
+  animationDirection = "up",
+  animationDelay = 0,
 }: SectionProps) => {
   const bgClasses = {
     default: "bg-transparent",
@@ -20,13 +27,23 @@ const Section = ({
     accent: "bg-muted/50",
   };
 
-  return (
+  const content = (
     <section
       id={id}
       className={cn("section-padding relative z-10", bgClasses[background], className)}
     >
       <div className="container-editorial">{children}</div>
     </section>
+  );
+
+  if (!animate) {
+    return content;
+  }
+
+  return (
+    <ScrollReveal direction={animationDirection} delay={animationDelay}>
+      {content}
+    </ScrollReveal>
   );
 };
 
@@ -36,6 +53,7 @@ interface SectionHeaderProps {
   subtitle?: string;
   centered?: boolean;
   className?: string;
+  animate?: boolean;
 }
 
 const SectionHeader = ({
@@ -44,8 +62,9 @@ const SectionHeader = ({
   subtitle,
   centered = true,
   className,
+  animate = true,
 }: SectionHeaderProps) => {
-  return (
+  const content = (
     <div
       className={cn(
         "mb-16 md:mb-20",
@@ -66,6 +85,16 @@ const SectionHeader = ({
       )}
       <div className="gold-line max-w-24 mx-auto mt-8" />
     </div>
+  );
+
+  if (!animate) {
+    return content;
+  }
+
+  return (
+    <ScrollReveal direction="up" delay={0.1}>
+      {content}
+    </ScrollReveal>
   );
 };
 
