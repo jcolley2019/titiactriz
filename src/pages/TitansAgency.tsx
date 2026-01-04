@@ -516,7 +516,7 @@ const TitansAgency = () => {
             
             <div className="flex items-center gap-2 text-white/70 text-sm">
               <TikTokIcon className="w-5 h-5" />
-              <span>TikTok Creator</span>
+              <span>{t("common.tiktokCreator")}</span>
             </div>
             
             <div className="mt-4 pt-4 border-t border-white/10 space-y-2 text-white/60 text-sm">

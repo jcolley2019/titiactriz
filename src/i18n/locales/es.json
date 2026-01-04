@@ -1,4 +1,12 @@
 {
+  "common": {
+    "scroll": "Desplazar",
+    "view": "Ver",
+    "previousImage": "Imagen anterior",
+    "nextImage": "Siguiente imagen",
+    "enlargedGalleryImage": "Imagen ampliada de galería",
+    "tiktokCreator": "Creador de TikTok"
+  },
   "nav": {
     "home": "Inicio",
     "titansAgency": "Titans Agency Latam",
@@ -9,7 +17,20 @@
   },
   "hero": {
     "headline": "Creando impacto a través de presencia, actuación y propósito.",
-    "roles": "Actriz Colombiana | Bailarina Profesional | Emprendedora | Streamer de TikTok",
+    "description": "Dando vida a historias a través del movimiento y la emoción. Cada rol es un viaje, cada actuación una conexión.",
+    "roles": {
+      "actress": "Actriz Colombiana",
+      "dancer": "Bailarina Profesional",
+      "entrepreneur": "Emprendedora",
+      "streamer": "Streamer de TikTok"
+    },
+    "buttons": {
+      "titans": "Titans Agency",
+      "greenWorld": "Green World",
+      "portfolio": "Portafolio"
+    },
+    "guidedBy": "Guiada por el deseo de...",
+    "guidedByText": "despertar curiosidad, creatividad y conexión.",
     "cta": "Trabaja con Cristyna"
   },
   "about": {
@@ -89,6 +110,8 @@
     "madeWith": "Hecho con pasión en Colombia"
   },
   "gallery": {
+    "eyebrow": "Un vistazo a",
+    "title": "Momentos y Recuerdos",
     "scrollLeft": "Desplazar izquierda",
     "scrollRight": "Desplazar derecha",
     "close": "Cerrar",

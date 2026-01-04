@@ -1,4 +1,12 @@
 {
+  "common": {
+    "scroll": "Scroll",
+    "view": "View",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "enlargedGalleryImage": "Enlarged gallery image",
+    "tiktokCreator": "TikTok Creator"
+  },
   "nav": {
     "home": "Home",
     "titansAgency": "Titans Agency Latam",
@@ -9,7 +17,20 @@
   },
   "hero": {
     "headline": "Creating impact through presence, performance, and purpose.",
-    "roles": "Colombian Actress | Professional Dancer | Entrepreneur | TikTok Streamer",
+    "description": "Bringing stories to life through movement and emotion. Every role is a journey, every performance a connection.",
+    "roles": {
+      "actress": "Colombian Actress",
+      "dancer": "Professional Dancer",
+      "entrepreneur": "Entrepreneur",
+      "streamer": "TikTok Streamer"
+    },
+    "buttons": {
+      "titans": "Titans Agency",
+      "greenWorld": "Green World",
+      "portfolio": "Portfolio"
+    },
+    "guidedBy": "Guided by a desire to...",
+    "guidedByText": "awaken curiosity, creativity, and connection.",
     "cta": "Work With Cristyna"
   },
   "about": {
@@ -89,6 +110,8 @@
     "madeWith": "Made with passion in Colombia"
   },
   "gallery": {
+    "eyebrow": "A glimpse into",
+    "title": "Moments & Memories",
     "scrollLeft": "Scroll left",
     "scrollRight": "Scroll right",
     "close": "Close",
