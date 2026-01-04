@@ -11,6 +11,7 @@ import { Section, SectionHeader } from "@/components/Section";
 import { FeatureCard, LinkCard } from "@/components/Cards";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
+import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
 
 // Images
 import heroImage from "@/assets/cristyna-hero.jpg";
@@ -250,34 +251,41 @@ const Index = () => {
       {/* Guided By Section */}
       <section className="py-20 md:py-28 relative z-10">
         <div className="container-editorial text-center">
-          <p className="text-caps text-accent mb-4 opacity-0 animate-fade-up">
-            {t("hero.guidedBy")}
-          </p>
-          <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl text-foreground leading-tight max-w-3xl mx-auto opacity-0 animate-fade-up stagger-1">
-            {t("hero.guidedByText")}
-          </h2>
+          <ScrollReveal>
+            <p className="text-caps text-accent mb-4">
+              {t("hero.guidedBy")}
+            </p>
+          </ScrollReveal>
+          <ScrollReveal delay={0.15}>
+            <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl text-foreground leading-tight max-w-3xl mx-auto">
+              {t("hero.guidedByText")}
+            </h2>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Meet Cristyna Section */}
-      <Section id="about">
+      <Section id="about" animate={false}>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-          <div className="relative opacity-0 animate-scale-in">
-            <img
-              src={aboutImage}
-              alt="Cristyna Polentino portrait"
-              className="w-full h-auto rounded-sm animate-color-reveal hover:grayscale-0 transition-all duration-700"
-            />
-            {/* Decorative frame */}
-            <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
-          </div>
+          <ScrollReveal direction="left">
+            <div className="relative">
+              <img
+                src={aboutImage}
+                alt="Cristyna Polentino portrait"
+                className="w-full h-auto rounded-sm animate-color-reveal hover:grayscale-0 transition-all duration-700"
+              />
+              {/* Decorative frame */}
+              <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
+            </div>
+          </ScrollReveal>
 
-          <div className="opacity-0 animate-fade-up stagger-1">
+          <ScrollReveal direction="right" delay={0.1}>
             <SectionHeader
               eyebrow={t("about.eyebrow")}
               title={t("about.title")}
               centered={false}
               className="text-left"
+              animate={false}
             />
 
             <div className="space-y-5 text-muted-foreground leading-relaxed mb-10">
@@ -309,17 +317,17 @@ const Index = () => {
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
-          </div>
+          </ScrollReveal>
         </div>
       </Section>
 
       {/* Image Gallery Strip */}
       <section className="py-16 relative z-10">
         {/* Section Header */}
-        <div className="container-editorial text-center mb-10">
+        <ScrollReveal className="container-editorial text-center mb-10">
           <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
           <h2 className="font-serif text-3xl md:text-4xl text-foreground">{t("gallery.title")}</h2>
-        </div>
+        </ScrollReveal>
 
         {/* Scroll Buttons */}
         <button
@@ -435,28 +443,36 @@ const Index = () => {
           subtitle={t("strengths.subtitle")}
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <FeatureCard
-            icon={<Sparkles className="w-6 h-6" />}
-            title={t("strengths.presence.title")}
-            description={t("strengths.presence.description")}
-          />
-          <FeatureCard
-            icon={<Heart className="w-6 h-6" />}
-            title={t("strengths.creativity.title")}
-            description={t("strengths.creativity.description")}
-          />
-          <FeatureCard
-            icon={<Target className="w-6 h-6" />}
-            title={t("strengths.discipline.title")}
-            description={t("strengths.discipline.description")}
-          />
-          <FeatureCard
-            icon={<Zap className="w-6 h-6" />}
-            title={t("strengths.adaptability.title")}
-            description={t("strengths.adaptability.description")}
-          />
-        </div>
+        <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerItem>
+            <FeatureCard
+              icon={<Sparkles className="w-6 h-6" />}
+              title={t("strengths.presence.title")}
+              description={t("strengths.presence.description")}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <FeatureCard
+              icon={<Heart className="w-6 h-6" />}
+              title={t("strengths.creativity.title")}
+              description={t("strengths.creativity.description")}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <FeatureCard
+              icon={<Target className="w-6 h-6" />}
+              title={t("strengths.discipline.title")}
+              description={t("strengths.discipline.description")}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <FeatureCard
+              icon={<Zap className="w-6 h-6" />}
+              title={t("strengths.adaptability.title")}
+              description={t("strengths.adaptability.description")}
+            />
+          </StaggerItem>
+        </StaggerContainer>
       </Section>
 
       {/* Featured Links Section */}
@@ -467,29 +483,35 @@ const Index = () => {
           subtitle={t("featured.subtitle")}
         />
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <LinkCard
-            title={t("featured.titans.title")}
-            description={t("featured.titans.description")}
-            href="/titans-agency"
-            image={titansLogo}
-            imageBackground="white"
-          />
-          <LinkCard
-            title={t("featured.greenWorld.title")}
-            description={t("featured.greenWorld.description")}
-            href="/green-world"
-            image={greenworldLogo}
-            imageBackground="white"
-          />
-          <LinkCard
-            title={t("featured.work.title")}
-            description={t("featured.work.description")}
-            href="/work"
-            image={danceImage}
-            imageFit="cover"
-          />
-        </div>
+        <StaggerContainer className="grid md:grid-cols-3 gap-8">
+          <StaggerItem>
+            <LinkCard
+              title={t("featured.titans.title")}
+              description={t("featured.titans.description")}
+              href="/titans-agency"
+              image={titansLogo}
+              imageBackground="white"
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <LinkCard
+              title={t("featured.greenWorld.title")}
+              description={t("featured.greenWorld.description")}
+              href="/green-world"
+              image={greenworldLogo}
+              imageBackground="white"
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <LinkCard
+              title={t("featured.work.title")}
+              description={t("featured.work.description")}
+              href="/work"
+              image={danceImage}
+              imageFit="cover"
+            />
+          </StaggerItem>
+        </StaggerContainer>
       </Section>
 
       {/* Contact Section */}
