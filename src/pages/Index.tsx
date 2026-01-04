@@ -186,32 +186,32 @@ const Index = () => {
               
               {/* Description text */}
               <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-10 max-w-md opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]">
-                Bringing stories to life through movement and emotion. Every role is a journey, every performance a connection.
+                {t("hero.description")}
               </p>
               
               {/* Roles - centered below headline */}
               <p className="text-[10px] sm:text-xs md:text-sm tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase text-muted-foreground text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
                 <span className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
-                  <span>Colombian Actress</span>
+                  <span>{t("hero.roles.actress")}</span>
                   <span className="text-accent">|</span>
-                  <span>Professional Dancer</span>
+                  <span>{t("hero.roles.dancer")}</span>
                   <span className="text-accent">|</span>
-                  <span>Entrepreneur</span>
+                  <span>{t("hero.roles.entrepreneur")}</span>
                   <span className="text-accent">|</span>
-                  <span>TikTok Streamer</span>
+                  <span>{t("hero.roles.streamer")}</span>
                 </span>
               </p>
 
               {/* Quick Link Buttons */}
               <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-8 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
-                  <Link to="/titans-agency">Titans Agency</Link>
+                  <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
                 </Button>
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
-                  <Link to="/green-world">Green World</Link>
+                  <Link to="/green-world">{t("hero.buttons.greenWorld")}</Link>
                 </Button>
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-foreground" asChild>
-                  <Link to="/work">Portfolio</Link>
+                  <Link to="/work">{t("hero.buttons.portfolio")}</Link>
                 </Button>
               </div>
             </div>
@@ -241,7 +241,7 @@ const Index = () => {
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
           <div className="flex flex-col items-center gap-2 text-foreground/50 hover:text-accent transition-colors duration-300">
-            <span className="text-xs tracking-[0.2em] uppercase">Scroll</span>
+            <span className="text-xs tracking-[0.2em] uppercase">{t("common.scroll")}</span>
             <div className="w-px h-10 bg-gradient-to-b from-foreground/50 to-transparent animate-[pulse_2s_ease-in-out_infinite]" />
           </div>
         </div>
@@ -251,10 +251,10 @@ const Index = () => {
       <section className="py-20 md:py-28 relative z-10">
         <div className="container-editorial text-center">
           <p className="text-caps text-accent mb-4 opacity-0 animate-fade-up">
-            Guided by a desire to...
+            {t("hero.guidedBy")}
           </p>
           <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl text-foreground leading-tight max-w-3xl mx-auto opacity-0 animate-fade-up stagger-1">
-            awaken curiosity, creativity, and connection.
+            {t("hero.guidedByText")}
           </h2>
         </div>
       </section>
@@ -317,8 +317,8 @@ const Index = () => {
       <section className="py-16 relative z-10">
         {/* Section Header */}
         <div className="container-editorial text-center mb-10">
-          <p className="text-caps text-accent mb-4">{t("gallery.eyebrow", "A glimpse into")}</p>
-          <h2 className="font-serif text-3xl md:text-4xl text-foreground">{t("gallery.title", "Moments & Memories")}</h2>
+          <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
+          <h2 className="font-serif text-3xl md:text-4xl text-foreground">{t("gallery.title")}</h2>
         </div>
 
         {/* Scroll Buttons */}
@@ -372,7 +372,7 @@ const Index = () => {
               {/* View indicator */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
                 <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
-                  View
+                  {t("common.view")}
                 </span>
               </div>
             </div>
@@ -396,7 +396,7 @@ const Index = () => {
           <button
             onClick={() => navigateLightbox('prev')}
             className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
-            aria-label="Previous image"
+            aria-label={t("common.previousImage")}
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
@@ -405,7 +405,7 @@ const Index = () => {
           <button
             onClick={() => navigateLightbox('next')}
             className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
-            aria-label="Next image"
+            aria-label={t("common.nextImage")}
           >
             <ChevronRight className="w-5 h-5 text-foreground" />
           </button>
@@ -413,7 +413,7 @@ const Index = () => {
           {selectedImage && (
             <img
               src={selectedImage}
-              alt="Enlarged gallery image"
+              alt={t("common.enlargedGalleryImage")}
               className="w-full h-auto max-h-[85vh] object-contain rounded-sm animate-[fadeIn_0.3s_ease-out]"
             />
           )}
