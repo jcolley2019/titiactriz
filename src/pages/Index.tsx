@@ -206,13 +206,13 @@ const Index = () => {
 
               {/* Quick Link Buttons */}
               <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-8 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
-                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-accent/70 hover:text-gold-light hover:shadow-glow" asChild>
+                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
                 </Button>
-                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-accent/70 hover:text-gold-light hover:shadow-glow" asChild>
+                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <Link to="/green-world">{t("hero.buttons.greenWorld")}</Link>
                 </Button>
-                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-foreground/40 hover:border-accent/70 hover:text-gold-light hover:shadow-glow" asChild>
+                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <Link to="/work">{t("hero.buttons.portfolio")}</Link>
                 </Button>
               </div>
