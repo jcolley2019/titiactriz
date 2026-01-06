@@ -18,6 +18,7 @@ import heroImage from "@/assets/cristyna-hero.jpg";
 import aboutImage from "@/assets/cristyna-meet.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
 import titansLogo from "@/assets/titans-logo.png";
+import titansLogoRed from "@/assets/titans-logo-red.png";
 import greenworldLogo from "@/assets/greenworld-logo-hd.png";
 import sunsetImage from "@/assets/cristyna-sunset.jpg";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
@@ -451,6 +452,7 @@ const Index = () => {
               description={t("featured.titans.description")}
               href="/titans-agency"
               image={titansLogo}
+              hoverImage={titansLogoRed}
               imageBackground="white"
               hoverColor="red"
             />
