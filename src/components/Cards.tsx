@@ -36,6 +36,7 @@ interface LinkCardProps {
   description: string;
   href: string;
   image?: string;
+  hoverImage?: string;
   external?: boolean;
   className?: string;
   imageBackground?: "transparent" | "white";
@@ -48,6 +49,7 @@ const LinkCard = ({
   description,
   href,
   image,
+  hoverImage,
   external = false,
   className,
   imageBackground = "transparent",
@@ -68,21 +70,34 @@ const LinkCard = ({
     >
       {image && (
         <div className={cn(
-          "aspect-[16/10] overflow-hidden flex items-center justify-center",
+          "aspect-[16/10] overflow-hidden flex items-center justify-center relative",
           imageBackground === "white" ? "bg-white" : "bg-background/50",
           imageFit === "contain" && "p-6"
         )}>
+          {/* Default image */}
           <img
             src={image}
             alt={title}
             className={cn(
               "w-full h-full transition-all duration-700 group-hover:scale-110",
               imageFit === "cover" ? "object-cover" : "object-contain",
-              isRed 
-                ? "grayscale group-hover:grayscale-0" 
+              hoverImage 
+                ? "group-hover:opacity-0" 
                 : "grayscale group-hover:grayscale-0"
             )}
           />
+          {/* Hover image (if provided) */}
+          {hoverImage && (
+            <img
+              src={hoverImage}
+              alt={title}
+              className={cn(
+                "absolute inset-0 w-full h-full transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-110",
+                imageFit === "cover" ? "object-cover" : "object-contain",
+                imageFit === "contain" && "p-6"
+              )}
+            />
+          )}
         </div>
       )}
       <div className="p-6">
