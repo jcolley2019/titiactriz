@@ -357,7 +357,7 @@ const Index = () => {
               ref={(el) => (imageRefs.current[i] = el)}
               data-index={i}
               onClick={() => handleImageClick(img, i)}
-              className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-amber-400/30 ${
+              className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30 ${
                 visibleImages.has(i) 
                   ? 'opacity-100 translate-y-0' 
                   : 'opacity-0 translate-y-8'
@@ -368,10 +368,10 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
               
               {/* Gold border glow effect */}
-              <div className="absolute inset-0 rounded-sm border-2 border-amber-400/0 group-hover:border-amber-400/50 transition-all duration-500 z-20" />
+              <div className="absolute inset-0 rounded-sm border-2 border-accent/0 group-hover:border-accent/50 transition-all duration-500 z-20" />
               
               {/* Gold bar at bottom on hover */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400/80 via-amber-300 to-amber-400/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-30" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/80 via-gold-light to-accent/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-30" />
               
               {/* Image with creative hover effects */}
               <img
@@ -383,7 +383,7 @@ const Index = () => {
               
               {/* View indicator */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
-                <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-amber-400/30">
+                <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
                   {t("common.view")}
                 </span>
               </div>

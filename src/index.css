@@ -241,13 +241,13 @@
     font-family: var(--font-sans);
   }
 
-  /* Gold hover effect utilities */
+  /* Gold hover effect utilities - using design system muted gold */
   .hover-gold {
     @apply transition-colors duration-300;
   }
 
   .hover-gold:hover {
-    color: #fbbf24; /* amber-400 */
+    color: hsl(var(--gold-light));
   }
 
   .hover-gold-border {
@@ -255,7 +255,7 @@
   }
 
   .hover-gold-border:hover {
-    border-color: rgba(251, 191, 36, 0.5); /* amber-400/50 */
+    border-color: hsl(var(--accent) / 0.5);
   }
 
   .hover-gold-glow {
@@ -263,9 +263,9 @@
   }
 
   .hover-gold-glow:hover {
-    color: #fbbf24;
-    border-color: rgba(251, 191, 36, 0.5);
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+    color: hsl(var(--gold-light));
+    border-color: hsl(var(--accent) / 0.5);
+    box-shadow: 0 0 15px hsl(var(--accent) / 0.2);
   }
 
   .hover-gold-full {
@@ -273,9 +273,9 @@
   }
 
   .hover-gold-full:hover {
-    color: #fbbf24;
-    border-color: rgba(251, 191, 36, 0.7);
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
+    color: hsl(var(--gold-light));
+    border-color: hsl(var(--accent) / 0.7);
+    box-shadow: 0 0 15px hsl(var(--accent) / 0.15);
   }
 
   /* Gradient text */
