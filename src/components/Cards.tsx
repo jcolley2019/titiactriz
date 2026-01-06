@@ -73,9 +73,9 @@ const LinkCard = ({
     >
       {image && (
         <div className={cn(
-          "aspect-[16/10] overflow-hidden flex items-center justify-center relative",
+          "aspect-[4/3] overflow-hidden flex items-center justify-center relative",
           imageBackground === "white" ? "bg-white" : "bg-background/50",
-          imageFit === "contain" && "p-6"
+          imageFit === "contain" && "p-8"
         )}>
           {/* Default image */}
           <img
