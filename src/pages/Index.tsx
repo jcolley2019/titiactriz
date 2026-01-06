@@ -367,8 +367,8 @@ const Index = () => {
               {/* Gradient overlay on hover */}
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
               
-              {/* Accent border glow effect */}
-              <div className="absolute inset-0 rounded-sm border-2 border-accent/0 group-hover:border-accent/60 transition-all duration-500 z-20 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]" />
+              {/* Gold border glow effect */}
+              <div className="absolute inset-0 rounded-sm border-2 border-amber-400/0 group-hover:border-amber-400/60 transition-all duration-500 z-20 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)]" />
               
               {/* Image with creative hover effects */}
               <img
@@ -380,7 +380,7 @@ const Index = () => {
               
               {/* View indicator */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
-                <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
+                <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-amber-400/30">
                   {t("common.view")}
                 </span>
               </div>
