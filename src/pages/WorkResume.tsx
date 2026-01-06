@@ -1,8 +1,10 @@
 import { Helmet } from "react-helmet-async";
-import { Download, ExternalLink, Play, Mail } from "lucide-react";
+import { Download, ExternalLink, Play, Mail, Sparkles, Heart, Target, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
+import { FeatureCard } from "@/components/Cards";
+import { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
 
 import actingImage from "@/assets/cristyna-acting-headshot.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
@@ -91,6 +93,46 @@ const WorkResume = () => {
           </div>
         </div>
       </section>
+
+      {/* What I Bring Section */}
+      <Section background="muted">
+        <SectionHeader
+          eyebrow={t("strengths.eyebrow")}
+          title={t("strengths.title")}
+          subtitle={t("strengths.subtitle")}
+        />
+
+        <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerItem>
+            <FeatureCard
+              icon={<Sparkles className="w-6 h-6" />}
+              title={t("strengths.presence.title")}
+              description={t("strengths.presence.description")}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <FeatureCard
+              icon={<Heart className="w-6 h-6" />}
+              title={t("strengths.creativity.title")}
+              description={t("strengths.creativity.description")}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <FeatureCard
+              icon={<Target className="w-6 h-6" />}
+              title={t("strengths.discipline.title")}
+              description={t("strengths.discipline.description")}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <FeatureCard
+              icon={<Zap className="w-6 h-6" />}
+              title={t("strengths.adaptability.title")}
+              description={t("strengths.adaptability.description")}
+            />
+          </StaggerItem>
+        </StaggerContainer>
+      </Section>
 
       {/* Professional Dance Section */}
       <Section background="muted">
