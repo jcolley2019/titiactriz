@@ -62,7 +62,7 @@ const LinkCard = ({
   const CardContent = () => (
     <div
       className={cn(
-        "group relative overflow-hidden bg-secondary/30 border border-border/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl",
+        "group relative h-full flex flex-col overflow-hidden bg-secondary/30 border border-border/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl",
         isRed 
           ? "hover:border-red-500/50 hover:shadow-red-500/20" 
           : isGreen
@@ -103,7 +103,7 @@ const LinkCard = ({
           )}
         </div>
       )}
-      <div className="p-6 pt-4">
+      <div className="p-6 pt-4 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <h3 className={cn(
             "font-serif text-xl text-foreground transition-colors duration-300",
@@ -114,7 +114,7 @@ const LinkCard = ({
             isRed ? "text-red-500" : isGreen ? "text-green-500" : "text-accent"
           )} />
         </div>
-        <p className="text-muted-foreground text-base leading-relaxed">{description}</p>
+        <p className="text-muted-foreground text-base leading-relaxed flex-1">{description}</p>
       </div>
       {/* Accent line on hover */}
       <div className={cn(
@@ -126,14 +126,14 @@ const LinkCard = ({
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer">
+      <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">
         <CardContent />
       </a>
     );
   }
 
   return (
-    <Link to={href}>
+    <Link to={href} className="block h-full">
       <CardContent />
     </Link>
   );
