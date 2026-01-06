@@ -41,7 +41,7 @@ interface LinkCardProps {
   className?: string;
   imageBackground?: "transparent" | "white";
   imageFit?: "contain" | "cover";
-  hoverColor?: "accent" | "red" | "green";
+  hoverColor?: "accent" | "red" | "green" | "gold";
 }
 
 const LinkCard = ({
@@ -58,6 +58,7 @@ const LinkCard = ({
 }: LinkCardProps) => {
   const isRed = hoverColor === "red";
   const isGreen = hoverColor === "green";
+  const isGold = hoverColor === "gold";
   
   const CardContent = () => (
     <div
@@ -67,6 +68,8 @@ const LinkCard = ({
           ? "hover:border-red-500/50 hover:shadow-red-500/20" 
           : isGreen
           ? "hover:border-green-500/50 hover:shadow-green-500/20"
+          : isGold
+          ? "hover:border-amber-400/50 hover:shadow-amber-400/20"
           : "hover:border-accent/30 hover:shadow-accent/20",
         className
       )}
@@ -107,11 +110,11 @@ const LinkCard = ({
         <div className="flex items-center justify-between mb-2">
           <h3 className={cn(
             "font-serif text-xl text-foreground transition-colors duration-300",
-            isRed ? "group-hover:text-red-500" : isGreen ? "group-hover:text-green-500" : "group-hover:text-accent"
+            isRed ? "group-hover:text-red-500" : isGreen ? "group-hover:text-green-500" : isGold ? "group-hover:text-amber-400" : "group-hover:text-accent"
           )}>{title}</h3>
           <ArrowRight className={cn(
             "w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300",
-            isRed ? "text-red-500" : isGreen ? "text-green-500" : "text-accent"
+            isRed ? "text-red-500" : isGreen ? "text-green-500" : isGold ? "text-amber-400" : "text-accent"
           )} />
         </div>
         <p className="text-muted-foreground text-base leading-relaxed flex-1">{description}</p>
@@ -119,7 +122,7 @@ const LinkCard = ({
       {/* Accent line on hover */}
       <div className={cn(
         "absolute bottom-0 left-0 right-0 h-1 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left",
-        isRed ? "bg-red-500" : isGreen ? "bg-green-500" : "bg-accent"
+        isRed ? "bg-red-500" : isGreen ? "bg-green-500" : isGold ? "bg-amber-400" : "bg-accent"
       )} />
     </div>
   );
