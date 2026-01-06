@@ -474,6 +474,7 @@ const Index = () => {
               href="/work"
               image={danceImage}
               imageFit="cover"
+              hoverColor="green"
             />
           </StaggerItem>
         </StaggerContainer>
