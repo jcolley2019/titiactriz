@@ -65,8 +65,8 @@ const Header = () => {
                   onClick={() => handleNavClick(link.path)}
                   className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     isTitansPage || isGreenWorldPage
-                      ? "text-foreground/80 hover:text-foreground" 
-                      : "text-foreground/80 hover:text-foreground"
+                      ? "text-foreground/80 hover:text-amber-400" 
+                      : "text-foreground/80 hover:text-amber-400"
                   }`}
                 >
                   {link.name}
@@ -76,8 +76,8 @@ const Header = () => {
                   to={link.path}
                   className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     location.pathname === link.path
-                      ? "text-foreground"
-                      : "text-foreground/80 hover:text-foreground"
+                      ? "text-amber-400"
+                      : "text-foreground/80 hover:text-amber-400"
                   }`}
                 >
                   {link.name}
@@ -107,8 +107,8 @@ const Header = () => {
                   onClick={() => handleNavClick(link.path)}
                   className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     isTitansPage || isGreenWorldPage
-                      ? "text-foreground/80 hover:text-foreground" 
-                      : "text-foreground/80 hover:text-foreground"
+                      ? "text-foreground/80 hover:text-amber-400" 
+                      : "text-foreground/80 hover:text-amber-400"
                   }`}
                 >
                   {link.name}
@@ -118,8 +118,8 @@ const Header = () => {
                   to={link.path}
                   className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
                     location.pathname === link.path
-                      ? "text-foreground"
-                      : "text-foreground/80 hover:text-foreground"
+                      ? "text-amber-400"
+                      : "text-foreground/80 hover:text-amber-400"
                   }`}
                 >
                   {link.name}
@@ -137,7 +137,7 @@ const Header = () => {
           <LanguageToggle variant="default" />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-foreground/80 hover:text-foreground transition-colors"
+            className="p-2 text-foreground/80 hover:text-amber-400 transition-colors"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -164,7 +164,7 @@ const Header = () => {
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className="block py-3 text-xl font-serif text-foreground/70 hover:text-foreground transition-colors"
+                  className="block py-3 text-xl font-serif text-foreground/70 hover:text-amber-400 transition-colors"
                 >
                   {link.name}
                 </a>
@@ -174,8 +174,8 @@ const Header = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`block py-3 text-xl font-serif transition-colors ${
                     location.pathname === link.path
-                      ? "text-foreground"
-                      : "text-foreground/70 hover:text-foreground"
+                      ? "text-amber-400"
+                      : "text-foreground/70 hover:text-amber-400"
                   }`}
                 >
                   {link.name}
