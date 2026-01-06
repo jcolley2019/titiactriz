@@ -14,16 +14,16 @@ const FeatureCard = ({ title, description, icon, className }: FeatureCardProps) 
   return (
     <div
       className={cn(
-        "group p-8 bg-secondary/50 border border-border/30 hover:border-accent/30 transition-all duration-500",
+        "group p-8 bg-secondary/50 border border-border/30 hover:border-accent/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-lg hover:shadow-accent/10",
         className
       )}
     >
       {icon && (
-        <div className="w-14 h-14 rounded-none bg-background/50 border border-border/50 flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-background group-hover:border-accent transition-all duration-500">
+        <div className="w-14 h-14 rounded-none bg-background/50 border border-border/50 flex items-center justify-center text-accent mb-6 group-hover:bg-accent group-hover:text-background group-hover:border-accent group-hover:scale-110 transition-all duration-500">
           {icon}
         </div>
       )}
-      <h3 className="font-serif text-xl text-foreground mb-4">{title}</h3>
+      <h3 className="font-serif text-xl text-foreground mb-4 group-hover:text-accent transition-colors duration-300">{title}</h3>
       <p className="text-muted-foreground text-sm leading-relaxed">
         {description}
       </p>
@@ -40,6 +40,7 @@ interface LinkCardProps {
   className?: string;
   imageBackground?: "transparent" | "white";
   imageFit?: "contain" | "cover";
+  hoverColor?: "accent" | "red";
 }
 
 const LinkCard = ({
@@ -51,11 +52,17 @@ const LinkCard = ({
   className,
   imageBackground = "transparent",
   imageFit = "contain",
+  hoverColor = "accent",
 }: LinkCardProps) => {
+  const isRed = hoverColor === "red";
+  
   const CardContent = () => (
     <div
       className={cn(
-        "group relative overflow-hidden bg-secondary/30 border border-border/30 hover:border-accent/30 transition-all duration-500",
+        "group relative overflow-hidden bg-secondary/30 border border-border/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl",
+        isRed 
+          ? "hover:border-red-500/50 hover:shadow-red-500/20" 
+          : "hover:border-accent/30 hover:shadow-accent/20",
         className
       )}
     >
@@ -69,21 +76,33 @@ const LinkCard = ({
             src={image}
             alt={title}
             className={cn(
-              "w-full h-full grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105",
-              imageFit === "cover" ? "object-cover" : "object-contain"
+              "w-full h-full transition-all duration-700 group-hover:scale-110",
+              imageFit === "cover" ? "object-cover" : "object-contain",
+              isRed 
+                ? "grayscale group-hover:grayscale-0" 
+                : "grayscale group-hover:grayscale-0"
             )}
           />
         </div>
       )}
       <div className="p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-serif text-xl text-foreground">{title}</h3>
-          <ArrowRight className="w-5 h-5 text-accent opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+          <h3 className={cn(
+            "font-serif text-xl text-foreground transition-colors duration-300",
+            isRed ? "group-hover:text-red-500" : "group-hover:text-accent"
+          )}>{title}</h3>
+          <ArrowRight className={cn(
+            "w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300",
+            isRed ? "text-red-500" : "text-accent"
+          )} />
         </div>
         <p className="text-muted-foreground text-base leading-relaxed">{description}</p>
       </div>
       {/* Accent line on hover */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+      <div className={cn(
+        "absolute bottom-0 left-0 right-0 h-1 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left",
+        isRed ? "bg-red-500" : "bg-accent"
+      )} />
     </div>
   );
 

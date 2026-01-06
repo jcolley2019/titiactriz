@@ -452,6 +452,7 @@ const Index = () => {
               href="/titans-agency"
               image={titansLogo}
               imageBackground="white"
+              hoverColor="red"
             />
           </StaggerItem>
           <StaggerItem>
