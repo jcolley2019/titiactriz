@@ -90,7 +90,18 @@
   }
 
   .dark {
-    /* Dark mode is already the default */
+    /* Enhanced dark mode with brighter gold for better contrast */
+    --primary: 38 45% 72%; /* Brighter warm gold */
+    --accent: 40 50% 62%; /* More saturated gold for visibility */
+    --gold: 40 50% 62%;
+    --gold-light: 42 55% 75%; /* Brighter gold-light for hover states */
+    --gold-dark: 35 45% 48%;
+    --ring: 40 50% 62%;
+    --highlight: 40 40% 80%;
+    --highlight-bg: 38 35% 75%;
+    --shadow-glow: 0 0 60px hsl(40 50% 62% / 0.2);
+    --sidebar-primary: 38 45% 72%;
+    --sidebar-ring: 40 50% 62%;
   }
 }
 
