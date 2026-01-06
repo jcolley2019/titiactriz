@@ -464,6 +464,7 @@ const Index = () => {
               href="/green-world"
               image={greenworldLogo}
               imageBackground="white"
+              hoverColor="green"
             />
           </StaggerItem>
           <StaggerItem>
