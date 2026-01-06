@@ -241,6 +241,43 @@
     font-family: var(--font-sans);
   }
 
+  /* Gold hover effect utilities */
+  .hover-gold {
+    @apply transition-colors duration-300;
+  }
+
+  .hover-gold:hover {
+    color: #fbbf24; /* amber-400 */
+  }
+
+  .hover-gold-border {
+    @apply transition-all duration-300;
+  }
+
+  .hover-gold-border:hover {
+    border-color: rgba(251, 191, 36, 0.5); /* amber-400/50 */
+  }
+
+  .hover-gold-glow {
+    @apply transition-all duration-300;
+  }
+
+  .hover-gold-glow:hover {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+  }
+
+  .hover-gold-full {
+    @apply transition-all duration-300;
+  }
+
+  .hover-gold-full:hover {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.7);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
+  }
+
   /* Gradient text */
   .text-gradient-gold {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-accent via-gold-light to-accent;
