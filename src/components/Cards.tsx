@@ -103,8 +103,8 @@ const LinkCard = ({
           )}
         </div>
       )}
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-3">
+      <div className="p-6 pt-4">
+        <div className="flex items-center justify-between mb-2">
           <h3 className={cn(
             "font-serif text-xl text-foreground transition-colors duration-300",
             isRed ? "group-hover:text-red-500" : isGreen ? "group-hover:text-green-500" : "group-hover:text-accent"
