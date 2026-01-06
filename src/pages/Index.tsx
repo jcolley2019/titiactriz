@@ -357,7 +357,7 @@ const Index = () => {
               ref={(el) => (imageRefs.current[i] = el)}
               data-index={i}
               onClick={() => handleImageClick(img, i)}
-              className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out ${
+              className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-amber-400/30 ${
                 visibleImages.has(i) 
                   ? 'opacity-100 translate-y-0' 
                   : 'opacity-0 translate-y-8'
@@ -368,7 +368,7 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
               
               {/* Gold border glow effect */}
-              <div className="absolute inset-0 rounded-sm border-2 border-amber-400/0 group-hover:border-amber-400/60 transition-all duration-500 z-20 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)]" />
+              <div className="absolute inset-0 rounded-sm border-2 border-amber-400/0 group-hover:border-amber-400/50 transition-all duration-500 z-20" />
               
               {/* Image with creative hover effects */}
               <img
