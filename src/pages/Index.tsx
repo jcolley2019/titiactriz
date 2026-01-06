@@ -370,6 +370,9 @@ const Index = () => {
               {/* Gold border glow effect */}
               <div className="absolute inset-0 rounded-sm border-2 border-amber-400/0 group-hover:border-amber-400/50 transition-all duration-500 z-20" />
               
+              {/* Gold bar at bottom on hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400/80 via-amber-300 to-amber-400/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-30" />
+              
               {/* Image with creative hover effects */}
               <img
                 src={img}
