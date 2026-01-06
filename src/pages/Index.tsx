@@ -395,28 +395,28 @@ const Index = () => {
           {/* Close button */}
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
+            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-amber-400/50 hover:shadow-[0_0_15px_rgba(251,191,36,0.2)] transition-all duration-300"
             aria-label={t("gallery.close")}
           >
-            <X className="w-5 h-5 text-foreground" />
+            <X className="w-5 h-5 text-foreground group-hover:text-amber-400" />
           </button>
           
           {/* Previous button */}
           <button
             onClick={() => navigateLightbox('prev')}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-amber-400/50 hover:shadow-[0_0_15px_rgba(251,191,36,0.2)] transition-all duration-300 group"
             aria-label={t("common.previousImage")}
           >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
+            <ChevronLeft className="w-5 h-5 text-foreground group-hover:text-amber-400 transition-colors duration-300" />
           </button>
           
           {/* Next button */}
           <button
             onClick={() => navigateLightbox('next')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 transition-all duration-300"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-amber-400/50 hover:shadow-[0_0_15px_rgba(251,191,36,0.2)] transition-all duration-300 group"
             aria-label={t("common.nextImage")}
           >
-            <ChevronRight className="w-5 h-5 text-foreground" />
+            <ChevronRight className="w-5 h-5 text-foreground group-hover:text-amber-400 transition-colors duration-300" />
           </button>
           
           {selectedImage && (
