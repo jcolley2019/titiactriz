@@ -43,7 +43,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className="text-muted-foreground hover:text-amber-400 transition-colors duration-300 text-sm link-underline"
+                    className="text-muted-foreground hover:text-gold-light transition-colors duration-300 text-sm link-underline"
                   >
                     {link.name}
                   </Link>
@@ -62,7 +62,7 @@ const Footer = () => {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 border border-border/50 flex items-center justify-center text-muted-foreground hover:text-amber-400 hover:border-amber-400/50 hover:shadow-[0_0_15px_rgba(251,191,36,0.15)] transition-all duration-300"
+                  className="w-11 h-11 border border-border/50 flex items-center justify-center text-muted-foreground hover:text-gold-light hover:border-accent/50 hover:shadow-glow transition-all duration-300"
                   aria-label={social.name}
                 >
                   <SocialIcon name={social.icon} />
@@ -71,7 +71,7 @@ const Footer = () => {
             </div>
             <a
               href="mailto:yourname@email.com"
-              className="text-sm text-muted-foreground hover:text-amber-400 transition-colors duration-300 link-underline"
+              className="text-sm text-muted-foreground hover:text-gold-light transition-colors duration-300 link-underline"
             >
               yourname@email.com
             </a>
