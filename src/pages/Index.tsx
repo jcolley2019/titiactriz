@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Target, Zap, Heart, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
-import { FeatureCard, LinkCard } from "@/components/Cards";
+import { LinkCard } from "@/components/Cards";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
@@ -435,45 +435,6 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      {/* What I Bring Section */}
-      <Section background="muted">
-        <SectionHeader
-          eyebrow={t("strengths.eyebrow")}
-          title={t("strengths.title")}
-          subtitle={t("strengths.subtitle")}
-        />
-
-        <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StaggerItem>
-            <FeatureCard
-              icon={<Sparkles className="w-6 h-6" />}
-              title={t("strengths.presence.title")}
-              description={t("strengths.presence.description")}
-            />
-          </StaggerItem>
-          <StaggerItem>
-            <FeatureCard
-              icon={<Heart className="w-6 h-6" />}
-              title={t("strengths.creativity.title")}
-              description={t("strengths.creativity.description")}
-            />
-          </StaggerItem>
-          <StaggerItem>
-            <FeatureCard
-              icon={<Target className="w-6 h-6" />}
-              title={t("strengths.discipline.title")}
-              description={t("strengths.discipline.description")}
-            />
-          </StaggerItem>
-          <StaggerItem>
-            <FeatureCard
-              icon={<Zap className="w-6 h-6" />}
-              title={t("strengths.adaptability.title")}
-              description={t("strengths.adaptability.description")}
-            />
-          </StaggerItem>
-        </StaggerContainer>
-      </Section>
 
       {/* Featured Links Section */}
       <Section id="featured">
