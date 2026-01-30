@@ -12,30 +12,50 @@ const GreenWorldSwoosh: React.FC<GreenWorldSwooshProps> = ({
   if (variant === "hero") {
     return (
       <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
-        {/* Main diagonal swoosh */}
+        {/* White area at top with dual green swoosh */}
+        <div className="absolute top-0 left-0 right-0 h-[180px] md:h-[220px] bg-gw-white">
+          <svg 
+            className="absolute bottom-0 left-0 w-full h-[120px] md:h-[160px]" 
+            viewBox="0 0 1440 160" 
+            preserveAspectRatio="none"
+            fill="none"
+          >
+            {/* Back swoosh - darker green */}
+            <path 
+              d="M0 160V80C120 60 280 40 480 50C680 60 880 100 1080 90C1280 80 1380 60 1440 50V160H0Z"
+              fill="hsl(var(--gw-green-dark))"
+            />
+            {/* Front swoosh - lighter green */}
+            <path 
+              d="M0 160V100C100 85 250 70 450 80C650 90 850 120 1050 105C1250 90 1380 75 1440 70V160H0Z"
+              fill="hsl(var(--gw-green))"
+            />
+          </svg>
+        </div>
+        
+        {/* Bottom swoosh decorations */}
         <svg 
-          className="absolute bottom-0 left-0 w-full h-[40%] md:h-[50%]" 
-          viewBox="0 0 1440 400" 
+          className="absolute bottom-0 left-0 w-full h-[30%] md:h-[35%]" 
+          viewBox="0 0 1440 300" 
           preserveAspectRatio="none"
           fill="none"
         >
           <path 
-            d="M0 400V300C200 250 400 280 600 260C800 240 1000 180 1200 200C1350 215 1400 250 1440 280V400H0Z"
+            d="M0 300V200C200 180 400 220 600 200C800 180 1000 140 1200 160C1350 175 1400 200 1440 220V300H0Z"
             fill="hsl(var(--gw-green-dark))"
-            fillOpacity="0.6"
+            fillOpacity="0.5"
           />
           <path 
-            d="M0 400V350C150 320 350 340 550 310C750 280 950 220 1150 240C1300 255 1380 290 1440 320V400H0Z"
+            d="M0 300V240C150 220 350 250 550 230C750 210 950 170 1150 190C1300 205 1380 230 1440 250V300H0Z"
             fill="hsl(var(--gw-green-light))"
-            fillOpacity="0.4"
+            fillOpacity="0.3"
           />
         </svg>
         
         {/* Circular patterns */}
-        <div className="absolute top-20 right-10 w-64 h-64 border border-gw-white/10 rounded-full opacity-30" />
-        <div className="absolute top-40 right-32 w-48 h-48 border border-gw-white/10 rounded-full opacity-20" />
+        <div className="absolute top-[200px] md:top-[240px] right-10 w-64 h-64 border border-gw-white/10 rounded-full opacity-30" />
+        <div className="absolute top-[220px] md:top-[260px] right-32 w-48 h-48 border border-gw-white/10 rounded-full opacity-20" />
         <div className="absolute bottom-32 left-20 w-32 h-32 border border-gw-white/10 rounded-full opacity-25" />
-        <div className="absolute top-1/3 left-1/4 w-20 h-20 border border-gw-white/10 rounded-full opacity-20" />
       </div>
     );
   }
