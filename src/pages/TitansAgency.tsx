@@ -6,7 +6,7 @@ import { Section, SectionHeader } from "@/components/Section";
 import { StatCard, FeatureCard } from "@/components/Cards";
 import TikTokIcon from "@/components/icons/TikTokIcon";
 
-import titansLogo from "@/assets/titans-logo.png";
+import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code.jpeg";
 
@@ -47,7 +47,7 @@ const TitansAgency = () => {
                 <img
                   src={titansLogo}
                   alt="Titans Agency Logo"
-                  className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-titans-red"
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-full"
                 />
               </div>
 
