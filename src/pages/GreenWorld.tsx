@@ -124,15 +124,15 @@ const GreenWorld = () => {
         <GreenWorldSwoosh variant="hero" />
         
         {/* Logo in white area at top - centered to match reference */}
-        <div className="absolute top-0 left-0 right-0 h-[280px] md:h-[340px] z-20 flex items-start justify-center pt-20 md:pt-24 opacity-0 animate-fade-up pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-[320px] md:h-[400px] z-20 flex items-center justify-center opacity-0 animate-fade-up pointer-events-none">
           <img
             src={gwLogo}
             alt="Green World"
-            className="h-40 md:h-52 w-auto"
+            className="h-44 md:h-60 w-auto"
           />
         </div>
         
-        <div className="container-editorial relative z-10 pt-[300px] md:pt-[360px] pb-16 sm:pb-20">
+        <div className="container-editorial relative z-10 pt-[340px] md:pt-[420px] pb-16 sm:pb-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-gw-white">
