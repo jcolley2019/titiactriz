@@ -50,7 +50,7 @@ const TitansAgency = () => {
                 <img
                   src={titansLogo}
                   alt="Titans Agency Logo"
-                  className="relative z-10 w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-full"
+                  className="relative z-10 w-60 h-60 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-full"
                 />
               </div>
 
