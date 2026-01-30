@@ -123,12 +123,12 @@ const GreenWorld = () => {
       <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark">
         <GreenWorldSwoosh variant="hero" />
         
-        {/* Logo in white area at top */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 opacity-0 animate-fade-up">
+        {/* Logo in white area at top - centered horizontally and vertically */}
+        <div className="absolute top-[80px] md:top-[90px] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 animate-fade-up flex items-center justify-center">
           <img 
             src={gwLogo} 
             alt="Green World" 
-            className="h-32 md:h-40 w-auto"
+            className="h-28 md:h-40 w-auto mx-auto"
           />
         </div>
         
