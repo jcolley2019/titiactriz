@@ -138,16 +138,6 @@ const GreenWorld = () => {
               )}
             </div>
 
-            {/* Right - Product Images */}
-            <div className="relative hidden lg:block">
-              <ParallaxImage
-                src={premiumImage}
-                alt="Green World Premium Products"
-                containerClassName="rounded-2xl shadow-2xl opacity-0 animate-fade-up stagger-3"
-                className="max-w-lg mx-auto"
-                speed={0.15}
-              />
-            </div>
           </div>
         </div>
       </section>
