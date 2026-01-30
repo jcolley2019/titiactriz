@@ -142,8 +142,8 @@ const TitansAgency = () => {
               <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-[90%] max-w-[300px] sm:max-w-[320px] md:max-w-[340px]">
                 {/* White outline */}
                 <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
-                  {/* Inner container - taller aspect ratio to show full TikTok video including UI */}
-                  <div className="w-full aspect-[9/19] sm:aspect-[9/16] rounded-md sm:rounded-lg overflow-hidden">
+                  {/* Inner container - extra tall aspect ratio to show full TikTok video including UI */}
+                  <div className="w-full aspect-[9/20] sm:aspect-[9/16] rounded-md sm:rounded-lg overflow-hidden">
                     <iframe
                       src="https://www.tiktok.com/embed/v2/7537859583486823685"
                       className="w-full h-full"
