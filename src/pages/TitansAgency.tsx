@@ -86,19 +86,21 @@ const TitansAgency = () => {
             </div>
 
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1">
-              {/* Gradient border wrapper */}
-              <div className="relative p-1 rounded-2xl bg-gradient-to-br from-white via-titans-red to-titans-dark shadow-2xl shadow-titans-red/30">
-                {/* Inner glow ring */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 via-titans-red/40 to-transparent blur-sm" />
-                <div className="relative w-[340px] h-[620px] rounded-xl overflow-hidden bg-titans-dark">
-                  <iframe
-                    src="https://www.tiktok.com/embed/v2/7537859583486823685"
-                    className="w-full h-full"
-                    allowFullScreen
-                    scrolling="no"
-                    allow="encrypted-media"
-                    title="Titans Agency TikTok Video"
-                  />
+              {/* Outer dark red border */}
+              <div className="relative p-2 rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40">
+                {/* White outline */}
+                <div className="p-1 rounded-xl bg-white">
+                  {/* Inner container */}
+                  <div className="w-[340px] h-[620px] rounded-lg overflow-hidden">
+                    <iframe
+                      src="https://www.tiktok.com/embed/v2/7537859583486823685"
+                      className="w-full h-full"
+                      allowFullScreen
+                      scrolling="no"
+                      allow="encrypted-media"
+                      title="Titans Agency TikTok Video"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
