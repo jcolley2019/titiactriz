@@ -68,7 +68,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-lg shadow-lg w-[250px] h-16 justify-center"
+                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-lg shadow-lg w-full sm:w-[250px] h-16 justify-center"
                 >
                   <a href="mailto:yourname@email.com?subject=Titans%20Agency%20Inquiry" className="flex items-center justify-center gap-2 w-full h-full">
                     {t("titans.hero.workWithUs")}
@@ -78,7 +78,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-lg shadow-lg border border-white/20 w-[250px] h-16 justify-center"
+                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-lg shadow-lg border border-white/20 w-full sm:w-[250px] h-16 justify-center"
                 >
                   <a href="https://www.tiktok.com/@titansagencylatam" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full h-full">
                     <TikTokIcon className="w-5 h-5" />
