@@ -41,13 +41,16 @@ const TitansAgency = () => {
       <section className="min-h-screen flex items-center pt-24 pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark">
         <div className="container-editorial">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="lg:order-2">
-              {/* Logo */}
-              <div className="mb-8 opacity-0 animate-fade-up">
+            <div className="lg:order-2 flex flex-col items-center text-center">
+              {/* Logo with decorative ring */}
+              <div className="relative mb-8 opacity-0 animate-fade-up">
+                {/* Decorative red ring */}
+                <div className="absolute -top-8 -right-16 w-64 h-64 md:w-80 md:h-80 rounded-full border-4 border-titans-red/60" />
+                {/* Logo */}
                 <img
                   src={titansLogo}
                   alt="Titans Agency Logo"
-                  className="w-32 h-32 md:w-40 md:h-40 rounded-full"
+                  className="relative z-10 w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-full"
                 />
               </div>
 
@@ -57,11 +60,11 @@ const TitansAgency = () => {
                 <span className="font-titans-script text-5xl md:text-6xl lg:text-7xl italic">Latam</span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-white font-medium mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md">
+              <p className="text-xl md:text-2xl text-white font-medium mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-lg">
                 {t("titans.hero.subtitle")}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 opacity-0 animate-fade-up stagger-3">
+              <div className="flex flex-col sm:flex-row gap-4 opacity-0 animate-fade-up stagger-3 justify-center">
                 <Button 
                   size="xl" 
                   asChild
