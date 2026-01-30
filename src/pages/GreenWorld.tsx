@@ -147,8 +147,6 @@ const GreenWorld = () => {
                 <span className="text-gw-white">{t("greenWorld.hero.titleBrand")}</span>
               </h1>
 
-              {/* Gold accent line */}
-              <div className="w-24 h-1 bg-gw-gold mb-6 opacity-0 animate-fade-up stagger-2" />
 
               <p className="text-gw-white/80 text-lg md:text-xl mb-8 max-w-lg opacity-0 animate-fade-up stagger-3">
                 {t("greenWorld.hero.subtitle")}
