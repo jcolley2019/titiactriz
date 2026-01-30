@@ -41,21 +41,21 @@ const WorkResume = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="min-h-[50vh] flex items-center pt-24 pb-12">
+      <section className="min-h-[50vh] flex items-center pt-28 pb-10 sm:pt-24 sm:pb-12">
         <div className="container-editorial text-center">
-          <span className="text-caps text-accent mb-4 block opacity-0 animate-fade-up">
+          <span className="text-caps text-accent mb-3 sm:mb-4 block opacity-0 animate-fade-up">
             {t("work.hero.eyebrow")}
           </span>
 
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.1] mb-6 opacity-0 animate-fade-up stagger-1">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.1] mb-4 sm:mb-6 opacity-0 animate-fade-up stagger-1">
             {t("nav.portfolio")}
           </h1>
 
-          <p className="text-xl text-muted-foreground mb-8 opacity-0 animate-fade-up stagger-2">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 opacity-0 animate-fade-up stagger-2">
             {t("work.hero.subtitle")}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 opacity-0 animate-fade-up stagger-3">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 opacity-0 animate-fade-up stagger-3">
             <Button variant="gold-outline" size="xl" asChild>
               <a href="https://youtube.com/@mimundoderoles6875?si=Ghscb9PFsG1-Gzuz" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-5 h-5" />

@@ -124,7 +124,7 @@ const GreenWorld = () => {
           <div className="absolute bottom-20 left-1/4 w-48 h-48 border border-gw-white/25 rounded-full" />
         </div>
 
-        <div className="container-editorial relative z-10 py-20">
+        <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-gw-white">
@@ -191,7 +191,7 @@ const GreenWorld = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-gw-gray">
+      <section className="py-12 sm:py-16 bg-gw-gray">
         <div className="container-editorial">
           <div className="text-center mb-12">
             <h2 className="font-sans font-bold text-3xl md:text-4xl text-gw-text mb-4">
@@ -225,7 +225,7 @@ const GreenWorld = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-20 bg-gw-white">
+      <section id="products" className="py-14 sm:py-20 bg-gw-white">
         <div className="container-editorial">
           <div className="text-center mb-12">
             <span className="text-gw-green font-semibold text-sm uppercase tracking-wider">{t("greenWorld.products.eyebrow")}</span>
@@ -323,7 +323,7 @@ const GreenWorld = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-to-br from-gw-green to-gw-green-dark text-gw-white">
+      <section className="py-14 sm:py-20 bg-gradient-to-br from-gw-green to-gw-green-dark text-gw-white">
         <div className="container-editorial">
           <div className="text-center mb-12">
             <h2 className="font-sans font-bold text-3xl md:text-4xl mb-4">
@@ -352,7 +352,7 @@ const GreenWorld = () => {
       </section>
 
       {/* Journey to Wealth Section */}
-      <section className="py-20 bg-gw-gray">
+      <section className="py-14 sm:py-20 bg-gw-gray">
         <div className="container-editorial">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -409,7 +409,7 @@ const GreenWorld = () => {
       </section>
 
       {/* Footer CTA */}
-      <section className="py-16 bg-gw-green text-gw-white">
+      <section className="py-12 sm:py-16 bg-gw-green text-gw-white">
         <div className="container-editorial text-center">
           <h2 className="font-sans font-bold text-2xl md:text-3xl mb-4">
             {t("greenWorld.cta.title")}

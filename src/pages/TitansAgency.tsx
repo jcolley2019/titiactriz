@@ -85,13 +85,13 @@ const TitansAgency = () => {
       </Helmet>
 
       {/* Hero Section with Titans brand colors */}
-      <section className="relative min-h-screen flex items-center py-20 sm:pt-24 sm:pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-x-hidden">
+      <section className="relative min-h-screen flex items-center pt-28 pb-16 sm:pt-24 sm:pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-x-hidden">
         <div className="w-full px-5 sm:px-6 md:px-8 lg:px-12 max-w-6xl xl:max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-10 sm:gap-8 lg:gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-8 lg:gap-12 items-center">
             {/* Content Column */}
             <div className="lg:order-2 flex flex-col items-center text-center">
               {/* Logo with decorative ring */}
-              <div className="relative mb-5 sm:mb-6 md:mb-8 opacity-0 animate-fade-up">
+              <div className="relative mb-4 sm:mb-6 md:mb-8 opacity-0 animate-fade-up">
                 {/* Decorative red ring - responsive sizing */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 sm:w-64 sm:h-64 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-[6px] sm:border-8 border-titans-red/60" />
                 {/* Logo - responsive sizing */}
@@ -108,11 +108,11 @@ const TitansAgency = () => {
                 <span className="font-titans-script text-3xl sm:text-4xl md:text-6xl lg:text-7xl italic">Latam</span>
               </h1>
 
-              <p className="text-base sm:text-lg md:text-2xl text-white/90 font-medium mb-5 sm:mb-6 md:mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-md lg:max-w-lg leading-relaxed">
+              <p className="text-base sm:text-lg md:text-2xl text-white/90 font-medium mb-4 sm:mb-6 md:mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-md lg:max-w-lg leading-relaxed">
                 {t("titans.hero.subtitle")}
               </p>
 
-              <div className="flex flex-col gap-3 opacity-0 animate-fade-up stagger-3 justify-center w-full px-2 sm:px-0 sm:w-auto sm:flex-row sm:gap-4">
+              <div className="flex flex-col gap-2.5 opacity-0 animate-fade-up stagger-3 justify-center w-full px-2 sm:px-0 sm:w-auto sm:flex-row sm:gap-4">
                 <Button 
                   size="xl" 
                   asChild
@@ -137,7 +137,7 @@ const TitansAgency = () => {
             </div>
 
             {/* TikTok Video Column */}
-            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-6 sm:mt-0">
+            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-5 sm:mt-0">
               {/* Outer dark red border - sized to show full TikTok embed */}
               <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
                 {/* White outline */}

@@ -162,8 +162,8 @@ const Index = () => {
         {/* Subtle background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20 z-0" />
         
-        <div className="container-editorial relative z-10 py-32 lg:py-16">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center min-h-[90vh]">
+        <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-32 lg:py-16">
+          <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 lg:gap-24 items-center min-h-[90vh]">
             
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
@@ -254,7 +254,7 @@ const Index = () => {
       </section>
 
       {/* Guided By Section */}
-      <section className="py-20 md:py-28 relative z-10">
+      <section className="py-14 sm:py-20 md:py-28 relative z-10">
         <div className="container-editorial text-center">
           <ScrollReveal>
             <p className="text-caps text-accent mb-4">
@@ -327,7 +327,7 @@ const Index = () => {
       </Section>
 
       {/* Image Gallery Strip */}
-      <section className="py-16 relative z-10">
+      <section className="py-12 sm:py-16 relative z-10">
         {/* Section Header */}
         <ScrollReveal className="container-editorial text-center mb-10">
           <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
