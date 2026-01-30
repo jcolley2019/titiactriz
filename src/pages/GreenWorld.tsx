@@ -8,7 +8,7 @@ import GreenWorldProductCard from "@/components/greenworld/GreenWorldProductCard
 import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard";
 
 // Import logos and images
-import gwLogo from "@/assets/greenworld-logo-new.png";
+import gwLogo from "@/assets/greenworld-logo-clean.png";
 import categoryNatural from "@/assets/greenworld-category-natural.png";
 import categoryEnergy from "@/assets/greenworld-category-energy.png";
 import categoryBeauty from "@/assets/greenworld-category-beauty.png";
@@ -124,14 +124,12 @@ const GreenWorld = () => {
         <GreenWorldSwoosh variant="hero" />
         
         {/* Logo in white area at top - centered to match reference */}
-        <div className="absolute top-0 left-0 right-0 h-[280px] md:h-[340px] z-20 flex items-end justify-center pb-6 md:pb-8 opacity-0 animate-fade-up pointer-events-none">
-          <div className="bg-gw-white/95 rounded-xl shadow-2xl ring-1 ring-gw-gray/60 p-4 md:p-5">
-            <img
-              src={gwLogo}
-              alt="Green World"
-              className="h-36 md:h-48 w-auto"
-            />
-          </div>
+        <div className="absolute top-0 left-0 right-0 h-[280px] md:h-[340px] z-20 flex items-center justify-center pt-16 md:pt-20 opacity-0 animate-fade-up pointer-events-none">
+          <img
+            src={gwLogo}
+            alt="Green World"
+            className="h-40 md:h-52 w-auto"
+          />
         </div>
         
         <div className="container-editorial relative z-10 pt-[300px] md:pt-[360px] pb-16 sm:pb-20">
