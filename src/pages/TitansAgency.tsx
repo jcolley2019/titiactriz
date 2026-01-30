@@ -145,7 +145,7 @@ const TitansAgency = () => {
                   {/* Inner container - tall aspect ratio to show full TikTok embed like reference */}
                   <div className="w-full h-[580px] sm:h-[620px] rounded-md sm:rounded-lg overflow-hidden">
                     <iframe
-                      src="https://www.tiktok.com/embed/v2/7537859583486823685"
+                      src="https://www.tiktok.com/embed/v2/7537859583486823685?loop=1"
                       className="w-full h-full"
                       allowFullScreen
                       scrolling="no"
