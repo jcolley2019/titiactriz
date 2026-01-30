@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface LanguageToggleProps {
-  variant?: 'default' | 'light';
+  variant?: 'default' | 'light' | 'greenworld';
 }
 
 const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
@@ -22,17 +22,24 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'light':
+        return 'text-white/80 hover:text-white hover:bg-white/10';
+      case 'greenworld':
+        return 'text-gw-green-dark hover:text-gw-green hover:bg-gw-green/10';
+      default:
+        return 'text-muted-foreground hover:text-foreground';
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
           size="sm" 
-          className={`gap-2 ${
-            variant === 'light' 
-              ? 'text-white/80 hover:text-white hover:bg-white/10' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`gap-2 ${getVariantClasses()}`}
         >
           <Globe className="w-4 h-4" />
           <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.code.toUpperCase()}</span>
