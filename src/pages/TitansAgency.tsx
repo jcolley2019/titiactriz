@@ -86,7 +86,7 @@ const TitansAgency = () => {
             </div>
 
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1">
-              <div className="relative w-full max-w-[340px] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+              <div className="relative w-full max-w-[340px] h-[620px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
                 <iframe
                   src="https://www.tiktok.com/embed/v2/7537859583486823685"
                   className="w-full h-full"
