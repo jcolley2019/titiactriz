@@ -45,7 +45,7 @@ const TitansAgency = () => {
               {/* Logo with decorative ring */}
               <div className="relative mb-8 opacity-0 animate-fade-up">
                 {/* Decorative red ring */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-4 border-titans-red/60" />
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-8 border-titans-red/60" />
                 {/* Logo */}
                 <img
                   src={titansLogo}
