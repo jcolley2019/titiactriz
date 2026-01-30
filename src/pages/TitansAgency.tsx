@@ -142,11 +142,12 @@ const TitansAgency = () => {
               <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
                 {/* White outline */}
                 <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
-                  {/* Inner container - tall aspect ratio to show full TikTok embed like reference */}
-                  <div className="w-full h-[580px] sm:h-[620px] rounded-md sm:rounded-lg overflow-hidden">
+                  {/* Inner container - cropped to show only video content, hiding related videos section */}
+                  <div className="w-full h-[520px] sm:h-[560px] rounded-md sm:rounded-lg overflow-hidden">
                     <iframe
-                      src="https://www.tiktok.com/embed/v2/7537859583486823685?loop=1"
-                      className="w-full h-full"
+                      src="https://www.tiktok.com/embed/v2/7537859583486823685"
+                      className="w-full h-[700px] sm:h-[750px]"
+                      style={{ marginTop: '-40px' }}
                       allowFullScreen
                       scrolling="no"
                       allow="encrypted-media"
