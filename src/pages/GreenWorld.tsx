@@ -9,6 +9,7 @@ import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard
 
 // Import logos and images
 import gwLogo from "@/assets/greenworld-logo-hd.png";
+import hgwLogo from "@/assets/greenworld-hgw-logo.png";
 import categoryNatural from "@/assets/greenworld-category-natural.png";
 import categoryEnergy from "@/assets/greenworld-category-energy.png";
 import categoryBeauty from "@/assets/greenworld-category-beauty.png";
@@ -127,12 +128,17 @@ const GreenWorld = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-gw-white">
-              {/* Logo */}
-              <div className="mb-6 opacity-0 animate-fade-up">
+              {/* Dual Logos - White versions */}
+              <div className="mb-6 opacity-0 animate-fade-up flex items-center gap-6">
                 <img 
                   src={gwLogo} 
                   alt="Green World" 
-                  className="h-16 md:h-20 w-auto"
+                  className="h-14 md:h-16 w-auto brightness-0 invert"
+                />
+                <img 
+                  src={hgwLogo} 
+                  alt="HGW" 
+                  className="h-14 md:h-16 w-auto brightness-0 invert"
                 />
               </div>
               
