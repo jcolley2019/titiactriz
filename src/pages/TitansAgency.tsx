@@ -138,8 +138,8 @@ const TitansAgency = () => {
 
             {/* TikTok Video Column */}
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-6 sm:mt-0">
-              {/* Outer dark red border - larger on mobile to show full video */}
-              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-[90%] max-w-[300px] sm:max-w-[320px] md:max-w-[340px]">
+              {/* Outer dark red border - full width on mobile to show complete video */}
+              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-full max-w-[340px] sm:max-w-[320px] md:max-w-[340px]">
                 {/* White outline */}
                 <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
                   {/* Inner container - extra tall aspect ratio to show full TikTok video including UI */}
