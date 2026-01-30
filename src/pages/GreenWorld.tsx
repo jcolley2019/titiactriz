@@ -128,7 +128,7 @@ const GreenWorld = () => {
           <img
             src={gwLogo}
             alt="Green World"
-            className="h-40 md:h-52 w-auto"
+            className="h-44 md:h-56 w-auto"
           />
         </div>
         
