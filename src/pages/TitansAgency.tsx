@@ -86,16 +86,15 @@ const TitansAgency = () => {
             </div>
 
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1">
-              <div className="relative">
-                <div className="w-80 h-80 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] rounded-full bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-hidden flex items-center justify-center">
-                  <img
-                    src={cristynaTitans}
-                    alt="Titans Agency Latam"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {/* Decorative ring */}
-                <div className="absolute inset-0 rounded-full border-4 border-white/30 scale-110" />
+              <div className="relative w-full max-w-[340px] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+                <iframe
+                  src="https://www.tiktok.com/embed/v2/7537859583486823685"
+                  className="w-full h-full"
+                  allowFullScreen
+                  scrolling="no"
+                  allow="encrypted-media"
+                  title="Titans Agency TikTok Video"
+                />
               </div>
             </div>
           </div>
