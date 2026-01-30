@@ -38,37 +38,37 @@ const TitansAgency = () => {
       </Helmet>
 
       {/* Hero Section with Titans brand colors */}
-      <section className="min-h-screen flex items-center pt-24 pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark">
-        <div className="container-editorial">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="lg:order-2 flex flex-col items-center text-center">
+      <section className="min-h-screen flex items-center pt-24 pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-x-hidden">
+        <div className="container-editorial w-full">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="lg:order-2 flex flex-col items-center text-center px-4 sm:px-0">
               {/* Logo with decorative ring */}
-              <div className="relative mb-8 opacity-0 animate-fade-up">
-                {/* Decorative red ring */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-8 border-titans-red/60" />
-                {/* Logo */}
+              <div className="relative mb-6 md:mb-8 opacity-0 animate-fade-up">
+                {/* Decorative red ring - responsive sizing */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 sm:w-72 sm:h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-8 border-titans-red/60" />
+                {/* Logo - responsive sizing */}
                 <img
                   src={titansLogo}
                   alt="Titans Agency Logo"
-                  className="relative z-10 w-60 h-60 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-full"
+                  className="relative z-10 w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-full"
                 />
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl text-white leading-[1.1] mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white leading-[1.1] mb-4 md:mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
                 <span className="font-titans uppercase tracking-wide">Titans</span>{" "}
-                <span className="font-titans-script text-5xl md:text-6xl lg:text-7xl">Agency</span>{" "}
-                <span className="font-titans-script text-5xl md:text-6xl lg:text-7xl italic">Latam</span>
+                <span className="font-titans-script text-4xl sm:text-5xl md:text-6xl lg:text-7xl">Agency</span>{" "}
+                <span className="font-titans-script text-4xl sm:text-5xl md:text-6xl lg:text-7xl italic">Latam</span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-white font-medium mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-lg">
+              <p className="text-lg sm:text-xl md:text-2xl text-white font-medium mb-6 md:mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-lg px-2">
                 {t("titans.hero.subtitle")}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 opacity-0 animate-fade-up stagger-3 justify-center">
+              <div className="flex flex-col gap-3 sm:gap-4 opacity-0 animate-fade-up stagger-3 justify-center w-full max-w-xs sm:max-w-none sm:w-auto sm:flex-row">
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-lg shadow-lg w-full sm:w-[250px] h-16 justify-center"
+                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-base sm:text-lg shadow-lg w-full sm:w-[250px] h-14 sm:h-16 justify-center"
                 >
                   <a href="mailto:yourname@email.com?subject=Titans%20Agency%20Inquiry" className="flex items-center justify-center gap-2 w-full h-full">
                     {t("titans.hero.workWithUs")}
@@ -78,7 +78,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-lg shadow-lg border border-white/20 w-full sm:w-[250px] h-16 justify-center"
+                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-base sm:text-lg shadow-lg border border-white/20 w-full sm:w-[250px] h-14 sm:h-16 justify-center"
                 >
                   <a href="https://www.tiktok.com/@titansagencylatam" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full h-full">
                     <TikTokIcon className="w-5 h-5" />
@@ -88,13 +88,13 @@ const TitansAgency = () => {
               </div>
             </div>
 
-            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1">
-              {/* Outer dark red border */}
-              <div className="relative p-2 rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40">
+            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 px-4 sm:px-0">
+              {/* Outer dark red border - responsive sizing */}
+              <div className="relative p-1.5 sm:p-2 rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-full max-w-[280px] sm:max-w-[340px]">
                 {/* White outline */}
                 <div className="p-1 rounded-xl bg-white">
-                  {/* Inner container */}
-                  <div className="w-[340px] h-[620px] rounded-lg overflow-hidden">
+                  {/* Inner container - responsive height */}
+                  <div className="w-full aspect-[9/16] sm:h-[620px] sm:aspect-auto rounded-lg overflow-hidden">
                     <iframe
                       src="https://www.tiktok.com/embed/v2/7537859583486823685"
                       className="w-full h-full"
