@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import ParallaxImage from "@/components/ParallaxImage";
 import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
-import GreenWorldProductCard from "@/components/greenworld/GreenWorldProductCard";
+
 import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard";
 
 // Import logos and images
@@ -29,56 +29,6 @@ const GreenWorld = () => {
     { name: t("greenWorld.categories.beauty"), image: categoryBeauty },
   ];
 
-  const products = [
-    {
-      name: t("greenWorld.products.items.blueberry.name"),
-      description: t("greenWorld.products.items.blueberry.description"),
-      price: 45.99,
-      originalPrice: 52.99,
-      image: categoryNatural,
-      category: t("greenWorld.products.items.blueberry.category"),
-    },
-    {
-      name: t("greenWorld.products.items.proslim.name"),
-      description: t("greenWorld.products.items.proslim.description"),
-      price: 32.50,
-      originalPrice: null,
-      image: categoryNatural,
-      category: t("greenWorld.products.items.proslim.category"),
-    },
-    {
-      name: t("greenWorld.products.items.kuding.name"),
-      description: t("greenWorld.products.items.kuding.description"),
-      price: 28.99,
-      originalPrice: 34.99,
-      image: categoryNatural,
-      category: t("greenWorld.products.items.kuding.category"),
-    },
-    {
-      name: t("greenWorld.products.items.calcium.name"),
-      description: t("greenWorld.products.items.calcium.description"),
-      price: 38.50,
-      originalPrice: null,
-      image: categoryNatural,
-      category: t("greenWorld.products.items.calcium.category"),
-    },
-    {
-      name: t("greenWorld.products.items.spirulina.name"),
-      description: t("greenWorld.products.items.spirulina.description"),
-      price: 42.99,
-      originalPrice: 49.99,
-      image: categoryNatural,
-      category: t("greenWorld.products.items.spirulina.category"),
-    },
-    {
-      name: t("greenWorld.products.items.ginseng.name"),
-      description: t("greenWorld.products.items.ginseng.description"),
-      price: 55.00,
-      originalPrice: null,
-      image: categoryNatural,
-      category: t("greenWorld.products.items.ginseng.category"),
-    },
-  ];
 
   const features = [
     {
@@ -170,7 +120,7 @@ const GreenWorld = () => {
                   className="border-2 border-gw-white text-gw-white bg-transparent hover:bg-gw-white/10 font-bold px-8 h-14 text-base rounded-lg"
                   asChild
                 >
-                  <a href="#products">
+                  <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
                     {t("greenWorld.hero.viewProducts")}
                   </a>
                 </Button>
@@ -240,43 +190,6 @@ const GreenWorld = () => {
         </div>
       </section>
 
-      {/* Products Section */}
-      <section id="products" className="py-16 sm:py-24 bg-gw-white relative">
-        <div className="container-editorial">
-          <div className="text-center mb-14">
-            <span className="text-gw-navy font-bold text-sm uppercase tracking-widest">
-              {t("greenWorld.products.eyebrow")}
-            </span>
-            <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl text-gw-text mt-3 mb-4 uppercase">
-              {t("greenWorld.products.title")}
-            </h2>
-            <div className="w-20 h-1 bg-gw-gold mx-auto mb-4" />
-            <p className="text-gw-text/70 text-lg max-w-2xl mx-auto">
-              {t("greenWorld.products.subtitle")}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, index) => (
-              <GreenWorldProductCard key={index} {...product} />
-            ))}
-          </div>
-
-          {/* View All Button */}
-          <div className="text-center mt-14">
-            <Button 
-              size="lg"
-              className="bg-gw-green hover:bg-gw-green-dark text-gw-white px-12 h-14 text-base font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
-              asChild
-            >
-              <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-5 h-5 mr-2" />
-                {t("greenWorld.products.viewAll")}
-              </a>
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Features Section - with swoosh decoration */}
       <section className="py-16 sm:py-24 bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark text-gw-white relative overflow-hidden">
