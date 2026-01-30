@@ -57,13 +57,16 @@
     --titans-dark: 0 0% 8%;
     --titans-accent: 0 0% 100%;
 
-    /* Green World brand colors */
-    --gw-green: 145 60% 35%;
-    --gw-green-light: 145 55% 45%;
-    --gw-green-dark: 145 65% 25%;
+    /* Green World brand colors - authentic palette */
+    --gw-green: 160 70% 28%; /* Rich forest green #0B6E4F */
+    --gw-green-light: 140 65% 45%; /* Lime accent for swooshes */
+    --gw-green-dark: 160 75% 20%; /* Darker green for depth */
+    --gw-navy: 210 80% 35%; /* Navy blue for highlights */
+    --gw-gold: 45 90% 55%; /* Gold/yellow accent */
     --gw-white: 0 0% 100%;
-    --gw-gray: 0 0% 95%;
-    --gw-text: 0 0% 20%;
+    --gw-cream: 45 20% 96%; /* Off-white background */
+    --gw-gray: 150 5% 95%;
+    --gw-text: 160 30% 15%;
 
     /* Typography */
     --font-serif: 'Cormorant Garamond', Georgia, serif;

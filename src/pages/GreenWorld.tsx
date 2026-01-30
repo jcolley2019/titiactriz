@@ -3,8 +3,12 @@ import { ExternalLink, ShoppingBag, Leaf, Heart, Sparkles, Users } from "lucide-
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import ParallaxImage from "@/components/ParallaxImage";
+import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
+import GreenWorldProductCard from "@/components/greenworld/GreenWorldProductCard";
+import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard";
 
-// Category images
+// Import logos and images
+import gwLogo from "@/assets/greenworld-logo-hd.png";
 import categoryNatural from "@/assets/greenworld-category-natural.png";
 import categoryEnergy from "@/assets/greenworld-category-energy.png";
 import categoryBeauty from "@/assets/greenworld-category-beauty.png";
@@ -14,10 +18,9 @@ import wealthImage from "@/assets/greenworld-wealth.png";
 const GreenWorld = () => {
   const { t } = useTranslation();
 
-  // Placeholder for employee info - to be integrated later
   const employeeInfo = {
     name: "Cristyna Polentino",
-    employeeNumber: "", // Will be added later
+    employeeNumber: "",
   };
 
   const categories = [
@@ -79,22 +82,22 @@ const GreenWorld = () => {
 
   const features = [
     {
-      icon: <Leaf className="w-8 h-8" />,
+      icon: <Leaf className="w-10 h-10" />,
       title: t("greenWorld.features.natural.title"),
       description: t("greenWorld.features.natural.description"),
     },
     {
-      icon: <Heart className="w-8 h-8" />,
+      icon: <Heart className="w-10 h-10" />,
       title: t("greenWorld.features.wellness.title"),
       description: t("greenWorld.features.wellness.description"),
     },
     {
-      icon: <Users className="w-8 h-8" />,
+      icon: <Users className="w-10 h-10" />,
       title: t("greenWorld.features.countries.title"),
       description: t("greenWorld.features.countries.description"),
     },
     {
-      icon: <Sparkles className="w-8 h-8" />,
+      icon: <Sparkles className="w-10 h-10" />,
       title: t("greenWorld.features.quality.title"),
       description: t("greenWorld.features.quality.description"),
     },
@@ -116,36 +119,45 @@ const GreenWorld = () => {
         <meta property="og:type" content="website" />
       </Helmet>
 
-      {/* Hero Section - Green World Style */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green-light to-gw-green-dark">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-64 h-64 border border-gw-white/30 rounded-full" />
-          <div className="absolute top-40 right-20 w-96 h-96 border border-gw-white/20 rounded-full" />
-          <div className="absolute bottom-20 left-1/4 w-48 h-48 border border-gw-white/25 rounded-full" />
-        </div>
-
+      {/* Hero Section - Authentic Green World Style */}
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark">
+        <GreenWorldSwoosh variant="hero" />
+        
         <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-gw-white">
-              <p className="text-gw-white/80 text-lg mb-4 opacity-0 animate-fade-up">
+              {/* Logo */}
+              <div className="mb-6 opacity-0 animate-fade-up">
+                <img 
+                  src={gwLogo} 
+                  alt="Green World" 
+                  className="h-16 md:h-20 w-auto"
+                />
+              </div>
+              
+              {/* Italic intro text */}
+              <p className="text-gw-gold italic text-xl md:text-2xl mb-4 opacity-0 animate-fade-up stagger-1 font-serif">
                 {t("greenWorld.hero.intro")}
               </p>
               
-              <h1 className="font-sans font-bold text-5xl md:text-6xl lg:text-7xl mb-6 opacity-0 animate-fade-up stagger-1">
+              {/* Bold main title */}
+              <h1 className="font-sans font-bold text-4xl md:text-5xl lg:text-6xl mb-6 opacity-0 animate-fade-up stagger-2 uppercase tracking-wide">
                 {t("greenWorld.hero.title")}<br />
-                <span className="text-gw-white">{t("greenWorld.hero.titleBrand")}</span>
+                <span className="text-gw-gold">{t("greenWorld.hero.titleBrand")}</span>
               </h1>
 
-              <p className="text-gw-white/70 text-lg mb-8 max-w-lg opacity-0 animate-fade-up stagger-2">
+              {/* Gold accent line */}
+              <div className="w-24 h-1 bg-gw-gold mb-6 opacity-0 animate-fade-up stagger-2" />
+
+              <p className="text-gw-white/80 text-lg md:text-xl mb-8 max-w-lg opacity-0 animate-fade-up stagger-3">
                 {t("greenWorld.hero.subtitle")}
               </p>
 
-              <div className="flex flex-wrap gap-4 opacity-0 animate-fade-up stagger-3">
+              <div className="flex flex-wrap gap-4 opacity-0 animate-fade-up stagger-4">
                 <Button 
                   size="lg" 
-                  className="bg-gw-white text-gw-green-dark hover:bg-gw-white/90 font-semibold px-8"
+                  className="bg-gw-white text-gw-green-dark hover:bg-gw-cream font-bold px-8 h-14 text-base rounded-lg shadow-lg hover:shadow-xl transition-all"
                   asChild
                 >
                   <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
@@ -156,7 +168,7 @@ const GreenWorld = () => {
                 <Button 
                   variant="outline"
                   size="lg" 
-                  className="border-gw-white text-gw-green-dark bg-gw-white/90 hover:bg-gw-white font-semibold px-8"
+                  className="border-2 border-gw-white text-gw-white bg-transparent hover:bg-gw-white/10 font-bold px-8 h-14 text-base rounded-lg"
                   asChild
                 >
                   <a href="#products">
@@ -165,13 +177,13 @@ const GreenWorld = () => {
                 </Button>
               </div>
 
-              {/* Employee Badge */}
+              {/* Employee Badge - Navy style */}
               {employeeInfo.name && (
-                <div className="mt-8 p-4 bg-gw-white/10 backdrop-blur-sm rounded-lg border border-gw-white/20 inline-block opacity-0 animate-fade-up stagger-4">
-                  <p className="text-gw-white/70 text-sm">{t("greenWorld.hero.representative")}</p>
-                  <p className="text-gw-white font-semibold text-lg">{employeeInfo.name}</p>
+                <div className="mt-10 p-5 bg-gw-navy/90 backdrop-blur-sm rounded-xl border border-gw-white/20 inline-block opacity-0 animate-fade-up stagger-5 shadow-lg">
+                  <p className="text-gw-white/70 text-sm uppercase tracking-wider mb-1">{t("greenWorld.hero.representative")}</p>
+                  <p className="text-gw-white font-bold text-xl">{employeeInfo.name}</p>
                   {employeeInfo.employeeNumber && (
-                    <p className="text-gw-white/60 text-sm">ID: {employeeInfo.employeeNumber}</p>
+                    <p className="text-gw-white/60 text-sm mt-1">ID: {employeeInfo.employeeNumber}</p>
                   )}
                 </div>
               )}
@@ -182,7 +194,7 @@ const GreenWorld = () => {
               <ParallaxImage
                 src={premiumImage}
                 alt="Green World Premium Products"
-                containerClassName="rounded-2xl shadow-2xl opacity-0 animate-fade-up stagger-2"
+                containerClassName="rounded-2xl shadow-2xl opacity-0 animate-fade-up stagger-3"
                 className="max-w-lg mx-auto"
                 speed={0.15}
               />
@@ -192,31 +204,35 @@ const GreenWorld = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-12 sm:py-16 bg-gw-gray">
+      <section className="py-16 sm:py-20 bg-gw-cream relative">
         <div className="container-editorial">
-          <div className="text-center mb-12">
-            <h2 className="font-sans font-bold text-3xl md:text-4xl text-gw-text mb-4">
+          <div className="text-center mb-14">
+            <p className="text-gw-green font-semibold text-sm uppercase tracking-widest mb-3">
+              {t("greenWorld.categories.eyebrow") || "Our Categories"}
+            </p>
+            <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl text-gw-text mb-4">
               {t("greenWorld.categories.title")}
             </h2>
+            <div className="w-16 h-1 bg-gw-gold mx-auto mb-4" />
             <p className="text-gw-text/70 text-lg max-w-2xl mx-auto">
               {t("greenWorld.categories.subtitle")}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {categories.map((category, index) => (
               <div 
                 key={index}
-                className="group bg-gw-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                className="group bg-gw-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-2 border border-gw-gray"
               >
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gw-green/10 flex items-center justify-center overflow-hidden">
+                <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-gradient-to-br from-gw-green/10 to-gw-green-light/10 flex items-center justify-center overflow-hidden shadow-inner">
                   <img 
                     src={category.image} 
                     alt={category.name}
-                    className="w-16 h-16 object-contain"
+                    className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>
-                <h3 className="font-sans font-semibold text-gw-text text-center text-lg">
+                <h3 className="font-sans font-bold text-gw-text text-center text-xl">
                   {category.name}
                 </h3>
               </div>
@@ -226,13 +242,16 @@ const GreenWorld = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-14 sm:py-20 bg-gw-white">
+      <section id="products" className="py-16 sm:py-24 bg-gw-white relative">
         <div className="container-editorial">
-          <div className="text-center mb-12">
-            <span className="text-gw-green font-semibold text-sm uppercase tracking-wider">{t("greenWorld.products.eyebrow")}</span>
-            <h2 className="font-sans font-bold text-3xl md:text-4xl text-gw-text mt-2 mb-4">
+          <div className="text-center mb-14">
+            <span className="text-gw-navy font-bold text-sm uppercase tracking-widest">
+              {t("greenWorld.products.eyebrow")}
+            </span>
+            <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl text-gw-text mt-3 mb-4 uppercase">
               {t("greenWorld.products.title")}
             </h2>
+            <div className="w-20 h-1 bg-gw-gold mx-auto mb-4" />
             <p className="text-gw-text/70 text-lg max-w-2xl mx-auto">
               {t("greenWorld.products.subtitle")}
             </p>
@@ -240,78 +259,15 @@ const GreenWorld = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
-              <div 
-                key={index}
-                className="group bg-gw-white border border-gw-gray rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
-              >
-                {/* Product Image */}
-                <div className="relative h-48 bg-gw-gray/50 flex items-center justify-center overflow-hidden">
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="w-32 h-32 object-contain group-hover:scale-110 transition-transform duration-300"
-                  />
-                  {product.originalPrice && (
-                    <span className="absolute top-3 right-3 bg-gw-green text-gw-white text-xs font-bold px-2 py-1 rounded">
-                      {t("greenWorld.products.sale")}
-                    </span>
-                  )}
-                </div>
-
-                {/* Product Info */}
-                <div className="p-6">
-                  <span className="text-gw-green text-xs font-semibold uppercase tracking-wider">
-                    {product.category}
-                  </span>
-                  <h3 className="font-sans font-bold text-gw-text text-lg mt-2 mb-2">
-                    {product.name}
-                  </h3>
-                  <p className="text-gw-text/60 text-sm mb-4 line-clamp-2">
-                    {product.description}
-                  </p>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="font-bold text-2xl text-gw-green">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-gw-text/40 line-through text-sm">
-                        ${product.originalPrice.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm"
-                      className="flex-1 bg-gw-green hover:bg-gw-green-dark text-gw-white"
-                      asChild
-                    >
-                      <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
-                        <ShoppingBag className="w-4 h-4 mr-1" />
-                        {t("greenWorld.products.buyNow")}
-                      </a>
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="border-gw-green/30 text-gw-green hover:bg-gw-green/5"
-                    >
-                      {t("greenWorld.products.details")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <GreenWorldProductCard key={index} {...product} />
             ))}
           </div>
 
           {/* View All Button */}
-          <div className="text-center mt-12">
+          <div className="text-center mt-14">
             <Button 
               size="lg"
-              className="bg-gw-green hover:bg-gw-green-dark text-gw-white px-12"
+              className="bg-gw-green hover:bg-gw-green-dark text-gw-white px-12 h-14 text-base font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
               asChild
             >
               <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
@@ -323,50 +279,48 @@ const GreenWorld = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-14 sm:py-20 bg-gradient-to-br from-gw-green to-gw-green-dark text-gw-white">
-        <div className="container-editorial">
-          <div className="text-center mb-12">
-            <h2 className="font-sans font-bold text-3xl md:text-4xl mb-4">
+      {/* Features Section - with swoosh decoration */}
+      <section className="py-16 sm:py-24 bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark text-gw-white relative overflow-hidden">
+        <GreenWorldSwoosh variant="footer" />
+        
+        <div className="container-editorial relative z-10">
+          <div className="text-center mb-14">
+            <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl mb-4 uppercase tracking-wide">
               {t("greenWorld.features.title")}
             </h2>
-            <p className="text-gw-white/70 text-lg max-w-3xl mx-auto">
+            <div className="w-16 h-1 bg-gw-gold mx-auto mb-6" />
+            <p className="text-gw-white/80 text-lg md:text-xl max-w-3xl mx-auto">
               {t("greenWorld.features.subtitle")}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="text-center p-6 rounded-xl bg-gw-white/5 backdrop-blur-sm border border-gw-white/10"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gw-white/10 flex items-center justify-center text-gw-white">
-                  {feature.icon}
-                </div>
-                <h3 className="font-sans font-bold text-xl mb-2">{feature.title}</h3>
-                <p className="text-gw-white/60 text-sm">{feature.description}</p>
-              </div>
+              <GreenWorldFeatureCard key={index} {...feature} />
             ))}
           </div>
         </div>
       </section>
 
       {/* Journey to Wealth Section */}
-      <section className="py-14 sm:py-20 bg-gw-gray">
+      <section className="py-16 sm:py-24 bg-gw-cream relative">
         <div className="container-editorial">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-14 items-center">
             <div>
-              <h2 className="font-sans font-bold text-3xl md:text-4xl text-gw-text mb-6">
+              <p className="text-gw-navy font-bold text-sm uppercase tracking-widest mb-4">
+                {t("greenWorld.business.eyebrow") || "Business Opportunity"}
+              </p>
+              <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl text-gw-text mb-4 uppercase">
                 {t("greenWorld.business.title")}
               </h2>
-              <p className="text-gw-text/70 text-lg mb-6">
+              <div className="w-16 h-1 bg-gw-gold mb-6" />
+              <p className="text-gw-text/70 text-lg md:text-xl mb-8 leading-relaxed">
                 {t("greenWorld.business.subtitle")}
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button 
                   size="lg"
-                  className="bg-gw-green hover:bg-gw-green-dark text-gw-white"
+                  className="bg-gw-green hover:bg-gw-green-dark text-gw-white font-bold h-14 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all"
                   asChild
                 >
                   <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
@@ -376,7 +330,7 @@ const GreenWorld = () => {
                 <Button 
                   variant="outline"
                   size="lg"
-                  className="border-gw-green text-gw-green hover:bg-gw-green/5"
+                  className="border-2 border-gw-navy text-gw-navy hover:bg-gw-navy hover:text-gw-white font-bold h-14 px-8 rounded-lg transition-all"
                   asChild
                 >
                   <a href="mailto:cristyna@email.com?subject=Green%20World%20Inquiry">
@@ -389,7 +343,7 @@ const GreenWorld = () => {
               <ParallaxImage
                 src={wealthImage}
                 alt="Green World Business Opportunity"
-                containerClassName="rounded-2xl shadow-xl max-w-lg mx-auto"
+                containerClassName="rounded-2xl shadow-2xl max-w-lg mx-auto"
                 speed={0.12}
               />
             </div>
@@ -401,9 +355,9 @@ const GreenWorld = () => {
       <section className="py-12 bg-gw-white">
         <div className="container-editorial">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="p-6 rounded-xl bg-gw-gray border border-gw-green/10">
+            <div className="p-6 rounded-xl bg-gw-cream border border-gw-green/10">
               <p className="text-sm text-gw-text/60 leading-relaxed">
-                <strong>Disclaimer:</strong> {t("greenWorld.disclaimer")}
+                <strong className="text-gw-text/80">Disclaimer:</strong> {t("greenWorld.disclaimer")}
               </p>
             </div>
           </div>
@@ -411,18 +365,21 @@ const GreenWorld = () => {
       </section>
 
       {/* Footer CTA */}
-      <section className="py-12 sm:py-16 bg-gw-green text-gw-white">
-        <div className="container-editorial text-center">
-          <h2 className="font-sans font-bold text-2xl md:text-3xl mb-4">
+      <section className="py-14 sm:py-20 bg-gw-green text-gw-white relative overflow-hidden">
+        <GreenWorldSwoosh variant="footer" />
+        
+        <div className="container-editorial text-center relative z-10">
+          <h2 className="font-sans font-bold text-2xl md:text-4xl mb-4 uppercase tracking-wide">
             {t("greenWorld.cta.title")}
           </h2>
-          <p className="text-gw-white/70 mb-8 max-w-xl mx-auto">
+          <div className="w-16 h-1 bg-gw-gold mx-auto mb-6" />
+          <p className="text-gw-white/80 mb-10 max-w-xl mx-auto text-lg">
             {t("greenWorld.cta.subtitle")}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
               size="lg"
-              className="bg-gw-white text-gw-green-dark hover:bg-gw-white/90 font-semibold"
+              className="bg-gw-white text-gw-green-dark hover:bg-gw-cream font-bold h-14 px-10 rounded-lg shadow-lg hover:shadow-xl transition-all"
               asChild
             >
               <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
@@ -433,7 +390,7 @@ const GreenWorld = () => {
             <Button 
               variant="outline"
               size="lg"
-              className="border-gw-white text-gw-white hover:bg-gw-white/10 font-semibold"
+              className="border-2 border-gw-white text-gw-white hover:bg-gw-white/10 font-bold h-14 px-10 rounded-lg transition-all"
               asChild
             >
               <a href="mailto:cristyna@email.com?subject=Green%20World%20Info">
