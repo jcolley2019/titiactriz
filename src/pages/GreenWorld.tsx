@@ -137,14 +137,14 @@ const GreenWorld = () => {
               </div>
               
               {/* Italic intro text */}
-              <p className="text-gw-gold italic text-xl md:text-2xl mb-4 opacity-0 animate-fade-up stagger-1 font-serif">
+              <p className="text-gw-white italic text-xl md:text-2xl mb-4 opacity-0 animate-fade-up stagger-1 font-serif">
                 {t("greenWorld.hero.intro")}
               </p>
               
               {/* Bold main title */}
               <h1 className="font-sans font-bold text-4xl md:text-5xl lg:text-6xl mb-6 opacity-0 animate-fade-up stagger-2 uppercase tracking-wide">
                 {t("greenWorld.hero.title")}<br />
-                <span className="text-gw-gold">{t("greenWorld.hero.titleBrand")}</span>
+                <span className="text-gw-white">{t("greenWorld.hero.titleBrand")}</span>
               </h1>
 
               {/* Gold accent line */}
