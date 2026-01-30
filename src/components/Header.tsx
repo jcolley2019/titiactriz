@@ -63,7 +63,11 @@ const Header = () => {
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className="text-base font-medium tracking-wide link-underline transition-all duration-300 text-foreground/80 hover:text-gold-light"
+                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
+                    isGreenWorldPage
+                      ? "text-gw-green-dark hover:text-gw-green"
+                      : "text-foreground/80 hover:text-gold-light"
+                  }`}
                 >
                   {link.name}
                 </a>
@@ -71,9 +75,13 @@ const Header = () => {
                 <Link
                   to={link.path}
                   className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
-                    location.pathname === link.path
-                      ? "text-gold-light"
-                      : "text-foreground/80 hover:text-gold-light"
+                    isGreenWorldPage
+                      ? location.pathname === link.path
+                        ? "text-gw-green"
+                        : "text-gw-green-dark hover:text-gw-green"
+                      : location.pathname === link.path
+                        ? "text-gold-light"
+                        : "text-foreground/80 hover:text-gold-light"
                   }`}
                 >
                   {link.name}
@@ -86,11 +94,17 @@ const Header = () => {
         {/* Center Logo */}
         <Link
           to="/"
-          className="font-serif text-xl md:text-2xl tracking-tight transition-all duration-300 hover:opacity-80"
-          style={{ textShadow: '0 0 20px hsl(var(--accent) / 0.2)' }}
+          className={`font-serif text-xl md:text-2xl tracking-tight transition-all duration-300 hover:opacity-80 ${
+            isGreenWorldPage ? "text-gw-green-dark" : ""
+          }`}
+          style={{ textShadow: isGreenWorldPage ? 'none' : '0 0 20px hsl(var(--accent) / 0.2)' }}
         >
           <span className="font-light tracking-wide">Cristyna</span>{" "}
-          <span className="text-accent italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-accent/50">Polentino</span>
+          <span className={`italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] ${
+            isGreenWorldPage 
+              ? "text-gw-green after:bg-gw-green/50" 
+              : "text-accent after:bg-accent/50"
+          }`}>Polentino</span>
         </Link>
 
         {/* Right Nav */}
@@ -101,7 +115,11 @@ const Header = () => {
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className="text-base font-medium tracking-wide link-underline transition-all duration-300 text-foreground/80 hover:text-gold-light"
+                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
+                    isGreenWorldPage
+                      ? "text-gw-green-dark hover:text-gw-green"
+                      : "text-foreground/80 hover:text-gold-light"
+                  }`}
                 >
                   {link.name}
                 </a>
@@ -109,9 +127,13 @@ const Header = () => {
                 <Link
                   to={link.path}
                   className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
-                    location.pathname === link.path
-                      ? "text-gold-light"
-                      : "text-foreground/80 hover:text-gold-light"
+                    isGreenWorldPage
+                      ? location.pathname === link.path
+                        ? "text-gw-green"
+                        : "text-gw-green-dark hover:text-gw-green"
+                      : location.pathname === link.path
+                        ? "text-gold-light"
+                        : "text-foreground/80 hover:text-gold-light"
                   }`}
                 >
                   {link.name}
@@ -120,16 +142,20 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <LanguageToggle variant="default" />
+            <LanguageToggle variant="greenworld" />
           </li>
         </ul>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center gap-3">
-          <LanguageToggle variant="default" />
+          <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "default"} />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-foreground/80 hover:text-gold-light transition-colors"
+            className={`p-2 transition-colors ${
+              isGreenWorldPage 
+                ? "text-gw-green-dark hover:text-gw-green" 
+                : "text-foreground/80 hover:text-gold-light"
+            }`}
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
