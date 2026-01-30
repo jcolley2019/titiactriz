@@ -116,7 +116,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-sm sm:text-base md:text-lg shadow-lg w-full sm:w-[220px] md:w-[250px] h-12 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
+                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-base sm:text-base md:text-lg shadow-lg w-full sm:w-[220px] md:w-[250px] h-12 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
                 >
                   <a href="mailto:yourname@email.com?subject=Titans%20Agency%20Inquiry" className="flex items-center justify-center gap-2 w-full h-full">
                     {t("titans.hero.workWithUs")}
@@ -126,7 +126,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-sm sm:text-base md:text-lg shadow-lg border border-white/20 w-full sm:w-[220px] md:w-[250px] h-12 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
+                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-base sm:text-base md:text-lg shadow-lg border border-white/20 w-full sm:w-[220px] md:w-[250px] h-12 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
                 >
                   <a href="https://www.tiktok.com/@titansagencylatam" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full h-full">
                     <TikTokIcon className="w-4 h-4 sm:w-5 sm:h-5" />
