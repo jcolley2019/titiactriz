@@ -124,7 +124,7 @@ const GreenWorld = () => {
         <GreenWorldSwoosh variant="hero" />
         
         {/* Logo in white area at top - centered to match reference */}
-        <div className="absolute top-0 left-0 right-0 h-[280px] md:h-[340px] z-20 flex items-center justify-center pt-16 md:pt-20 opacity-0 animate-fade-up pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-[280px] md:h-[340px] z-20 flex items-center justify-center pt-8 md:pt-12 opacity-0 animate-fade-up pointer-events-none">
           <img
             src={gwLogo}
             alt="Green World"
