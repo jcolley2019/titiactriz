@@ -12,7 +12,7 @@ import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code.jpeg";
 
-// Scroll indicator component with Titans ring aesthetic
+// Scroll indicator component with "Scroll" text and gentle animation
 const TitansScrollIndicator = () => {
   const [opacity, setOpacity] = useState(1);
 
@@ -48,23 +48,11 @@ const TitansScrollIndicator = () => {
           .getElementById("titans-services")
           ?.scrollIntoView({ behavior: "smooth", block: "start" })
       }
-      className={cn(
-        "sm:hidden absolute bottom-6 left-1/2 -translate-x-1/2",
-        "h-12 w-12 rounded-full",
-        "flex items-center justify-center",
-        "transition-all duration-300",
-        // Ring motif matching the logo ring
-        "border-2 border-[hsl(0,70%,40%)]/60",
-        "bg-[hsl(0,0%,8%)]/60 backdrop-blur-md",
-        "text-white/90",
-        // Subtle glow effect
-        "shadow-[0_0_20px_hsl(0,70%,40%,0.25),inset_0_0_10px_hsl(0,70%,40%,0.1)]",
-        // Floating animation
-        "animate-float"
-      )}
+      className="sm:hidden absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/80 transition-opacity duration-500"
       aria-label="Scroll down"
     >
-      <ChevronDown className="h-5 w-5" />
+      <span className="text-xs uppercase tracking-widest font-medium">Scroll</span>
+      <ChevronDown className="h-4 w-4 animate-[bounce_2s_ease-in-out_infinite]" />
     </button>
   );
 };
@@ -150,12 +138,12 @@ const TitansAgency = () => {
 
             {/* TikTok Video Column */}
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-6 sm:mt-0">
-              {/* Outer dark red border - responsive sizing */}
-              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-[85%] max-w-[260px] sm:max-w-[320px] md:max-w-[340px]">
+              {/* Outer dark red border - larger on mobile to show full video */}
+              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-[90%] max-w-[300px] sm:max-w-[320px] md:max-w-[340px]">
                 {/* White outline */}
                 <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
-                  {/* Inner container - responsive height */}
-                  <div className="w-full aspect-[9/16] rounded-md sm:rounded-lg overflow-hidden">
+                  {/* Inner container - taller aspect ratio to show full TikTok video */}
+                  <div className="w-full aspect-[9/17] sm:aspect-[9/16] rounded-md sm:rounded-lg overflow-hidden">
                     <iframe
                       src="https://www.tiktok.com/embed/v2/7537859583486823685"
                       className="w-full h-full"
