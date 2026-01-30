@@ -38,7 +38,7 @@ const TitansAgency = () => {
       </Helmet>
 
       {/* Hero Section with Titans brand colors */}
-      <section className="min-h-[70vh] flex items-center pt-24 pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark">
+      <section className="min-h-screen flex items-center pt-24 pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark">
         <div className="container-editorial">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
