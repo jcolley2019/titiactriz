@@ -41,7 +41,7 @@ const TitansAgency = () => {
       <section className="min-h-screen flex items-center pt-24 pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark">
         <div className="container-editorial">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+            <div className="lg:order-2">
               {/* Logo */}
               <div className="mb-8 opacity-0 animate-fade-up">
                 <img
@@ -85,7 +85,7 @@ const TitansAgency = () => {
               </div>
             </div>
 
-            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center">
+            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1">
               <div className="relative">
                 <div className="w-80 h-80 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] rounded-full bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-hidden flex items-center justify-center">
                   <img
