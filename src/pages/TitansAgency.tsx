@@ -102,10 +102,10 @@ const TitansAgency = () => {
                 />
               </div>
 
-              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl text-white leading-[1.15] mb-3 sm:mb-4 md:mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
+              <h1 className="text-3xl sm:text-3xl md:text-5xl lg:text-6xl text-white leading-[1.15] mb-3 sm:mb-4 md:mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
                 <span className="font-titans uppercase tracking-wide">Titans</span>{" "}
-                <span className="font-titans-script text-3xl sm:text-4xl md:text-6xl lg:text-7xl">Agency</span>{" "}
-                <span className="font-titans-script text-3xl sm:text-4xl md:text-6xl lg:text-7xl italic">Latam</span>
+                <span className="font-titans-script text-4xl sm:text-4xl md:text-6xl lg:text-7xl">Agency</span>{" "}
+                <span className="font-titans-script text-4xl sm:text-4xl md:text-6xl lg:text-7xl italic">Latam</span>
               </h1>
 
               <p className="text-base sm:text-lg md:text-2xl text-white/90 font-medium mb-4 sm:mb-6 md:mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-md lg:max-w-lg leading-relaxed">
