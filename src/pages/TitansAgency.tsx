@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
@@ -38,7 +38,7 @@ const TitansAgency = () => {
       </Helmet>
 
       {/* Hero Section with Titans brand colors */}
-      <section className="min-h-screen flex items-center py-20 sm:pt-24 sm:pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-x-hidden">
+      <section className="relative min-h-screen flex items-center py-20 sm:pt-24 sm:pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-x-hidden">
         <div className="w-full px-5 sm:px-6 md:px-8 lg:px-12 max-w-6xl xl:max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-10 sm:gap-8 lg:gap-12 items-center">
             {/* Content Column */}
@@ -111,10 +111,23 @@ const TitansAgency = () => {
             </div>
           </div>
         </div>
+        {/* Mobile scroll indicator (replaces visible scrollbar affordance) */}
+        <button
+          type="button"
+          onClick={() =>
+            document
+              .getElementById("titans-services")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+          className="sm:hidden absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center justify-center h-10 w-10 rounded-full border border-titans-accent/30 bg-titans-dark/30 backdrop-blur-md text-titans-accent/90 shadow-card animate-float"
+          aria-label="Scroll down"
+        >
+          <ChevronDown className="h-5 w-5" />
+        </button>
       </section>
 
       {/* Services Section */}
-      <Section className="bg-titans-dark">
+      <Section id="titans-services" className="bg-titans-dark">
         <SectionHeader
           eyebrow={t("titans.services.eyebrow")}
           title={t("titans.services.title")}
