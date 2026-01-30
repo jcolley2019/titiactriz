@@ -9,7 +9,6 @@ import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard
 
 // Import logos and images
 import gwLogo from "@/assets/greenworld-logo-hd.png";
-import hgwLogo from "@/assets/greenworld-hgw-logo.png";
 import categoryNatural from "@/assets/greenworld-category-natural.png";
 import categoryEnergy from "@/assets/greenworld-category-energy.png";
 import categoryBeauty from "@/assets/greenworld-category-beauty.png";
@@ -120,50 +119,22 @@ const GreenWorld = () => {
         <meta property="og:type" content="website" />
       </Helmet>
 
-      {/* Logo Header Section - White background with color logos */}
-      <section className="relative bg-gw-white pt-24 pb-12">
-        <div className="container-editorial">
-          <div className="flex justify-center items-center gap-8 md:gap-12 opacity-0 animate-fade-up">
-            <img 
-              src={gwLogo} 
-              alt="Green World" 
-              className="h-16 md:h-24 w-auto"
-            />
-            <img 
-              src={hgwLogo} 
-              alt="HGW" 
-              className="h-16 md:h-24 w-auto"
-            />
-          </div>
-        </div>
-        
-        {/* Green swoosh divider at bottom */}
-        <svg 
-          className="absolute bottom-0 left-0 w-full h-16 md:h-24" 
-          viewBox="0 0 1440 100" 
-          preserveAspectRatio="none"
-          fill="none"
-        >
-          <path 
-            d="M0 100V40C200 10 400 30 600 20C800 10 1000 0 1200 15C1350 25 1400 50 1440 60V100H0Z"
-            fill="hsl(var(--gw-green))"
-          />
-          <path 
-            d="M0 100V60C150 35 350 50 550 40C750 30 950 20 1150 35C1300 45 1380 70 1440 80V100H0Z"
-            fill="hsl(var(--gw-green-dark))"
-            fillOpacity="0.7"
-          />
-        </svg>
-      </section>
-
       {/* Hero Section - Authentic Green World Style */}
-      <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark">
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark">
         <GreenWorldSwoosh variant="hero" />
         
-        <div className="container-editorial relative z-10 py-16 sm:py-20">
+        <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-gw-white">
+              {/* Logo */}
+              <div className="mb-6 opacity-0 animate-fade-up">
+                <img 
+                  src={gwLogo} 
+                  alt="Green World" 
+                  className="h-16 md:h-20 w-auto"
+                />
+              </div>
               
               {/* Italic intro text */}
               <p className="text-gw-gold italic text-xl md:text-2xl mb-4 opacity-0 animate-fade-up stagger-1 font-serif">
