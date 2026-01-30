@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { ExternalLink, ShoppingBag, Leaf, Heart, Sparkles, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import ParallaxImage from "@/components/ParallaxImage";
 
 // Category images
 import categoryNatural from "@/assets/greenworld-category-natural.png";
@@ -178,13 +179,13 @@ const GreenWorld = () => {
 
             {/* Right - Product Images */}
             <div className="relative hidden lg:block">
-              <div className="relative">
-                <img 
-                  src={premiumImage} 
-                  alt="Green World Premium Products" 
-                  className="w-full max-w-lg mx-auto rounded-2xl shadow-2xl opacity-0 animate-fade-up stagger-2"
-                />
-              </div>
+              <ParallaxImage
+                src={premiumImage}
+                alt="Green World Premium Products"
+                containerClassName="rounded-2xl shadow-2xl opacity-0 animate-fade-up stagger-2"
+                className="max-w-lg mx-auto"
+                speed={0.15}
+              />
             </div>
           </div>
         </div>
@@ -385,10 +386,11 @@ const GreenWorld = () => {
               </div>
             </div>
             <div className="relative">
-              <img 
-                src={wealthImage} 
-                alt="Green World Business Opportunity" 
-                className="w-full max-w-lg mx-auto rounded-2xl shadow-xl"
+              <ParallaxImage
+                src={wealthImage}
+                alt="Green World Business Opportunity"
+                containerClassName="rounded-2xl shadow-xl max-w-lg mx-auto"
+                speed={0.12}
               />
             </div>
           </div>

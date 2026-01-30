@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 import { FeatureCard } from "@/components/Cards";
 import { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
+import ParallaxImage from "@/components/ParallaxImage";
 
 import actingImage from "@/assets/cristyna-acting-headshot.png";
 import danceImage from "@/assets/cristyna-dance.jpg";
@@ -138,10 +139,11 @@ const WorkResume = () => {
       <Section background="muted">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="image-frame">
-            <img
+            <ParallaxImage
               src={danceImage}
               alt="Cristyna Polentino dance performance"
-              className="w-full h-auto rounded-lg"
+              containerClassName="rounded-lg"
+              speed={0.1}
             />
           </div>
 
@@ -215,10 +217,11 @@ const WorkResume = () => {
           </div>
 
           <div className="order-1 lg:order-2 image-frame">
-            <img
+            <ParallaxImage
               src={actingImage}
               alt="Cristyna Polentino acting headshot"
-              className="w-full h-auto rounded-lg"
+              containerClassName="rounded-lg"
+              speed={0.1}
             />
           </div>
         </div>
