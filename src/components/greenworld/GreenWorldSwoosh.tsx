@@ -12,8 +12,8 @@ const GreenWorldSwoosh: React.FC<GreenWorldSwooshProps> = ({
   if (variant === "hero") {
     return (
       <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
-        {/* White area at top with dual green swoosh */}
-        <div className="absolute top-0 left-0 right-0 h-[180px] md:h-[220px] bg-gw-white">
+        {/* White area at top - logo will be placed here via GreenWorld.tsx */}
+        <div className="absolute top-0 left-0 right-0 h-[280px] md:h-[340px] bg-gw-white">
           <svg 
             className="absolute bottom-0 left-0 w-full h-[120px] md:h-[160px]" 
             viewBox="0 0 1440 160" 
@@ -53,8 +53,8 @@ const GreenWorldSwoosh: React.FC<GreenWorldSwooshProps> = ({
         </svg>
         
         {/* Circular patterns */}
-        <div className="absolute top-[200px] md:top-[240px] right-10 w-64 h-64 border border-gw-white/10 rounded-full opacity-30" />
-        <div className="absolute top-[220px] md:top-[260px] right-32 w-48 h-48 border border-gw-white/10 rounded-full opacity-20" />
+        <div className="absolute top-[300px] md:top-[360px] right-10 w-64 h-64 border border-gw-white/10 rounded-full opacity-30" />
+        <div className="absolute top-[320px] md:top-[380px] right-32 w-48 h-48 border border-gw-white/10 rounded-full opacity-20" />
         <div className="absolute bottom-32 left-20 w-32 h-32 border border-gw-white/10 rounded-full opacity-25" />
       </div>
     );

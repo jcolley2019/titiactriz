@@ -123,18 +123,19 @@ const GreenWorld = () => {
       <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark">
         <GreenWorldSwoosh variant="hero" />
         
-        <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-20">
+        {/* Logo in white area at top */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 opacity-0 animate-fade-up">
+          <img 
+            src={gwLogo} 
+            alt="Green World" 
+            className="h-32 md:h-40 w-auto"
+          />
+        </div>
+        
+        <div className="container-editorial relative z-10 pt-[300px] md:pt-[360px] pb-16 sm:pb-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-gw-white">
-              {/* Logo */}
-              <div className="mb-6 opacity-0 animate-fade-up">
-                <img 
-                  src={gwLogo} 
-                  alt="Green World" 
-                  className="h-16 md:h-20 w-auto"
-                />
-              </div>
               
               {/* Italic intro text */}
               <p className="text-gw-white italic text-xl md:text-2xl mb-4 opacity-0 animate-fade-up stagger-1 font-serif">
