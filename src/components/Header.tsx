@@ -139,7 +139,13 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden absolute top-full left-0 right-0 z-50 bg-background/98 backdrop-blur-xl border-t border-border/50 transition-all duration-500 ${
+        className={`lg:hidden absolute top-full left-0 right-0 z-50 border-t transition-all duration-500 ${
+          isTitansPage 
+            ? "bg-[#1a1a1a] border-titans-red/30"
+            : isGreenWorldPage
+              ? "bg-gw-green-dark border-gw-green/30"
+              : "bg-background border-border/50"
+        } ${
           isMobileMenuOpen
             ? "opacity-100 visible translate-y-0"
             : "opacity-0 invisible -translate-y-4"
@@ -156,7 +162,13 @@ const Header = () => {
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className="block py-3 text-xl font-serif text-foreground/70 hover:text-gold-light transition-colors"
+                  className={`block py-3 text-xl font-serif transition-colors ${
+                    isTitansPage 
+                      ? "text-white/90 hover:text-white"
+                      : isGreenWorldPage
+                        ? "text-gw-white/90 hover:text-gw-white"
+                        : "text-foreground/70 hover:text-gold-light"
+                  }`}
                 >
                   {link.name}
                 </a>
@@ -166,8 +178,16 @@ const Header = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`block py-3 text-xl font-serif transition-colors ${
                     location.pathname === link.path
-                      ? "text-gold-light"
-                      : "text-foreground/70 hover:text-gold-light"
+                      ? isTitansPage 
+                          ? "text-titans-red" 
+                          : isGreenWorldPage 
+                            ? "text-gw-white" 
+                            : "text-gold-light"
+                      : isTitansPage 
+                          ? "text-white/90 hover:text-white"
+                          : isGreenWorldPage
+                            ? "text-gw-white/90 hover:text-gw-white"
+                            : "text-foreground/70 hover:text-gold-light"
                   }`}
                 >
                   {link.name}
