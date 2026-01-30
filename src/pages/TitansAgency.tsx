@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -5,10 +6,68 @@ import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 import { StatCard, FeatureCard } from "@/components/Cards";
 import TikTokIcon from "@/components/icons/TikTokIcon";
+import { cn } from "@/lib/utils";
 
 import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code.jpeg";
+
+// Scroll indicator component with Titans ring aesthetic
+const TitansScrollIndicator = () => {
+  const [opacity, setOpacity] = useState(1);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Fade out as user scrolls down
+      const fadeStart = 50;
+      const fadeEnd = 200;
+      const scrollY = window.scrollY;
+      
+      if (scrollY <= fadeStart) {
+        setOpacity(1);
+      } else if (scrollY >= fadeEnd) {
+        setOpacity(0);
+      } else {
+        setOpacity(1 - (scrollY - fadeStart) / (fadeEnd - fadeStart));
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (opacity === 0) return null;
+
+  return (
+    <button
+      type="button"
+      style={{ opacity }}
+      onClick={() =>
+        document
+          .getElementById("titans-services")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+      className={cn(
+        "sm:hidden absolute bottom-6 left-1/2 -translate-x-1/2",
+        "h-12 w-12 rounded-full",
+        "flex items-center justify-center",
+        "transition-all duration-300",
+        // Ring motif matching the logo ring
+        "border-2 border-[hsl(0,70%,40%)]/60",
+        "bg-[hsl(0,0%,8%)]/60 backdrop-blur-md",
+        "text-white/90",
+        // Subtle glow effect
+        "shadow-[0_0_20px_hsl(0,70%,40%,0.25),inset_0_0_10px_hsl(0,70%,40%,0.1)]",
+        // Floating animation
+        "animate-float"
+      )}
+      aria-label="Scroll down"
+    >
+      <ChevronDown className="h-5 w-5" />
+    </button>
+  );
+};
 
 const TitansAgency = () => {
   const { t } = useTranslation();
@@ -111,19 +170,8 @@ const TitansAgency = () => {
             </div>
           </div>
         </div>
-        {/* Mobile scroll indicator (replaces visible scrollbar affordance) */}
-        <button
-          type="button"
-          onClick={() =>
-            document
-              .getElementById("titans-services")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
-          className="sm:hidden absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center justify-center h-10 w-10 rounded-full border border-titans-accent/30 bg-titans-dark/30 backdrop-blur-md text-titans-accent/90 shadow-card animate-float"
-          aria-label="Scroll down"
-        >
-          <ChevronDown className="h-5 w-5" />
-        </button>
+        {/* Mobile scroll indicator with Titans ring aesthetic */}
+        <TitansScrollIndicator />
       </section>
 
       {/* Services Section */}
