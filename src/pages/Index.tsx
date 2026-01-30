@@ -12,6 +12,7 @@ import { LinkCard } from "@/components/Cards";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
+import ParallaxImage from "@/components/ParallaxImage";
 
 // Images
 import heroImage from "@/assets/cristyna-hero.jpg";
@@ -221,20 +222,19 @@ const Index = () => {
             {/* Right - Hero Image */}
             <div className="order-1 lg:order-2 opacity-0 animate-[fadeIn_1s_ease-out_0.3s_forwards]">
               <div className="relative">
-                {/* Main image */}
-                <div className="relative overflow-hidden rounded-sm">
-                  <img
-                    src={heroImage}
-                    alt="Cristyna Polentino"
-                    className="w-full h-auto max-h-[75vh] object-cover object-top transition-all duration-500 animate-color-reveal"
-                    style={{ 
-                      filter: 'contrast(1.05) saturate(1.1) brightness(1.02)',
-                      imageRendering: 'crisp-edges'
-                    }}
-                  />
-                  {/* Subtle overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
-                </div>
+                {/* Main image with parallax */}
+                <ParallaxImage
+                  src={heroImage}
+                  alt="Cristyna Polentino"
+                  containerClassName="rounded-sm"
+                  className="max-h-[75vh] object-top animate-color-reveal"
+                  speed={0.12}
+                  style={{ 
+                    filter: 'contrast(1.05) saturate(1.1) brightness(1.02)',
+                  }}
+                />
+                {/* Subtle overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent pointer-events-none rounded-sm" />
                 
                 {/* Decorative frame */}
                 <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/30 rounded-sm -z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_0.8s_forwards]" />
@@ -274,10 +274,12 @@ const Index = () => {
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <ScrollReveal direction="left">
             <div className="relative">
-              <img
+              <ParallaxImage
                 src={aboutImage}
                 alt="Cristyna Polentino portrait"
-                className="w-full h-auto rounded-sm animate-color-reveal hover:grayscale-0 transition-all duration-700"
+                containerClassName="rounded-sm"
+                className="animate-color-reveal hover:grayscale-0 transition-all duration-700"
+                speed={0.1}
               />
               {/* Decorative frame */}
               <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
