@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
-import titansQRCode from "@/assets/titans-qr-code.jpeg";
+import titansQRCode from "@/assets/titans-qr-code-cropped.jpg";
 
 // Scroll indicator component with "Scroll" text and gentle animation
 const TitansScrollIndicator = () => {
