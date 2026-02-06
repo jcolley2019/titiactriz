@@ -386,7 +386,7 @@ const TitansAgency = () => {
       </Section>
 
       {/* Featured Creators Section */}
-      <Section className="bg-titans-dark">
+      <Section className="bg-gradient-to-b from-titans-red/90 to-titans-dark">
         <SectionHeader
           eyebrow={t("titans.creators.eyebrow")}
           title={t("titans.creators.title")}
