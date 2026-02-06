@@ -352,12 +352,6 @@ const TitansAgency = () => {
             className="bg-titans-dark/50 border-titans-red/30 [&_h3]:text-white [&_p]:text-white/70"
           />
           <FeatureCard
-            icon={<Handshake className="w-6 h-6 text-titans-red" />}
-            title={t("titans.services.brandPartnerships.title")}
-            description={t("titans.services.brandPartnerships.description")}
-            className="bg-titans-dark/50 border-titans-red/30 [&_h3]:text-white [&_p]:text-white/70"
-          />
-          <FeatureCard
             icon={<BarChart3 className="w-6 h-6 text-titans-red" />}
             title={t("titans.services.analytics.title")}
             description={t("titans.services.analytics.description")}
