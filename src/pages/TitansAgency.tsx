@@ -66,14 +66,15 @@ const TitansAgency = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     tiktokHandle: ""
   });
-  const [formErrors, setFormErrors] = useState<{fullName?: string; email?: string}>({});
+  const [formErrors, setFormErrors] = useState<{fullName?: string; email?: string; phone?: string}>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const validateForm = () => {
-    const errors: {fullName?: string; email?: string} = {};
+    const errors: {fullName?: string; email?: string; phone?: string} = {};
     
     if (!formData.fullName.trim()) {
       errors.fullName = t("titans.form.errors.nameRequired");
@@ -87,6 +88,12 @@ const TitansAgency = () => {
       errors.email = t("titans.form.errors.emailInvalid");
     } else if (formData.email.trim().length > 255) {
       errors.email = t("titans.form.errors.emailTooLong");
+    }
+    
+    if (!formData.phone.trim()) {
+      errors.phone = t("titans.form.errors.phoneRequired");
+    } else if (formData.phone.trim().length > 20) {
+      errors.phone = t("titans.form.errors.phoneTooLong");
     }
     
     setFormErrors(errors);
@@ -103,14 +110,14 @@ const TitansAgency = () => {
     // Build mailto link with form data
     const subject = encodeURIComponent("Titans Agency - New Contact Request");
     const body = encodeURIComponent(
-      `Full Name: ${formData.fullName.trim()}\nEmail: ${formData.email.trim()}\nTikTok Handle: ${formData.tiktokHandle.trim() || "Not provided"}`
+      `Full Name: ${formData.fullName.trim()}\nEmail: ${formData.email.trim()}\nPhone: ${formData.phone.trim()}\nTikTok Handle: ${formData.tiktokHandle.trim() || "Not provided"}`
     );
     
     window.location.href = `mailto:yourname@email.com?subject=${subject}&body=${body}`;
     
     setIsSubmitting(false);
     setSubmitSuccess(true);
-    setFormData({ fullName: "", email: "", tiktokHandle: "" });
+    setFormData({ fullName: "", email: "", phone: "", tiktokHandle: "" });
     setTimeout(() => setSubmitSuccess(false), 3000);
   };
 
@@ -734,6 +741,28 @@ const TitansAgency = () => {
               />
               {formErrors.email && (
                 <p className="text-yellow-200 text-sm">{formErrors.email}</p>
+              )}
+            </div>
+
+            {/* Phone Number */}
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-white font-medium">
+                {t("titans.form.phone")} <span className="text-white/60">*</span>
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder={t("titans.form.phonePlaceholder")}
+                className={cn(
+                  "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
+                  formErrors.phone && "border-yellow-300"
+                )}
+                maxLength={20}
+              />
+              {formErrors.phone && (
+                <p className="text-yellow-200 text-sm">{formErrors.phone}</p>
               )}
             </div>
 
