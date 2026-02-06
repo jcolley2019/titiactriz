@@ -18,6 +18,7 @@ import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 const TIKTOK_VIDEOS = [
   "7537859583486823685",
   "7430845962085584133",
+  "7434018621099216134",
 ];
 
 // TikTok Video Player component with rotation
