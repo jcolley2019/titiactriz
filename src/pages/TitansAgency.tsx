@@ -39,7 +39,7 @@ const TikTokVideoPlayer = () => {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-hidden">
       <iframe
         key={videoId}
         src={`https://www.tiktok.com/embed/v2/${videoId}`}
@@ -47,7 +47,7 @@ const TikTokVideoPlayer = () => {
           "w-full h-full transition-opacity duration-300",
           isTransitioning ? "opacity-0" : "opacity-100"
         )}
-        style={{ border: 0 }}
+        style={{ border: 0, overflow: "hidden" }}
         allowFullScreen
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         title="Titans Agency TikTok Video"
