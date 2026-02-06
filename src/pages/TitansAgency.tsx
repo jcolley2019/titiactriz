@@ -306,8 +306,8 @@ const TitansAgency = () => {
 
             {/* TikTok Video Column - Alternating Videos */}
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-5 sm:mt-0">
-              {/* Outer dark red border - sized to show full TikTok embed */}
-              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
+              {/* Outer black border - sized to show full TikTok embed */}
+              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-black shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
                 {/* White outline */}
                 <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
                   {/* Inner container - cropped to show only video content, hiding related videos section */}
