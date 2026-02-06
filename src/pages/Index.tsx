@@ -133,11 +133,25 @@ const Index = () => {
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
+      const container = scrollRef.current;
       const scrollAmount = 300;
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      
+      if (direction === "right") {
+        // If at or near the end, loop to start
+        if (container.scrollLeft >= maxScroll - 10) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+        }
+      } else {
+        // If at or near the start, loop to end
+        if (container.scrollLeft <= 10) {
+          container.scrollTo({ left: maxScroll, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+        }
+      }
     }
   };
 
