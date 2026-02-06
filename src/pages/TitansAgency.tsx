@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
-import cristynaProfile from "@/assets/cristyna-titi7.png";
+import cristynaProfile from "@/assets/cristyna-tiktok-profile.png";
 import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 
 // TikTok video IDs for alternating display
@@ -402,7 +402,7 @@ const TitansAgency = () => {
             rel="noopener noreferrer"
             className="group"
           >
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-titans-red/20 hover:border-titans-red/50 transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-pink-500 p-1">
                 <div className="w-full h-full rounded-full bg-gradient-to-br from-titans-red/20 to-titans-dark flex items-center justify-center text-3xl font-bold text-white">
                   MV
@@ -434,7 +434,7 @@ const TitansAgency = () => {
             rel="noopener noreferrer"
             className="group"
           >
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-titans-red/20 hover:border-titans-red/50 transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-orange-500 p-1">
                 <div className="w-full h-full rounded-full bg-gradient-to-br from-titans-red/20 to-titans-dark flex items-center justify-center text-3xl font-bold text-white">
                   CR
@@ -466,7 +466,7 @@ const TitansAgency = () => {
             rel="noopener noreferrer"
             className="group"
           >
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-titans-red/20 hover:border-titans-red/50 transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-purple-500 p-1">
                 <div className="w-full h-full rounded-full bg-gradient-to-br from-titans-red/20 to-titans-dark flex items-center justify-center text-3xl font-bold text-white">
                   LP
@@ -498,7 +498,7 @@ const TitansAgency = () => {
             rel="noopener noreferrer"
             className="group"
           >
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-titans-red/20 hover:border-titans-red/50 transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-rose-400 p-1">
                 <img 
                   src={cristynaProfile} 
