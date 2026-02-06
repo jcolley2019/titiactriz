@@ -604,7 +604,7 @@ const TitansAgency = () => {
               className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
             />
             
-            <div className="mt-2 md:mt-4 space-y-4 md:space-y-6 flex flex-col items-center">
+            <div className="space-y-4 md:space-y-6 flex flex-col items-center">
               <Button 
                 size="xl" 
                 asChild
