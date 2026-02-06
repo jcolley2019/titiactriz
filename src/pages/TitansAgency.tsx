@@ -14,6 +14,55 @@ import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 
+// TikTok video IDs for alternating display
+const TIKTOK_VIDEOS = [
+  "7537859583486823685",
+  "7493959809373509894" // Add your second TikTok video ID here
+];
+
+// TikTok Video Player component that alternates between videos
+const TikTokVideoPlayer = () => {
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(() => 
+    Math.floor(Math.random() * TIKTOK_VIDEOS.length)
+  );
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const handleSwitchVideo = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
+      setIsTransitioning(false);
+    }, 300);
+  };
+
+  return (
+    <div className="relative w-full h-full">
+      <iframe
+        key={currentVideoIndex}
+        src={`https://www.tiktok.com/embed/v2/${TIKTOK_VIDEOS[currentVideoIndex]}`}
+        className={cn(
+          "w-full h-[700px] sm:h-[750px] transition-opacity duration-300",
+          isTransitioning ? "opacity-0" : "opacity-100"
+        )}
+        style={{ marginTop: '0px' }}
+        allowFullScreen
+        scrolling="no"
+        allow="encrypted-media"
+        title="Titans Agency TikTok Video"
+      />
+      {/* Next Video Button */}
+      <button
+        onClick={handleSwitchVideo}
+        className="absolute bottom-4 right-4 z-10 bg-titans-red/90 hover:bg-titans-red text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1.5"
+        aria-label="Watch next video"
+      >
+        <PlayCircle className="w-3.5 h-3.5" />
+        Next Video
+      </button>
+    </div>
+  );
+};
+
 // Scroll indicator component with "Scroll" text and gentle animation
 const TitansScrollIndicator = () => {
   const [opacity, setOpacity] = useState(1);
@@ -238,7 +287,7 @@ const TitansAgency = () => {
               </div>
             </div>
 
-            {/* TikTok Video Column */}
+            {/* TikTok Video Column - Alternating Videos */}
             <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-5 sm:mt-0">
               {/* Outer dark red border - sized to show full TikTok embed */}
               <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-[#8B1538] shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
@@ -246,15 +295,7 @@ const TitansAgency = () => {
                 <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
                   {/* Inner container - cropped to show only video content, hiding related videos section */}
                   <div className="w-full h-[560px] sm:h-[600px] rounded-md sm:rounded-lg overflow-hidden">
-                    <iframe
-                      src="https://www.tiktok.com/embed/v2/7537859583486823685"
-                      className="w-full h-[700px] sm:h-[750px]"
-                      style={{ marginTop: '0px' }}
-                      allowFullScreen
-                      scrolling="no"
-                      allow="encrypted-media"
-                      title="Titans Agency TikTok Video"
-                    />
+                    <TikTokVideoPlayer />
                   </div>
                 </div>
               </div>
