@@ -41,13 +41,14 @@ import gallery7Image from "@/assets/cristyna-gallery7.jpg";
 import gallery8Image from "@/assets/cristyna-gallery8.jpg";
 import gallery9Image from "@/assets/cristyna-gallery9.jpg";
 import gallery10Image from "@/assets/cristyna-gallery10.jpg";
+import gallery11Image from "@/assets/cristyna-gallery11.jpg";
 
 const galleryImages = [
   miami4Image, titi5Image, sunsetImage, lifestyleImage, 
   poolImage, titi3Image, miami1Image, miami3Image,
   gallery1Image, gallery2Image, gallery3Image, gallery4Image,
   gallery5Image, gallery6Image, gallery7Image, miami2Image,
-  gallery8Image, gallery9Image, gallery10Image
+  gallery8Image, gallery9Image, gallery10Image, gallery11Image
 ];
 
 // Contact form validation schema
