@@ -601,10 +601,10 @@ const TitansAgency = () => {
               eyebrow={t("titans.join.eyebrow")}
               title={t("titans.join.contactTitle")}
               subtitle={t("titans.join.contactSubtitle")}
-              className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
+              className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70 mb-8 md:mb-10 [&_.gold-line]:mt-5"
             />
             
-            <div className="space-y-4 md:space-y-6 flex flex-col items-center">
+            <div className="space-y-4 flex flex-col items-center">
               <Button 
                 size="xl" 
                 asChild
