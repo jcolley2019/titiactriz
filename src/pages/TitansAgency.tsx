@@ -14,17 +14,38 @@ import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 
-// TikTok video ID for display
-const TIKTOK_VIDEO_ID = "7537859583486823685";
-const TIKTOK_VIDEO_URL = `https://www.tiktok.com/@titansagencylatam/video/${TIKTOK_VIDEO_ID}`;
+// TikTok video IDs for alternating display
+const TIKTOK_VIDEOS = [
+  "7537859583486823685",
+  "7430845962085584133",
+];
 
-// TikTok Video Player component
+// TikTok Video Player component with rotation
 const TikTokVideoPlayer = () => {
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
+    Math.floor(Math.random() * TIKTOK_VIDEOS.length)
+  );
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const videoId = TIKTOK_VIDEOS[currentVideoIndex];
+
+  const handleSwitchVideo = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
+      setIsTransitioning(false);
+    }, 250);
+  };
+
   return (
     <div className="relative w-full h-full">
       <iframe
-        src={`https://www.tiktok.com/embed/v2/${TIKTOK_VIDEO_ID}`}
-        className="w-full h-full"
+        key={videoId}
+        src={`https://www.tiktok.com/embed/v2/${videoId}`}
+        className={cn(
+          "w-full h-full transition-opacity duration-300",
+          isTransitioning ? "opacity-0" : "opacity-100"
+        )}
         style={{ border: 0 }}
         allowFullScreen
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -34,9 +55,19 @@ const TikTokVideoPlayer = () => {
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
       />
 
+      {/* Next Video Button */}
+      <button
+        onClick={handleSwitchVideo}
+        className="absolute bottom-4 right-4 z-10 bg-titans-red/90 hover:bg-titans-red text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1.5"
+        aria-label="Watch next video"
+      >
+        <PlayCircle className="w-3.5 h-3.5" />
+        Next Video
+      </button>
+
       {/* Fallback link if embed fails to render */}
       <a
-        href={TIKTOK_VIDEO_URL}
+        href={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
         target="_blank"
         rel="noreferrer"
         className="sr-only"
