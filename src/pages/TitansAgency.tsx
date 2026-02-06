@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -19,47 +19,24 @@ const TIKTOK_VIDEOS = [
   {
     id: "7537859583486823685",
     cite: "https://www.tiktok.com/@titansagencylatam/video/7537859583486823685",
+    embeddable: true,
   },
   {
     id: "7426123117669420294",
     cite: "https://www.tiktok.com/@titansagencylatam/video/7426123117669420294",
+    // TikTok currently returns "video unavailable" when embedded for this ID.
+    embeddable: false,
   },
-];
+] as const;
 
-const TIKTOK_EMBED_SCRIPT_SRC = "https://www.tiktok.com/embed.js";
-
-const ensureTikTokEmbedScript = () =>
-  new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[src="${TIKTOK_EMBED_SCRIPT_SRC}"]`
-    ) as HTMLScriptElement | null;
-
-    if (existing) {
-      if ((window as any).tiktokEmbed) return resolve();
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener(
-        "error",
-        () => reject(new Error("Failed to load TikTok embed script")),
-        { once: true }
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = TIKTOK_EMBED_SCRIPT_SRC;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load TikTok embed script"));
-    document.body.appendChild(script);
-  });
 
 // TikTok Video Player component that alternates between videos
 const TikTokVideoPlayer = () => {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
-    Math.floor(Math.random() * TIKTOK_VIDEOS.length)
-  );
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(() => {
+    const firstEmbeddableIndex = TIKTOK_VIDEOS.findIndex((v) => v.embeddable);
+    return firstEmbeddableIndex >= 0 ? firstEmbeddableIndex : 0;
+  });
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const currentVideo = TIKTOK_VIDEOS[currentVideoIndex];
 
@@ -67,59 +44,46 @@ const TikTokVideoPlayer = () => {
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
+      setIsTransitioning(false);
     }, 250);
   };
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        await ensureTikTokEmbedScript();
-        if (cancelled) return;
-
-        // Ask TikTok's embed script to (re)parse embeds after React updates the DOM.
-        requestAnimationFrame(() => {
-          (window as any).tiktokEmbed?.load?.();
-          setIsTransitioning(false);
-        });
-      } catch (err) {
-        console.warn("TikTok embed failed to initialize", err);
-        setIsTransitioning(false);
-      }
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentVideo.id]);
-
   return (
-    <div ref={containerRef} className="relative w-full h-full">
+    <div className="relative w-full h-full">
       <div
         className={cn(
-          "transition-opacity duration-300",
+          "w-full h-full transition-opacity duration-300",
           isTransitioning ? "opacity-0" : "opacity-100"
         )}
       >
-        <blockquote
-          key={currentVideo.id}
-          className="tiktok-embed w-full"
-          cite={currentVideo.cite}
-          data-video-id={currentVideo.id}
-          style={{ maxWidth: 605, minWidth: 325 }}
-        >
-          <section>
-            <a
-              target="_blank"
-              rel="noreferrer"
-              href="https://www.tiktok.com/@titansagencylatam?refer=embed"
-            >
-              @titansagencylatam
-            </a>
-          </section>
-        </blockquote>
+        {currentVideo.embeddable ? (
+          <iframe
+            key={currentVideo.id}
+            src={`https://www.tiktok.com/embed/v2/${currentVideo.id}`}
+            className="w-full h-full"
+            style={{ border: 0 }}
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            title="Titans Agency TikTok Video"
+            referrerPolicy="no-referrer-when-downgrade"
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+          />
+        ) : (
+          <div className="w-full h-full grid place-items-center bg-background text-foreground p-6">
+            <div className="text-center space-y-3">
+              <p className="text-sm font-medium">This TikTok video can’t be embedded.</p>
+              <a
+                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                href={currentVideo.cite}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open on TikTok
+              </a>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Next Video Button */}
