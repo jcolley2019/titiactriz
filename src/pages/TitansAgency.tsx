@@ -403,8 +403,8 @@ const TitansAgency = () => {
             className="group"
           >
             <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-pink-500 p-1">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-titans-red/20 to-titans-dark flex items-center justify-center text-3xl font-bold text-white">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
+                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
                   MV
                 </div>
               </div>
@@ -435,8 +435,8 @@ const TitansAgency = () => {
             className="group"
           >
             <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-orange-500 p-1">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-titans-red/20 to-titans-dark flex items-center justify-center text-3xl font-bold text-white">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
+                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
                   CR
                 </div>
               </div>
@@ -467,8 +467,8 @@ const TitansAgency = () => {
             className="group"
           >
             <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-purple-500 p-1">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-titans-red/20 to-titans-dark flex items-center justify-center text-3xl font-bold text-white">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
+                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
                   LP
                 </div>
               </div>
@@ -499,7 +499,7 @@ const TitansAgency = () => {
             className="group"
           >
             <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-titans-red to-rose-400 p-1">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
                 <img 
                   src={cristynaProfile} 
                   alt="Titi Actriz" 
