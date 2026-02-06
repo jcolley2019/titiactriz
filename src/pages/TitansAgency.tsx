@@ -14,91 +14,29 @@ import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 
-// TikTok video configurations for alternating display
-const TIKTOK_VIDEOS = [
-  {
-    id: "7537859583486823685",
-    cite: "https://www.tiktok.com/@titansagencylatam/video/7537859583486823685",
-    embeddable: true,
-  },
-  {
-    id: "7426123117669420294",
-    cite: "https://www.tiktok.com/@titansagencylatam/video/7426123117669420294",
-    // TikTok currently returns "video unavailable" when embedded for this ID.
-    embeddable: false,
-  },
-] as const;
+// TikTok video ID for display
+const TIKTOK_VIDEO_ID = "7537859583486823685";
+const TIKTOK_VIDEO_URL = `https://www.tiktok.com/@titansagencylatam/video/${TIKTOK_VIDEO_ID}`;
 
-
-// TikTok Video Player component that alternates between videos
+// TikTok Video Player component
 const TikTokVideoPlayer = () => {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(() => {
-    const firstEmbeddableIndex = TIKTOK_VIDEOS.findIndex((v) => v.embeddable);
-    return firstEmbeddableIndex >= 0 ? firstEmbeddableIndex : 0;
-  });
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const currentVideo = TIKTOK_VIDEOS[currentVideoIndex];
-
-  const handleSwitchVideo = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
-      setIsTransitioning(false);
-    }, 250);
-  };
-
   return (
     <div className="relative w-full h-full">
-      <div
-        className={cn(
-          "w-full h-full transition-opacity duration-300",
-          isTransitioning ? "opacity-0" : "opacity-100"
-        )}
-      >
-        {currentVideo.embeddable ? (
-          <iframe
-            key={currentVideo.id}
-            src={`https://www.tiktok.com/embed/v2/${currentVideo.id}`}
-            className="w-full h-full"
-            style={{ border: 0 }}
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            title="Titans Agency TikTok Video"
-            referrerPolicy="no-referrer-when-downgrade"
-            loading="lazy"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
-          />
-        ) : (
-          <div className="w-full h-full grid place-items-center bg-background text-foreground p-6">
-            <div className="text-center space-y-3">
-              <p className="text-sm font-medium">This TikTok video can’t be embedded.</p>
-              <a
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                href={currentVideo.cite}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open on TikTok
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Next Video Button */}
-      <button
-        onClick={handleSwitchVideo}
-        className="absolute bottom-4 right-4 z-10 bg-titans-red/90 hover:bg-titans-red text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1.5"
-        aria-label="Watch next video"
-      >
-        <PlayCircle className="w-3.5 h-3.5" />
-        Next Video
-      </button>
+      <iframe
+        src={`https://www.tiktok.com/embed/v2/${TIKTOK_VIDEO_ID}`}
+        className="w-full h-full"
+        style={{ border: 0 }}
+        allowFullScreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        title="Titans Agency TikTok Video"
+        referrerPolicy="no-referrer-when-downgrade"
+        loading="lazy"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+      />
 
       {/* Fallback link if embed fails to render */}
       <a
-        href={currentVideo.cite}
+        href={TIKTOK_VIDEO_URL}
         target="_blank"
         rel="noreferrer"
         className="sr-only"
