@@ -131,6 +131,8 @@ const Index = () => {
     setTimeout(() => setSubmitSuccess(false), 3000);
   };
 
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const container = scrollRef.current;
@@ -154,6 +156,31 @@ const Index = () => {
       }
     }
   };
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!isAutoScrolling) return;
+    
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const container = scrollRef.current;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        
+        // If at or near the end, loop to start
+        if (container.scrollLeft >= maxScroll - 10) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: 1, behavior: "auto" });
+        }
+      }
+    }, 30);
+    
+    return () => clearInterval(interval);
+  }, [isAutoScrolling]);
+
+  // Pause auto-scroll on hover
+  const handleMouseEnter = () => setIsAutoScrolling(false);
+  const handleMouseLeave = () => setIsAutoScrolling(true);
 
   return (
     <>
@@ -371,6 +398,8 @@ const Index = () => {
           ref={scrollRef}
           className="flex gap-4 overflow-x-auto scrollbar-hide px-6 scroll-smooth"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           {galleryImages.map((img, i) => (
             <div
