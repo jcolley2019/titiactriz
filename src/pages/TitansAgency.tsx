@@ -615,7 +615,7 @@ const TitansAgency = () => {
           className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
           {/* TikTok Video Embed 1 */}
           <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-titans-dark/50 border border-titans-red/30 relative group">
             <blockquote 
@@ -664,29 +664,6 @@ const TitansAgency = () => {
             </blockquote>
           </div>
 
-          {/* TikTok Video Embed 3 */}
-          <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-titans-dark/50 border border-titans-red/30 relative group md:col-span-2 lg:col-span-1 md:max-w-sm md:mx-auto lg:max-w-none">
-            <blockquote 
-              className="tiktok-embed w-full h-full" 
-              cite="https://www.tiktok.com/@titansagencylatam" 
-              data-video-id=""
-              style={{ maxWidth: '100%', minWidth: '100%' }}
-            >
-              <section className="flex flex-col items-center justify-center h-full p-6 text-center">
-                <TikTokIcon className="w-16 h-16 text-titans-red mb-4" />
-                <p className="text-white font-semibold mb-2">{t("titans.showcase.video3.title")}</p>
-                <p className="text-white/60 text-sm mb-4">{t("titans.showcase.video3.description")}</p>
-                <a 
-                  href="https://www.tiktok.com/@titansagencylatam" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-titans-red hover:text-white transition-colors text-sm font-medium"
-                >
-                  {t("titans.showcase.watchOnTiktok")} →
-                </a>
-              </section>
-            </blockquote>
-          </div>
         </div>
 
         {/* CTA to TikTok */}
