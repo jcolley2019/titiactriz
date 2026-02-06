@@ -121,6 +121,47 @@ const TitansAgency = () => {
     setTimeout(() => setSubmitSuccess(false), 3000);
   };
 
+  // Format phone number as user types: +XX XXX XXX XXXX
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digit characters except +
+    const cleaned = value.replace(/[^\d+]/g, '');
+    
+    // Handle the + at the beginning
+    let hasPlus = cleaned.startsWith('+');
+    let digits = cleaned.replace(/\D/g, '');
+    
+    // Limit to 13 digits (including country code)
+    digits = digits.slice(0, 13);
+    
+    // Format: +XX XXX XXX XXXX
+    let formatted = '';
+    
+    if (hasPlus) {
+      formatted = '+';
+    }
+    
+    if (digits.length > 0) {
+      // Country code (first 2 digits)
+      formatted += digits.slice(0, 2);
+    }
+    if (digits.length > 2) {
+      formatted += ' ' + digits.slice(2, 5);
+    }
+    if (digits.length > 5) {
+      formatted += ' ' + digits.slice(5, 8);
+    }
+    if (digits.length > 8) {
+      formatted += ' ' + digits.slice(8, 12);
+    }
+    
+    return formatted;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setFormData(prev => ({ ...prev, phone: formatted }));
+  };
+
   const services = [
     t("titans.services.list.onboarding"),
     t("titans.services.list.content"),
@@ -753,13 +794,13 @@ const TitansAgency = () => {
                 id="phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                onChange={handlePhoneChange}
                 placeholder={t("titans.form.phonePlaceholder")}
                 className={cn(
                   "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
                   formErrors.phone && "border-yellow-300"
                 )}
-                maxLength={20}
+                maxLength={17}
               />
               {formErrors.phone && (
                 <p className="text-yellow-200 text-sm">{formErrors.phone}</p>
