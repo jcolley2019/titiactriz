@@ -197,8 +197,26 @@
     "cta": {
       "eyebrow": "Ready to Grow?",
       "title": "Let's Talk",
-      "subtitle": "Schedule a discovery call to discuss how we can help you grow on TikTok.",
+      "subtitle": "Fill out the form below and we'll get back to you to discuss how we can help you grow on TikTok.",
       "button": "Request a Call"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "tiktokHandle": "TikTok Handle",
+      "tiktokPlaceholder": "yourusername",
+      "optional": "Optional",
+      "submitting": "Sending...",
+      "success": "Request sent!",
+      "errors": {
+        "nameRequired": "Full name is required",
+        "nameTooLong": "Name must be less than 100 characters",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email",
+        "emailTooLong": "Email must be less than 255 characters"
+      }
     },
     "join": {
       "eyebrow": "Join the Team",

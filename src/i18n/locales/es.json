@@ -197,8 +197,26 @@
     "cta": {
       "eyebrow": "¿Listo para Crecer?",
       "title": "Hablemos",
-      "subtitle": "Agenda una llamada de descubrimiento para discutir cómo podemos ayudarte a crecer en TikTok.",
+      "subtitle": "Completa el formulario a continuación y nos pondremos en contacto contigo para discutir cómo podemos ayudarte a crecer en TikTok.",
       "button": "Solicitar una Llamada"
+    },
+    "form": {
+      "fullName": "Nombre Completo",
+      "fullNamePlaceholder": "Tu nombre completo",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "tu@correo.com",
+      "tiktokHandle": "Usuario de TikTok",
+      "tiktokPlaceholder": "tuusuario",
+      "optional": "Opcional",
+      "submitting": "Enviando...",
+      "success": "¡Solicitud enviada!",
+      "errors": {
+        "nameRequired": "El nombre completo es requerido",
+        "nameTooLong": "El nombre debe tener menos de 100 caracteres",
+        "emailRequired": "El correo electrónico es requerido",
+        "emailInvalid": "Por favor ingresa un correo válido",
+        "emailTooLong": "El correo debe tener menos de 255 caracteres"
+      }
     },
     "join": {
       "eyebrow": "Únete al Equipo",
