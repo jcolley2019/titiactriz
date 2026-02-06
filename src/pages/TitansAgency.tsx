@@ -562,12 +562,13 @@ const TitansAgency = () => {
               {t("titans.join.admin")}
             </p>
             
-            {/* QR Code */}
-            <div className="bg-white rounded-2xl p-6 mb-6 inline-block">
+            {/* QR Code - Enlarged for easy scanning */}
+            <div className="bg-white rounded-2xl p-6 md:p-8 mb-6 inline-block">
               <img
                 src={titansQRCode}
                 alt="Titans Agency QR Code"
-                className="w-48 h-48 md:w-56 md:h-56 object-contain"
+                className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain"
+                style={{ imageRendering: 'crisp-edges' }}
               />
             </div>
             
