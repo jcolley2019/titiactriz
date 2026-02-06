@@ -14,10 +14,16 @@ import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
 import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 
-// TikTok video IDs for alternating display
+// TikTok video configurations for alternating display
 const TIKTOK_VIDEOS = [
-  "7537859583486823685",
-  "7426123117669420294",
+  {
+    id: "7537859583486823685",
+    cite: "https://www.tiktok.com/@titansagencylatam/video/7537859583486823685",
+  },
+  {
+    id: "7426123117669420294",
+    cite: "https://www.tiktok.com/@titansagencylatam/video/7426123117669420294",
+  },
 ];
 
 const TIKTOK_EMBED_SCRIPT_SRC = "https://www.tiktok.com/embed.js";
@@ -55,7 +61,7 @@ const TikTokVideoPlayer = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const videoId = TIKTOK_VIDEOS[currentVideoIndex];
+  const currentVideo = TIKTOK_VIDEOS[currentVideoIndex];
 
   const handleSwitchVideo = () => {
     setIsTransitioning(true);
@@ -87,7 +93,7 @@ const TikTokVideoPlayer = () => {
     return () => {
       cancelled = true;
     };
-  }, [videoId]);
+  }, [currentVideo.id]);
 
   return (
     <div ref={containerRef} className="relative w-full h-full">
@@ -98,12 +104,21 @@ const TikTokVideoPlayer = () => {
         )}
       >
         <blockquote
-          key={videoId}
+          key={currentVideo.id}
           className="tiktok-embed w-full"
-          cite={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
-          data-video-id={videoId}
+          cite={currentVideo.cite}
+          data-video-id={currentVideo.id}
+          style={{ maxWidth: 605, minWidth: 325 }}
         >
-          <section />
+          <section>
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://www.tiktok.com/@titansagencylatam?refer=embed"
+            >
+              @titansagencylatam
+            </a>
+          </section>
         </blockquote>
       </div>
 
@@ -119,7 +134,7 @@ const TikTokVideoPlayer = () => {
 
       {/* Fallback link if embed fails to render */}
       <a
-        href={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
+        href={currentVideo.cite}
         target="_blank"
         rel="noreferrer"
         className="sr-only"
