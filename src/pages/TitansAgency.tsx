@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 import { StatCard, FeatureCard } from "@/components/Cards";
 import TikTokIcon from "@/components/icons/TikTokIcon";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 import titansLogo from "@/assets/titans-logo-color.png";
@@ -59,6 +61,58 @@ const TitansScrollIndicator = () => {
 
 const TitansAgency = () => {
   const { t } = useTranslation();
+  
+  // Contact form state
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    tiktokHandle: ""
+  });
+  const [formErrors, setFormErrors] = useState<{fullName?: string; email?: string}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const validateForm = () => {
+    const errors: {fullName?: string; email?: string} = {};
+    
+    if (!formData.fullName.trim()) {
+      errors.fullName = t("titans.form.errors.nameRequired");
+    } else if (formData.fullName.trim().length > 100) {
+      errors.fullName = t("titans.form.errors.nameTooLong");
+    }
+    
+    if (!formData.email.trim()) {
+      errors.email = t("titans.form.errors.emailRequired");
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = t("titans.form.errors.emailInvalid");
+    } else if (formData.email.trim().length > 255) {
+      errors.email = t("titans.form.errors.emailTooLong");
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsSubmitting(true);
+    
+    // Build mailto link with form data
+    const subject = encodeURIComponent("Titans Agency - New Contact Request");
+    const body = encodeURIComponent(
+      `Full Name: ${formData.fullName.trim()}\nEmail: ${formData.email.trim()}\nTikTok Handle: ${formData.tiktokHandle.trim() || "Not provided"}`
+    );
+    
+    window.location.href = `mailto:yourname@email.com?subject=${subject}&body=${body}`;
+    
+    setIsSubmitting(false);
+    setSubmitSuccess(true);
+    setFormData({ fullName: "", email: "", tiktokHandle: "" });
+    setTimeout(() => setSubmitSuccess(false), 3000);
+  };
 
   const services = [
     t("titans.services.list.onboarding"),
@@ -628,26 +682,99 @@ const TitansAgency = () => {
         </div>
       </Section>
 
-      {/* CTA Section */}
-      <Section className="bg-titans-red">
-        <div className="max-w-2xl mx-auto text-center">
+      {/* CTA Section with Contact Form */}
+      <Section className="bg-titans-red py-16 md:py-24">
+        <div className="max-w-xl mx-auto">
           <SectionHeader
             eyebrow={t("titans.cta.eyebrow")}
             title={t("titans.cta.title")}
             subtitle={t("titans.cta.subtitle")}
-            className="[&_*]:text-white [&_.text-muted-foreground]:text-white/90"
+            className="[&_*]:text-white [&_.text-muted-foreground]:text-white/90 mb-8 md:mb-10"
           />
 
-          <Button 
-            size="xl" 
-            asChild
-            className="bg-white text-titans-red hover:bg-white/90 font-semibold"
-          >
-            <a href="mailto:yourname@email.com?subject=Titans%20Agency%20Discovery%20Call">
-              {t("titans.cta.button")}
-              <ArrowRight className="w-5 h-5" />
-            </a>
-          </Button>
+          <form onSubmit={handleFormSubmit} className="space-y-5">
+            {/* Full Name */}
+            <div className="space-y-2">
+              <Label htmlFor="fullName" className="text-white font-medium">
+                {t("titans.form.fullName")} <span className="text-white/60">*</span>
+              </Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={formData.fullName}
+                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                placeholder={t("titans.form.fullNamePlaceholder")}
+                className={cn(
+                  "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
+                  formErrors.fullName && "border-yellow-300"
+                )}
+                maxLength={100}
+              />
+              {formErrors.fullName && (
+                <p className="text-yellow-200 text-sm">{formErrors.fullName}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white font-medium">
+                {t("titans.form.email")} <span className="text-white/60">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder={t("titans.form.emailPlaceholder")}
+                className={cn(
+                  "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
+                  formErrors.email && "border-yellow-300"
+                )}
+                maxLength={255}
+              />
+              {formErrors.email && (
+                <p className="text-yellow-200 text-sm">{formErrors.email}</p>
+              )}
+            </div>
+
+            {/* TikTok Handle */}
+            <div className="space-y-2">
+              <Label htmlFor="tiktokHandle" className="text-white font-medium">
+                {t("titans.form.tiktokHandle")} <span className="text-white/40 text-sm">({t("titans.form.optional")})</span>
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">@</span>
+                <Input
+                  id="tiktokHandle"
+                  type="text"
+                  value={formData.tiktokHandle}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tiktokHandle: e.target.value.replace(/^@/, '') }))}
+                  placeholder={t("titans.form.tiktokPlaceholder")}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12 pl-8"
+                  maxLength={50}
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <Button 
+              type="submit"
+              size="xl" 
+              disabled={isSubmitting}
+              className="bg-white text-titans-red hover:bg-white/90 font-bold w-full mt-6"
+            >
+              {isSubmitting ? (
+                t("titans.form.submitting")
+              ) : submitSuccess ? (
+                t("titans.form.success")
+              ) : (
+                <>
+                  {t("titans.cta.button")}
+                  <Send className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </form>
         </div>
       </Section>
     </>
