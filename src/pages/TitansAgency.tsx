@@ -611,7 +611,7 @@ const TitansAgency = () => {
       </Section>
 
       {/* TikTok Creator Showcase */}
-      <Section className="bg-gradient-to-b from-titans-red/20 to-titans-dark">
+      <Section className="bg-titans-dark">
         <SectionHeader
           eyebrow={t("titans.showcase.eyebrow")}
           title={t("titans.showcase.title")}
