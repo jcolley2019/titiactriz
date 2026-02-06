@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
-import titansQRCode from "@/assets/titans-qr-code-cropped.jpg";
+import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 
 // Scroll indicator component with "Scroll" text and gentle animation
 const TitansScrollIndicator = () => {
@@ -562,13 +562,17 @@ const TitansAgency = () => {
               {t("titans.join.admin")}
             </p>
             
-            {/* QR Code - Enlarged for easy scanning */}
-            <div className="bg-white rounded-2xl p-6 md:p-8 mb-6 inline-block">
+            {/* QR Code Ad - Full display with clipped borders */}
+            <div className="rounded-2xl overflow-hidden mb-6 max-w-sm">
               <img
                 src={titansQRCode}
                 alt="Titans Agency QR Code"
-                className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain"
-                style={{ imageRendering: 'crisp-edges' }}
+                className="w-full h-auto object-cover"
+                style={{ 
+                  imageRendering: 'crisp-edges',
+                  marginTop: '-2%',
+                  marginBottom: '-2%'
+                }}
               />
             </div>
             
