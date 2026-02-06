@@ -551,10 +551,10 @@ const TitansAgency = () => {
       </Section>
 
       {/* Join Us Section with QR Code */}
-      <Section className="bg-titans-dark">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <Section className="bg-titans-dark py-16 md:py-24">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* QR Code Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 shadow-2xl border border-white/10 text-center">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 md:p-8 shadow-2xl border border-white/10 text-center">
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
               {t("titans.join.title")}
             </h3>
@@ -604,7 +604,7 @@ const TitansAgency = () => {
               className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
             />
             
-            <div className="mt-8 space-y-6 flex flex-col items-center">
+            <div className="mt-6 md:mt-8 space-y-4 md:space-y-6 flex flex-col items-center">
               <Button 
                 size="xl" 
                 asChild
