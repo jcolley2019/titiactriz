@@ -39,16 +39,18 @@ const TikTokVideoPlayer = () => {
     <div className="relative w-full h-full">
       <iframe
         key={currentVideoIndex}
-        src={`https://www.tiktok.com/embed/v2/${TIKTOK_VIDEOS[currentVideoIndex]}`}
+        src={`https://www.tiktok.com/embed/v2/${TIKTOK_VIDEOS[currentVideoIndex]}?autoplay=0`}
         className={cn(
           "w-full h-[700px] sm:h-[750px] transition-opacity duration-300",
           isTransitioning ? "opacity-0" : "opacity-100"
         )}
-        style={{ marginTop: '0px' }}
+        style={{ marginTop: '0px', border: 'none' }}
         allowFullScreen
-        scrolling="no"
-        allow="encrypted-media"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         title="Titans Agency TikTok Video"
+        referrerPolicy="no-referrer-when-downgrade"
+        loading="lazy"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
       />
       {/* Next Video Button */}
       <button
