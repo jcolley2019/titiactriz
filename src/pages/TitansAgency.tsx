@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -17,41 +17,96 @@ import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 // TikTok video IDs for alternating display
 const TIKTOK_VIDEOS = [
   "7537859583486823685",
-  "7426123117669420294"
+  "7426123117669420294",
 ];
+
+const TIKTOK_EMBED_SCRIPT_SRC = "https://www.tiktok.com/embed.js";
+
+const ensureTikTokEmbedScript = () =>
+  new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector(
+      `script[src="${TIKTOK_EMBED_SCRIPT_SRC}"]`
+    ) as HTMLScriptElement | null;
+
+    if (existing) {
+      if ((window as any).tiktokEmbed) return resolve();
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load TikTok embed script")),
+        { once: true }
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = TIKTOK_EMBED_SCRIPT_SRC;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load TikTok embed script"));
+    document.body.appendChild(script);
+  });
 
 // TikTok Video Player component that alternates between videos
 const TikTokVideoPlayer = () => {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(() => 
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
     Math.floor(Math.random() * TIKTOK_VIDEOS.length)
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const videoId = TIKTOK_VIDEOS[currentVideoIndex];
 
   const handleSwitchVideo = () => {
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
-      setIsTransitioning(false);
-    }, 300);
+    }, 250);
   };
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        await ensureTikTokEmbedScript();
+        if (cancelled) return;
+
+        // Ask TikTok's embed script to (re)parse embeds after React updates the DOM.
+        requestAnimationFrame(() => {
+          (window as any).tiktokEmbed?.load?.();
+          setIsTransitioning(false);
+        });
+      } catch (err) {
+        console.warn("TikTok embed failed to initialize", err);
+        setIsTransitioning(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [videoId]);
+
   return (
-    <div className="relative w-full h-full">
-      <iframe
-        key={currentVideoIndex}
-        src={`https://www.tiktok.com/embed/v2/${TIKTOK_VIDEOS[currentVideoIndex]}?autoplay=0`}
+    <div ref={containerRef} className="relative w-full h-full">
+      <div
         className={cn(
-          "w-full h-[700px] sm:h-[750px] transition-opacity duration-300",
+          "transition-opacity duration-300",
           isTransitioning ? "opacity-0" : "opacity-100"
         )}
-        style={{ marginTop: '0px', border: 'none' }}
-        allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        title="Titans Agency TikTok Video"
-        referrerPolicy="no-referrer-when-downgrade"
-        loading="lazy"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
-      />
+      >
+        <blockquote
+          key={videoId}
+          className="tiktok-embed w-full"
+          cite={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
+          data-video-id={videoId}
+        >
+          <section />
+        </blockquote>
+      </div>
+
       {/* Next Video Button */}
       <button
         onClick={handleSwitchVideo}
@@ -61,6 +116,16 @@ const TikTokVideoPlayer = () => {
         <PlayCircle className="w-3.5 h-3.5" />
         Next Video
       </button>
+
+      {/* Fallback link if embed fails to render */}
+      <a
+        href={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
+        target="_blank"
+        rel="noreferrer"
+        className="sr-only"
+      >
+        Open TikTok video
+      </a>
     </div>
   );
 };
