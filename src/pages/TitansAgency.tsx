@@ -554,7 +554,7 @@ const TitansAgency = () => {
       <Section className="bg-titans-dark">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* QR Code Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 shadow-2xl border border-white/10">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 shadow-2xl border border-white/10 text-center">
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
               {t("titans.join.title")}
             </h3>
@@ -562,8 +562,8 @@ const TitansAgency = () => {
               {t("titans.join.admin")}
             </p>
             
-            {/* QR Code Ad - Full display with clipped borders */}
-            <div className="rounded-2xl overflow-hidden mb-6 max-w-sm">
+            {/* QR Code Ad - Centered */}
+            <div className="rounded-2xl overflow-hidden mb-6 max-w-sm mx-auto">
               <img
                 src={titansQRCode}
                 alt="Titans Agency QR Code"
@@ -580,7 +580,7 @@ const TitansAgency = () => {
               {t("titans.join.scanText")}
             </p>
             
-            <div className="flex items-center gap-2 text-white/70 text-sm">
+            <div className="flex items-center justify-center gap-2 text-white/70 text-sm">
               <TikTokIcon className="w-5 h-5" />
               <span>{t("common.tiktokCreator")}</span>
             </div>
@@ -596,7 +596,7 @@ const TitansAgency = () => {
           </div>
           
           {/* Contact Info */}
-          <div className="text-center lg:text-left">
+          <div className="text-center">
             <SectionHeader
               eyebrow={t("titans.join.eyebrow")}
               title={t("titans.join.contactTitle")}
@@ -604,11 +604,11 @@ const TitansAgency = () => {
               className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
             />
             
-            <div className="mt-8 space-y-6">
+            <div className="mt-8 space-y-6 flex flex-col items-center">
               <Button 
                 size="xl" 
                 asChild
-                className="bg-green-500 hover:bg-green-600 text-white font-bold text-lg shadow-lg w-full sm:w-auto"
+                className="bg-green-500 hover:bg-green-600 text-white font-bold text-lg shadow-lg"
               >
                 <a href="https://wa.me/573235065263" target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="w-5 h-5" />
