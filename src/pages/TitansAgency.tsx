@@ -17,7 +17,7 @@ import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
 // TikTok video IDs for alternating display
 const TIKTOK_VIDEOS = [
   "7537859583486823685",
-  "7493959809373509894" // Add your second TikTok video ID here
+  "7426123117669420294"
 ];
 
 // TikTok Video Player component that alternates between videos
