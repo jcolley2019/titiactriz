@@ -205,6 +205,8 @@
       "fullNamePlaceholder": "Your full name",
       "email": "Email",
       "emailPlaceholder": "your@email.com",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+1 234 567 8900",
       "tiktokHandle": "TikTok Handle",
       "tiktokPlaceholder": "yourusername",
       "optional": "Optional",
@@ -215,7 +217,9 @@
         "nameTooLong": "Name must be less than 100 characters",
         "emailRequired": "Email is required",
         "emailInvalid": "Please enter a valid email",
-        "emailTooLong": "Email must be less than 255 characters"
+        "emailTooLong": "Email must be less than 255 characters",
+        "phoneRequired": "Phone number is required",
+        "phoneTooLong": "Phone number must be less than 20 characters"
       }
     },
     "join": {

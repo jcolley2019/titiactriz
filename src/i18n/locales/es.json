@@ -205,6 +205,8 @@
       "fullNamePlaceholder": "Tu nombre completo",
       "email": "Correo Electrónico",
       "emailPlaceholder": "tu@correo.com",
+      "phone": "Número de Teléfono",
+      "phonePlaceholder": "+57 323 456 7890",
       "tiktokHandle": "Usuario de TikTok",
       "tiktokPlaceholder": "tuusuario",
       "optional": "Opcional",
@@ -215,7 +217,9 @@
         "nameTooLong": "El nombre debe tener menos de 100 caracteres",
         "emailRequired": "El correo electrónico es requerido",
         "emailInvalid": "Por favor ingresa un correo válido",
-        "emailTooLong": "El correo debe tener menos de 255 caracteres"
+        "emailTooLong": "El correo debe tener menos de 255 caracteres",
+        "phoneRequired": "El número de teléfono es requerido",
+        "phoneTooLong": "El teléfono debe tener menos de 20 caracteres"
       }
     },
     "join": {
