@@ -523,26 +523,8 @@ const TitansAgency = () => {
           eyebrow={t("titans.results.eyebrow")}
           title={t("titans.results.title")}
           subtitle={t("titans.results.subtitle")}
-          className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
+          className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70 [&_h2]:text-4xl [&_h2]:sm:text-5xl [&_h2]:md:text-6xl"
         />
-
-        <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-          <StatCard 
-            value="+340%" 
-            label={t("titans.results.stats.views")} 
-            className="bg-titans-dark/50 border-titans-red/30 [&_*]:text-white"
-          />
-          <StatCard 
-            value="$50K+" 
-            label={t("titans.results.stats.revenue")} 
-            className="bg-titans-dark/50 border-titans-red/30 [&_*]:text-white"
-          />
-          <StatCard 
-            value="25+" 
-            label={t("titans.results.stats.creators")} 
-            className="bg-titans-dark/50 border-titans-red/30 [&_*]:text-white"
-          />
-        </div>
 
         {/* Testimonials */}
         <div className="mt-12 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
