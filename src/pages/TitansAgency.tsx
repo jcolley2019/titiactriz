@@ -297,7 +297,6 @@ const TitansAgency = () => {
     t("titans.services.list.onboarding"),
     t("titans.services.list.content"),
     t("titans.services.list.coaching"),
-    t("titans.services.list.deals"),
     t("titans.services.list.analytics"),
   ];
 
