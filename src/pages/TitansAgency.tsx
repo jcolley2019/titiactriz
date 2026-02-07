@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -22,14 +22,32 @@ const TIKTOK_VIDEOS = [
   "7434018621099216134",
 ];
 
-// TikTok Video Player component with rotation
+// TikTok Video Player component with rotation, autoplay, loop, and visibility detection
 const TikTokVideoPlayer = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
     Math.floor(Math.random() * TIKTOK_VIDEOS.length)
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const videoId = TIKTOK_VIDEOS[currentVideoIndex];
+
+  // Intersection Observer to detect when video is out of view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleSwitchVideo = () => {
     setIsTransitioning(true);
@@ -40,23 +58,33 @@ const TikTokVideoPlayer = () => {
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      <iframe
-        key={videoId}
-        src={`https://www.tiktok.com/embed/v3/${videoId}?autoplay=0`}
-        className={cn(
-          "w-full h-full transition-opacity duration-300",
-          isTransitioning ? "opacity-0" : "opacity-100"
-        )}
-        style={{ border: 0, overflow: "hidden" }}
-        allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        title="Titans Agency TikTok Video"
-        referrerPolicy="no-referrer-when-downgrade"
-        scrolling="no"
-        loading="lazy"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
-      />
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden">
+      {/* Only render iframe when visible to pause video when out of view */}
+      {isVisible && (
+        <iframe
+          key={videoId}
+          src={`https://www.tiktok.com/embed/v3/${videoId}?autoplay=1&loop=1`}
+          className={cn(
+            "w-full h-full transition-opacity duration-300",
+            isTransitioning ? "opacity-0" : "opacity-100"
+          )}
+          style={{ border: 0, overflow: "hidden" }}
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          title="Titans Agency TikTok Video"
+          referrerPolicy="no-referrer-when-downgrade"
+          scrolling="no"
+          loading="eager"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+        />
+      )}
+
+      {/* Placeholder when video is paused (out of view) */}
+      {!isVisible && (
+        <div className="w-full h-full bg-titans-dark flex items-center justify-center">
+          <PlayCircle className="w-16 h-16 text-white/30" />
+        </div>
+      )}
 
       {/* Next Video Button */}
       <button
