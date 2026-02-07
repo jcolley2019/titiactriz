@@ -386,17 +386,11 @@ const TitansAgency = () => {
           className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <FeatureCard
             icon={<TrendingUp className="w-6 h-6 text-titans-red" />}
             title={t("titans.services.growthStrategy.title")}
             description={t("titans.services.growthStrategy.description")}
-            className="bg-titans-dark/50 border-titans-red/30 [&_h3]:text-white [&_p]:text-white/70"
-          />
-          <FeatureCard
-            icon={<PlayCircle className="w-6 h-6 text-titans-red" />}
-            title={t("titans.services.contentSystems.title")}
-            description={t("titans.services.contentSystems.description")}
             className="bg-titans-dark/50 border-titans-red/30 [&_h3]:text-white [&_p]:text-white/70"
           />
           <FeatureCard
