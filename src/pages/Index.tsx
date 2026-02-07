@@ -287,7 +287,7 @@ const Index = () => {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
+        <div className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
           <div className="flex flex-col items-center gap-2 text-foreground/50 hover:text-accent transition-colors duration-300">
             <span className="text-xs tracking-[0.2em] uppercase">{t("common.scroll")}</span>
             <div className="w-px h-10 bg-gradient-to-b from-foreground/50 to-transparent animate-[pulse_2s_ease-in-out_infinite]" />
