@@ -447,104 +447,8 @@ const TitansAgency = () => {
           className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-          {/* Creator 1 */}
-          <a 
-            href="https://www.tiktok.com/@mariaval_tiktoker" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group"
-          >
-            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
-                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
-                  MV
-                </div>
-              </div>
-              <h4 className="text-white font-semibold text-center mb-1">María Valentina</h4>
-              <p className="text-titans-red text-sm text-center mb-3">@mariaval_tiktoker</p>
-              <div className="flex items-center justify-center gap-4 text-white/60 text-sm">
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">125K</p>
-                  <p className="text-xs">{t("titans.creators.followers")}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">2.1M</p>
-                  <p className="text-xs">{t("titans.creators.likes")}</p>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-center gap-2 text-titans-red group-hover:text-white transition-colors">
-                <TikTokIcon className="w-4 h-4" />
-                <span className="text-sm font-medium">{t("titans.creators.viewProfile")}</span>
-              </div>
-            </div>
-          </a>
-
-          {/* Creator 2 */}
-          <a 
-            href="https://www.tiktok.com/@carloscomedy_" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group"
-          >
-            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
-                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
-                  CR
-                </div>
-              </div>
-              <h4 className="text-white font-semibold text-center mb-1">Carlos Rodríguez</h4>
-              <p className="text-titans-red text-sm text-center mb-3">@carloscomedy_</p>
-              <div className="flex items-center justify-center gap-4 text-white/60 text-sm">
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">89K</p>
-                  <p className="text-xs">{t("titans.creators.followers")}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">1.5M</p>
-                  <p className="text-xs">{t("titans.creators.likes")}</p>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-center gap-2 text-titans-red group-hover:text-white transition-colors">
-                <TikTokIcon className="w-4 h-4" />
-                <span className="text-sm font-medium">{t("titans.creators.viewProfile")}</span>
-              </div>
-            </div>
-          </a>
-
-          {/* Creator 3 */}
-          <a 
-            href="https://www.tiktok.com/@luci.lifestyle" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group"
-          >
-            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
-                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
-                  LP
-                </div>
-              </div>
-              <h4 className="text-white font-semibold text-center mb-1">Luciana Pérez</h4>
-              <p className="text-titans-red text-sm text-center mb-3">@luci.lifestyle</p>
-              <div className="flex items-center justify-center gap-4 text-white/60 text-sm">
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">210K</p>
-                  <p className="text-xs">{t("titans.creators.followers")}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">4.2M</p>
-                  <p className="text-xs">{t("titans.creators.likes")}</p>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-center gap-2 text-titans-red group-hover:text-white transition-colors">
-                <TikTokIcon className="w-4 h-4" />
-                <span className="text-sm font-medium">{t("titans.creators.viewProfile")}</span>
-              </div>
-            </div>
-          </a>
-
-          {/* Creator 4 - Cristyna */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          {/* Creator 1 - Cristyna */}
           <a 
             href="https://www.tiktok.com/@titina_polen" 
             target="_blank" 
@@ -578,7 +482,7 @@ const TitansAgency = () => {
             </div>
           </a>
 
-          {/* Creator 5 - NanyD'Moninii */}
+          {/* Creator 2 - NanyD'Moninii */}
           <a 
             href="https://www.tiktok.com/@daflobe28" 
             target="_blank" 
