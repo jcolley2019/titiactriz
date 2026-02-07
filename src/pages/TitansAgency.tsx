@@ -56,7 +56,7 @@ const TikTokVideoPlayer = ({
       {isVisible && (
         <iframe
           key={videoId}
-          src={`https://www.tiktok.com/embed/v3/${videoId}?autoplay=1&loop=1`}
+          src={`https://www.tiktok.com/embed/v3/${videoId}?loop=1`}
           className="w-full h-full"
           style={{ border: 0, overflow: "hidden" }}
           allowFullScreen
