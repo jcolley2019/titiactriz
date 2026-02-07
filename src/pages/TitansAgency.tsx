@@ -117,7 +117,7 @@ const TikTokVideoSection = () => {
       {/* Next Video Button - outside the video frame */}
       <button
         onClick={handleSwitchVideo}
-        className="mt-4 bg-titans-red/90 hover:bg-titans-red text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
+        className="mt-4 bg-black hover:bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
         aria-label="Watch next video"
       >
         <PlayCircle className="w-4 h-4" />
