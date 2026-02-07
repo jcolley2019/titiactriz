@@ -319,7 +319,7 @@ const TitansAgency = () => {
 
               <h1 className="text-3xl sm:text-3xl md:text-5xl lg:text-6xl text-black leading-[1.15] mb-3 sm:mb-4 md:mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
                 <span className="font-titans uppercase tracking-wide">Titans</span>{" "}
-                <span className="font-titans uppercase tracking-wide">Agency</span>{" "}
+                <span className="font-titans tracking-wide">Agency</span>{" "}
                 <span className="font-titans-script text-4xl sm:text-4xl md:text-6xl lg:text-7xl italic">Latam</span>
               </h1>
 
