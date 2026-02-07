@@ -32,6 +32,7 @@ const TikTokVideoPlayer = ({
   videoId: string;
 }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const [showHint, setShowHint] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Intersection Observer to detect when video is out of view
@@ -48,6 +49,12 @@ const TikTokVideoPlayer = ({
     }
 
     return () => observer.disconnect();
+  }, []);
+
+  // Auto-hide hint after 4 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowHint(false), 4000);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -76,8 +83,13 @@ const TikTokVideoPlayer = ({
         </div>
       )}
 
-      {/* Press play hint */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 pointer-events-none">
+      {/* Press play hint - fades out after 4 seconds */}
+      <div 
+        className={cn(
+          "absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 pointer-events-none transition-opacity duration-500",
+          showHint ? "opacity-100" : "opacity-0"
+        )}
+      >
         <PlayCircle className="w-3 h-3" />
         <span>Tap to play with sound</span>
       </div>
