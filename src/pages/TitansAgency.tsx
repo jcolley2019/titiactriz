@@ -51,11 +51,12 @@ const TikTokVideoPlayer = ({
     return () => observer.disconnect();
   }, []);
 
-  // Auto-hide hint after 4 seconds
+  // Show hint and auto-hide after 4 seconds - reset when video changes
   useEffect(() => {
+    setShowHint(true);
     const timer = setTimeout(() => setShowHint(false), 4000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [videoId]);
 
   return (
     <div ref={containerRef} className="relative w-full h-[560px] sm:h-[600px] overflow-hidden rounded-md sm:rounded-lg">
