@@ -335,13 +335,13 @@ const TitansAgency = () => {
                 />
               </div>
 
-              <h1 className="text-3xl sm:text-3xl md:text-5xl lg:text-6xl text-black leading-[1.15] mb-3 sm:mb-4 md:mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
+              <h1 className="text-4xl sm:text-3xl md:text-5xl lg:text-6xl text-black leading-[1.15] mb-3 sm:mb-4 md:mb-6 opacity-0 animate-fade-up stagger-1 drop-shadow-lg">
                 <span className="font-titans uppercase tracking-wide">Titans</span>{" "}
                 <span className="font-titans tracking-wide">Agency</span>{" "}
-                <span className="font-titans-script text-4xl sm:text-4xl md:text-6xl lg:text-7xl italic">Latam</span>
+                <span className="font-titans-script text-5xl sm:text-4xl md:text-6xl lg:text-7xl italic">Latam</span>
               </h1>
 
-              <p className="text-base sm:text-lg md:text-2xl text-white/90 font-medium mb-4 sm:mb-6 md:mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-md lg:max-w-lg leading-relaxed">
+              <p className="text-lg sm:text-lg md:text-2xl text-white/90 font-medium mb-4 sm:mb-6 md:mb-8 opacity-0 animate-fade-up stagger-2 drop-shadow-md max-w-md lg:max-w-lg leading-relaxed">
                 {t("titans.hero.subtitle")}
               </p>
 
@@ -349,7 +349,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-base sm:text-base md:text-lg shadow-lg w-full sm:w-[220px] md:w-[250px] h-12 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
+                  className="bg-white text-titans-red hover:bg-white/90 font-bold text-lg sm:text-base md:text-lg shadow-lg w-full sm:w-[220px] md:w-[250px] h-14 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
                 >
                   <a href="mailto:yourname@email.com?subject=Titans%20Agency%20Inquiry" className="flex items-center justify-center gap-2 w-full h-full">
                     {t("titans.hero.workWithUs")}
@@ -359,7 +359,7 @@ const TitansAgency = () => {
                 <Button 
                   size="xl" 
                   asChild
-                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-base sm:text-base md:text-lg shadow-lg border border-white/20 w-full sm:w-[220px] md:w-[250px] h-12 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
+                  className="bg-titans-dark text-white hover:bg-titans-dark/80 font-bold text-lg sm:text-base md:text-lg shadow-lg border border-white/20 w-full sm:w-[220px] md:w-[250px] h-14 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
                 >
                   <a href="https://www.tiktok.com/@titansagencylatam" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full h-full">
                     <TikTokIcon className="w-4 h-4 sm:w-5 sm:h-5" />
