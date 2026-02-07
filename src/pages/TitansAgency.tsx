@@ -76,6 +76,12 @@ const TikTokVideoPlayer = ({
         </div>
       )}
 
+      {/* Press play hint */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 pointer-events-none">
+        <PlayCircle className="w-3 h-3" />
+        <span>Tap to play with sound</span>
+      </div>
+
       {/* Fallback link if embed fails to render */}
       <a
         href={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
