@@ -307,8 +307,8 @@ const TitansAgency = () => {
             <div className="lg:order-2 flex flex-col items-center text-center">
               {/* Logo with decorative ring */}
               <div className="relative mb-4 sm:mb-6 md:mb-8 opacity-0 animate-fade-up">
-                {/* Decorative red ring - responsive sizing */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 sm:w-64 sm:h-64 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-[6px] sm:border-8 border-titans-red/60" />
+                {/* Decorative white ring for contrast - responsive sizing */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 sm:w-64 sm:h-64 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full border-[6px] sm:border-8 border-white/70" />
                 {/* Logo - responsive sizing */}
                 <img
                   src={titansLogo}
