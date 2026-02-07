@@ -23,15 +23,16 @@ const TIKTOK_VIDEOS = [
 ];
 
 // TikTok Video Player component with rotation, autoplay, loop, and visibility detection
-const TikTokVideoPlayer = () => {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
-    Math.floor(Math.random() * TIKTOK_VIDEOS.length)
-  );
-  const [isTransitioning, setIsTransitioning] = useState(false);
+// TikTok Video Player component with rotation, autoplay, loop, and visibility detection
+const TikTokVideoPlayer = ({ 
+  onSwitchVideo, 
+  videoId 
+}: { 
+  onSwitchVideo: () => void; 
+  videoId: string;
+}) => {
   const [isVisible, setIsVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const videoId = TIKTOK_VIDEOS[currentVideoIndex];
 
   // Intersection Observer to detect when video is out of view
   useEffect(() => {
@@ -49,60 +50,74 @@ const TikTokVideoPlayer = () => {
     return () => observer.disconnect();
   }, []);
 
+  return (
+    <div ref={containerRef} className="relative w-full h-[560px] sm:h-[600px] overflow-hidden rounded-md sm:rounded-lg">
+      {/* Only render iframe when visible to pause video when out of view */}
+      {isVisible && (
+        <iframe
+          key={videoId}
+          src={`https://www.tiktok.com/embed/v3/${videoId}?autoplay=1&loop=1`}
+          className="w-full h-full"
+          style={{ border: 0, overflow: "hidden" }}
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          title="Titans Agency TikTok Video"
+          referrerPolicy="no-referrer-when-downgrade"
+          scrolling="no"
+          loading="eager"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+        />
+      )}
+
+      {/* Placeholder when video is paused (out of view) */}
+      {!isVisible && (
+        <div className="w-full h-full bg-titans-dark flex items-center justify-center">
+          <PlayCircle className="w-16 h-16 text-white/30" />
+        </div>
+      )}
+
+      {/* Fallback link if embed fails to render */}
+      <a
+        href={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
+        target="_blank"
+        rel="noreferrer"
+        className="sr-only"
+      >
+        Open TikTok video
+      </a>
+    </div>
+  );
+};
+
+// TikTok Video Section with player and external Next Video button
+const TikTokVideoSection = () => {
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
+    Math.floor(Math.random() * TIKTOK_VIDEOS.length)
+  );
+
   const handleSwitchVideo = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
-      setIsTransitioning(false);
-    }, 250);
+    setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
   };
 
+  const videoId = TIKTOK_VIDEOS[currentVideoIndex];
+
   return (
-    <div ref={containerRef} className="flex flex-col w-full">
-      {/* Video container */}
-      <div className="relative w-full h-full overflow-hidden">
-        {/* Only render iframe when visible to pause video when out of view */}
-        {isVisible && (
-          <iframe
-            key={videoId}
-            src={`https://www.tiktok.com/embed/v3/${videoId}?autoplay=1&loop=1`}
-            className={cn(
-              "w-full h-full transition-opacity duration-300",
-              isTransitioning ? "opacity-0" : "opacity-100"
-            )}
-            style={{ border: 0, overflow: "hidden" }}
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            title="Titans Agency TikTok Video"
-            referrerPolicy="no-referrer-when-downgrade"
-            scrolling="no"
-            loading="eager"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+    <div className="relative opacity-0 animate-scale-in stagger-2 flex flex-col items-center lg:order-1 mt-5 sm:mt-0">
+      {/* Outer black border - sized to show full TikTok embed */}
+      <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-black shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
+        {/* White outline */}
+        <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
+          <TikTokVideoPlayer 
+            videoId={videoId} 
+            onSwitchVideo={handleSwitchVideo} 
           />
-        )}
-
-        {/* Placeholder when video is paused (out of view) */}
-        {!isVisible && (
-          <div className="w-full h-full bg-titans-dark flex items-center justify-center">
-            <PlayCircle className="w-16 h-16 text-white/30" />
-          </div>
-        )}
-
-        {/* Fallback link if embed fails to render */}
-        <a
-          href={`https://www.tiktok.com/@titansagencylatam/video/${videoId}`}
-          target="_blank"
-          rel="noreferrer"
-          className="sr-only"
-        >
-          Open TikTok video
-        </a>
+        </div>
       </div>
-
-      {/* Next Video Button - positioned below the video */}
+      
+      {/* Next Video Button - outside the video frame */}
       <button
         onClick={handleSwitchVideo}
-        className="mt-3 mx-auto bg-titans-red/90 hover:bg-titans-red text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
+        className="mt-4 bg-titans-red/90 hover:bg-titans-red text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
         aria-label="Watch next video"
       >
         <PlayCircle className="w-4 h-4" />
@@ -337,18 +352,7 @@ const TitansAgency = () => {
             </div>
 
             {/* TikTok Video Column - Alternating Videos */}
-            <div className="relative opacity-0 animate-scale-in stagger-2 flex justify-center lg:order-1 mt-5 sm:mt-0">
-              {/* Outer black border - sized to show full TikTok embed */}
-              <div className="relative p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-black shadow-2xl shadow-black/40 w-full max-w-[360px] sm:max-w-[320px] md:max-w-[340px]">
-                {/* White outline */}
-                <div className="p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-white">
-                  {/* Inner container - cropped to show only video content, hiding related videos section */}
-                  <div className="w-full h-[560px] sm:h-[600px] rounded-md sm:rounded-lg overflow-hidden">
-                    <TikTokVideoPlayer />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TikTokVideoSection />
           </div>
         </div>
         {/* Mobile scroll indicator with Titans ring aesthetic */}
