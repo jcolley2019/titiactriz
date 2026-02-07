@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 import { LinkCard } from "@/components/Cards";
@@ -124,11 +125,38 @@ const Index = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setSubmitSuccess(true);
-    reset();
-    setIsSubmitting(false);
-    setTimeout(() => setSubmitSuccess(false), 3000);
+    try {
+      const { data: responseData, error } = await supabase.functions.invoke('send-contact', {
+        body: {
+          type: 'general',
+          name: data.name,
+          email: data.email,
+          message: data.message,
+        },
+      });
+
+      if (error) {
+        console.error('Contact form error:', error);
+        // Show error but don't expose internal details
+        alert('There was an error sending your message. Please try again.');
+        return;
+      }
+
+      if (responseData?.error) {
+        console.error('Validation error:', responseData.errors);
+        alert(responseData.error);
+        return;
+      }
+
+      setSubmitSuccess(true);
+      reset();
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
