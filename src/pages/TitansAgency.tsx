@@ -86,10 +86,10 @@ const TikTokVideoPlayer = () => {
         </div>
       )}
 
-      {/* Next Video Button */}
+      {/* Next Video Button - positioned top-right to avoid covering TikTok's audio controls */}
       <button
         onClick={handleSwitchVideo}
-        className="absolute bottom-4 right-4 z-10 bg-titans-red/90 hover:bg-titans-red text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1.5"
+        className="absolute top-4 right-4 z-10 bg-titans-red/90 hover:bg-titans-red text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-1.5"
         aria-label="Watch next video"
       >
         <PlayCircle className="w-3.5 h-3.5" />
