@@ -527,8 +527,8 @@ const TitansAgency = () => {
               <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
                 MV
               </div>
-              <div>
-                <p className="text-white font-semibold">{t("titans.results.testimonials.t1.name")}</p>
+              <div className="min-w-0">
+                <p className="text-white font-semibold leading-tight">María<br/>Valentina</p>
                 <p className="text-white/60 text-sm">@mariaval_tiktoker</p>
               </div>
             </div>
@@ -544,8 +544,8 @@ const TitansAgency = () => {
               <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
                 CR
               </div>
-              <div>
-                <p className="text-white font-semibold">{t("titans.results.testimonials.t2.name")}</p>
+              <div className="min-w-0">
+                <p className="text-white font-semibold leading-tight">Carlos<br/>Rodríguez</p>
                 <p className="text-white/60 text-sm">@carloscomedy_</p>
               </div>
             </div>
@@ -561,8 +561,8 @@ const TitansAgency = () => {
               <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
                 LP
               </div>
-              <div>
-                <p className="text-white font-semibold">{t("titans.results.testimonials.t3.name")}</p>
+              <div className="min-w-0">
+                <p className="text-white font-semibold leading-tight">Luciana<br/>Pérez</p>
                 <p className="text-white/60 text-sm">@luci.lifestyle</p>
               </div>
             </div>
