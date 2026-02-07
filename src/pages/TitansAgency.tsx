@@ -9,6 +9,7 @@ import TikTokIcon from "@/components/icons/TikTokIcon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
@@ -230,25 +231,45 @@ const TitansAgency = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
     
     setIsSubmitting(true);
     
-    // Build mailto link with form data
-    const subject = encodeURIComponent("Titans Agency - New Contact Request");
-    const body = encodeURIComponent(
-      `Full Name: ${formData.fullName.trim()}\nEmail: ${formData.email.trim()}\nPhone: ${formData.phone.trim()}\nTikTok Handle: ${formData.tiktokHandle.trim() || "Not provided"}`
-    );
-    
-    window.location.href = `mailto:yourname@email.com?subject=${subject}&body=${body}`;
-    
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    setFormData({ fullName: "", email: "", phone: "", tiktokHandle: "" });
-    setTimeout(() => setSubmitSuccess(false), 3000);
+    try {
+      const { data: responseData, error } = await supabase.functions.invoke('send-contact', {
+        body: {
+          type: 'titans',
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          tiktokHandle: formData.tiktokHandle || undefined,
+        },
+      });
+
+      if (error) {
+        console.error('Contact form error:', error);
+        alert('There was an error sending your message. Please try again.');
+        return;
+      }
+
+      if (responseData?.error) {
+        console.error('Validation error:', responseData.errors);
+        alert(responseData.error);
+        return;
+      }
+
+      setSubmitSuccess(true);
+      setFormData({ fullName: "", email: "", phone: "", tiktokHandle: "" });
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Format phone number as user types: +XX XXX XXX XXXX
