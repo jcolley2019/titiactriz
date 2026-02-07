@@ -447,7 +447,7 @@ const TitansAgency = () => {
           className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70"
         />
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {/* Creator 1 */}
           <a 
             href="https://www.tiktok.com/@mariaval_tiktoker" 
@@ -568,6 +568,38 @@ const TitansAgency = () => {
                 </div>
                 <div className="text-center">
                   <p className="text-white font-bold text-lg">279K</p>
+                  <p className="text-xs">{t("titans.creators.likes")}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-center gap-2 text-titans-red group-hover:text-white transition-colors">
+                <TikTokIcon className="w-4 h-4" />
+                <span className="text-sm font-medium">{t("titans.creators.viewProfile")}</span>
+              </div>
+            </div>
+          </a>
+
+          {/* Creator 5 - NanyD'Moninii */}
+          <a 
+            href="https://www.tiktok.com/@daflobe28" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group"
+          >
+            <div className="bg-black rounded-2xl p-6 border border-titans-red/30 hover:border-titans-red transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-titans-red/20">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
+                <div className="w-full h-full rounded-full bg-titans-dark flex items-center justify-center text-3xl font-bold text-white">
+                  ND
+                </div>
+              </div>
+              <h4 className="text-white font-semibold text-center mb-1">NanyD'Moninii💙</h4>
+              <p className="text-titans-red text-sm text-center mb-3">@daflobe28</p>
+              <div className="flex items-center justify-center gap-4 text-white/60 text-sm">
+                <div className="text-center">
+                  <p className="text-white font-bold text-lg">19.7K</p>
+                  <p className="text-xs">{t("titans.creators.followers")}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-bold text-lg">130.8K</p>
                   <p className="text-xs">{t("titans.creators.likes")}</p>
                 </div>
               </div>
