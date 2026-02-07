@@ -529,7 +529,7 @@ const TitansAgency = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-white font-semibold leading-tight">María<br/>Valentina</p>
-                <p className="text-white/60 text-sm">@mariaval_tiktoker</p>
+                <p className="text-white/60 text-sm">@mariaval_tt</p>
               </div>
             </div>
             <p className="text-white/90 italic">
