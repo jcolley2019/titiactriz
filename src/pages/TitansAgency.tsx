@@ -109,9 +109,7 @@ const TikTokVideoPlayer = ({
 
 // TikTok Video Section with player and external Next Video button
 const TikTokVideoSection = () => {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
-    Math.floor(Math.random() * TIKTOK_VIDEOS.length)
-  );
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
   const handleSwitchVideo = () => {
     setCurrentVideoIndex((prev) => (prev + 1) % TIKTOK_VIDEOS.length);
