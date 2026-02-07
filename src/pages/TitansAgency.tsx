@@ -51,7 +51,7 @@ const TikTokVideoPlayer = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[720px] sm:h-[760px] overflow-hidden rounded-md sm:rounded-lg">
+    <div ref={containerRef} className="relative w-full h-[540px] sm:h-[580px] overflow-hidden rounded-md sm:rounded-lg">
       {/* Only render iframe when visible to pause video when out of view */}
       {isVisible && (
         <iframe
