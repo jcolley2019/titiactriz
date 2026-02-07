@@ -248,7 +248,7 @@ const Index = () => {
               </p>
 
               {/* Quick Link Buttons */}
-              <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-8 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
+              <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
                 </Button>
@@ -258,6 +258,14 @@ const Index = () => {
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <Link to="/work">{t("hero.buttons.portfolio")}</Link>
                 </Button>
+              </div>
+
+              {/* Scroll indicator - in content flow on mobile */}
+              <div className="lg:hidden mt-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
+                <div className="flex flex-col items-center gap-2 text-foreground/50 hover:text-accent transition-colors duration-300">
+                  <span className="text-xs tracking-[0.2em] uppercase">{t("common.scroll")}</span>
+                  <div className="w-px h-10 bg-gradient-to-b from-foreground/50 to-transparent animate-[pulse_2s_ease-in-out_infinite]" />
+                </div>
               </div>
             </div>
 
@@ -286,8 +294,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 sm:bottom-12 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
+        {/* Scroll indicator - desktop only (absolute positioned) */}
+        <div className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-0 animate-[fadeIn_0.8s_ease-out_1.2s_forwards]">
           <div className="flex flex-col items-center gap-2 text-foreground/50 hover:text-accent transition-colors duration-300">
             <span className="text-xs tracking-[0.2em] uppercase">{t("common.scroll")}</span>
             <div className="w-px h-10 bg-gradient-to-b from-foreground/50 to-transparent animate-[pulse_2s_ease-in-out_infinite]" />
