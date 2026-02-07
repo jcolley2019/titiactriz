@@ -524,7 +524,7 @@ const TitansAgency = () => {
           {/* Testimonial 1 */}
           <div className="p-6 rounded-2xl bg-titans-dark/50 border border-titans-red/30">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
                 MV
               </div>
               <div>
@@ -541,7 +541,7 @@ const TitansAgency = () => {
           {/* Testimonial 2 */}
           <div className="p-6 rounded-2xl bg-titans-dark/50 border border-titans-red/30">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
                 CR
               </div>
               <div>
@@ -558,7 +558,7 @@ const TitansAgency = () => {
           {/* Testimonial 3 */}
           <div className="p-6 rounded-2xl bg-titans-dark/50 border border-titans-red/30">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
                 LP
               </div>
               <div>
