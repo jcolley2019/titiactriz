@@ -49,16 +49,16 @@ const Socials = () => {
   return (
     <>
       <Helmet>
-        <title>Follow Cristina Polentino | TikTok, Instagram & YouTube</title>
+        <title>Redes Sociales | Cristina Polentino - TikTok, Instagram & YouTube</title>
         <meta
           name="description"
-          content="Follow Cristina Polentino on TikTok (@titina_polen), Instagram (@cristinapolentino_actriz), and YouTube. Stay updated with her latest content, performances, and behind-the-scenes moments."
+          content="Sigue a Cristina Polentino en TikTok (@titina_polen), Instagram (@cristinapolentino_actriz) y YouTube. Follow Cristina on social media for behind-the-scenes content, performances, and daily updates."
         />
         <link rel="canonical" href="https://cristinapolentino.com/socials" />
-        <meta property="og:title" content="Follow Cristina Polentino on Social Media" />
+        <meta property="og:title" content="Redes Sociales - Cristina Polentino" />
         <meta
           property="og:description"
-          content="Connect with Cristina Polentino on TikTok, Instagram, YouTube and more. Behind-the-scenes, performances, and daily content."
+          content="Sigue a Cristina Polentino en TikTok, Instagram y YouTube. Follow for content, performances & more."
         />
         <meta property="og:url" content="https://cristinapolentino.com/socials" />
         <meta property="og:type" content="website" />
