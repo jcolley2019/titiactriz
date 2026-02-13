@@ -56,16 +56,18 @@ const GreenWorld = () => {
   return (
     <>
       <Helmet>
-        <title>Green World | Premium Wellness Products by Cristina Polentino</title>
+        <title>Green World Wellness Products | Natural Supplements & Herbal Teas by Cristina Polentino</title>
         <meta
           name="description"
-          content="Green World - Premium health supplements, herbal teas, and wellness products. Shop natural health solutions with Cristina Polentino."
+          content="Shop Green World premium health supplements, herbal teas, and natural wellness products. Cristina Polentino is an independent Green World representative offering quality health solutions."
         />
-        <meta property="og:title" content="Green World - Premium Wellness Products" />
+        <link rel="canonical" href="https://cristinapolentino.com/green-world" />
+        <meta property="og:title" content="Green World - Natural Wellness Products" />
         <meta
           property="og:description"
-          content="Discover premium health supplements, herbal teas, and wellness products from Green World."
+          content="Premium health supplements, herbal teas, and natural wellness products from Green World. Shop with independent rep Cristina Polentino."
         />
+        <meta property="og:url" content="https://cristinapolentino.com/green-world" />
         <meta property="og:type" content="website" />
       </Helmet>
 
