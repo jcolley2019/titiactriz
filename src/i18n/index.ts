@@ -13,7 +13,7 @@ i18n
       en: { translation: en },
       es: { translation: es },
     },
-    fallbackLng: 'en',
+    fallbackLng: 'es',
   interpolation: {
     // React already escapes values by default, but we enable this for defense in depth
     // All translation files contain static developer-controlled content only
