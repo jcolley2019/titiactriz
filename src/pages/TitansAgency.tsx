@@ -461,7 +461,7 @@ const TitansAgency = () => {
         />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {/* Creator 1 - Cristyna */}
+          {/* Creator 1 - Cristina */}
           <a 
             href="https://www.tiktok.com/@titina_polen" 
             target="_blank" 

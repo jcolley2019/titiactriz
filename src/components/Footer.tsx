@@ -28,7 +28,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <h3 className="font-serif text-2xl mb-5">
-              Cristyna <span className="text-accent italic">Polentino</span>
+              Cristina <span className="text-accent italic">Polentino</span>
             </h3>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               {t("footer.description")}

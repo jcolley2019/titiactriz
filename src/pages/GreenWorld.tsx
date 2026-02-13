@@ -19,7 +19,7 @@ const GreenWorld = () => {
   const { t } = useTranslation();
 
   const employeeInfo = {
-    name: "Cristyna Polentino",
+    name: "Cristina Polentino",
     employeeNumber: "",
   };
 
@@ -56,10 +56,10 @@ const GreenWorld = () => {
   return (
     <>
       <Helmet>
-        <title>Green World | Premium Wellness Products by Cristyna Polentino</title>
+        <title>Green World | Premium Wellness Products by Cristina Polentino</title>
         <meta
           name="description"
-          content="Green World - Premium health supplements, herbal teas, and wellness products. Shop natural health solutions with Cristyna Polentino."
+          content="Green World - Premium health supplements, herbal teas, and wellness products. Shop natural health solutions with Cristina Polentino."
         />
         <meta property="og:title" content="Green World - Premium Wellness Products" />
         <meta
@@ -235,7 +235,7 @@ const GreenWorld = () => {
                   className="border-2 border-gw-navy text-gw-navy hover:bg-gw-navy hover:text-gw-white font-bold h-14 px-8 rounded-lg transition-all"
                   asChild
                 >
-                  <a href="mailto:cristyna@email.com?subject=Green%20World%20Inquiry">
+                  <a href="mailto:cristina@email.com?subject=Green%20World%20Inquiry">
                     {t("greenWorld.business.contactMe")}
                   </a>
                 </Button>
@@ -295,7 +295,7 @@ const GreenWorld = () => {
               className="border-2 border-gw-white text-gw-white hover:bg-gw-white/10 font-bold h-14 px-10 rounded-lg transition-all"
               asChild
             >
-              <a href="mailto:cristyna@email.com?subject=Green%20World%20Info">
+              <a href="mailto:cristina@email.com?subject=Green%20World%20Info">
                 {t("greenWorld.cta.contact")}
               </a>
             </Button>
