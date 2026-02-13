@@ -213,16 +213,18 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Cristina Polentino | Colombian Actress, Dancer & Entrepreneur</title>
+        <title>Cristina Polentino | Colombian Actress, Dancer & Entrepreneur in Miami</title>
         <meta
           name="description"
-          content="Cristina Polentino - Colombian actress, professional dance performer, and entrepreneur. Presence, performance, and purpose—on stage and on screen."
+          content="Cristina Polentino is a Colombian actress, professional dancer, and entrepreneur based in Miami. Explore her acting portfolio, dance performances, Titans Agency for TikTok creators, and Green World wellness products."
         />
-        <meta property="og:title" content="Cristina Polentino" />
+        <link rel="canonical" href="https://cristinapolentino.com/" />
+        <meta property="og:title" content="Cristina Polentino | Actress, Dancer & Entrepreneur" />
         <meta
           property="og:description"
-          content="Colombian actress, professional dancer, and entrepreneur creating impact through presence, performance, and purpose."
+          content="Colombian actress, professional dancer, and entrepreneur based in Miami. Acting, dance, Titans Agency & Green World."
         />
+        <meta property="og:url" content="https://cristinapolentino.com/" />
         <meta property="og:type" content="website" />
       </Helmet>
 

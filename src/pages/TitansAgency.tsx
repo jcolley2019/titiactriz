@@ -323,17 +323,28 @@ const TitansAgency = () => {
   return (
     <>
       <Helmet>
-        <title>Titans Agency Latam | TikTok Growth & Creator Support</title>
+        <title>Titans Agency Latam | TikTok Growth, Monetization & Creator Management</title>
         <meta
           name="description"
-          content="Titans Agency Latam - TikTok growth, creator support, monetization strategy, and brand partnerships for Latin American creators."
+          content="Titans Agency Latam helps Latin American TikTok creators grow their audience, monetize content, and land brand partnerships. Expert coaching, analytics, and live support for creators."
         />
-        <meta property="og:title" content="Titans Agency Latam" />
+        <link rel="canonical" href="https://cristinapolentino.com/titans-agency" />
+        <meta property="og:title" content="Titans Agency Latam - TikTok Creator Growth & Monetization" />
         <meta
           property="og:description"
-          content="TikTok growth, creator support, monetization strategy, and brand partnerships."
+          content="TikTok growth strategy, monetization coaching, and brand partnerships for Latin American creators. Join Titans Agency Latam."
         />
+        <meta property="og:url" content="https://cristinapolentino.com/titans-agency" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Titans Agency Latam",
+          "url": "https://cristinapolentino.com/titans-agency",
+          "description": "TikTok growth agency for Latin American creators offering monetization strategy, live coaching, and brand partnerships.",
+          "founder": { "@type": "Person", "name": "Cristina Polentino" },
+          "sameAs": ["https://www.tiktok.com/@titansagencylatam"]
+        })}</script>
       </Helmet>
 
       {/* Hero Section with Titans brand colors */}
