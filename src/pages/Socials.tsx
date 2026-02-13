@@ -49,15 +49,15 @@ const Socials = () => {
   return (
     <>
       <Helmet>
-        <title>Socials | Cristyna Polentino</title>
+        <title>Socials | Cristina Polentino</title>
         <meta
           name="description"
-          content="Connect with Cristyna Polentino on social media - TikTok, Instagram, YouTube, and more."
+          content="Connect with Cristina Polentino on social media - TikTok, Instagram, YouTube, and more."
         />
-        <meta property="og:title" content="Socials - Cristyna Polentino" />
+        <meta property="og:title" content="Socials - Cristina Polentino" />
         <meta
           property="og:description"
-          content="Follow Cristyna Polentino on TikTok, Instagram, YouTube and more."
+          content="Follow Cristina Polentino on TikTok, Instagram, YouTube and more."
         />
         <meta property="og:type" content="website" />
       </Helmet>

@@ -213,12 +213,12 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Cristyna Polentino | Colombian Actress, Dancer & Entrepreneur</title>
+        <title>Cristina Polentino | Colombian Actress, Dancer & Entrepreneur</title>
         <meta
           name="description"
-          content="Cristyna Polentino - Colombian actress, professional dance performer, and entrepreneur. Presence, performance, and purpose—on stage and on screen."
+          content="Cristina Polentino - Colombian actress, professional dance performer, and entrepreneur. Presence, performance, and purpose—on stage and on screen."
         />
-        <meta property="og:title" content="Cristyna Polentino" />
+        <meta property="og:title" content="Cristina Polentino" />
         <meta
           property="og:description"
           content="Colombian actress, professional dancer, and entrepreneur creating impact through presence, performance, and purpose."
@@ -241,7 +241,7 @@ const Index = () => {
               {/* Name - stacked layout matching reference */}
               <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
                 <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[0.95]">
-                  Cristyna
+                  Cristina
                 </h2>
                 <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[0.95] relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/50 after:origin-left after:animate-[scaleX_1s_ease-out_0.5s_forwards] after:scale-x-0">
                   Polentino
@@ -303,7 +303,7 @@ const Index = () => {
                 {/* Main image with parallax */}
                 <ParallaxImage
                   src={heroImage}
-                  alt="Cristyna Polentino"
+                  alt="Cristina Polentino"
                   containerClassName="rounded-sm"
                   className="max-h-[75vh] object-top animate-color-reveal"
                   speed={0.12}
@@ -347,14 +347,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Meet Cristyna Section */}
+      {/* Meet Cristina Section */}
       <Section id="about" animate={false}>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <ScrollReveal direction="left">
             <div className="relative">
               <ParallaxImage
                 src={aboutImage}
-                alt="Cristyna Polentino portrait"
+                alt="Cristina Polentino portrait"
                 containerClassName="rounded-sm"
                 className="animate-color-reveal hover:grayscale-0 transition-all duration-700"
                 speed={0.1}

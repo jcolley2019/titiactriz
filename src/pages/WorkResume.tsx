@@ -28,15 +28,15 @@ const WorkResume = () => {
   return (
     <>
       <Helmet>
-        <title>Portfolio | Cristyna Polentino - Acting & Dance</title>
+        <title>Portfolio | Cristina Polentino - Acting & Dance</title>
         <meta
           name="description"
-          content="Cristyna Polentino's professional portfolio - Acting credits, dance performances, and media work. View resume, reels, and booking information."
+          content="Cristina Polentino's professional portfolio - Acting credits, dance performances, and media work. View resume, reels, and booking information."
         />
-        <meta property="og:title" content="Portfolio - Cristyna Polentino" />
+        <meta property="og:title" content="Portfolio - Cristina Polentino" />
         <meta
           property="og:description"
-          content="Acting credits, dance performances, and media work from Colombian actress and dancer Cristyna Polentino."
+          content="Acting credits, dance performances, and media work from Colombian actress and dancer Cristina Polentino."
         />
         <meta property="og:type" content="website" />
       </Helmet>
@@ -141,7 +141,7 @@ const WorkResume = () => {
           <div className="image-frame">
             <ParallaxImage
               src={danceImage}
-              alt="Cristyna Polentino dance performance"
+              alt="Cristina Polentino dance performance"
               containerClassName="rounded-lg"
               speed={0.1}
             />
@@ -219,7 +219,7 @@ const WorkResume = () => {
           <div className="order-1 lg:order-2 image-frame">
             <ParallaxImage
               src={actingImage}
-              alt="Cristyna Polentino acting headshot"
+              alt="Cristina Polentino acting headshot"
               containerClassName="rounded-lg"
               speed={0.1}
             />
@@ -241,7 +241,7 @@ const WorkResume = () => {
               width="100%"
               height="100%"
               src="https://www.youtube.com/embed/sjtUdw-rUT4"
-              title="Cristyna Polentino Reel"
+              title="Cristina Polentino Reel"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
