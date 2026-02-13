@@ -300,14 +300,14 @@ const Index = () => {
             </div>
 
             {/* Right - Hero Image */}
-            <div className="order-1 lg:order-2 opacity-0 animate-[fadeIn_1s_ease-out_0.3s_forwards]">
+            <div className="order-1 lg:order-2">
               <div className="relative">
                 {/* Main image with parallax */}
                 <ParallaxImage
                   src={heroImage}
                   alt="Cristina Polentino"
                   containerClassName="rounded-sm"
-                  className="max-h-[75vh] object-top animate-color-reveal"
+                  className="max-h-[75vh] object-top"
                   speed={0.12}
                   style={{ 
                     filter: 'contrast(1.05) saturate(1.1) brightness(1.02)',
