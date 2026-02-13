@@ -213,16 +213,16 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Cristina Polentino | Colombian Actress, Dancer & Entrepreneur in Miami</title>
+        <title>Cristina Polentino | Actriz Colombiana, Bailarina y Empresaria en Medellín</title>
         <meta
           name="description"
-          content="Cristina Polentino is a Colombian actress, professional dancer, and entrepreneur based in Miami. Explore her acting portfolio, dance performances, Titans Agency for TikTok creators, and Green World wellness products."
+          content="Cristina Polentino es una actriz colombiana, bailarina profesional y empresaria en Medellín, Colombia. Explora su portafolio de actuación, danza, Titans Agency y productos Green World. Colombian actress, dancer & entrepreneur."
         />
         <link rel="canonical" href="https://cristinapolentino.com/" />
-        <meta property="og:title" content="Cristina Polentino | Actress, Dancer & Entrepreneur" />
+        <meta property="og:title" content="Cristina Polentino | Actriz, Bailarina y Empresaria" />
         <meta
           property="og:description"
-          content="Colombian actress, professional dancer, and entrepreneur based in Miami. Acting, dance, Titans Agency & Green World."
+          content="Actriz colombiana, bailarina profesional y empresaria en Medellín. Actuación, danza, Titans Agency y Green World."
         />
         <meta property="og:url" content="https://cristinapolentino.com/" />
         <meta property="og:type" content="website" />

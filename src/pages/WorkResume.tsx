@@ -28,16 +28,16 @@ const WorkResume = () => {
   return (
     <>
       <Helmet>
-        <title>Acting & Dance Portfolio | Cristina Polentino - Credits, Reels & Bookings</title>
+        <title>Portafolio de Actuación y Danza | Cristina Polentino - Acting & Dance Portfolio</title>
         <meta
           name="description"
-          content="View Cristina Polentino's professional acting and dance portfolio. Includes acting credits, dance performance highlights, demo reels, and booking information for the Colombian actress based in Miami."
+          content="Portafolio profesional de actuación y danza de Cristina Polentino. Créditos de actuación, presentaciones de danza, demo reels e información de contratación. Professional acting & dance portfolio from Medellín, Colombia."
         />
         <link rel="canonical" href="https://cristinapolentino.com/work" />
-        <meta property="og:title" content="Acting & Dance Portfolio - Cristina Polentino" />
+        <meta property="og:title" content="Portafolio - Cristina Polentino | Acting & Dance" />
         <meta
           property="og:description"
-          content="Professional acting credits, dance performances, demo reels, and booking info from Colombian actress and dancer Cristina Polentino."
+          content="Créditos de actuación, danza profesional, demo reels y contratación. Acting credits, dance performances & booking info."
         />
         <meta property="og:url" content="https://cristinapolentino.com/work" />
         <meta property="og:type" content="website" />

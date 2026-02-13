@@ -323,16 +323,16 @@ const TitansAgency = () => {
   return (
     <>
       <Helmet>
-        <title>Titans Agency Latam | TikTok Growth, Monetization & Creator Management</title>
+        <title>Titans Agency Latam | Crecimiento en TikTok, Monetización y Gestión de Creadores</title>
         <meta
           name="description"
-          content="Titans Agency Latam helps Latin American TikTok creators grow their audience, monetize content, and land brand partnerships. Expert coaching, analytics, and live support for creators."
+          content="Titans Agency Latam ayuda a creadores latinoamericanos en TikTok a crecer, monetizar y conseguir colaboraciones con marcas. TikTok growth, monetization & brand partnerships for Latin American creators."
         />
         <link rel="canonical" href="https://cristinapolentino.com/titans-agency" />
-        <meta property="og:title" content="Titans Agency Latam - TikTok Creator Growth & Monetization" />
+        <meta property="og:title" content="Titans Agency Latam - Crecimiento en TikTok para Creadores" />
         <meta
           property="og:description"
-          content="TikTok growth strategy, monetization coaching, and brand partnerships for Latin American creators. Join Titans Agency Latam."
+          content="Estrategia de crecimiento en TikTok, coaching de monetización y colaboraciones con marcas para creadores latinoamericanos."
         />
         <meta property="og:url" content="https://cristinapolentino.com/titans-agency" />
         <meta property="og:type" content="website" />
@@ -341,8 +341,14 @@ const TitansAgency = () => {
           "@type": "Organization",
           "name": "Titans Agency Latam",
           "url": "https://cristinapolentino.com/titans-agency",
-          "description": "TikTok growth agency for Latin American creators offering monetization strategy, live coaching, and brand partnerships.",
+          "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
           "founder": { "@type": "Person", "name": "Cristina Polentino" },
+          "areaServed": ["Latin America", "Spain", "United States"],
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Medellín",
+            "addressCountry": "CO"
+          },
           "sameAs": ["https://www.tiktok.com/@titansagencylatam"]
         })}</script>
       </Helmet>
