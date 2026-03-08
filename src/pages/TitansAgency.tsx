@@ -342,7 +342,7 @@ const TitansAgency = () => {
           "name": "Titans Agency Latam",
           "url": "https://cristinapolentino.com/titans-agency",
           "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
-          "founder": { "@type": "Person", "name": "Cristina Polentino" },
+          "founder": { "@type": "Person", "name": "Cristyna Polentino" },
           "areaServed": ["Latin America", "Spain", "United States"],
           "address": {
             "@type": "PostalAddress",

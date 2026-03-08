@@ -56,16 +56,16 @@ const GreenWorld = () => {
   return (
     <>
       <Helmet>
-        <title>Green World | Suplementos Naturales y Bienestar - Cristina Polentino</title>
+        <title>Green World | Suplementos Naturales y Bienestar - Cristyna Polentino</title>
         <meta
           name="description"
-          content="Green World - Suplementos de salud premium, tés herbales y productos de bienestar natural. Premium health supplements, herbal teas & wellness products. Representante independiente: Cristina Polentino, Medellín, Colombia."
+          content="Green World - Suplementos de salud premium, tés herbales y productos de bienestar natural. Premium health supplements, herbal teas & wellness products. Representante independiente: Cristyna Polentino, Medellín, Colombia."
         />
         <link rel="canonical" href="https://cristinapolentino.com/green-world" />
         <meta property="og:title" content="Green World - Productos de Bienestar Natural" />
         <meta
           property="og:description"
-          content="Suplementos de salud, tés herbales y productos naturales de Green World. Natural wellness products with rep Cristina Polentino."
+          content="Suplementos de salud, tés herbales y productos naturales de Green World. Natural wellness products with rep Cristyna Polentino."
         />
         <meta property="og:url" content="https://cristinapolentino.com/green-world" />
         <meta property="og:type" content="website" />

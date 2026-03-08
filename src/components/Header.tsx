@@ -99,7 +99,7 @@ const Header = () => {
           }`}
           style={{ textShadow: isGreenWorldPage ? 'none' : '0 0 20px hsl(var(--accent) / 0.2)' }}
         >
-          <span className="font-light tracking-wide">Cristina</span>{" "}
+          <span className="font-light tracking-wide">Cristyna</span>{" "}
           <span className={`italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] ${
             isGreenWorldPage 
               ? "text-gw-green after:bg-gw-green/50" 

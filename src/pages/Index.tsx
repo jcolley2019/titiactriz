@@ -368,7 +368,7 @@ const Index = () => {
             <div className="relative">
               <ParallaxImage
                 src={aboutImage}
-                alt="Cristina Polentino portrait"
+                alt="Cristyna Polentino portrait"
                 containerClassName="rounded-sm"
                 className="animate-color-reveal hover:grayscale-0 transition-all duration-700"
                 speed={0.1}
