@@ -221,7 +221,7 @@ const WorkResume = () => {
           <div className="order-1 lg:order-2 image-frame">
             <ParallaxImage
               src={actingImage}
-              alt="Cristina Polentino acting headshot"
+              alt="Cristyna Polentino acting headshot"
               containerClassName="rounded-lg"
               speed={0.1}
             />
