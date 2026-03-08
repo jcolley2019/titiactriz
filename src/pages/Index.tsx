@@ -185,25 +185,29 @@ const Index = () => {
     }
   };
 
-  // Auto-scroll effect
+  // Auto-scroll effect using requestAnimationFrame for smooth continuous scroll
   useEffect(() => {
     if (!isAutoScrolling) return;
     
-    const interval = setInterval(() => {
+    let animationId: number;
+    const speed = 0.5; // pixels per frame
+    
+    const step = () => {
       if (scrollRef.current) {
         const container = scrollRef.current;
         const maxScroll = container.scrollWidth - container.clientWidth;
         
-        // If at or near the end, loop to start
-        if (container.scrollLeft >= maxScroll - 10) {
-          container.scrollTo({ left: 0, behavior: "smooth" });
+        if (container.scrollLeft >= maxScroll - 1) {
+          container.scrollLeft = 0;
         } else {
-          container.scrollBy({ left: 1, behavior: "auto" });
+          container.scrollLeft += speed;
         }
       }
-    }, 30);
+      animationId = requestAnimationFrame(step);
+    };
     
-    return () => clearInterval(interval);
+    animationId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationId);
   }, [isAutoScrolling]);
 
   // Pause auto-scroll on hover
@@ -434,7 +438,7 @@ const Index = () => {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide px-6 scroll-smooth"
+          className="flex gap-4 overflow-x-auto scrollbar-hide px-6"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
