@@ -295,7 +295,7 @@ const Index = () => {
                   <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
                 </Button>
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
-                  <Link to="/green-world">{t("hero.buttons.greenWorld")}</Link>
+                  <a href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ==" target="_blank" rel="noopener noreferrer">{t("hero.buttons.greenWorld")}</a>
                 </Button>
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <Link to="/work">{t("hero.buttons.portfolio")}</Link>
@@ -564,7 +564,7 @@ const Index = () => {
             <LinkCard
               title={t("featured.greenWorld.title")}
               description={t("featured.greenWorld.description")}
-              href="/green-world"
+              href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ=="
               image={greenworldLogo}
               imageBackground="white"
               hoverColor="green"
