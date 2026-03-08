@@ -255,7 +255,7 @@ const Index = () => {
               {/* Name - stacked layout matching reference */}
               <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
                 <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[0.95]">
-                  Cristina
+                  Cristyna
                 </h2>
                 <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[0.95] relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/50 after:origin-left after:animate-[scaleX_1s_ease-out_0.5s_forwards] after:scale-x-0">
                   Polentino
