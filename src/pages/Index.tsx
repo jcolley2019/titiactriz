@@ -434,7 +434,7 @@ const Index = () => {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide px-6 scroll-smooth"
+          className="flex gap-4 overflow-x-auto scrollbar-hide px-6"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
