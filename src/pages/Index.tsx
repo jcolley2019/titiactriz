@@ -225,13 +225,13 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Cristina Polentino | Actriz Colombiana, Bailarina y Empresaria en Medellín</title>
+        <title>Cristyna Polentino | Actriz Colombiana, Bailarina y Empresaria en Medellín</title>
         <meta
           name="description"
-          content="Cristina Polentino es una actriz colombiana, bailarina profesional y empresaria en Medellín, Colombia. Explora su portafolio de actuación, danza, Titans Agency y productos Green World. Colombian actress, dancer & entrepreneur."
+          content="Cristyna Polentino es una actriz colombiana, bailarina profesional y empresaria en Medellín, Colombia. Explora su portafolio de actuación, danza, Titans Agency y productos Green World. Colombian actress, dancer & entrepreneur."
         />
         <link rel="canonical" href="https://cristinapolentino.com/" />
-        <meta property="og:title" content="Cristina Polentino | Actriz, Bailarina y Empresaria" />
+        <meta property="og:title" content="Cristyna Polentino | Actriz, Bailarina y Empresaria" />
         <meta
           property="og:description"
           content="Actriz colombiana, bailarina profesional y empresaria en Medellín. Actuación, danza, Titans Agency y Green World."
@@ -255,7 +255,7 @@ const Index = () => {
               {/* Name - stacked layout matching reference */}
               <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
                 <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[0.95]">
-                  Cristina
+                  Cristyna
                 </h2>
                 <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[0.95] relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/50 after:origin-left after:animate-[scaleX_1s_ease-out_0.5s_forwards] after:scale-x-0">
                   Polentino
@@ -317,7 +317,7 @@ const Index = () => {
                 {/* Main image with parallax */}
                 <ParallaxImage
                   src={heroImage}
-                  alt="Cristina Polentino"
+                  alt="Cristyna Polentino"
                   containerClassName="rounded-sm"
                   className="max-h-[75vh] object-top"
                   speed={0.12}
@@ -361,14 +361,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Meet Cristina Section */}
+      {/* Meet Cristyna Section */}
       <Section id="about" animate={false}>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <ScrollReveal direction="left">
             <div className="relative">
               <ParallaxImage
                 src={aboutImage}
-                alt="Cristina Polentino portrait"
+                alt="Cristyna Polentino portrait"
                 containerClassName="rounded-sm"
                 className="animate-color-reveal hover:grayscale-0 transition-all duration-700"
                 speed={0.1}

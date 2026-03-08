@@ -19,7 +19,7 @@ const GreenWorld = () => {
   const { t } = useTranslation();
 
   const employeeInfo = {
-    name: "Cristina Polentino",
+    name: "Cristyna Polentino",
     employeeNumber: "",
   };
 
@@ -56,16 +56,16 @@ const GreenWorld = () => {
   return (
     <>
       <Helmet>
-        <title>Green World | Suplementos Naturales y Bienestar - Cristina Polentino</title>
+        <title>Green World | Suplementos Naturales y Bienestar - Cristyna Polentino</title>
         <meta
           name="description"
-          content="Green World - Suplementos de salud premium, tés herbales y productos de bienestar natural. Premium health supplements, herbal teas & wellness products. Representante independiente: Cristina Polentino, Medellín, Colombia."
+          content="Green World - Suplementos de salud premium, tés herbales y productos de bienestar natural. Premium health supplements, herbal teas & wellness products. Representante independiente: Cristyna Polentino, Medellín, Colombia."
         />
         <link rel="canonical" href="https://cristinapolentino.com/green-world" />
         <meta property="og:title" content="Green World - Productos de Bienestar Natural" />
         <meta
           property="og:description"
-          content="Suplementos de salud, tés herbales y productos naturales de Green World. Natural wellness products with rep Cristina Polentino."
+          content="Suplementos de salud, tés herbales y productos naturales de Green World. Natural wellness products with rep Cristyna Polentino."
         />
         <meta property="og:url" content="https://cristinapolentino.com/green-world" />
         <meta property="og:type" content="website" />
@@ -237,7 +237,7 @@ const GreenWorld = () => {
                   className="border-2 border-gw-navy text-gw-navy hover:bg-gw-navy hover:text-gw-white font-bold h-14 px-8 rounded-lg transition-all"
                   asChild
                 >
-                  <a href="mailto:cristina@email.com?subject=Green%20World%20Inquiry">
+                  <a href="mailto:cristyna@email.com?subject=Green%20World%20Inquiry">
                     {t("greenWorld.business.contactMe")}
                   </a>
                 </Button>
@@ -297,7 +297,7 @@ const GreenWorld = () => {
               className="border-2 border-gw-white text-gw-white hover:bg-gw-white/10 font-bold h-14 px-10 rounded-lg transition-all"
               asChild
             >
-              <a href="mailto:cristina@email.com?subject=Green%20World%20Info">
+              <a href="mailto:cristyna@email.com?subject=Green%20World%20Info">
                 {t("greenWorld.cta.contact")}
               </a>
             </Button>

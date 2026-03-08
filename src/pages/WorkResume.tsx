@@ -28,13 +28,13 @@ const WorkResume = () => {
   return (
     <>
       <Helmet>
-        <title>Portafolio de Actuación y Danza | Cristina Polentino - Acting & Dance Portfolio</title>
+        <title>Portafolio de Actuación y Danza | Cristyna Polentino - Acting & Dance Portfolio</title>
         <meta
           name="description"
-          content="Portafolio profesional de actuación y danza de Cristina Polentino. Créditos de actuación, presentaciones de danza, demo reels e información de contratación. Professional acting & dance portfolio from Medellín, Colombia."
+          content="Portafolio profesional de actuación y danza de Cristyna Polentino. Créditos de actuación, presentaciones de danza, demo reels e información de contratación. Professional acting & dance portfolio from Medellín, Colombia."
         />
         <link rel="canonical" href="https://cristinapolentino.com/work" />
-        <meta property="og:title" content="Portafolio - Cristina Polentino | Acting & Dance" />
+        <meta property="og:title" content="Portafolio - Cristyna Polentino | Acting & Dance" />
         <meta
           property="og:description"
           content="Créditos de actuación, danza profesional, demo reels y contratación. Acting credits, dance performances & booking info."
@@ -143,7 +143,7 @@ const WorkResume = () => {
           <div className="image-frame">
             <ParallaxImage
               src={danceImage}
-              alt="Cristina Polentino dance performance"
+              alt="Cristyna Polentino dance performance"
               containerClassName="rounded-lg"
               speed={0.1}
             />
@@ -221,7 +221,7 @@ const WorkResume = () => {
           <div className="order-1 lg:order-2 image-frame">
             <ParallaxImage
               src={actingImage}
-              alt="Cristina Polentino acting headshot"
+              alt="Cristyna Polentino acting headshot"
               containerClassName="rounded-lg"
               speed={0.1}
             />
@@ -243,7 +243,7 @@ const WorkResume = () => {
               width="100%"
               height="100%"
               src="https://www.youtube.com/embed/sjtUdw-rUT4"
-              title="Cristina Polentino Reel"
+              title="Cristyna Polentino Reel"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

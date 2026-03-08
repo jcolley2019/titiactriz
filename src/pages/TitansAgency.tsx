@@ -342,7 +342,7 @@ const TitansAgency = () => {
           "name": "Titans Agency Latam",
           "url": "https://cristinapolentino.com/titans-agency",
           "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
-          "founder": { "@type": "Person", "name": "Cristina Polentino" },
+          "founder": { "@type": "Person", "name": "Cristyna Polentino" },
           "areaServed": ["Latin America", "Spain", "United States"],
           "address": {
             "@type": "PostalAddress",
@@ -478,7 +478,7 @@ const TitansAgency = () => {
         />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {/* Creator 1 - Cristina */}
+          {/* Creator 1 - Cristyna */}
           <a 
             href="https://www.tiktok.com/@titina_polen" 
             target="_blank" 
