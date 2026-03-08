@@ -297,7 +297,7 @@ const GreenWorld = () => {
               className="border-2 border-gw-white text-gw-white hover:bg-gw-white/10 font-bold h-14 px-10 rounded-lg transition-all"
               asChild
             >
-              <a href="mailto:cristina@email.com?subject=Green%20World%20Info">
+              <a href="mailto:cristyna@email.com?subject=Green%20World%20Info">
                 {t("greenWorld.cta.contact")}
               </a>
             </Button>
