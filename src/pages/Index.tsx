@@ -361,7 +361,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Meet Cristina Section */}
+      {/* Meet Cristyna Section */}
       <Section id="about" animate={false}>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           <ScrollReveal direction="left">
