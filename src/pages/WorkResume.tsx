@@ -143,7 +143,7 @@ const WorkResume = () => {
           <div className="image-frame">
             <ParallaxImage
               src={danceImage}
-              alt="Cristina Polentino dance performance"
+              alt="Cristyna Polentino dance performance"
               containerClassName="rounded-lg"
               speed={0.1}
             />
