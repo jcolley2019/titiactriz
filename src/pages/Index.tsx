@@ -317,7 +317,7 @@ const Index = () => {
                 {/* Main image with parallax */}
                 <ParallaxImage
                   src={heroImage}
-                  alt="Cristina Polentino"
+                  alt="Cristyna Polentino"
                   containerClassName="rounded-sm"
                   className="max-h-[75vh] object-top"
                   speed={0.12}
