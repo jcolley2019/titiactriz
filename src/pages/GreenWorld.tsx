@@ -19,7 +19,7 @@ const GreenWorld = () => {
   const { t } = useTranslation();
 
   const employeeInfo = {
-    name: "Cristina Polentino",
+    name: "Cristyna Polentino",
     employeeNumber: "",
   };
 
