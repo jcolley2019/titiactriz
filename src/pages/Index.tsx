@@ -190,7 +190,7 @@ const Index = () => {
     if (!isAutoScrolling) return;
     
     let animationId: number;
-    const speed = 0.5; // pixels per frame
+    const speed = 0.2; // pixels per frame
     
     const step = () => {
       if (scrollRef.current) {
