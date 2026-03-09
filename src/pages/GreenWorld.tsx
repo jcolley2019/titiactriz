@@ -109,7 +109,7 @@ const GreenWorld = () => {
                   href="https://wa.me/17866277567" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="mt-6 p-5 bg-gw-white backdrop-blur-sm rounded-xl border border-gw-green/20 inline-flex items-center gap-4 opacity-0 animate-fade-up stagger-4 shadow-lg hover:shadow-xl transition-all group"
+                  className="mt-6 p-5 bg-gw-white backdrop-blur-sm rounded-xl border border-gw-green/20 inline-flex items-center gap-4 opacity-0 animate-fade-up stagger-4 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
                 >
                    <img src={gwRepIcon} alt="" className="w-12 h-12 rounded-full" />
                    <div>
