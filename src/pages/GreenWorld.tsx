@@ -24,7 +24,7 @@ const GreenWorld = () => {
   };
 
   const categories = [
-    { name: t("greenWorld.categories.natural"), image: categoryNatural },
+    { name: t("greenWorld.categories.natural"), image: categoryNatural, url: "https://us.world-food.com/#/categoryProduct?time=1773021663704&categoryId=17" },
   ];
 
 
@@ -117,9 +117,12 @@ const GreenWorld = () => {
             {/* Right Column - Product Category Cards */}
             <div className="flex flex-col gap-4 opacity-0 animate-fade-up stagger-3">
               {categories.map((category, index) => (
-                <div 
+                <a 
                   key={index}
-                  className="group relative rounded-2xl overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 aspect-[4/5] max-w-sm"
+                  href={category.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative rounded-2xl overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 aspect-[4/5] max-w-sm block"
                 >
                   <img 
                     src={category.image} 
@@ -132,7 +135,7 @@ const GreenWorld = () => {
                       {category.name}
                     </h3>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </div>
