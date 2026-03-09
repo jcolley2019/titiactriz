@@ -547,69 +547,6 @@ const TitansAgency = () => {
         </div>
       </Section>
 
-      {/* Results Section */}
-      <Section className="bg-gradient-to-b from-titans-dark to-titans-red/20">
-        <SectionHeader
-          eyebrow={t("titans.results.eyebrow")}
-          title={t("titans.results.title")}
-          subtitle={t("titans.results.subtitle")}
-          className="[&_*]:text-white [&_.text-muted-foreground]:text-white/70 [&_h2]:text-4xl [&_h2]:sm:text-5xl [&_h2]:md:text-6xl"
-        />
-
-        {/* Testimonials */}
-        <div className="mt-12 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {/* Testimonial 1 */}
-          <div className="p-6 rounded-2xl bg-titans-dark/50 border border-titans-red/30">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
-                MV
-              </div>
-              <div className="min-w-0">
-                <p className="text-white font-semibold leading-tight">María<br/>Valentina</p>
-                <p className="text-white/60 text-sm">@mariaval_tt</p>
-              </div>
-            </div>
-            <p className="text-white/90 italic">
-              "{t("titans.results.testimonials.t1.quote")}"
-            </p>
-            <p className="text-titans-red text-sm mt-3 font-medium">{t("titans.results.testimonials.t1.stat")}</p>
-          </div>
-
-          {/* Testimonial 2 */}
-          <div className="p-6 rounded-2xl bg-titans-dark/50 border border-titans-red/30">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
-                CR
-              </div>
-              <div className="min-w-0">
-                <p className="text-white font-semibold leading-tight">Carlos<br/>Rodríguez</p>
-                <p className="text-white/60 text-sm">@carloscomedy_</p>
-              </div>
-            </div>
-            <p className="text-white/90 italic">
-              "{t("titans.results.testimonials.t2.quote")}"
-            </p>
-            <p className="text-titans-red text-sm mt-3 font-medium">{t("titans.results.testimonials.t2.stat")}</p>
-          </div>
-
-          {/* Testimonial 3 */}
-          <div className="p-6 rounded-2xl bg-titans-dark/50 border border-titans-red/30">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex-shrink-0 rounded-full bg-gradient-to-br from-titans-red to-titans-dark flex items-center justify-center text-white font-bold text-xl">
-                LP
-              </div>
-              <div className="min-w-0">
-                <p className="text-white font-semibold leading-tight">Luciana<br/>Pérez</p>
-                <p className="text-white/60 text-sm">@luci.lifestyle</p>
-              </div>
-            </div>
-            <p className="text-white/90 italic">
-              "{t("titans.results.testimonials.t3.quote")}"
-            </p>
-            <p className="text-titans-red text-sm mt-3 font-medium">{t("titans.results.testimonials.t3.stat")}</p>
-          </div>
-        </div>
-      </Section>
 
       {/* TikTok Creator Showcase */}
       <Section className="bg-titans-dark">
