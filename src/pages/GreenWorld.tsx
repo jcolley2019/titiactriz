@@ -83,8 +83,8 @@ const GreenWorld = () => {
           />
         </div>
         
-        <div className="container-editorial relative z-10 pt-[400px] md:pt-[500px] pb-16 sm:pb-20">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-start">
+        <div className="container-editorial relative z-10 pt-[400px] md:pt-[500px] pb-16 sm:pb-20 px-6 md:px-12 lg:px-16">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start max-w-6xl mx-auto">
             {/* Left Column - Hero Text */}
             <div className="text-gw-white">
               
