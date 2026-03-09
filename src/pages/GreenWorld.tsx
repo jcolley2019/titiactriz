@@ -24,7 +24,7 @@ const GreenWorld = () => {
   };
 
   const categories = [
-    { name: t("greenWorld.categories.natural"), image: categoryNatural },
+    { name: t("greenWorld.categories.natural"), image: categoryNatural, url: "https://us.world-food.com/#/categoryProduct?time=1773021663704&categoryId=17" },
   ];
 
 
