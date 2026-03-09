@@ -163,7 +163,7 @@ const GreenWorld = () => {
         </div>
       </section>
 
-      {/* Journey to Wealth Section */}
+      {/* Combined Business & CTA Section */}
       <section className="py-16 sm:py-24 bg-gw-cream relative">
         <div className="container-editorial">
           <div className="grid lg:grid-cols-2 gap-14 items-center">
@@ -178,27 +178,21 @@ const GreenWorld = () => {
               <p className="text-gw-text/70 text-lg md:text-xl mb-8 leading-relaxed">
                 {t("greenWorld.business.subtitle")}
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Button 
-                  size="lg"
-                  className="bg-gw-green hover:bg-gw-green-dark text-gw-white font-bold h-14 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all"
-                  asChild
-                >
-                  <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
-                    {t("greenWorld.business.startBusiness")}
-                  </a>
-                </Button>
-                <Button 
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-gw-navy text-gw-navy hover:bg-gw-navy hover:text-gw-white font-bold h-14 px-8 rounded-lg transition-all"
-                  asChild
-                >
-                  <a href="mailto:cristyna@email.com?subject=Green%20World%20Inquiry">
-                    {t("greenWorld.business.contactMe")}
-                  </a>
-                </Button>
-              </div>
+              
+              <Button 
+                size="lg"
+                className="bg-gw-green hover:bg-gw-green-dark text-gw-white font-bold h-14 px-10 rounded-lg shadow-lg hover:shadow-xl transition-all mb-6"
+                asChild
+              >
+                <a href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ==" target="_blank" rel="noopener noreferrer">
+                  <ShoppingBag className="w-5 h-5 mr-2" />
+                  Shop Green World
+                </a>
+              </Button>
+              
+              <p className="text-gw-text/70 text-base leading-relaxed">
+                Contact Cristyna Polentino for personalized product recommendations and business opportunities.
+              </p>
             </div>
             <div className="relative">
               <ParallaxImage
@@ -221,43 +215,6 @@ const GreenWorld = () => {
                 <strong className="text-gw-text/80">Disclaimer:</strong> {t("greenWorld.disclaimer")}
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section className="py-14 sm:py-20 bg-gw-green text-gw-white relative overflow-hidden">
-        <GreenWorldSwoosh variant="footer" />
-        
-        <div className="container-editorial text-center relative z-10">
-          <h2 className="font-sans font-bold text-2xl md:text-4xl mb-4 uppercase tracking-wide">
-            {t("greenWorld.cta.title")}
-          </h2>
-          <div className="w-16 h-1 bg-gw-gold mx-auto mb-6" />
-          <p className="text-gw-white/80 mb-10 max-w-xl mx-auto text-lg">
-            {t("greenWorld.cta.subtitle")}
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button 
-              size="lg"
-              className="bg-gw-white text-gw-green-dark hover:bg-gw-cream font-bold h-14 px-10 rounded-lg shadow-lg hover:shadow-xl transition-all"
-              asChild
-            >
-              <a href="https://us.world-food.com" target="_blank" rel="noopener noreferrer">
-                <ShoppingBag className="w-5 h-5 mr-2" />
-                {t("greenWorld.cta.shop")}
-              </a>
-            </Button>
-            <Button 
-              variant="outline"
-              size="lg"
-              className="border-2 border-gw-white text-gw-white hover:bg-gw-white/10 font-bold h-14 px-10 rounded-lg transition-all"
-              asChild
-            >
-              <a href="mailto:cristyna@email.com?subject=Green%20World%20Info">
-                {t("greenWorld.cta.contact")}
-              </a>
-            </Button>
           </div>
         </div>
       </section>
