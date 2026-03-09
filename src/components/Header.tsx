@@ -94,7 +94,7 @@ const Header = () => {
         {/* Center Logo */}
         <Link
           to="/"
-          className={`font-serif text-xl md:text-2xl tracking-tight transition-all duration-300 hover:opacity-80 ${
+          className={`font-serif text-2xl md:text-3xl tracking-tight transition-all duration-300 hover:opacity-80 ${
             isGreenWorldPage ? "text-gw-green-dark" : ""
           }`}
           style={{ textShadow: isGreenWorldPage ? 'none' : '0 0 20px hsl(var(--accent) / 0.2)' }}
