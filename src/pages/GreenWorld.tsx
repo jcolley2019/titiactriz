@@ -84,9 +84,9 @@ const GreenWorld = () => {
         </div>
         
         <div className="container-editorial relative z-10 pt-[400px] md:pt-[500px] pb-16 sm:pb-20">
-          <div className="flex flex-col items-center text-center">
-            {/* Hero Text - Centered */}
-            <div className="text-gw-white max-w-2xl">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-start">
+            {/* Left Column - Hero Text */}
+            <div className="text-gw-white">
               
               {/* Italic intro text */}
               <p className="text-gw-white italic text-xl md:text-2xl mb-4 opacity-0 animate-fade-up stagger-1 font-serif">
@@ -99,15 +99,15 @@ const GreenWorld = () => {
                 <span className="text-gw-white">{t("greenWorld.hero.titleBrand")}</span>
               </h1>
 
-              <p className="text-gw-white/80 text-lg md:text-xl mb-8 opacity-0 animate-fade-up stagger-3">
+              <p className="text-gw-white/80 text-lg md:text-xl mb-8 max-w-lg opacity-0 animate-fade-up stagger-3">
                 {t("greenWorld.hero.subtitle")}
               </p>
 
-              {/* Employee Badge */}
+              {/* Employee Badge - Navy style */}
               {employeeInfo.name && (
                 <div className="mt-6 p-5 bg-gw-white backdrop-blur-sm rounded-xl border border-gw-green/20 inline-flex items-center gap-4 opacity-0 animate-fade-up stagger-4 shadow-lg">
                    <img src={gwRepIcon} alt="" className="w-12 h-12 rounded-full" />
-                   <div className="text-left">
+                   <div>
                      <p className="text-gw-text/70 text-sm uppercase tracking-wider mb-1">{t("greenWorld.hero.representative")}</p>
                      <p className="text-gw-text font-bold text-xl">{employeeInfo.name}</p>
                      {employeeInfo.employeeNumber && (
@@ -118,15 +118,15 @@ const GreenWorld = () => {
               )}
             </div>
 
-            {/* Product Category Cards - Centered */}
-            <div className="flex flex-col gap-4 opacity-0 animate-fade-up stagger-3 mt-12 w-full max-w-sm mx-auto">
+            {/* Right Column - Product Category Cards */}
+            <div className="flex flex-col gap-4 opacity-0 animate-fade-up stagger-3">
               {categories.map((category, index) => (
                 <a 
                   key={index}
                   href={category.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative rounded-2xl overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 aspect-[4/5] block"
+                  className="group relative rounded-2xl overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 aspect-[4/5] max-w-sm block"
                 >
                   <img 
                     src={category.image} 
