@@ -105,13 +105,16 @@ const GreenWorld = () => {
 
               {/* Employee Badge - Navy style */}
               {employeeInfo.name && (
-                <div className="mt-6 p-5 bg-gw-navy/90 backdrop-blur-sm rounded-xl border border-gw-white/20 inline-block opacity-0 animate-fade-up stagger-4 shadow-lg">
-                  <p className="text-gw-white/70 text-sm uppercase tracking-wider mb-1">{t("greenWorld.hero.representative")}</p>
-                  <p className="text-gw-white font-bold text-xl">{employeeInfo.name}</p>
-                  {employeeInfo.employeeNumber && (
-                    <p className="text-gw-white/60 text-sm mt-1">ID: {employeeInfo.employeeNumber}</p>
-                  )}
-                </div>
+                <div className="mt-6 p-5 bg-gw-white backdrop-blur-sm rounded-xl border border-gw-green/20 inline-flex items-center gap-4 opacity-0 animate-fade-up stagger-4 shadow-lg">
+                   <img src={gwRepIcon} alt="" className="w-12 h-12 rounded-full" />
+                   <div>
+                     <p className="text-gw-text/70 text-sm uppercase tracking-wider mb-1">{t("greenWorld.hero.representative")}</p>
+                     <p className="text-gw-text font-bold text-xl">{employeeInfo.name}</p>
+                     {employeeInfo.employeeNumber && (
+                       <p className="text-gw-text/60 text-sm mt-1">ID: {employeeInfo.employeeNumber}</p>
+                     )}
+                   </div>
+                 </div>
               )}
             </div>
 
