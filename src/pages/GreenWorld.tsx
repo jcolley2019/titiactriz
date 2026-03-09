@@ -14,6 +14,7 @@ import categoryEnergy from "@/assets/greenworld-category-energy.png";
 import categoryBeauty from "@/assets/greenworld-category-beauty.png";
 import premiumImage from "@/assets/greenworld-premium.png";
 import wealthImage from "@/assets/greenworld-wealth.png";
+import gwRepIcon from "@/assets/gw-rep-icon.png";
 
 const GreenWorld = () => {
   const { t } = useTranslation();
