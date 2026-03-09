@@ -140,43 +140,6 @@ const GreenWorld = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-16 sm:py-20 bg-gw-cream relative">
-        <div className="container-editorial">
-          <div className="text-center mb-14">
-            <p className="text-gw-green font-semibold text-sm uppercase tracking-widest mb-3">
-              {t("greenWorld.categories.eyebrow") || "Our Categories"}
-            </p>
-            <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl text-gw-text mb-4">
-              {t("greenWorld.categories.title")}
-            </h2>
-            <div className="w-16 h-1 bg-gw-gold mx-auto mb-4" />
-            <p className="text-gw-text/70 text-lg max-w-2xl mx-auto">
-              {t("greenWorld.categories.subtitle")}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {categories.map((category, index) => (
-              <div 
-                key={index}
-                className="group bg-gw-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-2 border border-gw-gray"
-              >
-                <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-gradient-to-br from-gw-green/10 to-gw-green-light/10 flex items-center justify-center overflow-hidden shadow-inner">
-                  <img 
-                    src={category.image} 
-                    alt={category.name}
-                    className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <h3 className="font-sans font-bold text-gw-text text-center text-xl">
-                  {category.name}
-                </h3>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
 
       {/* Features Section - with swoosh decoration */}
