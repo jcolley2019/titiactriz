@@ -126,14 +126,11 @@ const GreenWorld = () => {
                     alt={category.name}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                  <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
-                    <h3 className="font-sans font-medium text-gw-white text-lg">
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent" />
+                  <div className="absolute top-5 left-5 right-5 text-center">
+                    <h3 className="font-sans font-bold text-gw-white text-2xl md:text-3xl drop-shadow-lg">
                       {category.name}
                     </h3>
-                    <div className="w-8 h-8 rounded-full bg-gw-white/20 backdrop-blur-sm flex items-center justify-center text-gw-white group-hover:bg-gw-white/30 transition-colors">
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
                   </div>
                 </div>
               ))}
