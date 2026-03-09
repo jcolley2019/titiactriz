@@ -25,8 +25,6 @@ const GreenWorld = () => {
 
   const categories = [
     { name: t("greenWorld.categories.natural"), image: categoryNatural },
-    { name: t("greenWorld.categories.energy"), image: categoryEnergy },
-    { name: t("greenWorld.categories.beauty"), image: categoryBeauty },
   ];
 
 
