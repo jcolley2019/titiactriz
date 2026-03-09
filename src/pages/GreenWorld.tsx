@@ -119,18 +119,22 @@ const GreenWorld = () => {
               {categories.map((category, index) => (
                 <div 
                   key={index}
-                  className="group bg-gw-white/10 backdrop-blur-sm rounded-xl p-5 border border-gw-white/20 hover:bg-gw-white/15 transition-all duration-300 cursor-pointer hover:-translate-y-1 flex items-center gap-5"
+                  className="group relative rounded-2xl overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 aspect-[4/5] max-w-sm"
                 >
-                  <div className="w-16 h-16 flex-shrink-0 rounded-full bg-gw-white/20 flex items-center justify-center overflow-hidden">
-                    <img 
-                      src={category.image} 
-                      alt={category.name}
-                      className="w-14 h-14 object-contain group-hover:scale-110 transition-transform duration-300"
-                    />
+                  <img 
+                    src={category.image} 
+                    alt={category.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
+                    <h3 className="font-sans font-medium text-gw-white text-lg">
+                      {category.name}
+                    </h3>
+                    <div className="w-8 h-8 rounded-full bg-gw-white/20 backdrop-blur-sm flex items-center justify-center text-gw-white group-hover:bg-gw-white/30 transition-colors">
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
-                  <h3 className="font-sans font-bold text-gw-white text-lg">
-                    {category.name}
-                  </h3>
                 </div>
               ))}
             </div>
