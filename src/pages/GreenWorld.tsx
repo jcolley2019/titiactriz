@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { ExternalLink, ShoppingBag, Leaf, Heart, Sparkles, Users } from "lucide-react";
+import { ExternalLink, ShoppingBag, Leaf, Heart, Sparkles, Users, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import ParallaxImage from "@/components/ParallaxImage";
