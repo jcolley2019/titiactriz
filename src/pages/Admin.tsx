@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet-async";
+import imageCompression from "browser-image-compression";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -98,9 +99,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadStage, setUploadStage] = useState<"idle" | "optimizing" | "uploading">("idle");
+  const [lastReduction, setLastReduction] = useState<string | null>(null);
   const [newAlt, setNewAlt] = useState("");
   const [newSort, setNewSort] = useState<number>(0);
-  const [uploadWarn, setUploadWarn] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
@@ -123,24 +126,29 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     load();
   }, [load]);
 
+  const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+
   const onFilePick = (file: File | null) => {
-    setPendingFile(file);
+    setLastReduction(null);
     if (!file) {
-      setUploadWarn(null);
+      setPendingFile(null);
+      setFileError(null);
       return;
     }
-    const isWebp = file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp");
-    const isLarge = file.size > 400 * 1024;
-    if (!isWebp || isLarge) {
-      setUploadWarn(
-        `Heads up: this file is ${(file.size / 1024).toFixed(0)} KB${
-          !isWebp ? " and not WebP" : ""
-        }. For best performance, convert to WebP (~q80) and keep it under ~400 KB.`,
+    if (!ACCEPTED.includes(file.type)) {
+      setPendingFile(null);
+      setFileError(
+        "Unsupported image type. Please use JPEG, PNG, or WebP (HEIC from iPhone isn't supported — export as JPEG first).",
       );
-    } else {
-      setUploadWarn(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+    setFileError(null);
+    setPendingFile(file);
   };
+
+  const formatBytes = (b: number) =>
+    b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
   const handleUpload = async () => {
     if (!pendingFile) {
@@ -148,12 +156,24 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       return;
     }
     setUploading(true);
+    setUploadStage("optimizing");
+    setLastReduction(null);
     try {
-      const ext = pendingFile.name.split(".").pop() || "bin";
-      const path = `photos/${crypto.randomUUID()}.${ext}`;
+      const originalSize = pendingFile.size;
+      const optimized = await imageCompression(pendingFile, {
+        maxWidthOrHeight: 1600,
+        fileType: "image/webp",
+        initialQuality: 0.8,
+        maxSizeMB: 0.3,
+        useWebWorker: true,
+        preserveExif: false,
+      });
+
+      setUploadStage("uploading");
+      const path = `photos/${crypto.randomUUID()}.webp`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
-        .upload(path, pendingFile, { upsert: false, contentType: pendingFile.type });
+        .upload(path, optimized, { upsert: false, contentType: "image/webp" });
       if (upErr) throw upErr;
 
       const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
@@ -167,11 +187,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       });
       if (insErr) throw insErr;
 
-      toast({ title: "Photo uploaded" });
+      const reduction = `${formatBytes(originalSize)} → ${formatBytes(optimized.size)}`;
+      setLastReduction(reduction);
+      toast({ title: "Photo uploaded", description: `Optimized: ${reduction}` });
       setPendingFile(null);
       setNewAlt("");
       setNewSort(0);
-      setUploadWarn(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       await load();
     } catch (e: unknown) {
@@ -179,6 +200,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       toast({ title: "Upload failed", description: msg, variant: "destructive" });
     } finally {
       setUploading(false);
+      setUploadStage("idle");
     }
   };
 
@@ -263,7 +285,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               id="file"
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={(e) => onFilePick(e.target.files?.[0] ?? null)}
             />
           </div>
@@ -286,8 +308,13 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             />
           </div>
         </div>
-        {uploadWarn && (
-          <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">{uploadWarn}</p>
+        {fileError && (
+          <p className="mt-3 text-sm text-destructive">{fileError}</p>
+        )}
+        {lastReduction && !uploading && (
+          <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">
+            Optimized: {lastReduction}
+          </p>
         )}
         <div className="mt-4">
           <Button
@@ -295,7 +322,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             disabled={uploading || !pendingFile}
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            {uploading ? "Uploading…" : "Upload"}
+            {uploadStage === "optimizing"
+              ? "Optimizing…"
+              : uploadStage === "uploading"
+                ? "Uploading…"
+                : "Upload"}
           </Button>
         </div>
       </section>
