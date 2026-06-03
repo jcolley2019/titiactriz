@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip: string | null
+          message: string | null
+          name: string
+          phone: string | null
+          tiktok_handle: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip?: string | null
+          message?: string | null
+          name: string
+          phone?: string | null
+          tiktok_handle?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip?: string | null
+          message?: string | null
+          name?: string
+          phone?: string | null
+          tiktok_handle?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
