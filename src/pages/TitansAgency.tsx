@@ -296,45 +296,12 @@ const TitansAgency = () => {
     }
   };
 
-  // Format phone number as user types: +XX XXX XXX XXXX
-  const formatPhoneNumber = (value: string) => {
-    // Remove all non-digit characters except +
-    const cleaned = value.replace(/[^\d+]/g, '');
-    
-    // Handle the + at the beginning
-    let hasPlus = cleaned.startsWith('+');
-    let digits = cleaned.replace(/\D/g, '');
-    
-    // Limit to 13 digits (including country code)
-    digits = digits.slice(0, 13);
-    
-    // Format: +XX XXX XXX XXXX
-    let formatted = '';
-    
-    if (hasPlus) {
-      formatted = '+';
-    }
-    
-    if (digits.length > 0) {
-      // Country code (first 2 digits)
-      formatted += digits.slice(0, 2);
-    }
-    if (digits.length > 2) {
-      formatted += ' ' + digits.slice(2, 5);
-    }
-    if (digits.length > 5) {
-      formatted += ' ' + digits.slice(5, 8);
-    }
-    if (digits.length > 8) {
-      formatted += ' ' + digits.slice(8, 12);
-    }
-    
-    return formatted;
-  };
-
+  // Permissive international phone handling — accepts any country code (+1, +52, +54, +57, etc.).
+  // We only strip characters that aren't valid in phone numbers and cap length to match server validation (20 chars).
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setFormData(prev => ({ ...prev, phone: formatted }));
+    // Allow digits, spaces, +, -, parentheses (matches server-side isValidPhone regex)
+    const cleaned = e.target.value.replace(/[^\d\s+\-()]/g, '').slice(0, 20);
+    setFormData(prev => ({ ...prev, phone: cleaned }));
   };
 
   const services = [
