@@ -262,7 +262,7 @@ const Index = () => {
 
               {/* Tagline */}
               <p
-                className="font-serif text-xl md:text-2xl lg:text-3xl text-accent/80 italic leading-relaxed mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
+                className="font-serif text-xl md:text-2xl lg:text-3xl text-gold-light italic leading-relaxed mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
                 <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
                   {t("hero.headline")}
@@ -276,7 +276,7 @@ const Index = () => {
               </p>
               
               {/* Roles - centered below headline */}
-              <p className="text-[10px] sm:text-xs md:text-sm tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase text-muted-foreground text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
+              <p className="text-[10px] sm:text-xs md:text-sm tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase text-gold-light/85 text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
                 <span className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
                   <span>{t("hero.roles.actress")}</span>
                   <span className="text-accent">|</span>
@@ -287,6 +287,7 @@ const Index = () => {
                   <span>{t("hero.roles.streamer")}</span>
                 </span>
               </p>
+
 
               {/* Quick Link Buttons */}
               <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
