@@ -681,9 +681,6 @@ const Index = () => {
             </Button>
           </form>
 
-          <p className="text-sm text-muted-foreground mt-8">
-            {t("contact.formNote")}
-          </p>
         </div>
       </Section>
     </>
