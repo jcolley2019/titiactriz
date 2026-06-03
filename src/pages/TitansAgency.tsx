@@ -683,18 +683,19 @@ const TitansAgency = () => {
               <Label htmlFor="phone" className="text-white font-medium">
                 {t("titans.form.phone")} <span className="text-white/60">*</span>
               </Label>
-              <Input
+              <PhoneInput
                 id="phone"
-                type="tel"
+                international
+                defaultCountry="CO"
                 value={formData.phone}
-                onChange={handlePhoneChange}
-                placeholder={t("titans.form.phonePlaceholder")}
+                onChange={(value) => setFormData(prev => ({ ...prev, phone: value || "" }))}
+                placeholder="+57 300 123 4567"
                 className={cn(
-                  "h-12 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-titans-red-deep focus-visible:border-titans-red-deep focus-visible:ring-offset-0 transition-all duration-300",
+                  "titans-phone-input h-12 rounded-none border bg-background/50 backdrop-blur px-3 transition-all duration-300",
                   formErrors.phone ? "border-titans-red-deep" : "border-border"
                 )}
-                maxLength={17}
               />
+
               {formErrors.phone && (
                 <p className="text-titans-red text-sm">{formErrors.phone}</p>
               )}
