@@ -7,8 +7,8 @@ import { FeatureCard } from "@/components/Cards";
 import { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
 import ParallaxImage from "@/components/ParallaxImage";
 
-import actingImage from "@/assets/cristyna-acting-headshot.png";
-import danceImage from "@/assets/cristyna-dance.jpg";
+import actingImage from "@/assets/cristyna-acting-headshot.webp";
+import danceImage from "@/assets/cristyna-dance.webp";
 
 const WorkResume = () => {
   const { t } = useTranslation();

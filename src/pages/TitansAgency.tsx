@@ -14,10 +14,10 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 
-import titansLogo from "@/assets/titans-logo-color.png";
-import cristynaTitans from "@/assets/cristyna-titans-hd.png";
-import cristynaProfile from "@/assets/cristyna-tiktok-profile.png";
-import titansQRCode from "@/assets/titans-qr-code-clean.jpg";
+import titansLogo from "@/assets/titans-logo-color.webp";
+import cristynaTitans from "@/assets/cristyna-titans-hd.webp";
+import cristynaProfile from "@/assets/cristyna-tiktok-profile.webp";
+import titansQRCode from "@/assets/titans-qr-code-clean.webp";
 
 // TikTok video IDs for alternating display
 const TIKTOK_VIDEOS = [

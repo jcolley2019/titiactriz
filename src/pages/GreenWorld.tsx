@@ -9,11 +9,11 @@ import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard
 
 // Import logos and images
 import gwLogo from "@/assets/greenworld-logo-clean.png";
-import categoryNatural from "@/assets/greenworld-natural-health.png";
-import categoryEnergy from "@/assets/greenworld-category-energy.png";
-import categoryBeauty from "@/assets/greenworld-category-beauty.png";
-import premiumImage from "@/assets/greenworld-premium.png";
-import wealthImage from "@/assets/greenworld-wealth.png";
+import categoryNatural from "@/assets/greenworld-natural-health.webp";
+import categoryEnergy from "@/assets/greenworld-category-energy.webp";
+import categoryBeauty from "@/assets/greenworld-category-beauty.webp";
+import premiumImage from "@/assets/greenworld-premium.webp";
+import wealthImage from "@/assets/greenworld-wealth.webp";
 import gwRepIcon from "@/assets/gw-rep-icon.png";
 
 const GreenWorld = () => {
