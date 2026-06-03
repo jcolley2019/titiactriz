@@ -237,7 +237,12 @@ const TitansAgency = () => {
     if (!validateForm()) return;
     
     setIsSubmitting(true);
-    
+
+    // Normalize TikTok handle: trim, strip leading @s, re-prefix with single @.
+    const trimmedHandle = formData.tiktokHandle.trim().replace(/^@+/, "");
+    const normalizedHandle = trimmedHandle ? `@${trimmedHandle}` : "";
+    const formspreeHandle = normalizedHandle || "(not provided)";
+
     try {
       const { data: responseData, error } = await supabase.functions.invoke('send-contact', {
         body: {
@@ -245,9 +250,10 @@ const TitansAgency = () => {
           name: formData.fullName,
           email: formData.email,
           phone: formData.phone,
-          tiktokHandle: formData.tiktokHandle || undefined,
+          tiktokHandle: normalizedHandle || undefined,
         },
       });
+
 
       if (error) {
         console.error('Contact form error:', error);
