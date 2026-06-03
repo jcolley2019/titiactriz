@@ -345,6 +345,11 @@ const Index = () => {
                   containerClassName="rounded-sm"
                   className="max-h-[75vh] object-top"
                   speed={0.12}
+                  width={538}
+                  height={750}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   style={{ 
                     filter: 'contrast(1.05) saturate(1.1) brightness(1.02)',
                   }}
