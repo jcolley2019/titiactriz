@@ -328,19 +328,19 @@ const TitansAgency = () => {
           name="description"
           content="Titans Agency Latam ayuda a creadores latinoamericanos en TikTok a crecer, monetizar y conseguir colaboraciones con marcas. TikTok growth, monetization & brand partnerships for Latin American creators."
         />
-        <link rel="canonical" href="https://cristinapolentino.com/titans-agency" />
+        <link rel="canonical" href="https://titiactriz.com/titans-agency" />
         <meta property="og:title" content="Titans Agency Latam - Crecimiento en TikTok para Creadores" />
         <meta
           property="og:description"
           content="Estrategia de crecimiento en TikTok, coaching de monetización y colaboraciones con marcas para creadores latinoamericanos."
         />
-        <meta property="og:url" content="https://cristinapolentino.com/titans-agency" />
+        <meta property="og:url" content="https://titiactriz.com/titans-agency" />
         <meta property="og:type" content="website" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": "Titans Agency Latam",
-          "url": "https://cristinapolentino.com/titans-agency",
+          "url": "https://titiactriz.com/titans-agency",
           "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
           "founder": { "@type": "Person", "name": "Cristyna Polentino" },
           "areaServed": ["Latin America", "Spain", "United States"],

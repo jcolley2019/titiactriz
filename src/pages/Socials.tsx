@@ -54,13 +54,13 @@ const Socials = () => {
           name="description"
           content="Sigue a Cristyna Polentino en TikTok (@titina_polen), Instagram (@cristinapolentino_actriz) y YouTube. Follow Cristyna on social media for behind-the-scenes content, performances, and daily updates."
         />
-        <link rel="canonical" href="https://cristinapolentino.com/socials" />
+        <link rel="canonical" href="https://titiactriz.com/socials" />
         <meta property="og:title" content="Redes Sociales - Cristyna Polentino" />
         <meta
           property="og:description"
           content="Sigue a Cristyna Polentino en TikTok, Instagram y YouTube. Follow for content, performances & more."
         />
-        <meta property="og:url" content="https://cristinapolentino.com/socials" />
+        <meta property="og:url" content="https://titiactriz.com/socials" />
         <meta property="og:type" content="website" />
       </Helmet>
 
