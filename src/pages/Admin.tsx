@@ -48,7 +48,7 @@ const LoginCard = () => {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
+    <div className="min-h-[70vh] flex items-center justify-center px-4 pt-32">
       <form
         onSubmit={onSubmit}
         className="w-full max-w-sm bg-card border border-border rounded-lg p-6 shadow-[var(--shadow-card)]"
@@ -242,7 +242,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 pt-32 pb-10">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-foreground">Gallery Admin</h1>
