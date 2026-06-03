@@ -11,6 +11,7 @@ const GreenWorld = lazy(() => import("@/pages/GreenWorld"));
 const WorkResume = lazy(() => import("@/pages/WorkResume"));
 const Socials = lazy(() => import("@/pages/Socials"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const Admin = lazy(() => import("@/pages/Admin"));
 
 const RouteFallback = () => (
   <div
@@ -74,6 +75,14 @@ const AnimatedRoutes = () => {
                 <Socials />
               </Suspense>
             </PageTransition>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<RouteFallback />}>
+              <Admin />
+            </Suspense>
           }
         />
         <Route
