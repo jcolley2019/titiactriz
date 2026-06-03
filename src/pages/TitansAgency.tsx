@@ -261,6 +261,30 @@ const TitansAgency = () => {
         return;
       }
 
+      // DB insert succeeded — also notify via Formspree (email).
+      // Failure-isolated: if Formspree fails, we still show success because the DB row is the backup.
+      try {
+        const formspreeRes = await fetch("https://formspree.io/f/maqzwogl", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            "Full Name": formData.fullName,
+            Email: formData.email,
+            "Phone Number": formData.phone,
+            "TikTok Handle": formData.tiktokHandle || "(not provided)",
+            _subject: `New Titans Agency call request from ${formData.fullName}`,
+          }),
+        });
+        if (!formspreeRes.ok) {
+          console.warn("Formspree notification failed:", formspreeRes.status);
+        }
+      } catch (notifyErr) {
+        console.warn("Formspree notification error:", notifyErr);
+      }
+
       setSubmitSuccess(true);
       setFormData({ fullName: "", email: "", phone: "", tiktokHandle: "" });
       setTimeout(() => setSubmitSuccess(false), 3000);
