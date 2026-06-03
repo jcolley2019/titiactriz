@@ -92,8 +92,10 @@ export default {
           bg: "hsl(var(--highlight-bg))",
         },
         // Titans Agency brand colors
+        // Titans Agency brand colors
         titans: {
           red: "hsl(var(--titans-red))",
+          "red-deep": "hsl(var(--titans-red-deep))",
           dark: "hsl(var(--titans-dark))",
           accent: "hsl(var(--titans-accent))",
         },

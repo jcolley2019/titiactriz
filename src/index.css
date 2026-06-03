@@ -54,6 +54,7 @@
 
     /* Titans Agency brand colors */
     --titans-red: 0 70% 40%;
+    --titans-red-deep: 0 62% 32%; /* Deeper, richer red for on-brand accents */
     --titans-dark: 0 0% 8%;
     --titans-accent: 0 0% 100%;
 
