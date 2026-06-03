@@ -280,7 +280,7 @@ const TitansAgency = () => {
             "Full Name": formData.fullName,
             Email: formData.email,
             "Phone Number": formData.phone,
-            "TikTok Handle": formData.tiktokHandle || "(not provided)",
+            "TikTok Handle": formspreeHandle,
             _subject: `New Titans Agency call request from ${formData.fullName}`,
           }),
         });
