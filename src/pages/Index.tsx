@@ -16,7 +16,7 @@ import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/Scroll
 import ParallaxImage from "@/components/ParallaxImage";
 
 // Images
-import heroImage from "@/assets/cristyna-hero.jpg";
+const heroImage = "/cristyna-hero.webp";
 import aboutImage from "@/assets/cristyna-meet.webp";
 import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
