@@ -653,13 +653,13 @@ const TitansAgency = () => {
       </Section>
 
       {/* CTA Section with Contact Form */}
-      <Section className="bg-titans-red py-16 md:py-24">
+      <Section className="bg-titans-dark py-16 md:py-24">
         <div className="max-w-xl mx-auto">
           <SectionHeader
             eyebrow={t("titans.cta.eyebrow")}
             title={t("titans.cta.title")}
             subtitle={t("titans.cta.subtitle")}
-            className="[&_*]:text-white [&_.text-muted-foreground]:text-white/90 mb-8 md:mb-10"
+            className="[&_.text-caps]:text-titans-red-deep [&_h2]:text-white [&_p]:text-white/80 [&_.gold-line]:bg-gradient-to-r [&_.gold-line]:from-transparent [&_.gold-line]:via-titans-red-deep [&_.gold-line]:to-transparent [&_.gold-line]:opacity-80 mb-8 md:mb-10"
           />
 
           <form onSubmit={handleFormSubmit} className="space-y-5">
@@ -675,13 +675,13 @@ const TitansAgency = () => {
                 onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                 placeholder={t("titans.form.fullNamePlaceholder")}
                 className={cn(
-                  "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
-                  formErrors.fullName && "border-yellow-300"
+                  "h-12 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-titans-red-deep focus-visible:border-titans-red-deep focus-visible:ring-offset-0 transition-all duration-300",
+                  formErrors.fullName ? "border-titans-red-deep" : "border-border"
                 )}
                 maxLength={100}
               />
               {formErrors.fullName && (
-                <p className="text-yellow-200 text-sm">{formErrors.fullName}</p>
+                <p className="text-titans-red text-sm">{formErrors.fullName}</p>
               )}
             </div>
 
@@ -697,13 +697,13 @@ const TitansAgency = () => {
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder={t("titans.form.emailPlaceholder")}
                 className={cn(
-                  "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
-                  formErrors.email && "border-yellow-300"
+                  "h-12 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-titans-red-deep focus-visible:border-titans-red-deep focus-visible:ring-offset-0 transition-all duration-300",
+                  formErrors.email ? "border-titans-red-deep" : "border-border"
                 )}
                 maxLength={255}
               />
               {formErrors.email && (
-                <p className="text-yellow-200 text-sm">{formErrors.email}</p>
+                <p className="text-titans-red text-sm">{formErrors.email}</p>
               )}
             </div>
 
@@ -719,13 +719,13 @@ const TitansAgency = () => {
                 onChange={handlePhoneChange}
                 placeholder={t("titans.form.phonePlaceholder")}
                 className={cn(
-                  "bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12",
-                  formErrors.phone && "border-yellow-300"
+                  "h-12 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-titans-red-deep focus-visible:border-titans-red-deep focus-visible:ring-offset-0 transition-all duration-300",
+                  formErrors.phone ? "border-titans-red-deep" : "border-border"
                 )}
                 maxLength={17}
               />
               {formErrors.phone && (
-                <p className="text-yellow-200 text-sm">{formErrors.phone}</p>
+                <p className="text-titans-red text-sm">{formErrors.phone}</p>
               )}
             </div>
 
@@ -735,14 +735,14 @@ const TitansAgency = () => {
                 {t("titans.form.tiktokHandle")} <span className="text-white/40 text-sm">({t("titans.form.optional")})</span>
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">@</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">@</span>
                 <Input
                   id="tiktokHandle"
                   type="text"
                   value={formData.tiktokHandle}
                   onChange={(e) => setFormData(prev => ({ ...prev, tiktokHandle: e.target.value.replace(/^@/, '') }))}
                   placeholder={t("titans.form.tiktokPlaceholder")}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white focus:ring-white/30 h-12 pl-8"
+                  className="h-12 pl-8 rounded-none border border-border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-titans-red-deep focus-visible:border-titans-red-deep focus-visible:ring-offset-0 transition-all duration-300"
                   maxLength={50}
                 />
               </div>
@@ -753,7 +753,7 @@ const TitansAgency = () => {
               type="submit"
               size="xl" 
               disabled={isSubmitting}
-              className="bg-white text-titans-red hover:bg-white/90 font-bold w-full mt-6"
+              className="bg-titans-red-deep text-white hover:bg-titans-red-deep/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-titans-red-deep/30 font-bold w-full mt-6 rounded-sm tracking-[0.15em] uppercase text-xs"
             >
               {isSubmitting ? (
                 t("titans.form.submitting")
@@ -769,6 +769,7 @@ const TitansAgency = () => {
           </form>
         </div>
       </Section>
+
     </>
   );
 };
