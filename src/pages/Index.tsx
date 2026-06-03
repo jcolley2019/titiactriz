@@ -402,6 +402,9 @@ const Index = () => {
                 containerClassName="rounded-sm"
                 className="animate-color-reveal hover:grayscale-0 transition-all duration-700"
                 speed={0.1}
+                width={768}
+                height={1025}
+                loading="lazy"
               />
               {/* Decorative frame */}
               <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
