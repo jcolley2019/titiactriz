@@ -36,12 +36,14 @@ function isValidEmail(email: string): boolean {
   return emailRegex.test(email) && email.length <= MAX_EMAIL_LENGTH;
 }
 
-// Validate phone format (basic - allows digits, spaces, +, -, parentheses)
+// Validate phone format — accepts E.164 international format: + followed by 7-15 digits.
+// Works for 1-digit (+1), 2-digit (+57), and 3-digit (+971) country codes.
 function isValidPhone(phone: string): boolean {
   if (!phone) return true; // Phone can be optional
-  const phoneRegex = /^[\d\s+\-()]+$/;
+  const phoneRegex = /^\+[1-9]\d{6,15}$/;
   return phoneRegex.test(phone) && phone.length <= MAX_PHONE_LENGTH;
 }
+
 
 // Check rate limit for IP
 function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
