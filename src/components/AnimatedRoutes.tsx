@@ -1,13 +1,26 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import PageTransition from "./PageTransition";
 import Index from "@/pages/Index";
-import TitansAgency from "@/pages/TitansAgency";
-import GreenWorld from "@/pages/GreenWorld";
-import WorkResume from "@/pages/WorkResume";
-import Socials from "@/pages/Socials";
-import NotFound from "@/pages/NotFound";
+
+// Lazy-loaded routes (kept out of the home-page bundle)
+const TitansAgency = lazy(() => import("@/pages/TitansAgency"));
+const GreenWorld = lazy(() => import("@/pages/GreenWorld"));
+const WorkResume = lazy(() => import("@/pages/WorkResume"));
+const Socials = lazy(() => import("@/pages/Socials"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+
+const RouteFallback = () => (
+  <div
+    className="min-h-[60vh] flex items-center justify-center"
+    aria-busy="true"
+    aria-live="polite"
+  >
+    <div className="h-8 w-8 rounded-full border-2 border-accent/30 border-t-accent animate-spin" />
+  </div>
+);
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -27,7 +40,9 @@ const AnimatedRoutes = () => {
           path="/titans-agency"
           element={
             <PageTransition>
-              <TitansAgency />
+              <Suspense fallback={<RouteFallback />}>
+                <TitansAgency />
+              </Suspense>
             </PageTransition>
           }
         />
@@ -35,7 +50,9 @@ const AnimatedRoutes = () => {
           path="/green-world"
           element={
             <PageTransition>
-              <GreenWorld />
+              <Suspense fallback={<RouteFallback />}>
+                <GreenWorld />
+              </Suspense>
             </PageTransition>
           }
         />
@@ -43,7 +60,9 @@ const AnimatedRoutes = () => {
           path="/work"
           element={
             <PageTransition>
-              <WorkResume />
+              <Suspense fallback={<RouteFallback />}>
+                <WorkResume />
+              </Suspense>
             </PageTransition>
           }
         />
@@ -51,7 +70,9 @@ const AnimatedRoutes = () => {
           path="/socials"
           element={
             <PageTransition>
-              <Socials />
+              <Suspense fallback={<RouteFallback />}>
+                <Socials />
+              </Suspense>
             </PageTransition>
           }
         />
@@ -59,7 +80,9 @@ const AnimatedRoutes = () => {
           path="*"
           element={
             <PageTransition>
-              <NotFound />
+              <Suspense fallback={<RouteFallback />}>
+                <NotFound />
+              </Suspense>
             </PageTransition>
           }
         />
