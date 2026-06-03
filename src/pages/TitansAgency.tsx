@@ -226,9 +226,12 @@ const TitansAgency = () => {
     
     if (!formData.phone.trim()) {
       errors.phone = t("titans.form.errors.phoneRequired");
+    } else if (!/^\+[1-9]\d{6,15}$/.test(formData.phone.trim())) {
+      errors.phone = t("titans.form.errors.phoneInvalid", { defaultValue: t("titans.form.errors.phoneRequired") });
     } else if (formData.phone.trim().length > 20) {
       errors.phone = t("titans.form.errors.phoneTooLong");
     }
+
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
