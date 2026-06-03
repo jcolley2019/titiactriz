@@ -285,7 +285,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               id="file"
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={(e) => onFilePick(e.target.files?.[0] ?? null)}
             />
           </div>
