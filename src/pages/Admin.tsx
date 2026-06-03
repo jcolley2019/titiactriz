@@ -99,9 +99,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadStage, setUploadStage] = useState<"idle" | "optimizing" | "uploading">("idle");
+  const [lastReduction, setLastReduction] = useState<string | null>(null);
   const [newAlt, setNewAlt] = useState("");
   const [newSort, setNewSort] = useState<number>(0);
-  const [uploadWarn, setUploadWarn] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
