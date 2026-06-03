@@ -387,7 +387,7 @@ const TitansAgency = () => {
                   asChild
                   className="bg-white text-titans-red hover:bg-white/90 font-bold text-lg sm:text-base md:text-lg shadow-lg w-full sm:w-[220px] md:w-[250px] h-14 sm:h-14 md:h-16 justify-center rounded-lg sm:rounded-sm"
                 >
-                  <a href="mailto:yourname@email.com?subject=Titans%20Agency%20Inquiry" className="flex items-center justify-center gap-2 w-full h-full">
+                  <a href="mailto:hola@titiactriz.com?subject=Titans%20Agency%20Inquiry" className="flex items-center justify-center gap-2 w-full h-full">
                     {t("titans.hero.workWithUs")}
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </a>

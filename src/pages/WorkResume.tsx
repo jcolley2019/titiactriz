@@ -262,7 +262,7 @@ const WorkResume = () => {
           />
 
           <Button variant="editorial" size="xl" asChild>
-            <a href="mailto:yourname@email.com?subject=Booking%20Inquiry">
+            <a href="mailto:hola@titiactriz.com?subject=Booking%20Inquiry">
               <Mail className="w-5 h-5" />
               {t("work.bookings.button")}
             </a>
