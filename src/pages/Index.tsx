@@ -230,13 +230,13 @@ const Index = () => {
           name="description"
           content="Cristyna Polentino es una actriz colombiana, bailarina profesional y empresaria en Medellín, Colombia. Explora su portafolio de actuación, danza, Titans Agency y productos Green World. Colombian actress, dancer & entrepreneur."
         />
-        <link rel="canonical" href="https://cristinapolentino.com/" />
+        <link rel="canonical" href="https://titiactriz.com/" />
         <meta property="og:title" content="Cristyna Polentino | Actriz, Bailarina y Empresaria" />
         <meta
           property="og:description"
           content="Actriz colombiana, bailarina profesional y empresaria en Medellín. Actuación, danza, Titans Agency y Green World."
         />
-        <meta property="og:url" content="https://cristinapolentino.com/" />
+        <meta property="og:url" content="https://titiactriz.com/" />
         <meta property="og:type" content="website" />
       </Helmet>
 
@@ -253,23 +253,22 @@ const Index = () => {
             {/* Left - Text Content */}
             <div className="order-2 lg:order-1 flex flex-col justify-center">
               {/* Name - stacked layout matching reference */}
-              <div className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards]">
-                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[0.95]">
-                  Cristyna
-                </h2>
-                <h2 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-accent italic font-normal leading-[0.95] relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/50 after:origin-left after:animate-[scaleX_1s_ease-out_0.5s_forwards] after:scale-x-0">
+              <h1 className="mb-8 opacity-0 animate-[fadeIn_1s_ease-out_0.1s_forwards] font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground font-normal leading-[0.95]">
+                <span className="block">Cristyna</span>
+                <span className="block text-accent italic relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-accent/50 after:origin-left after:animate-[scaleX_1s_ease-out_0.5s_forwards] after:scale-x-0">
                   Polentino
-                </h2>
-              </div>
-              
-              {/* Main headline - tagline style with accent box */}
-              <h1 
+                </span>
+              </h1>
+
+              {/* Tagline */}
+              <p
                 className="font-serif text-xl md:text-2xl lg:text-3xl text-accent/80 italic leading-relaxed mb-6 opacity-0 animate-[fadeIn_0.8s_ease-out_0.3s_forwards]"
               >
                 <span className="inline-block bg-accent/15 px-3 py-1 -mx-3 border-l-2 border-accent">
                   {t("hero.headline")}
                 </span>
-              </h1>
+              </p>
+
               
               {/* Description text */}
               <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-10 max-w-md opacity-0 animate-[fadeIn_0.8s_ease-out_0.4s_forwards]">
