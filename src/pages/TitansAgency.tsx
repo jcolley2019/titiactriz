@@ -305,13 +305,8 @@ const TitansAgency = () => {
     }
   };
 
-  // Permissive international phone handling — accepts any country code (+1, +52, +54, +57, etc.).
-  // We only strip characters that aren't valid in phone numbers and cap length to match server validation (20 chars).
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow digits, spaces, +, -, parentheses (matches server-side isValidPhone regex)
-    const cleaned = e.target.value.replace(/[^\d\s+\-()]/g, '').slice(0, 20);
-    setFormData(prev => ({ ...prev, phone: cleaned }));
-  };
+
+
 
   const services = [
     t("titans.services.list.onboarding"),
