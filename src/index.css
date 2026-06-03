@@ -426,3 +426,50 @@
     display: none;
   }
 }
+
+/* Titans Agency: react-phone-number-input dark theme styling */
+.titans-phone-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.titans-phone-input .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid hsl(var(--border));
+  margin-right: 0.25rem;
+}
+.titans-phone-input .PhoneInputCountrySelect {
+  color: hsl(var(--foreground));
+  background: transparent;
+}
+.titans-phone-input .PhoneInputCountrySelect option {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+.titans-phone-input .PhoneInputCountryIcon {
+  box-shadow: none;
+  background: transparent;
+}
+.titans-phone-input .PhoneInputCountrySelectArrow {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.8;
+}
+.titans-phone-input .PhoneInputInput {
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+}
+.titans-phone-input .PhoneInputInput::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+.titans-phone-input:focus-within {
+  border-color: hsl(var(--titans-red-deep));
+  box-shadow: 0 0 0 1px hsl(var(--titans-red-deep));
+}
