@@ -345,7 +345,8 @@ const Index = () => {
       </section>
 
       {/* Guided By Section */}
-      <section className="py-14 sm:py-20 md:py-28 relative z-10">
+      <section className="py-10 sm:py-14 md:py-16 relative z-10">
+
         <div className="container-editorial text-center">
           <ScrollReveal>
             <p className="text-caps text-accent mb-4">
