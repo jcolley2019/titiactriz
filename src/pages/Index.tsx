@@ -126,6 +126,7 @@ const Index = () => {
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
+      // 1. Persist to database (source of truth / backup)
       const { data: responseData, error } = await supabase.functions.invoke('send-contact', {
         body: {
           type: 'general',
@@ -137,7 +138,6 @@ const Index = () => {
 
       if (error) {
         console.error('Contact form error:', error);
-        // Show error but don't expose internal details
         alert('There was an error sending your message. Please try again.');
         return;
       }
@@ -146,6 +146,29 @@ const Index = () => {
         console.error('Validation error:', responseData.errors);
         alert(responseData.error);
         return;
+      }
+
+      // 2. Also notify via Formspree → emails hola@titiactriz.com.
+      //    If this fails we still show success: the DB row is the backup.
+      try {
+        const formspreeRes = await fetch('https://formspree.io/f/maqzwogl', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            message: data.message,
+            _subject: `New contact form submission from ${data.name}`,
+          }),
+        });
+        if (!formspreeRes.ok) {
+          console.warn('Formspree notification failed', formspreeRes.status);
+        }
+      } catch (notifyErr) {
+        console.warn('Formspree notification threw', notifyErr);
       }
 
       setSubmitSuccess(true);
@@ -158,6 +181,7 @@ const Index = () => {
       setIsSubmitting(false);
     }
   };
+
 
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
 
