@@ -126,24 +126,29 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     load();
   }, [load]);
 
+  const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+
   const onFilePick = (file: File | null) => {
-    setPendingFile(file);
+    setLastReduction(null);
     if (!file) {
-      setUploadWarn(null);
+      setPendingFile(null);
+      setFileError(null);
       return;
     }
-    const isWebp = file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp");
-    const isLarge = file.size > 400 * 1024;
-    if (!isWebp || isLarge) {
-      setUploadWarn(
-        `Heads up: this file is ${(file.size / 1024).toFixed(0)} KB${
-          !isWebp ? " and not WebP" : ""
-        }. For best performance, convert to WebP (~q80) and keep it under ~400 KB.`,
+    if (!ACCEPTED.includes(file.type)) {
+      setPendingFile(null);
+      setFileError(
+        "Unsupported image type. Please use JPEG, PNG, or WebP (HEIC from iPhone isn't supported — export as JPEG first).",
       );
-    } else {
-      setUploadWarn(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+    setFileError(null);
+    setPendingFile(file);
   };
+
+  const formatBytes = (b: number) =>
+    b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
   const handleUpload = async () => {
     if (!pendingFile) {
@@ -151,12 +156,24 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       return;
     }
     setUploading(true);
+    setUploadStage("optimizing");
+    setLastReduction(null);
     try {
-      const ext = pendingFile.name.split(".").pop() || "bin";
-      const path = `photos/${crypto.randomUUID()}.${ext}`;
+      const originalSize = pendingFile.size;
+      const optimized = await imageCompression(pendingFile, {
+        maxWidthOrHeight: 1600,
+        fileType: "image/webp",
+        initialQuality: 0.8,
+        maxSizeMB: 0.3,
+        useWebWorker: true,
+        preserveExif: false,
+      });
+
+      setUploadStage("uploading");
+      const path = `photos/${crypto.randomUUID()}.webp`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
-        .upload(path, pendingFile, { upsert: false, contentType: pendingFile.type });
+        .upload(path, optimized, { upsert: false, contentType: "image/webp" });
       if (upErr) throw upErr;
 
       const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
@@ -170,11 +187,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       });
       if (insErr) throw insErr;
 
-      toast({ title: "Photo uploaded" });
+      const reduction = `${formatBytes(originalSize)} → ${formatBytes(optimized.size)}`;
+      setLastReduction(reduction);
+      toast({ title: "Photo uploaded", description: `Optimized: ${reduction}` });
       setPendingFile(null);
       setNewAlt("");
       setNewSort(0);
-      setUploadWarn(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       await load();
     } catch (e: unknown) {
@@ -182,6 +200,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       toast({ title: "Upload failed", description: msg, variant: "destructive" });
     } finally {
       setUploading(false);
+      setUploadStage("idle");
     }
   };
 
