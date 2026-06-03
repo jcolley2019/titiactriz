@@ -39,7 +39,7 @@ interface LinkCardProps {
   hoverImage?: string;
   external?: boolean;
   className?: string;
-  imageBackground?: "transparent" | "white";
+  imageBackground?: "transparent" | "white" | "dark";
   imageFit?: "contain" | "cover";
   hoverColor?: "accent" | "red" | "green" | "gold";
 }
