@@ -183,34 +183,51 @@ const handler = async (req: Request): Promise<Response> => {
       ip: ip !== "unknown" ? ip.slice(0, 45) : undefined, // Store truncated IP for abuse prevention
     };
 
-    // Log submission (in production, you'd send to email service like Loops.so or store in database)
-    console.log("Contact form submission received:", {
+    // Persist to database using service role (bypasses RLS)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error. Please try again later." }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { error: insertError } = await supabase
+      .from("contact_submissions")
+      .insert({
+        type: sanitizedData.type,
+        name: sanitizedData.name,
+        email: sanitizedData.email,
+        message: sanitizedData.message ?? null,
+        phone: sanitizedData.phone ?? null,
+        tiktok_handle: sanitizedData.tiktokHandle ?? null,
+        ip: sanitizedData.ip ?? null,
+      });
+
+    if (insertError) {
+      console.error("Failed to save contact submission:", insertError);
+      return new Response(
+        JSON.stringify({ error: "We couldn't save your message. Please try again or email directly." }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log("Contact form submission saved:", {
       type: sanitizedData.type,
-      name: sanitizedData.name,
       email: sanitizedData.email,
-      hasMessage: !!sanitizedData.message,
-      hasPhone: !!sanitizedData.phone,
-      hasTiktok: !!sanitizedData.tiktokHandle,
       timestamp: sanitizedData.submittedAt,
     });
 
-    // TODO: Integrate with email service (Loops.so, SendGrid, Resend, etc.)
-    // Example with Loops.so:
-    // const loopsApiKey = Deno.env.get("LOOPS_API_KEY");
-    // if (loopsApiKey) {
-    //   await fetch("https://app.loops.so/api/v1/transactional", {
-    //     method: "POST",
-    //     headers: {
-    //       "Authorization": `Bearer ${loopsApiKey}`,
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       transactionalId: "contact-notification",
-    //       email: "your-email@domain.com",
-    //       dataVariables: sanitizedData,
-    //     }),
-    //   });
-    // }
 
     return new Response(
       JSON.stringify({ 
