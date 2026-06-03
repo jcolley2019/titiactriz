@@ -308,8 +308,13 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             />
           </div>
         </div>
-        {uploadWarn && (
-          <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">{uploadWarn}</p>
+        {fileError && (
+          <p className="mt-3 text-sm text-destructive">{fileError}</p>
+        )}
+        {lastReduction && !uploading && (
+          <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">
+            Optimized: {lastReduction}
+          </p>
         )}
         <div className="mt-4">
           <Button
@@ -317,7 +322,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             disabled={uploading || !pendingFile}
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            {uploading ? "Uploading…" : "Upload"}
+            {uploadStage === "optimizing"
+              ? "Optimizing…"
+              : uploadStage === "uploading"
+                ? "Uploading…"
+                : "Upload"}
           </Button>
         </div>
       </section>
