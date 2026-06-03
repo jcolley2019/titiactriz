@@ -593,12 +593,13 @@ const Index = () => {
 
           <div className="mb-10">
             <a
-              href="mailto:yourname@email.com"
+              href="mailto:hola@titiactriz.com"
               className="font-serif text-2xl md:text-3xl text-foreground hover:text-accent transition-colors duration-300"
             >
-              yourname@email.com
+              hola@titiactriz.com
             </a>
           </div>
+
 
           {/* Contact Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 text-left">
