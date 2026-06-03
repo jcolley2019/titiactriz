@@ -503,6 +503,7 @@ const Index = () => {
                 src={img}
                 alt={t("gallery.imageAlt", { number: i + 1 })}
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1 animate-color-reveal"
               />
               
