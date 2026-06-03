@@ -8,7 +8,7 @@ import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
 import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard";
 
 // Import logos and images
-import gwLogo from "@/assets/greenworld-logo-clean.png";
+import gwLogo from "@/assets/greenworld-logo-clean.webp";
 import categoryNatural from "@/assets/greenworld-natural-health.webp";
 import categoryEnergy from "@/assets/greenworld-category-energy.webp";
 import categoryBeauty from "@/assets/greenworld-category-beauty.webp";
