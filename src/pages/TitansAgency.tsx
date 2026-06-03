@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
 
 import titansLogo from "@/assets/titans-logo-color.png";
 import cristynaTitans from "@/assets/cristyna-titans-hd.png";
@@ -223,9 +226,12 @@ const TitansAgency = () => {
     
     if (!formData.phone.trim()) {
       errors.phone = t("titans.form.errors.phoneRequired");
+    } else if (!/^\+[1-9]\d{6,15}$/.test(formData.phone.trim())) {
+      errors.phone = t("titans.form.errors.phoneInvalid", { defaultValue: t("titans.form.errors.phoneRequired") });
     } else if (formData.phone.trim().length > 20) {
       errors.phone = t("titans.form.errors.phoneTooLong");
     }
+
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -302,13 +308,8 @@ const TitansAgency = () => {
     }
   };
 
-  // Permissive international phone handling — accepts any country code (+1, +52, +54, +57, etc.).
-  // We only strip characters that aren't valid in phone numbers and cap length to match server validation (20 chars).
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow digits, spaces, +, -, parentheses (matches server-side isValidPhone regex)
-    const cleaned = e.target.value.replace(/[^\d\s+\-()]/g, '').slice(0, 20);
-    setFormData(prev => ({ ...prev, phone: cleaned }));
-  };
+
+
 
   const services = [
     t("titans.services.list.onboarding"),
@@ -685,18 +686,19 @@ const TitansAgency = () => {
               <Label htmlFor="phone" className="text-white font-medium">
                 {t("titans.form.phone")} <span className="text-white/60">*</span>
               </Label>
-              <Input
+              <PhoneInput
                 id="phone"
-                type="tel"
+                international
+                defaultCountry="CO"
                 value={formData.phone}
-                onChange={handlePhoneChange}
-                placeholder={t("titans.form.phonePlaceholder")}
+                onChange={(value) => setFormData(prev => ({ ...prev, phone: value || "" }))}
+                placeholder="+57 300 123 4567"
                 className={cn(
-                  "h-12 rounded-none border bg-background/50 backdrop-blur text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-titans-red-deep focus-visible:border-titans-red-deep focus-visible:ring-offset-0 transition-all duration-300",
+                  "titans-phone-input h-12 rounded-none border bg-background/50 backdrop-blur px-3 transition-all duration-300",
                   formErrors.phone ? "border-titans-red-deep" : "border-border"
                 )}
-                maxLength={17}
               />
+
               {formErrors.phone && (
                 <p className="text-titans-red text-sm">{formErrors.phone}</p>
               )}
