@@ -16,33 +16,33 @@ import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/Scroll
 import ParallaxImage from "@/components/ParallaxImage";
 
 // Images
-import heroImage from "@/assets/cristyna-hero.jpg";
-import aboutImage from "@/assets/cristyna-meet.png";
-import danceImage from "@/assets/cristyna-dance.jpg";
-import titansLogo from "@/assets/titans-logo.png";
-import titansLogoRed from "@/assets/titans-logo-red.png";
-import greenworldLogo from "@/assets/greenworld-logo-hd.png";
-import sunsetImage from "@/assets/cristyna-sunset.jpg";
+const heroImage = "/cristyna-hero.webp";
+import aboutImage from "@/assets/cristyna-meet.webp";
+import danceImage from "@/assets/cristyna-dance.webp";
+import titansLogo from "@/assets/titans-logo.webp";
+import titansLogoRed from "@/assets/titans-logo-red.webp";
+import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
+import sunsetImage from "@/assets/cristyna-sunset.webp";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
-import poolImage from "@/assets/cristyna-pool.jpg";
-import titi2Image from "@/assets/cristyna-titi2.jpg";
-import titi3Image from "@/assets/cristyna-titi3.jpg";
+import poolImage from "@/assets/cristyna-pool.webp";
+import titi2Image from "@/assets/cristyna-titi2.webp";
+import titi3Image from "@/assets/cristyna-titi3.webp";
 import titi5Image from "@/assets/cristyna-titi5.jpg";
 import miami1Image from "@/assets/cristyna-miami1.jpg";
-import miami3Image from "@/assets/cristyna-miami3.jpg";
-import miami2Image from "@/assets/cristyna-miami2.jpg";
-import miami4Image from "@/assets/cristyna-miami4.jpg";
-import gallery1Image from "@/assets/cristyna-gallery1.jpg";
-import gallery2Image from "@/assets/cristyna-gallery2.jpg";
-import gallery3Image from "@/assets/cristyna-gallery3.jpg";
-import gallery4Image from "@/assets/cristyna-gallery4.jpg";
-import gallery5Image from "@/assets/cristyna-gallery5.jpg";
-import gallery6Image from "@/assets/cristyna-gallery6.jpg";
-import gallery7Image from "@/assets/cristyna-gallery7.jpg";
-import gallery8Image from "@/assets/cristyna-gallery8.jpg";
-import gallery9Image from "@/assets/cristyna-gallery9.jpg";
-import gallery10Image from "@/assets/cristyna-gallery10.jpg";
-import gallery11Image from "@/assets/cristyna-gallery11.jpg";
+import miami3Image from "@/assets/cristyna-miami3.webp";
+import miami2Image from "@/assets/cristyna-miami2.webp";
+import miami4Image from "@/assets/cristyna-miami4.webp";
+import gallery1Image from "@/assets/cristyna-gallery1.webp";
+import gallery2Image from "@/assets/cristyna-gallery2.webp";
+import gallery3Image from "@/assets/cristyna-gallery3.webp";
+import gallery4Image from "@/assets/cristyna-gallery4.webp";
+import gallery5Image from "@/assets/cristyna-gallery5.webp";
+import gallery6Image from "@/assets/cristyna-gallery6.webp";
+import gallery7Image from "@/assets/cristyna-gallery7.webp";
+import gallery8Image from "@/assets/cristyna-gallery8.webp";
+import gallery9Image from "@/assets/cristyna-gallery9.webp";
+import gallery10Image from "@/assets/cristyna-gallery10.webp";
+import gallery11Image from "@/assets/cristyna-gallery11.webp";
 
 const galleryImages = [
   miami4Image, titi5Image, sunsetImage, lifestyleImage, 
@@ -345,6 +345,11 @@ const Index = () => {
                   containerClassName="rounded-sm"
                   className="max-h-[75vh] object-top"
                   speed={0.12}
+                  width={538}
+                  height={750}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   style={{ 
                     filter: 'contrast(1.05) saturate(1.1) brightness(1.02)',
                   }}
@@ -397,6 +402,9 @@ const Index = () => {
                 containerClassName="rounded-sm"
                 className="animate-color-reveal hover:grayscale-0 transition-all duration-700"
                 speed={0.1}
+                width={768}
+                height={1025}
+                loading="lazy"
               />
               {/* Decorative frame */}
               <div className="absolute -bottom-4 -right-4 w-full h-full border border-accent/20 rounded-sm -z-10" />
@@ -503,6 +511,7 @@ const Index = () => {
                 src={img}
                 alt={t("gallery.imageAlt", { number: i + 1 })}
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1 animate-color-reveal"
               />
               

@@ -11,6 +11,11 @@ interface ParallaxImageProps {
   direction?: "up" | "down";
   scale?: boolean;
   style?: React.CSSProperties;
+  width?: number;
+  height?: number;
+  loading?: "lazy" | "eager";
+  fetchPriority?: "high" | "low" | "auto";
+  decoding?: "async" | "sync" | "auto";
 }
 
 const ParallaxImage = ({
@@ -22,6 +27,11 @@ const ParallaxImage = ({
   direction = "up",
   scale = true,
   style,
+  width,
+  height,
+  loading,
+  fetchPriority,
+  decoding = "async",
 }: ParallaxImageProps) => {
   const ref = useRef<HTMLDivElement>(null);
   
@@ -45,6 +55,11 @@ const ParallaxImage = ({
       <motion.img
         src={src}
         alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        decoding={decoding}
         className={cn("w-full h-auto object-cover", className)}
         style={{
           y,
