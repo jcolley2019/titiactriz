@@ -70,11 +70,12 @@ const Footer = () => {
               ))}
             </div>
             <a
-              href="mailto:yourname@email.com"
+              href="mailto:hola@titiactriz.com"
               className="text-sm text-muted-foreground hover:text-gold-light transition-colors duration-300 link-underline"
             >
-              yourname@email.com
+              hola@titiactriz.com
             </a>
+
           </div>
         </div>
 

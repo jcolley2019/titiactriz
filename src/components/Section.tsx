@@ -67,10 +67,11 @@ const SectionHeader = ({
   const content = (
     <div
       className={cn(
-        "mb-16 md:mb-20",
+        "mb-10 md:mb-14",
         centered && "text-center",
         className
       )}
+
     >
       {eyebrow && (
         <span className="text-caps text-accent mb-4 block">{eyebrow}</span>
