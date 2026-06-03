@@ -555,7 +555,7 @@ const Index = () => {
               href="/titans-agency"
               image={titansLogo}
               hoverImage={titansLogoRed}
-              imageBackground="white"
+              imageBackground="dark"
               hoverColor="red"
             />
           </StaggerItem>
@@ -565,10 +565,11 @@ const Index = () => {
               description={t("featured.greenWorld.description")}
               href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ=="
               image={greenworldLogo}
-              imageBackground="white"
+              imageBackground="dark"
               hoverColor="green"
             />
           </StaggerItem>
+
           <StaggerItem>
             <LinkCard
               title={t("featured.work.title")}
