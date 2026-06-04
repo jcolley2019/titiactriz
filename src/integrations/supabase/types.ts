@@ -53,25 +53,31 @@ export type Database = {
       gallery_photos: {
         Row: {
           alt_text: string | null
+          content_hash: string | null
           created_at: string
           id: string
           image_url: string
+          is_archived: boolean
           is_published: boolean
           sort_order: number
         }
         Insert: {
           alt_text?: string | null
+          content_hash?: string | null
           created_at?: string
           id?: string
           image_url: string
+          is_archived?: boolean
           is_published?: boolean
           sort_order?: number
         }
         Update: {
           alt_text?: string | null
+          content_hash?: string | null
           created_at?: string
           id?: string
           image_url?: string
+          is_archived?: boolean
           is_published?: boolean
           sort_order?: number
         }
