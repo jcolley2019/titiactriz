@@ -171,7 +171,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const formatBytes = (b: number) =>
     b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
-  const handleUpload = async () => {
+  const handlePrepare = async () => {
     if (!pendingFile) {
       toast({ title: "Pick a file first", variant: "destructive" });
       return;
@@ -179,6 +179,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setUploading(true);
     setUploadStage("optimizing");
     setLastReduction(null);
+    closePreview();
     try {
       const originalSize = pendingFile.size;
       const optimized = await imageCompression(pendingFile, {
@@ -189,12 +190,26 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         useWebWorker: true,
         preserveExif: false,
       });
+      const url = URL.createObjectURL(optimized);
+      setPreview({ blob: optimized, url, originalSize, optimizedSize: optimized.size });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Optimization failed";
+      toast({ title: "Optimization failed", description: msg, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      setUploadStage("idle");
+    }
+  };
 
-      setUploadStage("uploading");
+  const confirmUpload = async () => {
+    if (!preview) return;
+    setUploading(true);
+    setUploadStage("uploading");
+    try {
       const path = `photos/${crypto.randomUUID()}.webp`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
-        .upload(path, optimized, { upsert: false, contentType: "image/webp" });
+        .upload(path, preview.blob, { upsert: false, contentType: "image/webp" });
       if (upErr) throw upErr;
 
       const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
@@ -208,13 +223,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       });
       if (insErr) throw insErr;
 
-      const reduction = `${formatBytes(originalSize)} → ${formatBytes(optimized.size)}`;
+      const reduction = `${formatBytes(preview.originalSize)} → ${formatBytes(preview.optimizedSize)}`;
       setLastReduction(reduction);
       toast({ title: "Photo uploaded", description: `Optimized: ${reduction}` });
       setPendingFile(null);
       setNewAlt("");
       setNewSort(0);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      closePreview();
       await load();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Upload failed";
