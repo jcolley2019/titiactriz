@@ -115,6 +115,19 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
+  const [preview, setPreview] = useState<{
+    blob: Blob;
+    url: string;
+    originalSize: number;
+    optimizedSize: number;
+  } | null>(null);
+
+  const closePreview = useCallback(() => {
+    setPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return null;
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
