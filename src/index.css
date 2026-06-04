@@ -520,7 +520,7 @@
 .editorial-hero-play .editorial-frame-corner { animation: editorial-corner-fade .6s ease 1.9s forwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .editorial-title,.editorial-roles,.editorial-subtitle,.editorial-cta,.editorial-divider-line,.editorial-divider-diamond,
+  .editorial-title,.editorial-roles,.editorial-subtitle,.editorial-cta,.editorial-divider-half,.editorial-divider-diamond,
   .editorial-frame-top,.editorial-frame-right,.editorial-frame-bottom,.editorial-frame-left,.editorial-frame-corner {
     animation:none !important; opacity:1 !important; transform:none !important;
   }
