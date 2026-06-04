@@ -53,7 +53,7 @@ const HomeVariantToggle = () => {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-3 p-6 text-left hover:bg-accent/5 transition-colors"
+        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
         aria-expanded={open}
       >
         <div className="flex items-center gap-3">
