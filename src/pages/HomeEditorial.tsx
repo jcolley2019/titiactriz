@@ -21,7 +21,7 @@ import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
 import cpMonogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
-import cornerOrnAsset from "@/assets/cp-corner-ornament.png.asset.json";
+import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
 
 
 const heroPortrait = "/hero-portrait.webp";
