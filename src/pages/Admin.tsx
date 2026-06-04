@@ -1143,11 +1143,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         </DialogContent>
       </Dialog>
 
-      <LivePreviewDock
-        photos={photos
-          .filter((p) => p.is_published)
-          .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text }))}
-      />
+      <LivePreviewDock photos={livePreviewPhotos} isDragging={rowDragging} />
     </div>
   );
 };
