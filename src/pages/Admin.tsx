@@ -183,10 +183,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     try {
       const originalSize = pendingFile.size;
       const optimized = await imageCompression(pendingFile, {
-        maxWidthOrHeight: 1600,
+        maxWidthOrHeight: 2400,
         fileType: "image/webp",
-        initialQuality: 0.8,
-        maxSizeMB: 0.3,
+        initialQuality: 0.85,
+        maxSizeMB: 1.0,
         useWebWorker: true,
         preserveExif: false,
       });
@@ -471,7 +471,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               {preview && (
                 <>
                   {formatBytes(preview.originalSize)} → {formatBytes(preview.optimizedSize)} ·
-                  WebP, max 1600px
+                  WebP, max 2400px
                 </>
               )}
             </DialogDescription>
