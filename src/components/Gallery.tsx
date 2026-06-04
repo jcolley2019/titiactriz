@@ -339,4 +339,4 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   );
 };
 
-export default Gallery;
+export default memo(Gallery);
