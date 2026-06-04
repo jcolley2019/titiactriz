@@ -11,10 +11,17 @@ type Photo = {
   alt_text: string | null;
 };
 
-const Gallery = () => {
+type GalleryProps = {
+  photos?: Photo[];
+  pauseAutoScroll?: boolean;
+  compact?: boolean;
+};
+
+const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false }: GalleryProps = {}) => {
   const { t } = useTranslation();
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetchedPhotos, setFetchedPhotos] = useState<Photo[]>([]);
+  const photos = photosProp ?? fetchedPhotos;
+  const [loading, setLoading] = useState(photosProp ? false : true);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
   const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
