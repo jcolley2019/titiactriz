@@ -809,6 +809,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LivePreviewDock
+        photos={photos
+          .filter((p) => p.is_published)
+          .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text }))}
+      />
     </div>
   );
 };
