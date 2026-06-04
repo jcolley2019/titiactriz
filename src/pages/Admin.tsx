@@ -428,10 +428,19 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     closePreview();
     try {
       const originalSize = pendingFile.size;
+      let contentHash: string | undefined;
+      try {
+        contentHash = await sha256Hex(pendingFile);
+      } catch {
+        // ignore hash errors
+      }
+      const duplicateOfId = contentHash
+        ? photos.find((p) => p.content_hash === contentHash)?.id
+        : undefined;
       setSingleStage(isHeic(pendingFile) ? "converting" : "optimizing");
       const { blob } = await optimizeFile(pendingFile);
       const url = URL.createObjectURL(blob);
-      setPreview({ blob, url, originalSize, optimizedSize: blob.size });
+      setPreview({ blob, url, originalSize, optimizedSize: blob.size, contentHash, duplicateOfId });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Optimization failed";
       toast({ title: "Optimization failed", description: msg, variant: "destructive" });
