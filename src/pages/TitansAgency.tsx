@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -320,20 +320,11 @@ const TitansAgency = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Titans Agency Latam | Crecimiento en TikTok, Monetización y Gestión de Creadores</title>
-        <meta
-          name="description"
-          content="Titans Agency Latam ayuda a creadores latinoamericanos en TikTok a crecer, monetizar y conseguir colaboraciones con marcas. TikTok growth, monetization & brand partnerships for Latin American creators."
-        />
-        <link rel="canonical" href="https://titiactriz.com/titans-agency" />
-        <meta property="og:title" content="Titans Agency Latam - Crecimiento en TikTok para Creadores" />
-        <meta
-          property="og:description"
-          content="Estrategia de crecimiento en TikTok, coaching de monetización y colaboraciones con marcas para creadores latinoamericanos."
-        />
-        <meta property="og:url" content="https://titiactriz.com/titans-agency" />
-        <meta property="og:type" content="website" />
+      <SEO
+        path="/titans-agency"
+        title="Titans Agency Latam | Crecimiento y Monetización en TikTok"
+        description="Titans Agency Latam: estrategia de crecimiento en TikTok, monetización y colaboraciones con marcas para creadores latinoamericanos. TikTok growth & brand partnerships."
+      >
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
@@ -349,7 +340,7 @@ const TitansAgency = () => {
           },
           "sameAs": ["https://www.tiktok.com/@titansagencylatam"]
         })}</script>
-      </Helmet>
+      </SEO>
 
       {/* Hero Section with Titans brand colors */}
       <section className="relative min-h-screen flex items-center pt-28 pb-16 sm:pt-24 sm:pb-12 bg-gradient-to-br from-titans-dark via-titans-red to-titans-dark overflow-x-hidden">
