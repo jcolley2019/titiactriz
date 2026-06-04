@@ -14,6 +14,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
 import ParallaxImage from "@/components/ParallaxImage";
+import Gallery from "@/components/Gallery";
 
 // Images
 const heroImage = "/cristyna-hero.webp";
