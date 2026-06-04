@@ -738,15 +738,28 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     handleFiles(e.dataTransfer.files);
   };
 
-  const activePhotos = photos
-    .filter((p) => !p.is_archived)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const archivedPhotos = photos
-    .filter((p) => p.is_archived)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const livePreviewPhotos = activePhotos
-    .filter((p) => p.is_published)
-    .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text }));
+  const activePhotos = useMemo(
+    () =>
+      photos
+        .filter((p) => !p.is_archived)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [photos],
+  );
+  const archivedPhotos = useMemo(
+    () =>
+      photos
+        .filter((p) => p.is_archived)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [photos],
+  );
+  const livePreviewPhotos = useMemo(
+    () =>
+      activePhotos
+        .filter((p) => p.is_published)
+        .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text })),
+    [activePhotos],
+  );
+  const activePhotoIds = useMemo(() => activePhotos.map((p) => p.id), [activePhotos]);
 
   const doneCount = queue.filter((q) => q.status === "done").length;
   const failedCount = queue.filter((q) => q.status === "failed").length;
@@ -788,18 +801,31 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setSelected(new Set());
   };
 
-  const handleReorder = (newOrder: Photo[]) => {
-    // Replace active subset in photos array with new order; archived untouched
-    setPhotos((prev) => {
-      const archived = prev.filter((p) => p.is_archived);
-      const updated = newOrder.map((p, i) => ({ ...p, sort_order: i + 1 }));
-      return [...updated, ...archived];
-    });
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const onDndDragStart = (_e: DragStartEvent) => {
+    setRowDragging(true);
   };
 
-  const onReorderEnd = async () => {
+  const onDndDragEnd = async (e: DragEndEvent) => {
     setRowDragging(false);
-    await persistOrder(activePhotos.map((p) => p.id));
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = activePhotoIds.indexOf(String(active.id));
+    const newIndex = activePhotoIds.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    const newActive = arrayMove(activePhotos, oldIndex, newIndex).map((p, i) => ({
+      ...p,
+      sort_order: i + 1,
+    }));
+    setPhotos((prev) => {
+      const archived = prev.filter((p) => p.is_archived);
+      return [...newActive, ...archived];
+    });
+    await persistOrder(newActive.map((p) => p.id));
   };
 
 
