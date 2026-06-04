@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { ArrowRight, Users, TrendingUp, DollarSign, PlayCircle, BarChart3, Handshake, MessageCircle, ChevronDown, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
