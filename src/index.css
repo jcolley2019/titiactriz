@@ -369,6 +369,13 @@
     }
   }
 
+  @keyframes gallery-marquee {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+
+
   /* Stagger animations */
   .stagger-1 { animation-delay: 0.15s; }
   .stagger-2 { animation-delay: 0.3s; }

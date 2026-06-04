@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ChevronDown, ChevronUp, Eye } from "lucide-react";
 import Gallery from "@/components/Gallery";
 
@@ -58,4 +58,4 @@ const LivePreviewDock = ({ photos, isDragging = false }: Props) => {
   );
 };
 
-export default LivePreviewDock;
+export default memo(LivePreviewDock);

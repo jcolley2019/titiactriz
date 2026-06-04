@@ -752,12 +752,25 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         .sort((a, b) => a.sort_order - b.sort_order),
     [photos],
   );
+  // Stable signature: only fields that affect the preview visually/order.
+  // Editing alt text MUST NOT change this signature, or the dock marquee restarts.
+  const livePreviewSignature = useMemo(
+    () =>
+      photos
+        .filter((p) => !p.is_archived && p.is_published)
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((p) => `${p.id}|${p.image_url}|${p.sort_order}`)
+        .join("~"),
+    [photos],
+  );
   const livePreviewPhotos = useMemo(
     () =>
-      activePhotos
-        .filter((p) => p.is_published)
+      photos
+        .filter((p) => !p.is_archived && p.is_published)
+        .sort((a, b) => a.sort_order - b.sort_order)
         .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text })),
-    [activePhotos],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [livePreviewSignature],
   );
   const activePhotoIds = useMemo(() => activePhotos.map((p) => p.id), [activePhotos]);
 
@@ -831,7 +844,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-32 pb-[260px]">
+    <div className="max-w-5xl mx-auto px-4 pt-32 pb-[340px]">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-foreground">Gallery Admin</h1>

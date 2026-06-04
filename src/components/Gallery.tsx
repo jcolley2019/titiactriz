@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,8 +104,11 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
     return () => observer.disconnect();
   }, [photos]);
 
-  // Seamless marquee auto-scroll via transform on duplicated track
+  // Seamless marquee auto-scroll via transform on duplicated track.
+  // Compact mode (admin dock) uses a pure CSS keyframe so it can't be restarted
+  // by parent re-renders. Full mode keeps the rAF loop.
   useEffect(() => {
+    if (compact) return;
     if (photos.length === 0 || prefersReducedMotion) return;
     const track = trackRef.current;
     if (!track) return;
@@ -136,7 +139,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       cancelAnimationFrame(animationId);
       lastTimeRef.current = null;
     };
-  }, [photos, isPaused, prefersReducedMotion, pauseAutoScroll]);
+  }, [photos, isPaused, prefersReducedMotion, pauseAutoScroll, compact]);
 
   const nudge = (direction: "left" | "right") => {
     const track = trackRef.current;
@@ -175,11 +178,24 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
 
   const tileClass = compact
-    ? "flex-shrink-0 w-20 h-28 rounded-sm overflow-hidden cursor-pointer group relative"
+    ? "flex-shrink-0 w-[120px] h-[160px] rounded-sm overflow-hidden cursor-pointer group relative"
     : "flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30";
   const skeletonClass = compact
-    ? "flex-shrink-0 w-20 h-28 rounded-sm bg-muted/30 animate-pulse"
+    ? "flex-shrink-0 w-[120px] h-[160px] rounded-sm bg-muted/30 animate-pulse"
     : "flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse";
+
+  // CSS-driven marquee for the compact (dock) variant — duration scales with photo count
+  // so speed stays roughly constant (~24px/s, matching the public gallery).
+  const compactAnimationDuration = Math.max(20, photos.length * 6); // seconds
+  const compactPaused = isPaused || pauseAutoScroll;
+  const compactTrackStyle: React.CSSProperties = compact
+    ? {
+        width: "max-content",
+        animation: `gallery-marquee ${compactAnimationDuration}s linear infinite`,
+        animationPlayState: compactPaused ? "paused" : "running",
+        willChange: "transform",
+      }
+    : { width: "max-content" };
 
   return (
     <>
@@ -194,7 +210,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
           </ScrollReveal>
         )}
 
-        {photos.length > 0 && (
+        {photos.length > 0 && !compact && (
           <>
             <button
               onClick={() => nudge("left")}
@@ -232,7 +248,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
             <div
               ref={trackRef}
               className="flex gap-4 will-change-transform"
-              style={{ width: "max-content" }}
+              style={compactTrackStyle}
             >
               {displayPhotos.map((photo, i) => {
                 const originalIndex = i % photos.length;
@@ -323,4 +339,4 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   );
 };
 
-export default Gallery;
+export default memo(Gallery);
