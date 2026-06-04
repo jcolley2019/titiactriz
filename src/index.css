@@ -492,7 +492,9 @@
 @keyframes editorial-corner-fade { from { opacity:0;} to { opacity:1;} }
 
 .editorial-title, .editorial-roles, .editorial-subtitle, .editorial-cta { opacity:0; }
-.editorial-divider-line { transform:scaleX(0); transform-origin:center; }
+.editorial-divider-half { display:block; height:1px; background:#C9A55C; transform:scaleX(0); }
+.editorial-divider-left  { transform-origin:right center; }
+.editorial-divider-right { transform-origin:left center; }
 .editorial-divider-diamond, .editorial-monogram { opacity:0; }
 .editorial-frame-top { transform:scaleX(0); transform-origin:left; }
 .editorial-frame-right { transform:scaleY(0); transform-origin:top; }
