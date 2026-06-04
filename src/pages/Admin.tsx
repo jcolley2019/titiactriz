@@ -591,24 +591,31 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   key={q.id}
                   className="flex items-center justify-between gap-3 text-sm border border-border rounded-md px-3 py-2 bg-background/40"
                 >
-                  <span className="truncate text-foreground">{q.name}</span>
-                  <span
-                    className={
-                      q.status === "done"
-                        ? "text-[hsl(var(--gold-light))]"
-                        : q.status === "failed"
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                    }
-                  >
-                    {q.status === "queued" && "Queued"}
-                    {q.status === "converting" && "Converting…"}
-                    {q.status === "optimizing" && "Optimizing…"}
-                    {q.status === "uploading" && "Uploading…"}
-                    {q.status === "done" &&
-                      `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
-                    {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
-                  </span>
+                  <span className="truncate text-foreground flex-1 min-w-0">{q.name}</span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span
+                      className={
+                        q.status === "done"
+                          ? "text-[hsl(var(--gold-light))]"
+                          : q.status === "failed"
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }
+                    >
+                      {q.status === "queued" && "Queued"}
+                      {q.status === "converting" && "Converting…"}
+                      {q.status === "optimizing" && "Optimizing…"}
+                      {q.status === "uploading" && "Uploading…"}
+                      {q.status === "done" &&
+                        `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
+                      {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
+                    </span>
+                    {q.status === "failed" && (
+                      <Button size="sm" variant="outline" onClick={() => retryItem(q)}>
+                        Retry
+                      </Button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
