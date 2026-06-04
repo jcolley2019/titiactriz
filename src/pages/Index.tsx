@@ -32,25 +32,8 @@ import miami1Image from "@/assets/cristyna-miami1.jpg";
 import miami3Image from "@/assets/cristyna-miami3.webp";
 import miami2Image from "@/assets/cristyna-miami2.webp";
 import miami4Image from "@/assets/cristyna-miami4.webp";
-import gallery1Image from "@/assets/cristyna-gallery1.webp";
-import gallery2Image from "@/assets/cristyna-gallery2.webp";
-import gallery3Image from "@/assets/cristyna-gallery3.webp";
-import gallery4Image from "@/assets/cristyna-gallery4.webp";
-import gallery5Image from "@/assets/cristyna-gallery5.webp";
-import gallery6Image from "@/assets/cristyna-gallery6.webp";
-import gallery7Image from "@/assets/cristyna-gallery7.webp";
-import gallery8Image from "@/assets/cristyna-gallery8.webp";
-import gallery9Image from "@/assets/cristyna-gallery9.webp";
-import gallery10Image from "@/assets/cristyna-gallery10.webp";
-import gallery11Image from "@/assets/cristyna-gallery11.webp";
 
-const galleryImages = [
-  miami4Image, titi5Image, sunsetImage, lifestyleImage, 
-  poolImage, titi3Image, miami1Image, miami3Image,
-  gallery1Image, gallery2Image, gallery3Image, gallery4Image,
-  gallery5Image, gallery6Image, gallery7Image, miami2Image,
-  gallery8Image, gallery9Image, gallery10Image, gallery11Image
-];
+
 
 // Contact form validation schema
 const contactSchema = z.object({
