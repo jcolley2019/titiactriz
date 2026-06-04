@@ -1178,6 +1178,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                       position={i + 1}
                       selected={selected.has(p.id)}
                       saved={savedAltIds.has(p.id)}
+                      generating={generatingAltIds.has(p.id)}
+                      onGenerateAlt={() => generateAltFor(p.id)}
                       onSelectedChange={(v) => toggleSelect(p.id, v)}
                       onAltChange={(v) => updateRow(p.id, { alt_text: v })}
                       onAltBlur={() => saveAltText(p)}
