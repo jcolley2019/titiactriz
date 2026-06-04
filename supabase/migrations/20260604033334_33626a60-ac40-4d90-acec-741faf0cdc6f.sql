@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Authenticated can read gallery objects" ON storage.objects;
