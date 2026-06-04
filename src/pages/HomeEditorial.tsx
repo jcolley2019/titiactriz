@@ -62,7 +62,7 @@ const HomeEditorial = () => {
 
   useEffect(() => {
     if (prefersReducedMotion) return;
-    const t1 = window.setTimeout(() => setFrameVisible(false), 7000); // 0.8s delay + 1.5s draw + 0.6s corners + ~4s hold
+    const t1 = window.setTimeout(() => setFrameVisible(false), 7000);
     return () => window.clearTimeout(t1);
   }, [prefersReducedMotion]);
 
@@ -96,6 +96,71 @@ const HomeEditorial = () => {
     }
   };
 
+
+  // Delicate gold filigree corner ornament — drawn in a 100x100 viewBox.
+  // Faces top-left by default; rotated for the other 3 corners.
+  const CornerOrnament = ({ rotate = 0 }: { rotate?: number }) => (
+    <svg
+      viewBox="0 0 100 100"
+      className="absolute w-[44px] sm:w-[56px] md:w-[72px] lg:w-[88px] aspect-square"
+      style={{ transform: `rotate(${rotate}deg)` }}
+      aria-hidden
+    >
+      <g fill="none" stroke={GOLD} strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round">
+        {/* main scroll curl */}
+        <path d="M8 38 C 8 18, 18 8, 38 8" />
+        <path d="M14 32 C 18 22, 22 18, 32 14" />
+        {/* inner spiral */}
+        <path d="M22 22 C 26 18, 32 18, 34 22 C 36 26, 32 30, 28 28 C 25 26, 26 22, 30 22" />
+        {/* leaf sprigs */}
+        <path d="M38 8 C 46 10, 52 14, 56 20" />
+        <path d="M50 12 C 52 14, 53 17, 52 20 C 49 20, 47 18, 47 15 Z" fill={GOLD} fillOpacity="0.85" stroke="none" />
+        <path d="M8 38 C 10 46, 14 52, 20 56" />
+        <path d="M12 50 C 14 52, 17 53, 20 52 C 20 49, 18 47, 15 47 Z" fill={GOLD} fillOpacity="0.85" stroke="none" />
+        {/* small dot accents */}
+        <circle cx="40" cy="40" r="0.9" fill={GOLD} stroke="none" />
+        <circle cx="22" cy="22" r="0.7" fill={GOLD} stroke="none" />
+      </g>
+    </svg>
+  );
+
+  // Small floral center ornament for the divider
+  const DividerOrnament = () => (
+    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" aria-hidden>
+      <g fill={GOLD} stroke={GOLD} strokeWidth="0.6" strokeLinejoin="round">
+        <path d="M12 3 C 13.5 7.5, 13.5 10.5, 12 12 C 10.5 10.5, 10.5 7.5, 12 3 Z" />
+        <path d="M12 21 C 10.5 16.5, 10.5 13.5, 12 12 C 13.5 13.5, 13.5 16.5, 12 21 Z" />
+        <path d="M3 12 C 7.5 10.5, 10.5 10.5, 12 12 C 10.5 13.5, 7.5 13.5, 3 12 Z" />
+        <path d="M21 12 C 16.5 13.5, 13.5 13.5, 12 12 C 13.5 10.5, 16.5 10.5, 21 12 Z" />
+        <circle cx="12" cy="12" r="1.1" />
+      </g>
+    </svg>
+  );
+
+  // CP monogram with vine flourish below
+  const CPMonogram = () => (
+    <svg viewBox="0 0 140 130" className="w-[78px] sm:w-[92px] md:w-[108px] h-auto" aria-hidden>
+      <g fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {/* C */}
+        <path d="M70 22 C 42 22, 28 42, 28 62 C 28 82, 44 100, 70 100" />
+        {/* P bowl + stem */}
+        <path d="M70 22 L 70 110" />
+        <path d="M70 22 C 96 22, 106 34, 106 48 C 106 62, 96 72, 70 72" />
+      </g>
+      {/* vine flourish */}
+      <g fill="none" stroke={GOLD} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M40 116 C 55 120, 85 120, 100 116" />
+        <path d="M52 116 C 50 112, 47 112, 46 115" />
+        <path d="M62 118 C 60 113, 56 113, 55 117" />
+        <path d="M88 116 C 90 112, 93 112, 94 115" />
+        <path d="M78 118 C 80 113, 84 113, 85 117" />
+        <path d="M70 120 C 70 124, 68 126, 66 126" />
+        <path d="M70 120 C 70 124, 72 126, 74 126" />
+        <circle cx="70" cy="118" r="1.2" fill={GOLD} />
+      </g>
+    </svg>
+  );
+
   return (
     <div style={editorialFontVars}>
       <SEO
@@ -108,13 +173,13 @@ const HomeEditorial = () => {
 
       {/* ===== EDITORIAL HERO ===== */}
       <section
-        className="relative min-h-[100vh] flex items-center overflow-hidden"
+        className="relative min-h-[100svh] flex items-center overflow-hidden"
         style={{ backgroundColor: "#0e0c09" }}
       >
-        <div className="w-full px-4 sm:px-6 pt-32 pb-16 md:pt-36 md:pb-20">
+        <div className="w-full px-3 sm:px-6 pt-24 pb-10 sm:pt-32 sm:pb-16 md:pt-36 md:pb-20">
           {/* Centered hero card — frame draws around THIS */}
-          <div className="relative mx-auto w-full max-w-[1150px] aspect-[16/10] md:aspect-[16/9] min-h-[560px] md:min-h-0">
-            {/* Animated gold frame (around the card) */}
+          <div className="relative mx-auto w-full max-w-[1150px] md:aspect-[16/9]">
+            {/* Animated gold frame (perimeter only) — fades out with corner ornaments */}
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-[1500ms]"
@@ -125,7 +190,6 @@ const HomeEditorial = () => {
                 preserveAspectRatio="none"
                 viewBox="0 0 1000 1000"
               >
-                {/* Perimeter — 4 sides draw simultaneously after a short beat */}
                 {[
                   "M 0 0 L 1000 0",
                   "M 1000 0 L 1000 1000",
@@ -149,62 +213,58 @@ const HomeEditorial = () => {
                     }}
                   />
                 ))}
-
-                {/* Ornamental corner accents — small flourishes */}
-                {[
-                  // top-left
-                  "M 14 44 L 14 14 L 44 14 M 14 26 L 26 14 M 22 14 L 14 22",
-                  // top-right
-                  "M 956 14 L 986 14 L 986 44 M 974 14 L 986 26 M 986 22 L 978 14",
-                  // bottom-right
-                  "M 986 956 L 986 986 L 956 986 M 986 974 L 974 986 M 978 986 L 986 978",
-                  // bottom-left
-                  "M 44 986 L 14 986 L 14 956 M 26 986 L 14 974 M 14 978 L 22 986",
-                ].map((d, i) => (
-                  <path
-                    key={`c${i}`}
-                    d={d}
-                    fill="none"
-                    stroke={GOLD}
-                    strokeWidth="1.25"
-                    vectorEffect="non-scaling-stroke"
-                    pathLength={100}
-                    strokeDasharray="100"
-                    strokeDashoffset={prefersReducedMotion ? 0 : 100}
-                    style={{
-                      animation: prefersReducedMotion
-                        ? undefined
-                        : "editorial-frame-draw 0.6s ease-out 2.3s forwards",
-                    }}
-                  />
-                ))}
               </svg>
+
+              {/* Filigree corner ornaments — fade in after frame draws */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  opacity: prefersReducedMotion ? 1 : 0,
+                  animation: prefersReducedMotion
+                    ? undefined
+                    : "editorial-corner-fade 0.9s ease-out 2.3s forwards",
+                }}
+              >
+                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 md:top-4 md:left-4">
+                  <CornerOrnament rotate={0} />
+                </div>
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4">
+                  <CornerOrnament rotate={90} />
+                </div>
+                <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4">
+                  <CornerOrnament rotate={180} />
+                </div>
+                <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 md:bottom-4 md:left-4">
+                  <CornerOrnament rotate={270} />
+                </div>
+              </div>
             </div>
 
             {/* Card content */}
-            <div className="relative z-10 h-full px-6 sm:px-10 md:px-14 py-8 md:py-10">
-              <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center h-full">
+            <div className="relative z-10 px-5 sm:px-8 md:px-14 py-8 sm:py-10 md:py-10 h-full">
+              <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center h-full">
                 <div className="order-2 lg:order-1 flex flex-col items-center text-center">
                   <h1
                     className="leading-[0.95] tracking-[0.04em] uppercase"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
                     <span
-                      className="block text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-normal"
-                      style={{ color: CREAM }}
+                      className="block font-normal"
+                      style={{ color: CREAM, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
                     >
                       Cristyna
                     </span>
                     <span
-                      className="block text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-normal mt-2"
-                      style={{ color: GOLD }}
+                      className="block font-normal mt-1 sm:mt-2"
+                      style={{ color: GOLD, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
                     >
                       Polentino
                     </span>
                   </h1>
 
+                  {/* Divider with floral ornament — stays after frame fades */}
                   <div
-                    className="relative my-5 sm:my-6 flex items-center justify-center w-full max-w-[14ch]"
+                    className="relative my-4 sm:my-5 md:my-6 flex items-center justify-center w-full max-w-[16ch]"
                     aria-hidden
                   >
                     <span
@@ -218,37 +278,60 @@ const HomeEditorial = () => {
                       }}
                     />
                     <span
-                      className="absolute left-1/2 -translate-x-1/2 rotate-45 w-2 h-2"
+                      className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#0e0c09] px-1"
                       style={{
-                        backgroundColor: GOLD,
                         opacity: prefersReducedMotion ? 1 : 0,
                         animation: prefersReducedMotion
                           ? undefined
-                          : "editorial-corner-fade 0.6s ease-out 2.0s forwards",
+                          : "editorial-corner-fade 0.6s ease-out 1.8s forwards",
                       }}
-                    />
+                    >
+                      <DividerOrnament />
+                    </span>
                   </div>
 
                   <p
-                    className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.35em] mb-5"
-                    style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
+                    className="uppercase mb-4 sm:mb-5"
+                    style={{
+                      color: CREAM,
+                      fontFamily: "var(--font-sans)",
+                      fontSize: "clamp(0.625rem, 1.4vw, 0.875rem)",
+                      letterSpacing: "0.35em",
+                    }}
                   >
                     Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
                   </p>
 
                   <p
-                    className="italic text-base sm:text-lg md:text-xl leading-relaxed max-w-md"
-                    style={{ color: CREAM, fontFamily: "var(--font-display)" }}
+                    className="italic leading-relaxed max-w-md mb-5 sm:mb-6"
+                    style={{
+                      color: CREAM,
+                      fontFamily: "var(--font-display)",
+                      fontSize: "clamp(0.95rem, 2vw, 1.25rem)",
+                    }}
                   >
                     Creo impacto a través de la presencia, la actuación y el propósito.
                   </p>
+
+                  {/* CP monogram — fades in with content, stays */}
+                  <div
+                    className="flex justify-center"
+                    style={{
+                      opacity: prefersReducedMotion ? 1 : 0,
+                      animation: prefersReducedMotion
+                        ? undefined
+                        : "editorial-corner-fade 1s ease-out 2.6s forwards",
+                    }}
+                  >
+                    <CPMonogram />
+                  </div>
                 </div>
 
-                <div className="order-1 lg:order-2 flex justify-center items-center h-full">
+                <div className="order-1 lg:order-2 flex justify-center items-center">
                   <img
                     src={heroPortrait}
                     alt="Cristyna Polentino"
-                    className="w-full max-w-[460px] h-full max-h-full object-contain"
+                    className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[460px] h-auto object-contain"
                     loading="eager"
                     fetchPriority="high"
                     decoding="async"
