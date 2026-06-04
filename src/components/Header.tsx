@@ -91,7 +91,7 @@ const Header = () => {
         style={{ fontFamily: "'Jost', 'Outfit', system-ui, sans-serif", letterSpacing: "0.16em" }}
       >
         {/* LEFT */}
-        <ul className="hidden md:flex items-center gap-7 md:gap-8 justify-self-start">
+        <ul className="hidden md:flex items-center gap-5 lg:gap-7 justify-self-start">
           {leftLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
