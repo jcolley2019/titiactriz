@@ -62,7 +62,7 @@ const HomeEditorial = () => {
 
   useEffect(() => {
     if (prefersReducedMotion) return;
-    const t1 = window.setTimeout(() => setFrameVisible(false), 6500);
+    const t1 = window.setTimeout(() => setFrameVisible(false), 7500);
     return () => window.clearTimeout(t1);
   }, [prefersReducedMotion]);
 
@@ -114,48 +114,68 @@ const HomeEditorial = () => {
           style={{ opacity: frameVisible ? 1 : 0 }}
         >
           <svg
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full overflow-visible"
             preserveAspectRatio="none"
-            viewBox="0 0 100 100"
+            viewBox="0 0 1000 1000"
           >
-            <rect
-              x="0.5"
-              y="0.5"
-              width="99"
-              height="99"
-              fill="none"
-              stroke={GOLD}
-              strokeWidth="1"
-              vectorEffect="non-scaling-stroke"
-              pathLength={100}
-              strokeDasharray="100"
-              strokeDashoffset={prefersReducedMotion ? 0 : 100}
-              style={{
-                animation: prefersReducedMotion
-                  ? undefined
-                  : "editorial-frame-draw 2.4s ease-out forwards",
-              }}
-            />
+            {/* Outer perimeter — 4 sides, each drawing outward from its corner */}
+            {[
+              // top side: left → right
+              "M 0 0 L 1000 0",
+              // right side: top → bottom
+              "M 1000 0 L 1000 1000",
+              // bottom side: right → left
+              "M 1000 1000 L 0 1000",
+              // left side: bottom → top
+              "M 0 1000 L 0 0",
+            ].map((d, i) => (
+              <path
+                key={i}
+                d={d}
+                fill="none"
+                stroke={GOLD}
+                strokeWidth="1.25"
+                vectorEffect="non-scaling-stroke"
+                pathLength={100}
+                strokeDasharray="100"
+                strokeDashoffset={prefersReducedMotion ? 0 : 100}
+                style={{
+                  animation: prefersReducedMotion
+                    ? undefined
+                    : `editorial-frame-draw 1.8s ease-out ${i * 0.45}s forwards`,
+                }}
+              />
+            ))}
+
+            {/* Inner L-shaped corner accents — draw after the perimeter completes */}
+            {[
+              // top-left:  ──┐ then │
+              "M 20 40 L 20 20 L 40 20",
+              // top-right
+              "M 960 20 L 980 20 L 980 40",
+              // bottom-right
+              "M 980 960 L 980 980 L 960 980",
+              // bottom-left
+              "M 40 980 L 20 980 L 20 960",
+            ].map((d, i) => (
+              <path
+                key={`c${i}`}
+                d={d}
+                fill="none"
+                stroke={GOLD}
+                strokeWidth="1.25"
+                vectorEffect="non-scaling-stroke"
+                pathLength={100}
+                strokeDasharray="100"
+                strokeDashoffset={prefersReducedMotion ? 0 : 100}
+                style={{
+                  animation: prefersReducedMotion
+                    ? undefined
+                    : "editorial-frame-draw 0.9s ease-out 2.4s forwards",
+                }}
+              />
+            ))}
           </svg>
-          {[
-            "top-0 left-0 border-t border-l",
-            "top-0 right-0 border-t border-r",
-            "bottom-0 left-0 border-b border-l",
-            "bottom-0 right-0 border-b border-r",
-          ].map((pos, i) => (
-            <span
-              key={i}
-              className={`absolute w-5 h-5 sm:w-7 sm:h-7 ${pos}`}
-              style={{
-                borderColor: GOLD,
-                opacity: 0,
-                animation: prefersReducedMotion
-                  ? "none"
-                  : "editorial-corner-fade 0.8s ease-out 2.2s forwards",
-                ...(prefersReducedMotion ? { opacity: 1 } : {}),
-              }}
-            />
-          ))}
         </div>
 
         <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-32">
