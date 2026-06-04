@@ -224,6 +224,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     url: string;
     originalSize: number;
     optimizedSize: number;
+    contentHash?: string;
+    duplicateOfId?: string;
   } | null>(null);
   const [lastReduction, setLastReduction] = useState<string | null>(null);
 
