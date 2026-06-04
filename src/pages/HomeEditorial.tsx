@@ -207,14 +207,14 @@ const HomeEditorial = () => {
 
               <p
                 className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.35em] mb-6"
-                style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
+                style={{ color: GOLD, fontFamily: "var(--font-sans)" }}
               >
                 Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
               </p>
 
               <p
                 className="italic text-lg sm:text-xl md:text-2xl leading-relaxed max-w-md"
-                style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
+                style={{ color: CREAM, fontFamily: "var(--font-display)" }}
               >
                 Creo impacto a través de la presencia, la actuación y el propósito.
               </p>
