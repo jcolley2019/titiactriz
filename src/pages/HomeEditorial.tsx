@@ -139,14 +139,13 @@ const HomeEditorial = () => {
     </svg>
   );
 
-  // CP monogram — uses uploaded transparent PNG
+  // CP monogram — transparent PNG
   const CPMonogram = () => (
     <img
       src={cpMonogramAsset.url}
-      alt="Cristyna Polentino CP monogram"
-      className="w-[80px] sm:w-[100px] md:w-[110px] lg:w-[125px] h-auto"
-      loading="lazy"
-      decoding="async"
+      alt="CP monogram"
+      draggable={false}
+      className="mx-auto mt-8 block h-auto w-[90px] md:w-[120px] select-none pointer-events-none"
     />
   );
 
