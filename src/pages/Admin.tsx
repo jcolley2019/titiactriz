@@ -1096,10 +1096,31 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               {activePhotos.length} live — galleries look best around 20 to 30.
             </p>
             {missingAltCount > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
-                {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
-              </p>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
+                  {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={fillAllMissingAlt}
+                  disabled={altBulk !== null}
+                  className="gap-2"
+                >
+                  {altBulk ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {altBulk.done} of {altBulk.total}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Fill all missing alt text
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         </div>
