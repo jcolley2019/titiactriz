@@ -849,13 +849,12 @@ const Admin = () => {
       }, TIMEOUT_MS);
     };
 
-    const events: (keyof WindowEventMap)[] = [
+    const events = [
       "mousemove",
       "mousedown",
       "keydown",
       "touchstart",
       "scroll",
-      "visibilitychange",
     ];
     events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
     reset();
