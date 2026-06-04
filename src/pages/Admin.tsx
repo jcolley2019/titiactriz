@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import imageCompression from "browser-image-compression";
 import type { Session } from "@supabase/supabase-js";
+import { Reorder, useDragControls } from "framer-motion";
+import { GripVertical, MoreVertical, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import LivePreviewDock from "@/components/admin/LivePreviewDock";
 
 type Photo = {
@@ -35,8 +43,11 @@ type Photo = {
   alt_text: string | null;
   sort_order: number;
   is_published: boolean;
+  is_archived: boolean;
+  content_hash: string | null;
   created_at: string;
 };
+
 
 const BUCKET = "gallery";
 const ACCEPTED = [
