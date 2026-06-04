@@ -94,18 +94,21 @@ const Header = () => {
         {/* Center Logo */}
         <Link
           to="/"
-          className={`font-serif text-2xl md:text-3xl tracking-tight transition-all duration-300 hover:opacity-80 ${
+          className={`text-xl md:text-2xl uppercase transition-all duration-300 hover:opacity-80 ${
             isGreenWorldPage ? "text-gw-green-dark" : ""
           }`}
-          style={{ textShadow: isGreenWorldPage ? 'none' : '0 0 20px hsl(var(--accent) / 0.2)' }}
+          style={{
+            fontFamily: "'Cinzel', 'Cormorant Garamond', Georgia, serif",
+            letterSpacing: "0.18em",
+            fontWeight: 400,
+            textShadow: isGreenWorldPage ? 'none' : '0 0 20px hsl(var(--accent) / 0.2)',
+          }}
         >
-          <span className="font-light tracking-wide">Cristyna</span>{" "}
-          <span className={`italic font-medium relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] ${
-            isGreenWorldPage 
-              ? "text-gw-green after:bg-gw-green/50" 
-              : "text-accent after:bg-accent/50"
-          }`}>Polentino</span>
+          <span style={{ color: isGreenWorldPage ? undefined : 'hsl(var(--foreground))' }}>Cristyna</span>
+          <span className="mx-2" style={{ color: isGreenWorldPage ? 'hsl(var(--gw-green))' : 'hsl(var(--accent))' }}>·</span>
+          <span style={{ color: isGreenWorldPage ? 'hsl(var(--gw-green))' : 'hsl(var(--accent))' }}>Polentino</span>
         </Link>
+
 
         {/* Right Nav */}
         <ul className="hidden lg:flex items-center gap-10">
