@@ -248,7 +248,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
             <div
               ref={trackRef}
               className="flex gap-4 will-change-transform"
-              style={{ width: "max-content" }}
+              style={compactTrackStyle}
             >
               {displayPhotos.map((photo, i) => {
                 const originalIndex = i % photos.length;
