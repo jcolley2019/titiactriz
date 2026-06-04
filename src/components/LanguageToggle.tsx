@@ -1,10 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Globe, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -13,7 +16,7 @@ interface LanguageToggleProps {
 }
 
 const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -36,9 +39,9 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className={`gap-2 ${getVariantClasses()}`}
         >
           <Globe className="w-4 h-4" />
@@ -47,6 +50,9 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+          {t('nav.language', 'Language')}
+        </DropdownMenuLabel>
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
@@ -57,6 +63,13 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
             {lang.name}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/admin" className="flex items-center w-full">
+            <Lock className="w-3.5 h-3.5 mr-2" />
+            {t('nav.adminLogin', 'Admin Login')}
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

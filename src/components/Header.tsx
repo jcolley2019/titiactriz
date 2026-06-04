@@ -142,13 +142,13 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <LanguageToggle variant="greenworld" />
+            <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
           </li>
         </ul>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center gap-3">
-          <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "default"} />
+          <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-2 transition-colors ${
