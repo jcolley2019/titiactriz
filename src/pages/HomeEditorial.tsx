@@ -52,7 +52,8 @@ const HomeEditorial = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
-  const [play, setPlay] = useState(false);
+  const [introStarted, setIntroStarted] = useState(false);
+  const [framePlay, setFramePlay] = useState(false);
 
   const {
     register,
@@ -62,11 +63,15 @@ const HomeEditorial = () => {
   } = useForm<ContactFormData>({ resolver: zodResolver(contactSchema) });
 
   useEffect(() => {
+    setIntroStarted(true);
+  }, []);
+
+  useEffect(() => {
     const el = heroRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([e]) => setPlay(e.isIntersecting),
-      { threshold: 0.35 }
+      ([e]) => setFramePlay(e.isIntersecting),
+      { threshold: 0.3 }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -173,7 +178,8 @@ const HomeEditorial = () => {
         ref={heroRef}
         className={
           "relative min-h-[100svh] flex items-center justify-center overflow-hidden px-6 md:px-12 pt-24 pb-12 " +
-          (play ? "editorial-hero-play" : "")
+          (introStarted ? "editorial-intro " : "") +
+          (framePlay ? "editorial-hero-play" : "")
         }
         style={{ backgroundColor: "#0e0c09" }}
       >
@@ -230,52 +236,54 @@ const HomeEditorial = () => {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
             {/* LEFT: name lockup */}
             <div className="order-2 lg:order-1 flex flex-col items-center text-center">
-              <h1
-                className="leading-[0.95] tracking-[0.04em] uppercase"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                <span
-                  className="block font-normal"
-                  style={{ color: CREAM, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
+              <div className="editorial-title flex flex-col items-center w-full">
+                <h1
+                  className="leading-[0.95] tracking-[0.04em] uppercase"
+                  style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Cristyna
-                </span>
-                <span
-                  className="block font-normal mt-1 sm:mt-2"
-                  style={{ color: GOLD, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
-                >
-                  Polentino
-                </span>
-              </h1>
+                  <span
+                    className="block font-normal"
+                    style={{ color: CREAM, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
+                  >
+                    Cristyna
+                  </span>
+                  <span
+                    className="block font-normal mt-1 sm:mt-2"
+                    style={{ color: GOLD, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
+                  >
+                    Polentino
+                  </span>
+                </h1>
 
-              {/* Divider with center diamond drawing outward */}
-              <div
-                className="relative my-4 sm:my-5 md:my-6 flex items-center justify-center"
-                style={{ width: "min(100%, 14ch)" }}
-                aria-hidden
-              >
-                <span
-                  className="editorial-divider-line block h-px w-full"
-                  style={{ backgroundColor: GOLD }}
-                />
-                <svg
-                  viewBox="0 0 16 16"
-                  className="editorial-divider-diamond absolute left-1/2 -translate-x-1/2 w-3 h-3"
-                  style={{ background: "#0e0c09" }}
+                {/* Divider with center diamond drawing outward */}
+                <div
+                  className="relative my-4 sm:my-5 md:my-6 flex items-center justify-center"
+                  style={{ width: "min(100%, 14ch)" }}
+                  aria-hidden
                 >
-                  <rect
-                    x="3"
-                    y="3"
-                    width="10"
-                    height="10"
-                    transform="rotate(45 8 8)"
-                    fill={GOLD}
+                  <span
+                    className="editorial-divider-line block h-px w-full"
+                    style={{ backgroundColor: GOLD }}
                   />
-                </svg>
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="editorial-divider-diamond absolute left-1/2 -translate-x-1/2 w-3 h-3"
+                    style={{ background: "#0e0c09" }}
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="10"
+                      height="10"
+                      transform="rotate(45 8 8)"
+                      fill={GOLD}
+                    />
+                  </svg>
+                </div>
               </div>
 
               <p
-                className="uppercase mb-4 sm:mb-5"
+                className="editorial-roles uppercase mb-4 sm:mb-5"
                 style={{
                   color: CREAM,
                   fontFamily: "var(--font-sans)",
@@ -283,21 +291,71 @@ const HomeEditorial = () => {
                   letterSpacing: "0.35em",
                 }}
               >
-                Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
+                Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Bailarina&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
               </p>
 
-              <p
-                className="italic leading-relaxed max-w-md mb-5 sm:mb-6"
-                style={{
-                  color: CREAM,
-                  fontFamily: "var(--font-display)",
-                  fontSize: "clamp(0.95rem, 2vw, 1.25rem)",
-                }}
-              >
-                Creo impacto a través de la presencia, la actuación y el propósito.
-              </p>
+              <div className="editorial-subtitle max-w-md mb-5 sm:mb-6 flex flex-col gap-3">
+                <p
+                  className="italic leading-relaxed"
+                  style={{
+                    color: CREAM,
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(0.95rem, 2vw, 1.25rem)",
+                  }}
+                >
+                  Creo impacto a través de la presencia, la actuación y el propósito.
+                </p>
+                <p
+                  className="leading-relaxed"
+                  style={{
+                    color: "rgba(240, 233, 218, 0.72)",
+                    fontFamily: "var(--font-sans)",
+                    fontWeight: 300,
+                    fontSize: "clamp(0.8rem, 1.4vw, 0.95rem)",
+                  }}
+                >
+                  Doy vida a las historias a través del movimiento y la emoción — cada papel es un viaje, cada actuación una conexión.
+                </p>
+              </div>
 
-              <CPMonogram />
+              {/* Monogram hands off to CTA buttons (same grid cell, no layout shift) */}
+              <div className="relative mt-6 w-full flex items-center justify-center min-h-[64px]">
+                <img
+                  src={cpMonogramAsset.url}
+                  alt="CP monogram"
+                  draggable={false}
+                  aria-hidden
+                  className="editorial-monogram absolute left-1/2 -translate-x-1/2 h-auto w-[90px] md:w-[120px] select-none pointer-events-none"
+                />
+                <div
+                  className="editorial-cta flex flex-wrap items-center justify-center gap-3 sm:gap-4"
+                  style={{ fontFamily: "var(--font-sans)" }}
+                >
+                  <Link
+                    to="/work"
+                    className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:-translate-y-0.5"
+                    style={{ backgroundColor: GOLD, color: "#0e0c09" }}
+                  >
+                    Ver portafolio
+                  </Link>
+                  <a
+                    href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ=="
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
+                    style={{ color: CREAM, borderColor: GOLD }}
+                  >
+                    Green World
+                  </a>
+                  <Link
+                    to="/titans-agency"
+                    className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
+                    style={{ color: CREAM, borderColor: GOLD }}
+                  >
+                    Titans Agency
+                  </Link>
+                </div>
+              </div>
             </div>
 
             {/* RIGHT: portrait */}
