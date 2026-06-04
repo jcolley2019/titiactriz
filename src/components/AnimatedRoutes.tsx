@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import PageTransition from "./PageTransition";
-import Index from "@/pages/Index";
+import Home from "@/pages/Home";
 
 // Lazy-loaded routes (kept out of the home-page bundle)
 const TitansAgency = lazy(() => import("@/pages/TitansAgency"));
@@ -33,7 +33,7 @@ const AnimatedRoutes = () => {
           path="/"
           element={
             <PageTransition>
-              <Index />
+              <Home />
             </PageTransition>
           }
         />
