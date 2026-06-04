@@ -18,11 +18,14 @@ const Gallery = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
   const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const scrollAccumulator = useRef(0);
+  const offsetRef = useRef(0);
+  const lastTimeRef = useRef<number | null>(null);
 
   // Fetch published photos
   useEffect(() => {
@@ -41,6 +44,15 @@ const Gallery = () => {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Reduced motion preference
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   // Entrance animations
@@ -63,50 +75,50 @@ const Gallery = () => {
     return () => observer.disconnect();
   }, [photos]);
 
-  // Auto-scroll
+  // Seamless marquee auto-scroll via transform on duplicated track
   useEffect(() => {
-    if (!isAutoScrolling || photos.length === 0) return;
+    if (photos.length === 0 || prefersReducedMotion) return;
+    const track = trackRef.current;
+    if (!track) return;
+
+    const speed = 30; // px per second
     let animationId: number;
-    const speed = 0.3;
-    const step = () => {
-      if (scrollRef.current) {
-        const container = scrollRef.current;
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        scrollAccumulator.current += speed;
-        if (scrollAccumulator.current >= 1) {
-          const pixels = Math.floor(scrollAccumulator.current);
-          scrollAccumulator.current -= pixels;
-          if (container.scrollLeft >= maxScroll - 1) {
-            container.scrollLeft = 0;
-          } else {
-            container.scrollLeft += pixels;
+
+    const step = (time: number) => {
+      if (lastTimeRef.current == null) lastTimeRef.current = time;
+      const delta = (time - lastTimeRef.current) / 1000;
+      lastTimeRef.current = time;
+
+      if (!isPaused) {
+        // Track contains 2 copies; one set width = trackWidth / 2
+        const halfWidth = track.scrollWidth / 2;
+        if (halfWidth > 0) {
+          offsetRef.current += speed * delta;
+          if (offsetRef.current >= halfWidth) {
+            offsetRef.current -= halfWidth;
           }
+          track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
         }
       }
       animationId = requestAnimationFrame(step);
     };
     animationId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationId);
-  }, [isAutoScrolling, photos]);
+    return () => {
+      cancelAnimationFrame(animationId);
+      lastTimeRef.current = null;
+    };
+  }, [photos, isPaused, prefersReducedMotion]);
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const scrollAmount = 300;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    if (direction === "right") {
-      if (container.scrollLeft >= maxScroll - 10) {
-        container.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        container.scrollBy({ left: scrollAmount, behavior: "smooth" });
-      }
-    } else {
-      if (container.scrollLeft <= 10) {
-        container.scrollTo({ left: maxScroll, behavior: "smooth" });
-      } else {
-        container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-      }
-    }
+  const nudge = (direction: "left" | "right") => {
+    const track = trackRef.current;
+    if (!track) return;
+    const halfWidth = track.scrollWidth / 2;
+    if (halfWidth <= 0) return;
+    const amount = 300;
+    offsetRef.current += direction === "right" ? amount : -amount;
+    // Wrap into [0, halfWidth)
+    offsetRef.current = ((offsetRef.current % halfWidth) + halfWidth) % halfWidth;
+    track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
   };
 
   const handleImageClick = (index: number) => {
@@ -130,6 +142,9 @@ const Gallery = () => {
 
   const selectedPhoto = photos[selectedIndex];
 
+  // Build two copies for seamless marquee
+  const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
+
   return (
     <>
       <section className="py-12 sm:py-16 relative z-10">
@@ -144,14 +159,14 @@ const Gallery = () => {
         {photos.length > 0 && (
           <>
             <button
-              onClick={() => scroll("left")}
+              onClick={() => nudge("left")}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
               aria-label={t("gallery.scrollLeft")}
             >
               <ChevronLeft className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
             </button>
             <button
-              onClick={() => scroll("right")}
+              onClick={() => nudge("right")}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
               aria-label={t("gallery.scrollRight")}
             >
@@ -161,50 +176,65 @@ const Gallery = () => {
         )}
 
         <div
-          ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide px-6"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          onMouseEnter={() => setIsAutoScrolling(false)}
-          onMouseLeave={() => setIsAutoScrolling(true)}
+          ref={viewportRef}
+          className="overflow-hidden px-6"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
-          {loading
-            ? Array.from({ length: 8 }).map((_, i) => (
+          {loading ? (
+            <div className="flex gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={`skeleton-${i}`}
                   className="flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse"
                 />
-              ))
-            : photos.map((photo, i) => (
-                <div
-                  key={photo.id}
-                  ref={(el) => (imageRefs.current[i] = el)}
-                  data-index={i}
-                  onClick={() => handleImageClick(i)}
-                  className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30 ${
-                    visibleImages.has(i)
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-8"
-                  }`}
-                  style={{ transitionDelay: `${(i % 6) * 100}ms` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-                  <div className="absolute inset-0 rounded-sm border-2 border-accent/0 group-hover:border-accent/50 transition-all duration-500 z-20" />
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/80 via-gold-light to-accent/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-30" />
-                  <img
-                    src={photo.image_url}
-                    alt={altFor(photo, i)}
-                    loading="lazy"
-                    decoding="async"
-                    style={{ aspectRatio: "56 / 72" }}
-                    className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1 animate-color-reveal"
-                  />
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
-                    <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
-                      {t("common.view")}
-                    </span>
-                  </div>
-                </div>
               ))}
+            </div>
+          ) : (
+            <div
+              ref={trackRef}
+              className="flex gap-4 will-change-transform"
+              style={{ width: "max-content" }}
+            >
+              {displayPhotos.map((photo, i) => {
+                const originalIndex = i % photos.length;
+                return (
+                  <div
+                    key={`${photo.id}-${i}`}
+                    ref={(el) => {
+                      if (i < photos.length) imageRefs.current[i] = el;
+                    }}
+                    data-index={originalIndex}
+                    onClick={() => handleImageClick(originalIndex)}
+                    aria-hidden={i >= photos.length ? true : undefined}
+                    className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30 ${
+                      i >= photos.length || visibleImages.has(originalIndex)
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-8"
+                    }`}
+                    style={{ transitionDelay: `${(originalIndex % 6) * 100}ms` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+                    <div className="absolute inset-0 rounded-sm border-2 border-accent/0 group-hover:border-accent/50 transition-all duration-500 z-20" />
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/80 via-gold-light to-accent/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-30" />
+                    <img
+                      src={photo.image_url}
+                      alt={altFor(photo, originalIndex)}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ aspectRatio: "56 / 72" }}
+                      className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1 animate-color-reveal"
+                    />
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
+                      <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
+                        {t("common.view")}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
