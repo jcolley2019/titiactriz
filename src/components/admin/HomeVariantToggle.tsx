@@ -77,7 +77,7 @@ const HomeVariantToggle = () => {
       </button>
 
       {open && (
-        <div className="px-6 pb-6 grid sm:grid-cols-2 gap-3">
+        <div className="px-6 pb-4 grid sm:grid-cols-2 gap-3">
         {OPTIONS.map((opt) => {
           const active = variant === opt.value;
           const isSaving = saving === opt.value;
