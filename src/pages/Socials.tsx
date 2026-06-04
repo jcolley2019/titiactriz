@@ -48,21 +48,11 @@ const Socials = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Redes Sociales | Cristyna Polentino - TikTok, Instagram & YouTube</title>
-        <meta
-          name="description"
-          content="Sigue a Cristyna Polentino en TikTok (@titina_polen), Instagram (@cristinapolentino_actriz) y YouTube. Follow Cristyna on social media for behind-the-scenes content, performances, and daily updates."
-        />
-        <link rel="canonical" href="https://titiactriz.com/socials" />
-        <meta property="og:title" content="Redes Sociales - Cristyna Polentino" />
-        <meta
-          property="og:description"
-          content="Sigue a Cristyna Polentino en TikTok, Instagram y YouTube. Follow for content, performances & more."
-        />
-        <meta property="og:url" content="https://titiactriz.com/socials" />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        path="/socials"
+        title="Redes Sociales | Cristyna Polentino — TikTok, Instagram, YouTube"
+        description="Sigue a Cristyna Polentino en TikTok (@titina_polen), Instagram (@cristinapolentino_actriz) y YouTube. Follow on social for performances and daily updates."
+      />
 
       {/* Hero Section */}
       <section className="min-h-[40vh] flex items-center pt-28 pb-10 sm:pt-24 sm:pb-12">
