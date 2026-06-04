@@ -53,7 +53,7 @@ const HomeVariantToggle = () => {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-3 p-6 text-left hover:bg-accent/5 transition-colors"
+        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
         aria-expanded={open}
       >
         <div className="flex items-center gap-3">
@@ -63,9 +63,9 @@ const HomeVariantToggle = () => {
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           )}
           <div>
-            <h2 className="font-serif text-xl text-foreground">Home page variant</h2>
-            <p className="text-sm text-muted-foreground">
-              Choose which landing page renders at <span className="font-mono">/</span>.
+            <h2 className="font-serif text-base text-foreground leading-tight">Home page variant</h2>
+            <p className="text-xs text-muted-foreground">
+              Which landing page renders at <span className="font-mono">/</span>.
             </p>
           </div>
         </div>
@@ -77,7 +77,7 @@ const HomeVariantToggle = () => {
       </button>
 
       {open && (
-        <div className="px-6 pb-6 grid sm:grid-cols-2 gap-3">
+        <div className="px-6 pb-4 grid sm:grid-cols-2 gap-3">
         {OPTIONS.map((opt) => {
           const active = variant === opt.value;
           const isSaving = saving === opt.value;
