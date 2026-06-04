@@ -55,47 +55,10 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 const Index = () => {
   const { t } = useTranslation();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
-  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Intersection Observer for entrance animations
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = Number(entry.target.getAttribute('data-index'));
-            setVisibleImages((prev) => new Set([...prev, index]));
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: '50px' }
-    );
 
-    imageRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const handleImageClick = (img: string, index: number) => {
-    setSelectedImage(img);
-    setSelectedIndex(index);
-  };
-
-  const navigateLightbox = (direction: 'prev' | 'next') => {
-    const newIndex = direction === 'prev' 
-      ? (selectedIndex - 1 + galleryImages.length) % galleryImages.length
-      : (selectedIndex + 1) % galleryImages.length;
-    setSelectedIndex(newIndex);
-    setSelectedImage(galleryImages[newIndex]);
-  };
 
   const {
     register,
