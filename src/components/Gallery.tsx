@@ -174,16 +174,25 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   // Build two copies for seamless marquee
   const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
 
+  const tileClass = compact
+    ? "flex-shrink-0 w-20 h-28 rounded-sm overflow-hidden cursor-pointer group relative"
+    : "flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30";
+  const skeletonClass = compact
+    ? "flex-shrink-0 w-20 h-28 rounded-sm bg-muted/30 animate-pulse"
+    : "flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse";
+
   return (
     <>
-      <section className="py-12 sm:py-16 relative z-10">
+      <section className={compact ? "relative z-10" : "py-12 sm:py-16 relative z-10"}>
         {/* Section Header */}
-        <ScrollReveal className="container-editorial text-center mb-10">
-          <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
-          <h2 className="font-serif text-3xl md:text-4xl text-foreground">
-            {t("gallery.title")}
-          </h2>
-        </ScrollReveal>
+        {!compact && (
+          <ScrollReveal className="container-editorial text-center mb-10">
+            <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
+            <h2 className="font-serif text-3xl md:text-4xl text-foreground">
+              {t("gallery.title")}
+            </h2>
+          </ScrollReveal>
+        )}
 
         {photos.length > 0 && (
           <>
