@@ -14,17 +14,14 @@ const Header = () => {
   const leftLinks = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.portfolio"), path: "/work" },
+    { name: t("nav.titansAgency"), path: "/titans-agency" },
   ];
   const rightLinks = [
+    { name: t("nav.greenWorld"), path: "/green-world" },
     { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
-  const mobileLinks = [
-    ...leftLinks,
-    ...rightLinks,
-    { name: t("nav.titansAgency"), path: "/titans-agency" },
-    { name: t("nav.greenWorld"), path: "/green-world" },
-  ];
+  const mobileLinks = [...leftLinks, ...rightLinks];
 
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
