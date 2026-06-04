@@ -832,6 +832,40 @@ const Admin = () => {
     await supabase.auth.signOut();
   };
 
+  // Auto sign-out after 15 minutes of inactivity
+  useEffect(() => {
+    if (!session) return;
+    const TIMEOUT_MS = 15 * 60 * 1000;
+    let timer: number;
+
+    const reset = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(async () => {
+        await supabase.auth.signOut();
+        toast({
+          title: "Signed out",
+          description: "You were logged out after 15 minutes of inactivity.",
+        });
+      }, TIMEOUT_MS);
+    };
+
+    const events: (keyof WindowEventMap)[] = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "touchstart",
+      "scroll",
+      "visibilitychange",
+    ];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+
+    return () => {
+      window.clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [session]);
+
   return (
     <>
       <Helmet>
