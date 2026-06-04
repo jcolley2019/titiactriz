@@ -178,7 +178,8 @@ const HomeEditorial = () => {
         ref={heroRef}
         className={
           "relative min-h-[100svh] flex items-center justify-center overflow-hidden px-6 md:px-12 pt-24 pb-12 " +
-          (play ? "editorial-hero-play" : "")
+          (introStarted ? "editorial-intro " : "") +
+          (framePlay ? "editorial-hero-play" : "")
         }
         style={{ backgroundColor: "#0e0c09" }}
       >
