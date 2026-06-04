@@ -142,7 +142,7 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <LanguageToggle variant="greenworld" />
+            <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
           </li>
         </ul>
 
