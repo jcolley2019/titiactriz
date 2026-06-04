@@ -37,6 +37,27 @@ type Photo = {
 };
 
 const BUCKET = "gallery";
+const ACCEPTED = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
+const ACCEPT_ATTR = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
+
+const isHeic = (file: File) => {
+  const type = (file.type || "").toLowerCase();
+  if (type === "image/heic" || type === "image/heif") return true;
+  const name = file.name.toLowerCase();
+  return name.endsWith(".heic") || name.endsWith(".heif");
+};
+
+const isAcceptedFile = (file: File) =>
+  ACCEPTED.includes((file.type || "").toLowerCase()) || isHeic(file);
+
+const formatBytes = (b: number) =>
+  b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
 /* ---------------- Login ---------------- */
 const LoginCard = () => {
@@ -102,25 +123,75 @@ const LoginCard = () => {
   );
 };
 
+/* ---------------- Pipeline ---------------- */
+type QueueStatus = "queued" | "converting" | "optimizing" | "uploading" | "done" | "failed";
+type QueueItem = {
+  id: string;
+  name: string;
+  size: number;
+  status: QueueStatus;
+  error?: string;
+  optimizedSize?: number;
+};
+
+const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolean }> => {
+  let working: File | Blob = file;
+  let converted = false;
+  if (isHeic(file)) {
+    const mod = await import("heic2any");
+    const heic2any = mod.default;
+    const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+    const jpegBlob = Array.isArray(out) ? out[0] : out;
+    working = new File([jpegBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
+      type: "image/jpeg",
+    });
+    converted = true;
+  }
+  const blob = await imageCompression(working as File, {
+    maxWidthOrHeight: 2400,
+    fileType: "image/webp",
+    initialQuality: 0.85,
+    maxSizeMB: 1.0,
+    useWebWorker: true,
+    preserveExif: false,
+  });
+  return { blob, converted };
+};
+
+const uploadBlob = async (blob: Blob): Promise<string> => {
+  const path = `photos/${crypto.randomUUID()}.webp`;
+  const { error: upErr } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { upsert: false, contentType: "image/webp" });
+  if (upErr) throw upErr;
+  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return pub.publicUrl;
+};
+
 /* ---------------- Management Panel ---------------- */
 const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [uploadStage, setUploadStage] = useState<"idle" | "optimizing" | "uploading">("idle");
-  const [lastReduction, setLastReduction] = useState<string | null>(null);
-  const [newAlt, setNewAlt] = useState("");
-  const [newSort, setNewSort] = useState<number>(0);
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Single-file preview flow
+  const [singleUploading, setSingleUploading] = useState(false);
+  const [singleStage, setSingleStage] = useState<"idle" | "converting" | "optimizing" | "uploading">("idle");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
   const [preview, setPreview] = useState<{
     blob: Blob;
     url: string;
     originalSize: number;
     optimizedSize: number;
   } | null>(null);
+  const [lastReduction, setLastReduction] = useState<string | null>(null);
+
+  // Batch queue
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
 
   const closePreview = useCallback(() => {
     setPreview((prev) => {
@@ -147,78 +218,144 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     load();
   }, [load]);
 
-  const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
-
-  const onFilePick = (file: File | null) => {
-    setLastReduction(null);
-    if (!file) {
-      setPendingFile(null);
-      setFileError(null);
-      return;
-    }
-    if (!ACCEPTED.includes(file.type)) {
-      setPendingFile(null);
-      setFileError(
-        "Unsupported image type. Please use JPEG, PNG, or WebP (HEIC from iPhone isn't supported — export as JPEG first).",
-      );
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-    setFileError(null);
-    setPendingFile(file);
+  const resetFileInput = () => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const formatBytes = (b: number) =>
-    b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
+  const updateQueueItem = (id: string, patch: Partial<QueueItem>) => {
+    setQueue((prev) => prev.map((q) => (q.id === id ? { ...q, ...patch } : q)));
+  };
 
-  const handlePrepare = async () => {
-    if (!pendingFile) {
-      toast({ title: "Pick a file first", variant: "destructive" });
+  const runBatch = async (files: File[]) => {
+    setBatchRunning(true);
+    const items: QueueItem[] = files.map((f) => ({
+      id: crypto.randomUUID(),
+      name: f.name,
+      size: f.size,
+      status: "queued",
+    }));
+    setQueue(items);
+
+    // Determine base sort_order
+    const { data: maxRow } = await supabase
+      .from("gallery_photos")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const baseSort = (maxRow?.sort_order ?? 0) + 1;
+
+    let nextIndex = 0;
+    const tasks = files.map((file, i) => ({ file, item: items[i], orderIndex: i }));
+
+    const worker = async () => {
+      while (true) {
+        const idx = nextIndex++;
+        if (idx >= tasks.length) return;
+        const { file, item, orderIndex } = tasks[idx];
+        try {
+          if (isHeic(file)) {
+            updateQueueItem(item.id, { status: "converting" });
+          } else {
+            updateQueueItem(item.id, { status: "optimizing" });
+          }
+          const { blob } = await optimizeFile(file);
+          updateQueueItem(item.id, { status: "uploading", optimizedSize: blob.size });
+          const image_url = await uploadBlob(blob);
+          const { error: insErr } = await supabase.from("gallery_photos").insert({
+            image_url,
+            alt_text: null,
+            sort_order: baseSort + orderIndex,
+            is_published: true,
+          });
+          if (insErr) throw insErr;
+          updateQueueItem(item.id, { status: "done" });
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "Failed";
+          updateQueueItem(item.id, { status: "failed", error: msg });
+        }
+      }
+    };
+
+    const concurrency = Math.min(3, tasks.length);
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+
+    setBatchRunning(false);
+    await load();
+    toast({ title: "Batch complete" });
+  };
+
+  const handleFiles = (fileList: FileList | File[] | null) => {
+    setFileError(null);
+    setLastReduction(null);
+    if (!fileList) return;
+    const arr = Array.from(fileList);
+    if (arr.length === 0) return;
+
+    const accepted = arr.filter(isAcceptedFile);
+    const rejected = arr.length - accepted.length;
+    if (rejected > 0) {
+      setFileError(
+        `${rejected} file(s) skipped — unsupported type. Allowed: JPEG, PNG, WebP, HEIC/HEIF.`,
+      );
+    }
+    if (accepted.length === 0) {
+      resetFileInput();
       return;
     }
-    setUploading(true);
-    setUploadStage("optimizing");
+
+    if (accepted.length === 1) {
+      // Single-file flow: keep the preview modal
+      setPendingFile(accepted[0]);
+      setQueue([]);
+    } else {
+      // Multi-file batch
+      setPendingFile(null);
+      void runBatch(accepted);
+      resetFileInput();
+    }
+  };
+
+  const handlePrepare = async () => {
+    if (!pendingFile) return;
+    setSingleUploading(true);
     setLastReduction(null);
     closePreview();
     try {
       const originalSize = pendingFile.size;
-      const optimized = await imageCompression(pendingFile, {
-        maxWidthOrHeight: 2400,
-        fileType: "image/webp",
-        initialQuality: 0.85,
-        maxSizeMB: 1.0,
-        useWebWorker: true,
-        preserveExif: false,
-      });
-      const url = URL.createObjectURL(optimized);
-      setPreview({ blob: optimized, url, originalSize, optimizedSize: optimized.size });
+      setSingleStage(isHeic(pendingFile) ? "converting" : "optimizing");
+      const { blob } = await optimizeFile(pendingFile);
+      const url = URL.createObjectURL(blob);
+      setPreview({ blob, url, originalSize, optimizedSize: blob.size });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Optimization failed";
       toast({ title: "Optimization failed", description: msg, variant: "destructive" });
     } finally {
-      setUploading(false);
-      setUploadStage("idle");
+      setSingleUploading(false);
+      setSingleStage("idle");
     }
   };
 
   const confirmUpload = async () => {
     if (!preview) return;
-    setUploading(true);
-    setUploadStage("uploading");
+    setSingleUploading(true);
+    setSingleStage("uploading");
     try {
-      const path = `photos/${crypto.randomUUID()}.webp`;
-      const { error: upErr } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, preview.blob, { upsert: false, contentType: "image/webp" });
-      if (upErr) throw upErr;
+      const image_url = await uploadBlob(preview.blob);
 
-      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      const image_url = pub.publicUrl;
+      // Append at end
+      const { data: maxRow } = await supabase
+        .from("gallery_photos")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const nextSort = (maxRow?.sort_order ?? 0) + 1;
 
       const { error: insErr } = await supabase.from("gallery_photos").insert({
         image_url,
-        alt_text: newAlt || null,
-        sort_order: Number(newSort) || 0,
+        alt_text: null,
+        sort_order: nextSort,
         is_published: true,
       });
       if (insErr) throw insErr;
@@ -227,17 +364,15 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       setLastReduction(reduction);
       toast({ title: "Photo uploaded", description: `Optimized: ${reduction}` });
       setPendingFile(null);
-      setNewAlt("");
-      setNewSort(0);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      resetFileInput();
       closePreview();
       await load();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Upload failed";
       toast({ title: "Upload failed", description: msg, variant: "destructive" });
     } finally {
-      setUploading(false);
-      setUploadStage("idle");
+      setSingleUploading(false);
+      setSingleStage("idle");
     }
   };
 
@@ -273,7 +408,6 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   };
 
   const pathFromUrl = (url: string): string | null => {
-    // Public URL format: https://<proj>.supabase.co/storage/v1/object/public/<bucket>/<path>
     const marker = `/storage/v1/object/public/${BUCKET}/`;
     const idx = url.indexOf(marker);
     if (idx === -1) return null;
@@ -300,6 +434,15 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     }
   };
 
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const doneCount = queue.filter((q) => q.status === "done").length;
+  const failedCount = queue.filter((q) => q.status === "failed").length;
+
   return (
     <div className="max-w-5xl mx-auto px-4 pt-32 pb-10">
       <div className="flex items-center justify-between mb-8">
@@ -314,59 +457,109 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* Upload */}
       <section className="bg-card border border-border rounded-lg p-6 mb-10">
-        <h2 className="font-serif text-xl text-foreground mb-4">Upload new photo</h2>
-        <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
-          <div className="space-y-2">
-            <Label htmlFor="file">Image file</Label>
-            <Input
-              id="file"
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => onFilePick(e.target.files?.[0] ?? null)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="alt">Alt text</Label>
-            <Input
-              id="alt"
-              value={newAlt}
-              onChange={(e) => setNewAlt(e.target.value)}
-              placeholder="Describe the photo"
-            />
-          </div>
-          <div className="space-y-2 w-28">
-            <Label htmlFor="sort">Sort</Label>
-            <Input
-              id="sort"
-              type="number"
-              value={newSort}
-              onChange={(e) => setNewSort(Number(e.target.value))}
-            />
-          </div>
+        <h2 className="font-serif text-xl text-foreground mb-4">Upload photos</h2>
+
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={onDrop}
+          className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+            isDragging
+              ? "border-accent bg-accent/10"
+              : "border-border bg-background/40 hover:border-accent/50"
+          }`}
+        >
+          <p className="text-sm text-foreground mb-1">
+            Drag &amp; drop photos here
+          </p>
+          <p className="text-xs text-muted-foreground mb-4">
+            JPEG, PNG, WebP, or HEIC/HEIF · multiple files OK
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ACCEPT_ATTR}
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={batchRunning}
+          >
+            Select files
+          </Button>
         </div>
-        {fileError && (
-          <p className="mt-3 text-sm text-destructive">{fileError}</p>
-        )}
-        {lastReduction && !uploading && (
+
+        {fileError && <p className="mt-3 text-sm text-destructive">{fileError}</p>}
+        {lastReduction && !singleUploading && (
           <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">
             Optimized: {lastReduction}
           </p>
         )}
-        <div className="mt-4">
-          <Button
-            onClick={handlePrepare}
-            disabled={uploading || !pendingFile}
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
-          >
-            {uploadStage === "optimizing"
-              ? "Optimizing…"
-              : uploadStage === "uploading"
-                ? "Uploading…"
-                : "Preview & upload"}
-          </Button>
-        </div>
 
+        {pendingFile && !preview && (
+          <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm text-muted-foreground">
+              Selected: <span className="text-foreground">{pendingFile.name}</span> ·{" "}
+              {formatBytes(pendingFile.size)}
+            </p>
+            <Button
+              onClick={handlePrepare}
+              disabled={singleUploading}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {singleStage === "converting"
+                ? "Converting…"
+                : singleStage === "optimizing"
+                  ? "Optimizing…"
+                  : singleStage === "uploading"
+                    ? "Uploading…"
+                    : "Preview & upload"}
+            </Button>
+          </div>
+        )}
+
+        {queue.length > 0 && (
+          <div className="mt-6">
+            <p className="text-sm text-muted-foreground mb-3">
+              {doneCount} of {queue.length} uploaded
+              {failedCount > 0 ? ` · ${failedCount} failed` : ""}
+            </p>
+            <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {queue.map((q) => (
+                <li
+                  key={q.id}
+                  className="flex items-center justify-between gap-3 text-sm border border-border rounded-md px-3 py-2 bg-background/40"
+                >
+                  <span className="truncate text-foreground">{q.name}</span>
+                  <span
+                    className={
+                      q.status === "done"
+                        ? "text-[hsl(var(--gold-light))]"
+                        : q.status === "failed"
+                          ? "text-destructive"
+                          : "text-muted-foreground"
+                    }
+                  >
+                    {q.status === "queued" && "Queued"}
+                    {q.status === "converting" && "Converting…"}
+                    {q.status === "optimizing" && "Optimizing…"}
+                    {q.status === "uploading" && "Uploading…"}
+                    {q.status === "done" &&
+                      `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
+                    {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       {/* List */}
@@ -386,7 +579,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                 <img
                   src={p.image_url}
                   alt={p.alt_text ?? ""}
-                  className="w-22 h-22 object-cover rounded-md border border-border"
+                  className="object-cover rounded-md border border-border"
                   style={{ width: 88, height: 88 }}
                   loading="lazy"
                 />
@@ -402,9 +595,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   <Input
                     type="number"
                     value={p.sort_order}
-                    onChange={(e) =>
-                      updateRow(p.id, { sort_order: Number(e.target.value) })
-                    }
+                    onChange={(e) => updateRow(p.id, { sort_order: Number(e.target.value) })}
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -442,8 +633,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this photo?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the database row and the file from storage. This cannot be
-              undone.
+              This removes the database row and the file from storage. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -461,7 +651,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       <Dialog
         open={!!preview}
         onOpenChange={(open) => {
-          if (!open && !uploading) closePreview();
+          if (!open && !singleUploading) closePreview();
         }}
       >
         <DialogContent className="max-w-2xl">
@@ -486,15 +676,15 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={closePreview} disabled={uploading}>
+            <Button variant="outline" onClick={closePreview} disabled={singleUploading}>
               Cancel
             </Button>
             <Button
               onClick={confirmUpload}
-              disabled={uploading}
+              disabled={singleUploading}
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
-              {uploadStage === "uploading" ? "Uploading…" : "Confirm & upload"}
+              {singleStage === "uploading" ? "Uploading…" : "Confirm & upload"}
             </Button>
           </DialogFooter>
         </DialogContent>
