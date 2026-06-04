@@ -504,8 +504,9 @@
 
 /* ONE-TIME intro (class added on mount, never removed; scrolling does NOT replay it) */
 .editorial-intro .editorial-title    { animation: editorial-fade-up .8s ease .1s forwards; }
-.editorial-intro .editorial-divider-diamond { animation: editorial-diamond-in .6s ease .6s forwards; }
-.editorial-intro .editorial-divider-line    { animation: editorial-divider-grow .8s ease .9s forwards; }
+.editorial-intro .editorial-divider-diamond { animation: editorial-diamond-in .5s ease 1.1s both; }
+.editorial-intro .editorial-divider-left,
+.editorial-intro .editorial-divider-right   { animation: editorial-divider-grow .6s ease .9s both; }
 .editorial-intro .editorial-roles    { animation: editorial-fade-up .8s ease 1s forwards; }
 .editorial-intro .editorial-subtitle { animation: editorial-fade-up .8s ease 1.2s forwards; }
 .editorial-intro .editorial-monogram { animation: editorial-monogram-cycle 2.6s ease 1.3s forwards; }
