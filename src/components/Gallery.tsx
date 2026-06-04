@@ -178,11 +178,24 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
 
   const tileClass = compact
-    ? "flex-shrink-0 w-20 h-28 rounded-sm overflow-hidden cursor-pointer group relative"
+    ? "flex-shrink-0 w-[120px] h-[160px] rounded-sm overflow-hidden cursor-pointer group relative"
     : "flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30";
   const skeletonClass = compact
-    ? "flex-shrink-0 w-20 h-28 rounded-sm bg-muted/30 animate-pulse"
+    ? "flex-shrink-0 w-[120px] h-[160px] rounded-sm bg-muted/30 animate-pulse"
     : "flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse";
+
+  // CSS-driven marquee for the compact (dock) variant — duration scales with photo count
+  // so speed stays roughly constant (~24px/s, matching the public gallery).
+  const compactAnimationDuration = Math.max(20, photos.length * 6); // seconds
+  const compactPaused = isPaused || pauseAutoScroll;
+  const compactTrackStyle: React.CSSProperties = compact
+    ? {
+        width: "max-content",
+        animation: `gallery-marquee ${compactAnimationDuration}s linear infinite`,
+        animationPlayState: compactPaused ? "paused" : "running",
+        willChange: "transform",
+      }
+    : { width: "max-content" };
 
   return (
     <>
