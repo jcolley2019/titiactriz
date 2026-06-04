@@ -14,17 +14,14 @@ const Header = () => {
   const leftLinks = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.portfolio"), path: "/work" },
+    { name: t("nav.titansAgency"), path: "/titans-agency" },
   ];
   const rightLinks = [
+    { name: t("nav.greenWorld"), path: "/green-world" },
     { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
-  const mobileLinks = [
-    ...leftLinks,
-    ...rightLinks,
-    { name: t("nav.titansAgency"), path: "/titans-agency" },
-    { name: t("nav.greenWorld"), path: "/green-world" },
-  ];
+  const mobileLinks = [...leftLinks, ...rightLinks];
 
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
@@ -47,7 +44,7 @@ const Header = () => {
   };
 
   const linkBase =
-    "text-[13px] uppercase font-light link-underline transition-all duration-300";
+    "text-xs lg:text-[13px] uppercase font-light link-underline transition-all duration-300 whitespace-nowrap";
   const linkColor = (active: boolean) =>
     isGreenWorldPage
       ? active
@@ -94,7 +91,7 @@ const Header = () => {
         style={{ fontFamily: "'Jost', 'Outfit', system-ui, sans-serif", letterSpacing: "0.16em" }}
       >
         {/* LEFT */}
-        <ul className="hidden md:flex items-center gap-7 md:gap-8 justify-self-start">
+        <ul className="hidden md:flex items-center gap-5 lg:gap-7 justify-self-start">
           {leftLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
@@ -113,7 +110,7 @@ const Header = () => {
         </div>
 
         {/* RIGHT */}
-        <ul className="hidden md:flex items-center gap-7 md:gap-8 justify-self-end">
+        <ul className="hidden md:flex items-center gap-5 lg:gap-7 justify-self-end">
           {rightLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
