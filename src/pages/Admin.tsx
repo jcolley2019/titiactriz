@@ -230,11 +230,9 @@ type SortableRowProps = {
   onPublishedChange: (v: boolean) => void;
   onArchive: () => void;
   onDelete: () => void;
-  onDragStart: () => void;
-  onDragEnd: () => void;
 };
 
-const SortableRow = ({
+const SortableRow = memo(({
   photo,
   position,
   selected,
@@ -245,26 +243,32 @@ const SortableRow = ({
   onPublishedChange,
   onArchive,
   onDelete,
-  onDragStart,
-  onDragEnd,
 }: SortableRowProps) => {
-  const controls = useDragControls();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: photo.id });
   const missingAlt = !photo.alt_text || photo.alt_text.trim() === "";
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.85 : 1,
+  };
   return (
-    <Reorder.Item
-      value={photo}
-      dragListener={false}
-      dragControls={controls}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+    <li
+      ref={setNodeRef}
+      style={style}
       className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
       <button
         type="button"
-        onPointerDown={(e) => {
-          controls.start(e);
-          onDragStart();
-        }}
+        {...attributes}
+        {...listeners}
         className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
         aria-label="Drag to reorder"
       >
@@ -325,9 +329,10 @@ const SortableRow = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </Reorder.Item>
+    </li>
   );
-};
+});
+SortableRow.displayName = "SortableRow";
 
 /* ---------------- Management Panel ---------------- */
 const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
