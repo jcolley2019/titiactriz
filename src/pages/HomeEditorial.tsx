@@ -43,7 +43,7 @@ const editorialFontVars: React.CSSProperties = {
 };
 
 const GOLD = "#C9A55C";
-const CREAM = "#f3efe7";
+const CREAM = "#ffffff";
 
 const HomeEditorial = () => {
   const { t } = useTranslation();
