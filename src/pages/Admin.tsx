@@ -355,7 +355,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         )}
         <div className="mt-4">
           <Button
-            onClick={handleUpload}
+            onClick={handlePrepare}
             disabled={uploading || !pendingFile}
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
@@ -363,9 +363,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               ? "Optimizing…"
               : uploadStage === "uploading"
                 ? "Uploading…"
-                : "Upload"}
+                : "Preview & upload"}
           </Button>
         </div>
+
       </section>
 
       {/* List */}
