@@ -11,10 +11,17 @@ type Photo = {
   alt_text: string | null;
 };
 
-const Gallery = () => {
+type GalleryProps = {
+  photos?: Photo[];
+  pauseAutoScroll?: boolean;
+  compact?: boolean;
+};
+
+const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false }: GalleryProps = {}) => {
   const { t } = useTranslation();
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetchedPhotos, setFetchedPhotos] = useState<Photo[]>([]);
+  const photos = photosProp ?? fetchedPhotos;
+  const [loading, setLoading] = useState(photosProp ? false : true);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
   const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
@@ -27,24 +34,46 @@ const Gallery = () => {
   const offsetRef = useRef(0);
   const lastTimeRef = useRef<number | null>(null);
 
-  // Fetch published photos
+  // Fetch published photos (only when no prop passed)
   useEffect(() => {
+    if (photosProp) return;
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase
+      // Try with is_archived filter; fall back if column doesn't exist yet.
+      const base = supabase
         .from("gallery_photos")
         .select("id, image_url, alt_text")
-        .eq("is_published", true)
+        .eq("is_published", true);
+      let result = await (base as unknown as {
+        eq: (c: string, v: unknown) => typeof base;
+      })
+        .eq("is_archived", false)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
+      if (result.error && /is_archived/i.test(result.error.message)) {
+        result = await supabase
+          .from("gallery_photos")
+          .select("id, image_url, alt_text")
+          .eq("is_published", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true });
+      }
+      if (result.error && /is_archived/i.test(result.error.message)) {
+        result = await supabase
+          .from("gallery_photos")
+          .select("id, image_url, alt_text")
+          .eq("is_published", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true });
+      }
       if (cancelled) return;
-      if (!error && data) setPhotos(data as Photo[]);
+      if (!result.error && result.data) setFetchedPhotos(result.data as Photo[]);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [photosProp]);
 
   // Reduced motion preference
   useEffect(() => {
@@ -89,7 +118,7 @@ const Gallery = () => {
       const delta = (time - lastTimeRef.current) / 1000;
       lastTimeRef.current = time;
 
-      if (!isPaused) {
+      if (!isPaused && !pauseAutoScroll) {
         // Track contains 2 copies; one set width = trackWidth / 2
         const halfWidth = track.scrollWidth / 2;
         if (halfWidth > 0) {
@@ -107,7 +136,7 @@ const Gallery = () => {
       cancelAnimationFrame(animationId);
       lastTimeRef.current = null;
     };
-  }, [photos, isPaused, prefersReducedMotion]);
+  }, [photos, isPaused, prefersReducedMotion, pauseAutoScroll]);
 
   const nudge = (direction: "left" | "right") => {
     const track = trackRef.current;
@@ -145,16 +174,25 @@ const Gallery = () => {
   // Build two copies for seamless marquee
   const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
 
+  const tileClass = compact
+    ? "flex-shrink-0 w-20 h-28 rounded-sm overflow-hidden cursor-pointer group relative"
+    : "flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30";
+  const skeletonClass = compact
+    ? "flex-shrink-0 w-20 h-28 rounded-sm bg-muted/30 animate-pulse"
+    : "flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse";
+
   return (
     <>
-      <section className="py-12 sm:py-16 relative z-10">
+      <section className={compact ? "relative z-10" : "py-12 sm:py-16 relative z-10"}>
         {/* Section Header */}
-        <ScrollReveal className="container-editorial text-center mb-10">
-          <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
-          <h2 className="font-serif text-3xl md:text-4xl text-foreground">
-            {t("gallery.title")}
-          </h2>
-        </ScrollReveal>
+        {!compact && (
+          <ScrollReveal className="container-editorial text-center mb-10">
+            <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
+            <h2 className="font-serif text-3xl md:text-4xl text-foreground">
+              {t("gallery.title")}
+            </h2>
+          </ScrollReveal>
+        )}
 
         {photos.length > 0 && (
           <>
@@ -186,7 +224,7 @@ const Gallery = () => {
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={`skeleton-${i}`}
-                  className="flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse"
+                  className={skeletonClass}
                 />
               ))}
             </div>
@@ -207,8 +245,8 @@ const Gallery = () => {
                     data-index={originalIndex}
                     onClick={() => handleImageClick(originalIndex)}
                     aria-hidden={i >= photos.length ? true : undefined}
-                    className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30 ${
-                      i >= photos.length || visibleImages.has(originalIndex)
+                    className={`${tileClass} ${
+                      compact || i >= photos.length || visibleImages.has(originalIndex)
                         ? "opacity-100 translate-y-0"
                         : "opacity-0 translate-y-8"
                     }`}
