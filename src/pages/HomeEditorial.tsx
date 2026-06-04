@@ -235,8 +235,8 @@ const HomeEditorial = () => {
 
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
             {/* LEFT: name lockup */}
-            <div className="order-2 lg:order-1 flex flex-col items-center text-center">
-              <div className="editorial-title mx-auto w-fit flex flex-col items-center text-center">
+            <div className="order-2 lg:order-1 flex w-full flex-col items-center text-center">
+              <div className="editorial-title mx-auto w-fit text-center">
                 <h1
                   className="leading-[0.95] tracking-[0.04em] uppercase"
                   style={{ fontFamily: "var(--font-display)" }}
@@ -257,7 +257,7 @@ const HomeEditorial = () => {
 
                 {/* Divider with center diamond drawing outward */}
                 <div
-                  className="relative mt-5 mb-4 sm:mb-5 md:mb-6 flex w-full items-center justify-center"
+                  className="relative mt-5 flex w-full items-center justify-center"
                   aria-hidden
                 >
                   <span
@@ -282,7 +282,7 @@ const HomeEditorial = () => {
               </div>
 
               <p
-                className="editorial-roles uppercase mb-4 sm:mb-5"
+                className="editorial-roles uppercase mt-4"
                 style={{
                   color: CREAM,
                   fontFamily: "var(--font-sans)",
@@ -290,10 +290,10 @@ const HomeEditorial = () => {
                   letterSpacing: "0.35em",
                 }}
               >
-                Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Bailarina&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
+                {t("hero.rolesLine")}
               </p>
 
-              <div className="editorial-subtitle max-w-md mb-5 sm:mb-6 flex flex-col gap-3">
+              <div className="editorial-subtitle max-w-md mt-5 flex flex-col gap-3">
                 <p
                   className="italic leading-relaxed"
                   style={{
@@ -302,7 +302,7 @@ const HomeEditorial = () => {
                     fontSize: "clamp(0.95rem, 2vw, 1.25rem)",
                   }}
                 >
-                  Creo impacto a través de la presencia, la actuación y el propósito.
+                  {t("hero.tagline")}
                 </p>
                 <p
                   className="leading-relaxed"
@@ -313,7 +313,7 @@ const HomeEditorial = () => {
                     fontSize: "clamp(0.8rem, 1.4vw, 0.95rem)",
                   }}
                 >
-                  Doy vida a las historias a través del movimiento y la emoción — cada papel es un viaje, cada actuación una conexión.
+                  {t("hero.subtitle")}
                 </p>
               </div>
 
@@ -335,7 +335,7 @@ const HomeEditorial = () => {
                     className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:-translate-y-0.5"
                     style={{ backgroundColor: GOLD, color: "#0e0c09" }}
                   >
-                    Ver portafolio
+                    {t("hero.ctaPortfolio")}
                   </Link>
                   <a
                     href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ=="
@@ -356,6 +356,7 @@ const HomeEditorial = () => {
                 </div>
               </div>
             </div>
+
 
             {/* RIGHT: portrait */}
             <div className="order-1 lg:order-2 flex justify-center lg:justify-end items-end">
