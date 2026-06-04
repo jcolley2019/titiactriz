@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Globe, Lock } from 'lucide-react';
+import { Menu, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -44,9 +44,8 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
           size="sm"
           className={`gap-2 ${getVariantClasses()}`}
         >
-          <Globe className="w-4 h-4" />
-          <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.code.toUpperCase()}</span>
-          <span className="sm:hidden">{currentLanguage.flag}</span>
+          <Menu className="w-5 h-5" />
+          <span className="sr-only">Menu</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
