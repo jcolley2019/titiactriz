@@ -459,6 +459,43 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
   const doneCount = queue.filter((q) => q.status === "done").length;
   const failedCount = queue.filter((q) => q.status === "failed").length;
+  const missingAltCount = photos.filter((p) => !p.alt_text || p.alt_text.trim() === "").length;
+  const allSelected = photos.length > 0 && selected.size === photos.length;
+  const someSelected = selected.size > 0 && !allSelected;
+
+  const toggleSelect = (id: string, value: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (value) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (value: boolean) => {
+    setSelected(value ? new Set(photos.map((p) => p.id)) : new Set());
+  };
+
+  const bulkSetPublished = async (value: boolean) => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    const ids = Array.from(selected);
+    const prev = photos;
+    setPhotos((ps) => ps.map((p) => (selected.has(p.id) ? { ...p, is_published: value } : p)));
+    const { error } = await supabase
+      .from("gallery_photos")
+      .update({ is_published: value })
+      .in("id", ids);
+    setBulkBusy(false);
+    if (error) {
+      setPhotos(prev);
+      toast({ title: "Bulk update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: value ? "Published selected" : "Hidden selected", description: `${ids.length} photo(s) updated` });
+    setSelected(new Set());
+  };
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-32 pb-10">
