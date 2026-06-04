@@ -172,74 +172,77 @@ const HomeEditorial = () => {
       <section
         ref={heroRef}
         className={
-          "relative min-h-[100svh] flex items-center overflow-hidden pt-20 " +
+          "relative min-h-[100svh] flex items-center justify-center overflow-hidden px-6 md:px-12 pt-24 pb-12 " +
           (play ? "editorial-hero-play" : "")
         }
         style={{ backgroundColor: "#0e0c09" }}
       >
-        {/* Animated gold frame around the entire hero */}
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute inset-0 w-full h-full z-30 overflow-visible"
-          preserveAspectRatio="none"
-          viewBox="0 0 1000 1000"
-        >
-          <rect
-            className="editorial-frame-line"
-            x="0.5"
-            y="0.5"
-            width="999"
-            height="999"
-            fill="none"
-            stroke={GOLD}
-            strokeWidth="1.25"
-            vectorEffect="non-scaling-stroke"
-            pathLength={100}
-            strokeDasharray="100"
+        {/* Contained, centered hero box */}
+        <div className="relative mx-auto w-full max-w-6xl p-8 md:p-14">
+          {/* Four solid gold border bars */}
+          <span
+            aria-hidden
+            className="editorial-frame-top absolute top-0 left-0 right-0 h-[1.5px]"
+            style={{ backgroundColor: GOLD }}
           />
-        </svg>
+          <span
+            aria-hidden
+            className="editorial-frame-right absolute top-0 right-0 bottom-0 w-[1.5px]"
+            style={{ backgroundColor: GOLD }}
+          />
+          <span
+            aria-hidden
+            className="editorial-frame-bottom absolute bottom-0 left-0 right-0 h-[1.5px]"
+            style={{ backgroundColor: GOLD }}
+          />
+          <span
+            aria-hidden
+            className="editorial-frame-left absolute top-0 left-0 bottom-0 w-[1.5px]"
+            style={{ backgroundColor: GOLD }}
+          />
 
-        {/* Four ornate corner flourishes (top-left base, mirrored to others) */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 z-40">
+          {/* Four corner flourishes */}
           <img
+            aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute top-0 left-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none"
+            className="editorial-frame-corner absolute -top-px -left-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20"
           />
           <img
+            aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute top-0 right-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none -scale-x-100"
+            className="editorial-frame-corner absolute -top-px -right-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-x-100"
           />
           <img
+            aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute bottom-0 left-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none -scale-y-100"
+            className="editorial-frame-corner absolute -bottom-px -left-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-y-100"
           />
           <img
+            aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute bottom-0 right-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none -scale-100"
+            className="editorial-frame-corner absolute -bottom-px -right-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-100"
           />
-        </div>
 
-        <div className="w-full px-5 sm:px-10 md:px-16 lg:px-20 py-10 sm:py-14 md:py-16 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:items-end">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
             {/* LEFT: name lockup */}
-            <div className="order-2 lg:order-1 flex flex-col items-center text-center lg:pb-12">
+            <div className="order-2 lg:order-1 flex flex-col items-center text-center">
               <h1
                 className="leading-[0.95] tracking-[0.04em] uppercase"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 <span
                   className="block font-normal"
-                  style={{ color: CREAM, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
+                  style={{ color: CREAM, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
                 >
                   Cristyna
                 </span>
                 <span
                   className="block font-normal mt-1 sm:mt-2"
-                  style={{ color: GOLD, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
+                  style={{ color: GOLD, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
                 >
                   Polentino
                 </span>
@@ -252,7 +255,7 @@ const HomeEditorial = () => {
                 aria-hidden
               >
                 <span
-                  className="editorial-divider-line block h-px w-full origin-center"
+                  className="editorial-divider-line block h-px w-full"
                   style={{ backgroundColor: GOLD }}
                 />
                 <svg
@@ -297,12 +300,12 @@ const HomeEditorial = () => {
               <CPMonogram />
             </div>
 
-            {/* RIGHT: portrait extends to the frame bottom */}
-            <div className="order-1 lg:order-2 flex justify-center lg:justify-end items-end self-end">
+            {/* RIGHT: portrait */}
+            <div className="order-1 lg:order-2 flex justify-center lg:justify-end items-end">
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[480px] max-h-[72vh] h-auto object-contain"
+                className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[460px] max-h-[64vh] h-auto object-contain"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
