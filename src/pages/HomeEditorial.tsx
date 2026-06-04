@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -21,6 +21,7 @@ import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
 import cpMonogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
+import cornerOrnAsset from "@/assets/cp-corner-ornament.png.asset.json";
 
 
 const heroPortrait = "/hero-portrait.webp";
@@ -50,10 +51,8 @@ const HomeEditorial = () => {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [frameVisible, setFrameVisible] = useState(true);
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [play, setPlay] = useState(false);
 
   const {
     register,
@@ -63,10 +62,15 @@ const HomeEditorial = () => {
   } = useForm<ContactFormData>({ resolver: zodResolver(contactSchema) });
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
-    const t1 = window.setTimeout(() => setFrameVisible(false), 7000);
-    return () => window.clearTimeout(t1);
-  }, [prefersReducedMotion]);
+    const el = heroRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => setPlay(e.isIntersecting),
+      { threshold: 0.35 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
@@ -166,175 +170,148 @@ const HomeEditorial = () => {
 
       {/* ===== EDITORIAL HERO ===== */}
       <section
-        className="relative min-h-[100svh] flex items-center overflow-hidden"
+        ref={heroRef}
+        className={
+          "relative min-h-[100svh] flex items-center overflow-hidden pt-20 " +
+          (play ? "editorial-hero-play" : "")
+        }
         style={{ backgroundColor: "#0e0c09" }}
       >
-        <div className="w-full px-3 sm:px-6 pt-24 pb-10 sm:pt-32 sm:pb-16 md:pt-36 md:pb-20">
-          {/* Centered hero card — frame draws around THIS */}
-          <div className="relative mx-auto w-full max-w-[1150px] md:aspect-[16/9]">
-            {/* Animated gold frame (perimeter only) — fades out with corner ornaments */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-[1500ms]"
-              style={{ opacity: frameVisible ? 1 : 0 }}
-            >
-              <svg
-                className="absolute inset-0 w-full h-full overflow-visible"
-                preserveAspectRatio="none"
-                viewBox="0 0 1000 1000"
-              >
-                {[
-                  "M 0 0 L 1000 0",
-                  "M 1000 0 L 1000 1000",
-                  "M 1000 1000 L 0 1000",
-                  "M 0 1000 L 0 0",
-                ].map((d, i) => (
-                  <path
-                    key={i}
-                    d={d}
-                    fill="none"
-                    stroke={GOLD}
-                    strokeWidth="1.25"
-                    vectorEffect="non-scaling-stroke"
-                    pathLength={100}
-                    strokeDasharray="100"
-                    strokeDashoffset={prefersReducedMotion ? 0 : 100}
-                    style={{
-                      animation: prefersReducedMotion
-                        ? undefined
-                        : "editorial-frame-draw 1.5s ease-out 0.8s forwards",
-                    }}
-                  />
-                ))}
-              </svg>
+        {/* Animated gold frame around the entire hero */}
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute inset-0 w-full h-full z-30 overflow-visible"
+          preserveAspectRatio="none"
+          viewBox="0 0 1000 1000"
+        >
+          <rect
+            className="editorial-frame-line"
+            x="0.5"
+            y="0.5"
+            width="999"
+            height="999"
+            fill="none"
+            stroke={GOLD}
+            strokeWidth="1.25"
+            vectorEffect="non-scaling-stroke"
+            pathLength={100}
+            strokeDasharray="100"
+          />
+        </svg>
 
-              {/* Filigree corner ornaments — fade in after frame draws */}
+        {/* Four ornate corner flourishes (top-left base, mirrored to others) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-40">
+          <img
+            src={cornerOrnAsset.url}
+            alt=""
+            className="editorial-frame-corner absolute top-0 left-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none"
+          />
+          <img
+            src={cornerOrnAsset.url}
+            alt=""
+            className="editorial-frame-corner absolute top-0 right-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none -scale-x-100"
+          />
+          <img
+            src={cornerOrnAsset.url}
+            alt=""
+            className="editorial-frame-corner absolute bottom-0 left-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none -scale-y-100"
+          />
+          <img
+            src={cornerOrnAsset.url}
+            alt=""
+            className="editorial-frame-corner absolute bottom-0 right-0 w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] h-auto select-none -scale-100"
+          />
+        </div>
+
+        <div className="w-full px-5 sm:px-10 md:px-16 lg:px-20 py-10 sm:py-14 md:py-16 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:items-end">
+            {/* LEFT: name lockup */}
+            <div className="order-2 lg:order-1 flex flex-col items-center text-center lg:pb-12">
+              <h1
+                className="leading-[0.95] tracking-[0.04em] uppercase"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                <span
+                  className="block font-normal"
+                  style={{ color: CREAM, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
+                >
+                  Cristyna
+                </span>
+                <span
+                  className="block font-normal mt-1 sm:mt-2"
+                  style={{ color: GOLD, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
+                >
+                  Polentino
+                </span>
+              </h1>
+
+              {/* Divider with center diamond drawing outward */}
               <div
-                className="absolute inset-0"
+                className="relative my-4 sm:my-5 md:my-6 flex items-center justify-center"
+                style={{ width: "min(100%, 14ch)" }}
+                aria-hidden
+              >
+                <span
+                  className="editorial-divider-line block h-px w-full origin-center"
+                  style={{ backgroundColor: GOLD }}
+                />
+                <svg
+                  viewBox="0 0 16 16"
+                  className="editorial-divider-diamond absolute left-1/2 -translate-x-1/2 w-3 h-3"
+                  style={{ background: "#0e0c09" }}
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="10"
+                    height="10"
+                    transform="rotate(45 8 8)"
+                    fill={GOLD}
+                  />
+                </svg>
+              </div>
+
+              <p
+                className="uppercase mb-4 sm:mb-5"
                 style={{
-                  opacity: prefersReducedMotion ? 1 : 0,
-                  animation: prefersReducedMotion
-                    ? undefined
-                    : "editorial-corner-fade 0.9s ease-out 2.3s forwards",
+                  color: CREAM,
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "clamp(0.625rem, 1.4vw, 0.875rem)",
+                  letterSpacing: "0.35em",
                 }}
               >
-                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 md:top-4 md:left-4">
-                  <CornerOrnament rotate={0} />
-                </div>
-                <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4">
-                  <CornerOrnament rotate={90} />
-                </div>
-                <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4">
-                  <CornerOrnament rotate={180} />
-                </div>
-                <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 md:bottom-4 md:left-4">
-                  <CornerOrnament rotate={270} />
-                </div>
-              </div>
+                Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
+              </p>
+
+              <p
+                className="italic leading-relaxed max-w-md mb-5 sm:mb-6"
+                style={{
+                  color: CREAM,
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(0.95rem, 2vw, 1.25rem)",
+                }}
+              >
+                Creo impacto a través de la presencia, la actuación y el propósito.
+              </p>
+
+              <CPMonogram />
             </div>
 
-            {/* Card content */}
-            <div className="relative z-10 px-5 sm:px-8 md:px-14 py-8 sm:py-10 md:py-10 h-full">
-              <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center h-full">
-                <div className="order-2 lg:order-1 flex flex-col items-center text-center">
-                  <h1
-                    className="leading-[0.95] tracking-[0.04em] uppercase"
-                    style={{ fontFamily: "var(--font-display)" }}
-                  >
-                    <span
-                      className="block font-normal"
-                      style={{ color: CREAM, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
-                    >
-                      Cristyna
-                    </span>
-                    <span
-                      className="block font-normal mt-1 sm:mt-2"
-                      style={{ color: GOLD, fontSize: "clamp(2rem, 8vw, 4.5rem)" }}
-                    >
-                      Polentino
-                    </span>
-                  </h1>
-
-                  {/* Divider with floral ornament — stays after frame fades */}
-                  <div
-                    className="relative my-4 sm:my-5 md:my-6 flex items-center justify-center w-full max-w-[16ch]"
-                    aria-hidden
-                  >
-                    <span
-                      className="block h-px w-full origin-center"
-                      style={{
-                        backgroundColor: GOLD,
-                        transform: prefersReducedMotion ? "scaleX(1)" : "scaleX(0)",
-                        animation: prefersReducedMotion
-                          ? undefined
-                          : "editorial-divider-grow 1.5s ease-out 0.8s forwards",
-                      }}
-                    />
-                    <span
-                      className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center bg-[#0e0c09] px-1"
-                      style={{
-                        opacity: prefersReducedMotion ? 1 : 0,
-                        animation: prefersReducedMotion
-                          ? undefined
-                          : "editorial-corner-fade 0.6s ease-out 1.8s forwards",
-                      }}
-                    >
-                      <DividerOrnament />
-                    </span>
-                  </div>
-
-                  <p
-                    className="uppercase mb-4 sm:mb-5"
-                    style={{
-                      color: CREAM,
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "clamp(0.625rem, 1.4vw, 0.875rem)",
-                      letterSpacing: "0.35em",
-                    }}
-                  >
-                    Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
-                  </p>
-
-                  <p
-                    className="italic leading-relaxed max-w-md mb-5 sm:mb-6"
-                    style={{
-                      color: CREAM,
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(0.95rem, 2vw, 1.25rem)",
-                    }}
-                  >
-                    Creo impacto a través de la presencia, la actuación y el propósito.
-                  </p>
-
-                  {/* CP monogram — fades in with content, stays */}
-                  <div
-                    className="flex justify-center"
-                    style={{
-                      opacity: prefersReducedMotion ? 1 : 0,
-                      animation: prefersReducedMotion
-                        ? undefined
-                        : "editorial-corner-fade 1s ease-out 2.6s forwards",
-                    }}
-                  >
-                    <CPMonogram />
-                  </div>
-                </div>
-
-                <div className="order-1 lg:order-2 flex justify-center items-center">
-                  <img
-                    src={heroPortrait}
-                    alt="Cristyna Polentino"
-                    className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[460px] h-auto object-contain"
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                  />
-                </div>
-              </div>
+            {/* RIGHT: portrait extends to the frame bottom */}
+            <div className="order-1 lg:order-2 flex justify-center lg:justify-end items-end self-end">
+              <img
+                src={heroPortrait}
+                alt="Cristyna Polentino"
+                className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[480px] max-h-[72vh] h-auto object-contain"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+              />
             </div>
           </div>
         </div>
       </section>
+
 
 
 
