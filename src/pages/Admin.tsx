@@ -1015,30 +1015,35 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                 </Button>
               </div>
             </div>
-            <Reorder.Group
-              axis="y"
-              values={activePhotos}
-              onReorder={handleReorder}
-              className="space-y-3 list-none"
+            <DndContext
+              sensors={dndSensors}
+              collisionDetection={closestCenter}
+              onDragStart={onDndDragStart}
+              onDragEnd={onDndDragEnd}
             >
-              {activePhotos.map((p, i) => (
-                <SortableRow
-                  key={p.id}
-                  photo={p}
-                  position={i + 1}
-                  selected={selected.has(p.id)}
-                  saved={savedAltIds.has(p.id)}
-                  onSelectedChange={(v) => toggleSelect(p.id, v)}
-                  onAltChange={(v) => updateRow(p.id, { alt_text: v })}
-                  onAltBlur={() => saveAltText(p)}
-                  onPublishedChange={(v) => togglePublished(p, v)}
-                  onArchive={() => setArchived(p, true)}
-                  onDelete={() => setDeleteTarget(p)}
-                  onDragStart={() => setRowDragging(true)}
-                  onDragEnd={onReorderEnd}
-                />
-              ))}
-            </Reorder.Group>
+              <SortableContext
+                items={activePhotoIds}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-3 list-none">
+                  {activePhotos.map((p, i) => (
+                    <SortableRow
+                      key={p.id}
+                      photo={p}
+                      position={i + 1}
+                      selected={selected.has(p.id)}
+                      saved={savedAltIds.has(p.id)}
+                      onSelectedChange={(v) => toggleSelect(p.id, v)}
+                      onAltChange={(v) => updateRow(p.id, { alt_text: v })}
+                      onAltBlur={() => saveAltText(p)}
+                      onPublishedChange={(v) => togglePublished(p, v)}
+                      onArchive={() => setArchived(p, true)}
+                      onDelete={() => setDeleteTarget(p)}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
           </>
         )}
 
