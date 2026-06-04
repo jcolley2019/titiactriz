@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,10 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
 import { LinkCard } from "@/components/Cards";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import CosmicBackground from "@/components/CosmicBackground";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
 import ParallaxImage from "@/components/ParallaxImage";
+import Gallery from "@/components/Gallery";
 
 // Images
 const heroImage = "/cristyna-hero.webp";
@@ -32,25 +32,8 @@ import miami1Image from "@/assets/cristyna-miami1.jpg";
 import miami3Image from "@/assets/cristyna-miami3.webp";
 import miami2Image from "@/assets/cristyna-miami2.webp";
 import miami4Image from "@/assets/cristyna-miami4.webp";
-import gallery1Image from "@/assets/cristyna-gallery1.webp";
-import gallery2Image from "@/assets/cristyna-gallery2.webp";
-import gallery3Image from "@/assets/cristyna-gallery3.webp";
-import gallery4Image from "@/assets/cristyna-gallery4.webp";
-import gallery5Image from "@/assets/cristyna-gallery5.webp";
-import gallery6Image from "@/assets/cristyna-gallery6.webp";
-import gallery7Image from "@/assets/cristyna-gallery7.webp";
-import gallery8Image from "@/assets/cristyna-gallery8.webp";
-import gallery9Image from "@/assets/cristyna-gallery9.webp";
-import gallery10Image from "@/assets/cristyna-gallery10.webp";
-import gallery11Image from "@/assets/cristyna-gallery11.webp";
 
-const galleryImages = [
-  miami4Image, titi5Image, sunsetImage, lifestyleImage, 
-  poolImage, titi3Image, miami1Image, miami3Image,
-  gallery1Image, gallery2Image, gallery3Image, gallery4Image,
-  gallery5Image, gallery6Image, gallery7Image, miami2Image,
-  gallery8Image, gallery9Image, gallery10Image, gallery11Image
-];
+
 
 // Contact form validation schema
 const contactSchema = z.object({
@@ -72,47 +55,10 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 const Index = () => {
   const { t } = useTranslation();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
-  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Intersection Observer for entrance animations
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = Number(entry.target.getAttribute('data-index'));
-            setVisibleImages((prev) => new Set([...prev, index]));
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: '50px' }
-    );
 
-    imageRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const handleImageClick = (img: string, index: number) => {
-    setSelectedImage(img);
-    setSelectedIndex(index);
-  };
-
-  const navigateLightbox = (direction: 'prev' | 'next') => {
-    const newIndex = direction === 'prev' 
-      ? (selectedIndex - 1 + galleryImages.length) % galleryImages.length
-      : (selectedIndex + 1) % galleryImages.length;
-    setSelectedIndex(newIndex);
-    setSelectedImage(galleryImages[newIndex]);
-  };
 
   const {
     register,
@@ -183,68 +129,7 @@ const Index = () => {
   };
 
 
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const container = scrollRef.current;
-      const scrollAmount = 300;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      
-      if (direction === "right") {
-        // If at or near the end, loop to start
-        if (container.scrollLeft >= maxScroll - 10) {
-          container.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: scrollAmount, behavior: "smooth" });
-        }
-      } else {
-        // If at or near the start, loop to end
-        if (container.scrollLeft <= 10) {
-          container.scrollTo({ left: maxScroll, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-        }
-      }
-    }
-  };
-
-  // Auto-scroll effect using requestAnimationFrame for smooth continuous scroll
-  const scrollAccumulator = useRef(0);
-  
-  useEffect(() => {
-    if (!isAutoScrolling) return;
-    
-    let animationId: number;
-    const speed = 0.3; // pixels per frame (accumulated for sub-pixel precision)
-    
-    const step = () => {
-      if (scrollRef.current) {
-        const container = scrollRef.current;
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        
-        scrollAccumulator.current += speed;
-        if (scrollAccumulator.current >= 1) {
-          const pixels = Math.floor(scrollAccumulator.current);
-          scrollAccumulator.current -= pixels;
-          
-          if (container.scrollLeft >= maxScroll - 1) {
-            container.scrollLeft = 0;
-          } else {
-            container.scrollLeft += pixels;
-          }
-        }
-      }
-      animationId = requestAnimationFrame(step);
-    };
-    
-    animationId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationId);
-  }, [isAutoScrolling]);
-
-  // Pause auto-scroll on hover
-  const handleMouseEnter = () => setIsAutoScrolling(false);
-  const handleMouseLeave = () => setIsAutoScrolling(true);
 
   return (
     <>
@@ -453,125 +338,9 @@ const Index = () => {
         </div>
       </Section>
 
-      {/* Image Gallery Strip */}
-      <section className="py-12 sm:py-16 relative z-10">
-        {/* Section Header */}
-        <ScrollReveal className="container-editorial text-center mb-10">
-          <p className="text-caps text-accent mb-4">{t("gallery.eyebrow")}</p>
-          <h2 className="font-serif text-3xl md:text-4xl text-foreground">{t("gallery.title")}</h2>
-        </ScrollReveal>
+      {/* Image Gallery Strip (table-driven) */}
+      <Gallery />
 
-        {/* Scroll Buttons */}
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-          aria-label={t("gallery.scrollLeft")}
-        >
-          <ChevronLeft className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-        </button>
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-          aria-label={t("gallery.scrollRight")}
-        >
-          <ChevronRight className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-        </button>
-
-        <div
-          ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide px-6"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          {galleryImages.map((img, i) => (
-            <div
-              key={i}
-              ref={(el) => (imageRefs.current[i] = el)}
-              data-index={i}
-              onClick={() => handleImageClick(img, i)}
-              className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30 ${
-                visibleImages.has(i) 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: `${(i % 6) * 100}ms` }}
-            >
-              {/* Gradient overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-              
-              {/* Gold border glow effect */}
-              <div className="absolute inset-0 rounded-sm border-2 border-accent/0 group-hover:border-accent/50 transition-all duration-500 z-20" />
-              
-              {/* Gold bar at bottom on hover */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/80 via-gold-light to-accent/80 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-30" />
-              
-              {/* Image with creative hover effects */}
-              <img
-                src={img}
-                alt={t("gallery.imageAlt", { number: i + 1 })}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:rotate-1 animate-color-reveal"
-              />
-              
-              {/* View indicator */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-0 translate-y-4">
-                <span className="text-xs tracking-[0.2em] uppercase text-foreground/90 bg-background/60 backdrop-blur px-3 py-1.5 rounded-full border border-accent/30">
-                  {t("common.view")}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Lightbox Modal */}
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
-          {/* Close button */}
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-            aria-label={t("gallery.close")}
-          >
-            <X className="w-5 h-5 text-foreground group-hover:text-gold-light" />
-          </button>
-          
-          {/* Previous button */}
-          <button
-            onClick={() => navigateLightbox('prev')}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-            aria-label={t("common.previousImage")}
-          >
-            <ChevronLeft className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-          </button>
-          
-          {/* Next button */}
-          <button
-            onClick={() => navigateLightbox('next')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-            aria-label={t("common.nextImage")}
-          >
-            <ChevronRight className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-          </button>
-          
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt={t("common.enlargedGalleryImage")}
-              className="w-full h-auto max-h-[85vh] object-contain rounded-sm animate-[fadeIn_0.3s_ease-out]"
-            />
-          )}
-          
-          {/* Image counter */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50">
-            <span className="text-sm text-foreground/80 bg-background/60 backdrop-blur px-4 py-2 rounded-full border border-border/30">
-              {selectedIndex + 1} / {galleryImages.length}
-            </span>
-          </div>
-        </DialogContent>
-      </Dialog>
 
 
       {/* Featured Links Section */}
