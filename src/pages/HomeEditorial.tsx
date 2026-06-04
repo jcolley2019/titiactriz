@@ -62,7 +62,7 @@ const HomeEditorial = () => {
 
   useEffect(() => {
     if (prefersReducedMotion) return;
-    const t1 = window.setTimeout(() => setFrameVisible(false), 7500);
+    const t1 = window.setTimeout(() => setFrameVisible(false), 7000); // 0.8s delay + 1.5s draw + 0.6s corners + ~4s hold
     return () => window.clearTimeout(t1);
   }, [prefersReducedMotion]);
 
@@ -107,152 +107,160 @@ const HomeEditorial = () => {
       <CosmicBackground />
 
       {/* ===== EDITORIAL HERO ===== */}
-      <section className="relative min-h-[100vh] flex items-center overflow-hidden bg-background">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-4 sm:inset-6 md:inset-8 z-20 transition-opacity duration-[1500ms]"
-          style={{ opacity: frameVisible ? 1 : 0 }}
-        >
-          <svg
-            className="absolute inset-0 w-full h-full overflow-visible"
-            preserveAspectRatio="none"
-            viewBox="0 0 1000 1000"
-          >
-            {/* Outer perimeter — 4 sides, each drawing outward from its corner */}
-            {[
-              // top side: left → right
-              "M 0 0 L 1000 0",
-              // right side: top → bottom
-              "M 1000 0 L 1000 1000",
-              // bottom side: right → left
-              "M 1000 1000 L 0 1000",
-              // left side: bottom → top
-              "M 0 1000 L 0 0",
-            ].map((d, i) => (
-              <path
-                key={i}
-                d={d}
-                fill="none"
-                stroke={GOLD}
-                strokeWidth="1.25"
-                vectorEffect="non-scaling-stroke"
-                pathLength={100}
-                strokeDasharray="100"
-                strokeDashoffset={prefersReducedMotion ? 0 : 100}
-                style={{
-                  animation: prefersReducedMotion
-                    ? undefined
-                    : `editorial-frame-draw 1.8s ease-out ${i * 0.45}s forwards`,
-                }}
-              />
-            ))}
-
-            {/* Inner L-shaped corner accents — draw after the perimeter completes */}
-            {[
-              // top-left:  ──┐ then │
-              "M 20 40 L 20 20 L 40 20",
-              // top-right
-              "M 960 20 L 980 20 L 980 40",
-              // bottom-right
-              "M 980 960 L 980 980 L 960 980",
-              // bottom-left
-              "M 40 980 L 20 980 L 20 960",
-            ].map((d, i) => (
-              <path
-                key={`c${i}`}
-                d={d}
-                fill="none"
-                stroke={GOLD}
-                strokeWidth="1.25"
-                vectorEffect="non-scaling-stroke"
-                pathLength={100}
-                strokeDasharray="100"
-                strokeDashoffset={prefersReducedMotion ? 0 : 100}
-                style={{
-                  animation: prefersReducedMotion
-                    ? undefined
-                    : "editorial-frame-draw 0.9s ease-out 2.4s forwards",
-                }}
-              />
-            ))}
-          </svg>
-        </div>
-
-        <div className="container-editorial relative z-10 pt-28 pb-16 sm:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
-            <div className="order-2 lg:order-1 flex flex-col items-center text-center">
-              <h1
-                className="leading-[0.95] tracking-[0.04em] uppercase"
-                style={{ fontFamily: "var(--font-display)" }}
+      <section
+        className="relative min-h-[100vh] flex items-center overflow-hidden"
+        style={{ backgroundColor: "#0e0c09" }}
+      >
+        <div className="w-full px-4 sm:px-6 pt-32 pb-16 md:pt-36 md:pb-20">
+          {/* Centered hero card — frame draws around THIS */}
+          <div className="relative mx-auto w-full max-w-[1150px] aspect-[16/10] md:aspect-[16/9] min-h-[560px] md:min-h-0">
+            {/* Animated gold frame (around the card) */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-[1500ms]"
+              style={{ opacity: frameVisible ? 1 : 0 }}
+            >
+              <svg
+                className="absolute inset-0 w-full h-full overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 1000 1000"
               >
-                <span
-                  className="block text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl font-normal"
-                  style={{ color: CREAM }}
-                >
-                  Cristyna
-                </span>
-                <span
-                  className="block text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl font-normal mt-2"
-                  style={{ color: GOLD }}
-                >
-                  Polentino
-                </span>
-              </h1>
+                {/* Perimeter — 4 sides draw simultaneously after a short beat */}
+                {[
+                  "M 0 0 L 1000 0",
+                  "M 1000 0 L 1000 1000",
+                  "M 1000 1000 L 0 1000",
+                  "M 0 1000 L 0 0",
+                ].map((d, i) => (
+                  <path
+                    key={i}
+                    d={d}
+                    fill="none"
+                    stroke={GOLD}
+                    strokeWidth="1.25"
+                    vectorEffect="non-scaling-stroke"
+                    pathLength={100}
+                    strokeDasharray="100"
+                    strokeDashoffset={prefersReducedMotion ? 0 : 100}
+                    style={{
+                      animation: prefersReducedMotion
+                        ? undefined
+                        : "editorial-frame-draw 1.5s ease-out 0.8s forwards",
+                    }}
+                  />
+                ))}
 
-              <div
-                className="relative my-6 sm:my-8 flex items-center justify-center w-full max-w-[14ch]"
-                aria-hidden
-              >
-                <span
-                  className="block h-px w-full origin-center"
-                  style={{
-                    backgroundColor: GOLD,
-                    transform: prefersReducedMotion ? "scaleX(1)" : "scaleX(0)",
-                    animation: prefersReducedMotion
-                      ? undefined
-                      : "editorial-divider-grow 2.4s ease-out forwards",
-                  }}
-                />
-                <span
-                  className="absolute left-1/2 -translate-x-1/2 rotate-45 w-2 h-2"
-                  style={{
-                    backgroundColor: GOLD,
-                    opacity: prefersReducedMotion ? 1 : 0,
-                    animation: prefersReducedMotion
-                      ? undefined
-                      : "editorial-corner-fade 0.8s ease-out 2.0s forwards",
-                  }}
-                />
-              </div>
-
-              <p
-                className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.35em] mb-6"
-                style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
-              >
-                Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
-              </p>
-
-              <p
-                className="italic text-lg sm:text-xl md:text-2xl leading-relaxed max-w-md"
-                style={{ color: CREAM, fontFamily: "var(--font-display)" }}
-              >
-                Creo impacto a través de la presencia, la actuación y el propósito.
-              </p>
+                {/* Ornamental corner accents — small flourishes */}
+                {[
+                  // top-left
+                  "M 14 44 L 14 14 L 44 14 M 14 26 L 26 14 M 22 14 L 14 22",
+                  // top-right
+                  "M 956 14 L 986 14 L 986 44 M 974 14 L 986 26 M 986 22 L 978 14",
+                  // bottom-right
+                  "M 986 956 L 986 986 L 956 986 M 986 974 L 974 986 M 978 986 L 986 978",
+                  // bottom-left
+                  "M 44 986 L 14 986 L 14 956 M 26 986 L 14 974 M 14 978 L 22 986",
+                ].map((d, i) => (
+                  <path
+                    key={`c${i}`}
+                    d={d}
+                    fill="none"
+                    stroke={GOLD}
+                    strokeWidth="1.25"
+                    vectorEffect="non-scaling-stroke"
+                    pathLength={100}
+                    strokeDasharray="100"
+                    strokeDashoffset={prefersReducedMotion ? 0 : 100}
+                    style={{
+                      animation: prefersReducedMotion
+                        ? undefined
+                        : "editorial-frame-draw 0.6s ease-out 2.3s forwards",
+                    }}
+                  />
+                ))}
+              </svg>
             </div>
 
-            <div className="order-1 lg:order-2 flex justify-center items-center">
-              <img
-                src={heroPortrait}
-                alt="Cristyna Polentino"
-                className="w-full max-w-[520px] h-auto max-h-[80vh] object-contain"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
+            {/* Card content */}
+            <div className="relative z-10 h-full px-6 sm:px-10 md:px-14 py-8 md:py-10">
+              <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center h-full">
+                <div className="order-2 lg:order-1 flex flex-col items-center text-center">
+                  <h1
+                    className="leading-[0.95] tracking-[0.04em] uppercase"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    <span
+                      className="block text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-normal"
+                      style={{ color: CREAM }}
+                    >
+                      Cristyna
+                    </span>
+                    <span
+                      className="block text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-normal mt-2"
+                      style={{ color: GOLD }}
+                    >
+                      Polentino
+                    </span>
+                  </h1>
+
+                  <div
+                    className="relative my-5 sm:my-6 flex items-center justify-center w-full max-w-[14ch]"
+                    aria-hidden
+                  >
+                    <span
+                      className="block h-px w-full origin-center"
+                      style={{
+                        backgroundColor: GOLD,
+                        transform: prefersReducedMotion ? "scaleX(1)" : "scaleX(0)",
+                        animation: prefersReducedMotion
+                          ? undefined
+                          : "editorial-divider-grow 1.5s ease-out 0.8s forwards",
+                      }}
+                    />
+                    <span
+                      className="absolute left-1/2 -translate-x-1/2 rotate-45 w-2 h-2"
+                      style={{
+                        backgroundColor: GOLD,
+                        opacity: prefersReducedMotion ? 1 : 0,
+                        animation: prefersReducedMotion
+                          ? undefined
+                          : "editorial-corner-fade 0.6s ease-out 2.0s forwards",
+                      }}
+                    />
+                  </div>
+
+                  <p
+                    className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.35em] mb-5"
+                    style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
+                  >
+                    Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
+                  </p>
+
+                  <p
+                    className="italic text-base sm:text-lg md:text-xl leading-relaxed max-w-md"
+                    style={{ color: CREAM, fontFamily: "var(--font-display)" }}
+                  >
+                    Creo impacto a través de la presencia, la actuación y el propósito.
+                  </p>
+                </div>
+
+                <div className="order-1 lg:order-2 flex justify-center items-center h-full">
+                  <img
+                    src={heroPortrait}
+                    alt="Cristyna Polentino"
+                    className="w-full max-w-[460px] h-full max-h-full object-contain"
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
+
+
 
       <section className="py-10 sm:py-14 md:py-16 relative z-10">
         <div className="container-editorial text-center">
