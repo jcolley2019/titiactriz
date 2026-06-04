@@ -235,22 +235,6 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-            <button
-              onClick={() => nudge("right")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-              aria-label={t("gallery.scrollRight")}
-            >
-              <ChevronRight className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-            </button>
-          </>
-        )}
-
-        <div
-          ref={viewportRef}
-          className="overflow-hidden px-6"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
           {loading ? (
             <div className="flex gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
