@@ -471,6 +471,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         alt_text: null,
         sort_order: nextSort,
         is_published: true,
+        content_hash: preview.contentHash ?? null,
       });
       if (insErr) throw insErr;
 
