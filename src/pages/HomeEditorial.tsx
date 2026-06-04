@@ -20,6 +20,8 @@ import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
+import cpMonogram from "@/assets/cp-monogram.png.asset.json";
+
 
 const heroPortrait = "/hero-portrait.webp";
 
@@ -139,29 +141,15 @@ const HomeEditorial = () => {
 
   // CP monogram with vine flourish below
   const CPMonogram = () => (
-    <svg viewBox="0 0 140 130" className="w-[78px] sm:w-[92px] md:w-[108px] h-auto" aria-hidden>
-      {/* C — cream/white */}
-      <g fill="none" stroke={CREAM} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M70 22 C 42 22, 28 42, 28 62 C 28 82, 44 100, 70 100" />
-      </g>
-      {/* P — gold */}
-      <g fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M70 22 L 70 110" />
-        <path d="M70 22 C 96 22, 106 34, 106 48 C 106 62, 96 72, 70 72" />
-      </g>
-      {/* vine flourish — gold */}
-      <g fill="none" stroke={GOLD} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M40 116 C 55 120, 85 120, 100 116" />
-        <path d="M52 116 C 50 112, 47 112, 46 115" />
-        <path d="M62 118 C 60 113, 56 113, 55 117" />
-        <path d="M88 116 C 90 112, 93 112, 94 115" />
-        <path d="M78 118 C 80 113, 84 113, 85 117" />
-        <path d="M70 120 C 70 124, 68 126, 66 126" />
-        <path d="M70 120 C 70 124, 72 126, 74 126" />
-        <circle cx="70" cy="118" r="1.2" fill={GOLD} />
-      </g>
-    </svg>
+    <img
+      src={cpMonogram.url}
+      alt="CP monogram"
+      className="w-[88px] sm:w-[104px] md:w-[120px] h-auto"
+      loading="lazy"
+      decoding="async"
+    />
   );
+
 
 
 
