@@ -139,32 +139,30 @@ const HomeEditorial = () => {
 
   // CP monogram with vine flourish below
   const CPMonogram = () => (
-    <div className="flex flex-col items-center" aria-hidden>
-      <span
-        className="leading-none tracking-[0.04em]"
-        style={{
-          fontFamily: "var(--font-display)",
-          color: GOLD,
-          fontSize: "clamp(2.5rem, 6vw, 3.75rem)",
-          fontWeight: 400,
-        }}
-      >
-        CP
-      </span>
-      <svg viewBox="0 0 140 24" className="w-[78px] sm:w-[92px] md:w-[108px] h-auto mt-1">
-        <g fill="none" stroke={GOLD} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M40 10 C 55 14, 85 14, 100 10" />
-          <path d="M52 10 C 50 6, 47 6, 46 9" />
-          <path d="M62 12 C 60 7, 56 7, 55 11" />
-          <path d="M88 10 C 90 6, 93 6, 94 9" />
-          <path d="M78 12 C 80 7, 84 7, 85 11" />
-          <path d="M70 14 C 70 18, 68 20, 66 20" />
-          <path d="M70 14 C 70 18, 72 20, 74 20" />
-          <circle cx="70" cy="12" r="1.2" fill={GOLD} />
-        </g>
-      </svg>
-    </div>
+    <svg viewBox="0 0 140 130" className="w-[78px] sm:w-[92px] md:w-[108px] h-auto" aria-hidden>
+      {/* C — cream/white */}
+      <g fill="none" stroke={CREAM} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M70 22 C 42 22, 28 42, 28 62 C 28 82, 44 100, 70 100" />
+      </g>
+      {/* P — gold */}
+      <g fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M70 22 L 70 110" />
+        <path d="M70 22 C 96 22, 106 34, 106 48 C 106 62, 96 72, 70 72" />
+      </g>
+      {/* vine flourish — gold */}
+      <g fill="none" stroke={GOLD} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M40 116 C 55 120, 85 120, 100 116" />
+        <path d="M52 116 C 50 112, 47 112, 46 115" />
+        <path d="M62 118 C 60 113, 56 113, 55 117" />
+        <path d="M88 116 C 90 112, 93 112, 94 115" />
+        <path d="M78 118 C 80 113, 84 113, 85 117" />
+        <path d="M70 120 C 70 124, 68 126, 66 126" />
+        <path d="M70 120 C 70 124, 72 126, 74 126" />
+        <circle cx="70" cy="118" r="1.2" fill={GOLD} />
+      </g>
+    </svg>
   );
+
 
 
   return (
