@@ -58,4 +58,4 @@ const LivePreviewDock = ({ photos, isDragging = false }: Props) => {
   );
 };
 
-export default LivePreviewDock;
+export default memo(LivePreviewDock);
