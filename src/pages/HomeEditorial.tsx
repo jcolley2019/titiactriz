@@ -139,27 +139,15 @@ const HomeEditorial = () => {
     </svg>
   );
 
-  // CP monogram — rendered as TEXT in the same display font as the hero name
+  // CP monogram — uses uploaded transparent PNG
   const CPMonogram = () => (
-    <div className="flex flex-col items-center gap-1.5" aria-hidden>
-      <div
-        className="flex items-baseline leading-none"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "clamp(2.6rem, 9vw, 4.5rem)",
-          fontWeight: 400,
-        }}
-      >
-        <span style={{ color: "#ffffff" }}>C</span>
-        <span style={{ color: GOLD, marginLeft: "-0.45em" }}>P</span>
-      </div>
-      <svg width="92" height="18" viewBox="0 0 92 18" fill="none" className="max-w-[60%] h-auto">
-        <path d="M28 9 C40 3 50 6 54 12 C58 6 68 3 80 9" stroke={GOLD} strokeWidth="1.2" strokeLinecap="round" />
-        <path d="M49 12 C47 6 50 3 54 6" stroke={GOLD} strokeWidth="1.2" strokeLinecap="round" />
-        <path d="M59 12 C61 6 58 3 54 6" stroke={GOLD} strokeWidth="1.2" strokeLinecap="round" />
-        <circle cx="54" cy="13.5" r="1.5" fill={GOLD} />
-      </svg>
-    </div>
+    <img
+      src={cpMonogramAsset.url}
+      alt="Cristyna Polentino CP monogram"
+      className="w-[80px] sm:w-[100px] md:w-[110px] lg:w-[125px] h-auto"
+      loading="lazy"
+      decoding="async"
+    />
   );
 
 
