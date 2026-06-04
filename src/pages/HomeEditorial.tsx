@@ -206,25 +206,25 @@ const HomeEditorial = () => {
             aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute -top-px -left-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20"
+            className="editorial-frame-corner absolute top-2 left-2 md:top-3 md:left-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20"
           />
           <img
             aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute -top-px -right-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-x-100"
+            className="editorial-frame-corner absolute top-2 right-2 md:top-3 md:right-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-x-100"
           />
           <img
             aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute -bottom-px -left-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-y-100"
+            className="editorial-frame-corner absolute bottom-2 left-2 md:bottom-3 md:left-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-y-100"
           />
           <img
             aria-hidden
             src={cornerOrnAsset.url}
             alt=""
-            className="editorial-frame-corner absolute -bottom-px -right-px w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-100"
+            className="editorial-frame-corner absolute bottom-2 right-2 md:bottom-3 md:right-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-100"
           />
 
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
