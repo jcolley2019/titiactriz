@@ -940,7 +940,15 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       <section>
         <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
           <div>
-            <h2 className="font-serif text-xl text-foreground">Photos</h2>
+            <h2 className="font-serif text-xl text-foreground">
+              Photos{" "}
+              <span className="text-sm text-muted-foreground font-sans">
+                · {activePhotos.length} photo{activePhotos.length === 1 ? "" : "s"}
+              </span>
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              {activePhotos.length} live — galleries look best around 20 to 30.
+            </p>
             {missingAltCount > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
@@ -952,7 +960,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
         {loading ? (
           <p className="text-muted-foreground text-sm">Loading…</p>
-        ) : photos.length === 0 ? (
+        ) : activePhotos.length === 0 ? (
           <p className="text-muted-foreground text-sm">No photos yet.</p>
         ) : (
           <>
@@ -985,76 +993,82 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                 </Button>
               </div>
             </div>
-            <ul className="space-y-3">
-              {photos.map((p) => {
-                const missingAlt = !p.alt_text || p.alt_text.trim() === "";
-                return (
+            <Reorder.Group
+              axis="y"
+              values={activePhotos}
+              onReorder={handleReorder}
+              className="space-y-3 list-none"
+            >
+              {activePhotos.map((p, i) => (
+                <SortableRow
+                  key={p.id}
+                  photo={p}
+                  position={i + 1}
+                  selected={selected.has(p.id)}
+                  saved={savedAltIds.has(p.id)}
+                  onSelectedChange={(v) => toggleSelect(p.id, v)}
+                  onAltChange={(v) => updateRow(p.id, { alt_text: v })}
+                  onAltBlur={() => saveAltText(p)}
+                  onPublishedChange={(v) => togglePublished(p, v)}
+                  onArchive={() => setArchived(p, true)}
+                  onDelete={() => setDeleteTarget(p)}
+                  onDragStart={() => setRowDragging(true)}
+                  onDragEnd={onReorderEnd}
+                />
+              ))}
+            </Reorder.Group>
+          </>
+        )}
+
+        {/* Archived drawer */}
+        {archivedPhotos.length > 0 && (
+          <div className="mt-10 border-t border-border pt-6">
+            <button
+              type="button"
+              onClick={() => setArchivedOpen((v) => !v)}
+              className="flex items-center gap-2 text-sm text-foreground hover:text-accent transition-colors"
+              aria-expanded={archivedOpen}
+            >
+              {archivedOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+              Archived ({archivedPhotos.length})
+            </button>
+            {archivedOpen && (
+              <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {archivedPhotos.map((p) => (
                   <li
                     key={p.id}
-                    className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_88px_1fr_120px_auto_auto] md:items-center"
+                    className="bg-card border border-border rounded-lg p-3 flex flex-col gap-2"
                   >
-                    <Checkbox
-                      checked={selected.has(p.id)}
-                      onCheckedChange={(v) => toggleSelect(p.id, v === true)}
-                    />
                     <img
                       src={p.image_url}
                       alt={p.alt_text ?? ""}
-                      className="object-cover rounded-md border border-border"
-                      style={{ width: 88, height: 88 }}
                       loading="lazy"
+                      className="w-full aspect-square object-cover rounded-md border border-border"
                     />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs text-muted-foreground">Alt text</Label>
-                        {missingAlt && (
-                          <span
-                            title="Needs alt text"
-                            className="inline-block w-2 h-2 rounded-full bg-amber-500"
-                          />
-                        )}
-                      </div>
-                      <Input
-                        value={p.alt_text ?? ""}
-                        onChange={(e) => updateRow(p.id, { alt_text: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Sort order</Label>
-                      <Input
-                        type="number"
-                        value={p.sort_order}
-                        onChange={(e) => updateRow(p.id, { sort_order: Number(e.target.value) })}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={p.is_published}
-                        onCheckedChange={(v) => togglePublished(p, v)}
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        {p.is_published ? "Published" : "Hidden"}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground truncate">
+                        {p.alt_text || "Untitled"}
                       </span>
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => saveRow(p)}>
-                        Save
-                      </Button>
                       <Button
                         size="sm"
-                        variant="destructive"
-                        onClick={() => setDeleteTarget(p)}
+                        variant="outline"
+                        onClick={() => setArchived(p, false)}
                       >
-                        Delete
+                        Restore
                       </Button>
                     </div>
                   </li>
-                );
-              })}
-            </ul>
-          </>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </section>
+
 
 
       <AlertDialog
