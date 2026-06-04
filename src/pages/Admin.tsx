@@ -231,15 +231,33 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setQueue((prev) => prev.map((q) => (q.id === id ? { ...q, ...patch } : q)));
   };
 
+  const processItem = async (item: QueueItem) => {
+    try {
+      updateQueueItem(item.id, {
+        status: isHeic(item.file) ? "converting" : "optimizing",
+        error: undefined,
+      });
+      const { blob } = await optimizeFile(item.file);
+      updateQueueItem(item.id, { status: "uploading", optimizedSize: blob.size });
+      const image_url = await uploadBlob(blob);
+      const { error: insErr } = await supabase.from("gallery_photos").insert({
+        image_url,
+        alt_text: null,
+        sort_order: item.sortOrder,
+        is_published: true,
+      });
+      if (insErr) throw insErr;
+      updateQueueItem(item.id, { status: "done" });
+      return true;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed";
+      updateQueueItem(item.id, { status: "failed", error: msg });
+      return false;
+    }
+  };
+
   const runBatch = async (files: File[]) => {
     setBatchRunning(true);
-    const items: QueueItem[] = files.map((f) => ({
-      id: crypto.randomUUID(),
-      name: f.name,
-      size: f.size,
-      status: "queued",
-    }));
-    setQueue(items);
 
     // Determine base sort_order
     const { data: maxRow } = await supabase
@@ -250,45 +268,39 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .maybeSingle();
     const baseSort = (maxRow?.sort_order ?? 0) + 1;
 
-    let nextIndex = 0;
-    const tasks = files.map((file, i) => ({ file, item: items[i], orderIndex: i }));
+    const items: QueueItem[] = files.map((f, i) => ({
+      id: crypto.randomUUID(),
+      name: f.name,
+      size: f.size,
+      status: "queued",
+      file: f,
+      sortOrder: baseSort + i,
+    }));
+    setQueue(items);
 
+    let nextIndex = 0;
     const worker = async () => {
       while (true) {
         const idx = nextIndex++;
-        if (idx >= tasks.length) return;
-        const { file, item, orderIndex } = tasks[idx];
-        try {
-          if (isHeic(file)) {
-            updateQueueItem(item.id, { status: "converting" });
-          } else {
-            updateQueueItem(item.id, { status: "optimizing" });
-          }
-          const { blob } = await optimizeFile(file);
-          updateQueueItem(item.id, { status: "uploading", optimizedSize: blob.size });
-          const image_url = await uploadBlob(blob);
-          const { error: insErr } = await supabase.from("gallery_photos").insert({
-            image_url,
-            alt_text: null,
-            sort_order: baseSort + orderIndex,
-            is_published: true,
-          });
-          if (insErr) throw insErr;
-          updateQueueItem(item.id, { status: "done" });
-        } catch (e: unknown) {
-          const msg = e instanceof Error ? e.message : "Failed";
-          updateQueueItem(item.id, { status: "failed", error: msg });
-        }
+        if (idx >= items.length) return;
+        await processItem(items[idx]);
       }
     };
 
-    const concurrency = Math.min(3, tasks.length);
+    const concurrency = Math.min(3, items.length);
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
     setBatchRunning(false);
     await load();
     toast({ title: "Batch complete" });
   };
+
+  const retryItem = async (item: QueueItem) => {
+    updateQueueItem(item.id, { status: "queued", error: undefined });
+    const ok = await processItem(item);
+    if (ok) await load();
+  };
+
 
   const handleFiles = (fileList: FileList | File[] | null) => {
     setFileError(null);
