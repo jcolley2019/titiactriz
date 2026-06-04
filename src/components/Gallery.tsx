@@ -118,7 +118,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       const delta = (time - lastTimeRef.current) / 1000;
       lastTimeRef.current = time;
 
-      if (!isPaused) {
+      if (!isPaused && !pauseAutoScroll) {
         // Track contains 2 copies; one set width = trackWidth / 2
         const halfWidth = track.scrollWidth / 2;
         if (halfWidth > 0) {
