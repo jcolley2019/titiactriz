@@ -245,8 +245,8 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
                     data-index={originalIndex}
                     onClick={() => handleImageClick(originalIndex)}
                     aria-hidden={i >= photos.length ? true : undefined}
-                    className={`flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30 ${
-                      i >= photos.length || visibleImages.has(originalIndex)
+                    className={`${tileClass} ${
+                      compact || i >= photos.length || visibleImages.has(originalIndex)
                         ? "opacity-100 translate-y-0"
                         : "opacity-0 translate-y-8"
                     }`}
