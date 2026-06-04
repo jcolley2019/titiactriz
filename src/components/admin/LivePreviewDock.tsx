@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ChevronDown, ChevronUp, Eye } from "lucide-react";
 import Gallery from "@/components/Gallery";
 
