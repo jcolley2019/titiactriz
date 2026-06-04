@@ -214,7 +214,7 @@ const HomeEditorial = () => {
 
               <p
                 className="italic text-lg sm:text-xl md:text-2xl leading-relaxed max-w-md"
-                style={{ color: CREAM, fontFamily: "var(--font-display)" }}
+                style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
               >
                 Creo impacto a través de la presencia, la actuación y el propósito.
               </p>
