@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -24,6 +24,7 @@ const OPTIONS: { value: HomeVariant; label: string; description: string }[] = [
 const HomeVariantToggle = () => {
   const [variant, setVariantState] = useState<HomeVariant | null>(null);
   const [saving, setSaving] = useState<HomeVariant | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     fetchHomeVariant().then(setVariantState);
@@ -48,14 +49,35 @@ const HomeVariantToggle = () => {
   };
 
   return (
-    <section className="bg-card border border-border rounded-lg p-6 mb-10">
-      <h2 className="font-serif text-xl text-foreground mb-1">Home page variant</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Choose which landing page renders at <span className="font-mono">/</span>. Changes are live
-        immediately for all visitors.
-      </p>
+    <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-3 p-6 text-left hover:bg-accent/5 transition-colors"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-3">
+          {open ? (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          )}
+          <div>
+            <h2 className="font-serif text-xl text-foreground">Home page variant</h2>
+            <p className="text-sm text-muted-foreground">
+              Choose which landing page renders at <span className="font-mono">/</span>.
+            </p>
+          </div>
+        </div>
+        {variant && (
+          <span className="text-xs uppercase tracking-wider text-accent shrink-0">
+            {variant}
+          </span>
+        )}
+      </button>
 
-      <div className="grid sm:grid-cols-2 gap-3">
+      {open && (
+        <div className="px-6 pb-6 grid sm:grid-cols-2 gap-3">
         {OPTIONS.map((opt) => {
           const active = variant === opt.value;
           const isSaving = saving === opt.value;
