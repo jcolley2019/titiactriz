@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -21,6 +21,7 @@ import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
 import cpMonogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
+import cornerOrnAsset from "@/assets/cp-corner-ornament.png.asset.json";
 
 
 const heroPortrait = "/hero-portrait.webp";
@@ -50,10 +51,8 @@ const HomeEditorial = () => {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [frameVisible, setFrameVisible] = useState(true);
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [play, setPlay] = useState(false);
 
   const {
     register,
@@ -63,10 +62,15 @@ const HomeEditorial = () => {
   } = useForm<ContactFormData>({ resolver: zodResolver(contactSchema) });
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
-    const t1 = window.setTimeout(() => setFrameVisible(false), 7000);
-    return () => window.clearTimeout(t1);
-  }, [prefersReducedMotion]);
+    const el = heroRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => setPlay(e.isIntersecting),
+      { threshold: 0.35 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
