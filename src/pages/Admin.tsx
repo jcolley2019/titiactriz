@@ -201,6 +201,117 @@ const uploadBlob = async (blob: Blob): Promise<string> => {
   return pub.publicUrl;
 };
 
+/* ---------------- Sortable photo row ---------------- */
+type SortableRowProps = {
+  photo: Photo;
+  position: number;
+  selected: boolean;
+  saved: boolean;
+  onSelectedChange: (v: boolean) => void;
+  onAltChange: (v: string) => void;
+  onAltBlur: () => void;
+  onPublishedChange: (v: boolean) => void;
+  onArchive: () => void;
+  onDelete: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+};
+
+const SortableRow = ({
+  photo,
+  position,
+  selected,
+  saved,
+  onSelectedChange,
+  onAltChange,
+  onAltBlur,
+  onPublishedChange,
+  onArchive,
+  onDelete,
+  onDragStart,
+  onDragEnd,
+}: SortableRowProps) => {
+  const controls = useDragControls();
+  const missingAlt = !photo.alt_text || photo.alt_text.trim() === "";
+  return (
+    <Reorder.Item
+      value={photo}
+      dragListener={false}
+      dragControls={controls}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
+    >
+      <button
+        type="button"
+        onPointerDown={(e) => {
+          controls.start(e);
+          onDragStart();
+        }}
+        className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+      <Checkbox
+        checked={selected}
+        onCheckedChange={(v) => onSelectedChange(v === true)}
+      />
+      <span className="text-xs text-muted-foreground tabular-nums w-6 text-center">
+        {position}
+      </span>
+      <img
+        src={photo.image_url}
+        alt={photo.alt_text ?? ""}
+        className="object-cover rounded-md border border-border"
+        style={{ width: 88, height: 88 }}
+        loading="lazy"
+      />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label className="text-xs text-muted-foreground">Alt text</Label>
+          {missingAlt && (
+            <span
+              title="Needs alt text"
+              className="inline-block w-2 h-2 rounded-full bg-amber-500"
+            />
+          )}
+          {saved && (
+            <span className="text-xs text-[hsl(var(--gold-light))]">Saved</span>
+          )}
+        </div>
+        <Input
+          value={photo.alt_text ?? ""}
+          onChange={(e) => onAltChange(e.target.value)}
+          onBlur={onAltBlur}
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
+        <span className="text-xs text-muted-foreground">
+          {photo.is_published ? "Published" : "Hidden"}
+        </span>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="sm" variant="ghost" aria-label="More" className="px-2">
+            <MoreVertical className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => onArchive()}>Archive</DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => onDelete()}
+            className="text-destructive focus:text-destructive"
+          >
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </Reorder.Item>
+  );
+};
+
 /* ---------------- Management Panel ---------------- */
 const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
