@@ -104,8 +104,11 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
     return () => observer.disconnect();
   }, [photos]);
 
-  // Seamless marquee auto-scroll via transform on duplicated track
+  // Seamless marquee auto-scroll via transform on duplicated track.
+  // Compact mode (admin dock) uses a pure CSS keyframe so it can't be restarted
+  // by parent re-renders. Full mode keeps the rAF loop.
   useEffect(() => {
+    if (compact) return;
     if (photos.length === 0 || prefersReducedMotion) return;
     const track = trackRef.current;
     if (!track) return;
@@ -136,7 +139,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       cancelAnimationFrame(animationId);
       lastTimeRef.current = null;
     };
-  }, [photos, isPaused, prefersReducedMotion, pauseAutoScroll]);
+  }, [photos, isPaused, prefersReducedMotion, pauseAutoScroll, compact]);
 
   const nudge = (direction: "left" | "right") => {
     const track = trackRef.current;
