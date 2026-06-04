@@ -318,13 +318,13 @@ const HomeEditorial = () => {
               </div>
 
               {/* Monogram hands off to CTA buttons (same grid cell, no layout shift) */}
-              <div className="relative mt-6 w-full flex items-center justify-center min-h-[64px]">
+              <div className="relative mx-auto mt-8 flex min-h-[64px] w-full items-center justify-center">
                 <img
                   src={cpMonogramAsset.url}
                   alt="CP monogram"
                   draggable={false}
                   aria-hidden
-                  className="editorial-monogram absolute left-1/2 -translate-x-1/2 h-auto w-[90px] md:w-[120px] select-none pointer-events-none"
+                  className="editorial-monogram pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-auto w-[90px] md:w-[120px] select-none"
                 />
                 <div
                   className="editorial-cta flex flex-wrap items-center justify-center gap-3 sm:gap-4"
