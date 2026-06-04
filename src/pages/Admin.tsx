@@ -1077,9 +1077,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this photo?</AlertDialogTitle>
+            <AlertDialogTitle>Delete permanently?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the database row and the file from storage. This cannot be undone.
+              This cannot be undone. The photo and its file will be removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
