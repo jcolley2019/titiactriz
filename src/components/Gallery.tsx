@@ -136,7 +136,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       cancelAnimationFrame(animationId);
       lastTimeRef.current = null;
     };
-  }, [photos, isPaused, prefersReducedMotion]);
+  }, [photos, isPaused, prefersReducedMotion, pauseAutoScroll]);
 
   const nudge = (direction: "left" | "right") => {
     const track = trackRef.current;
