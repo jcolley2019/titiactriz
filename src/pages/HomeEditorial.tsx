@@ -66,6 +66,37 @@ const HomeEditorial = () => {
     return () => window.clearTimeout(t1);
   }, [prefersReducedMotion]);
 
+  const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true);
+    try {
+      const { data: responseData, error } = await supabase.functions.invoke("send-contact", {
+        body: { type: "general", name: data.name, email: data.email, message: data.message },
+      });
+      if (error || responseData?.error) {
+        alert(responseData?.error || "There was an error sending your message. Please try again.");
+        return;
+      }
+      try {
+        await fetch("https://formspree.io/f/maqzwogl", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            message: data.message,
+            _subject: `New contact form submission from ${data.name}`,
+          }),
+        });
+      } catch {}
+      setSubmitSuccess(true);
+      reset();
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
   // Delicate gold filigree corner ornament — drawn in a 100x100 viewBox.
   // Faces top-left by default; rotated for the other 3 corners.
   const CornerOrnament = ({ rotate = 0 }: { rotate?: number }) => (
