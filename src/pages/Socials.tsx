@@ -1,5 +1,5 @@
-import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import { Instagram, Youtube, Facebook } from "lucide-react";
 import { Section, SectionHeader } from "@/components/Section";
 import TikTokIcon from "@/components/icons/TikTokIcon";
