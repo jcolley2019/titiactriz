@@ -281,6 +281,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         alt_text: null,
         sort_order: item.sortOrder,
         is_published: true,
+        content_hash: item.contentHash ?? null,
       });
       if (insErr) throw insErr;
       updateQueueItem(item.id, { status: "done" });
@@ -290,6 +291,21 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       updateQueueItem(item.id, { status: "failed", error: msg });
       return false;
     }
+  };
+
+  const startBatch = async (items: QueueItem[]) => {
+    let nextIndex = 0;
+    const worker = async () => {
+      while (true) {
+        const idx = nextIndex++;
+        if (idx >= items.length) return;
+        const it = items[idx];
+        if (it.status === "duplicate" || it.status === "skipped") continue;
+        await processItem(it);
+      }
+    };
+    const concurrency = Math.min(3, items.length);
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
   };
 
   const runBatch = async (files: File[]) => {
@@ -304,31 +320,63 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .maybeSingle();
     const baseSort = (maxRow?.sort_order ?? 0) + 1;
 
-    const items: QueueItem[] = files.map((f, i) => ({
-      id: crypto.randomUUID(),
-      name: f.name,
-      size: f.size,
-      status: "queued",
-      file: f,
-      sortOrder: baseSort + i,
-    }));
+    // Compute hashes and detect duplicates against existing photos + within batch
+    const existingHashes = new Map(
+      photos.filter((p) => p.content_hash).map((p) => [p.content_hash as string, p.id]),
+    );
+    const seenInBatch = new Map<string, string>();
+    const items: QueueItem[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      let hash: string | undefined;
+      let duplicateOfId: string | undefined;
+      try {
+        hash = await sha256Hex(f);
+        duplicateOfId = existingHashes.get(hash) ?? seenInBatch.get(hash);
+        if (hash && !duplicateOfId) seenInBatch.set(hash, "pending");
+      } catch {
+        // ignore hash errors and let upload proceed
+      }
+      items.push({
+        id: crypto.randomUUID(),
+        name: f.name,
+        size: f.size,
+        status: duplicateOfId ? "duplicate" : "queued",
+        file: f,
+        sortOrder: baseSort + i,
+        contentHash: hash,
+        duplicateOfId,
+      });
+    }
     setQueue(items);
 
-    let nextIndex = 0;
-    const worker = async () => {
-      while (true) {
-        const idx = nextIndex++;
-        if (idx >= items.length) return;
-        await processItem(items[idx]);
-      }
-    };
-
-    const concurrency = Math.min(3, items.length);
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    await startBatch(items);
 
     setBatchRunning(false);
     await load();
     toast({ title: "Batch complete" });
+  };
+
+  const skipQueueItem = (id: string) => {
+    updateQueueItem(id, { status: "skipped" });
+  };
+
+  const uploadDuplicateAnyway = async (id: string) => {
+    let target: QueueItem | undefined;
+    setQueue((prev) => {
+      const next = prev.map((q) => {
+        if (q.id === id) {
+          target = { ...q, status: "queued" as QueueStatus };
+          return target;
+        }
+        return q;
+      });
+      return next;
+    });
+    if (target) {
+      const ok = await processItem(target);
+      if (ok) await load();
+    }
   };
 
   const retryItem = async (item: QueueItem) => {
@@ -336,6 +384,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const ok = await processItem(item);
     if (ok) await load();
   };
+
+
 
 
   const handleFiles = (fileList: FileList | File[] | null) => {
