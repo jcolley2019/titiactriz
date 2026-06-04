@@ -105,7 +105,8 @@ const HomeVariantToggle = () => {
             </button>
           );
         })}
-      </div>
+        </div>
+      )}
     </section>
   );
 };
