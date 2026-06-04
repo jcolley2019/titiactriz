@@ -13,11 +13,11 @@ const Header = () => {
 
   const leftLinks = [
     { name: t("nav.home"), path: "/" },
-    { name: t("nav.portfolio"), path: "/work" },
+    { name: t("nav.greenWorld"), path: "/green-world" },
     { name: t("nav.titansAgency"), path: "/titans-agency" },
   ];
   const rightLinks = [
-    { name: t("nav.greenWorld"), path: "/green-world" },
+    { name: t("nav.portfolio"), path: "/work" },
     { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
