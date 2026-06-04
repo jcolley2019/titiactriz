@@ -207,7 +207,7 @@ const HomeEditorial = () => {
 
               <p
                 className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.35em] mb-6"
-                style={{ color: GOLD, fontFamily: "var(--font-sans)" }}
+                style={{ color: CREAM, fontFamily: "var(--font-sans)" }}
               >
                 Actriz&nbsp;&nbsp;·&nbsp;&nbsp;Empresaria&nbsp;&nbsp;·&nbsp;&nbsp;Streamer
               </p>
