@@ -63,7 +63,7 @@ const Header = () => {
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-[11px] md:text-xs uppercase link-underline transition-all duration-300 ${
                     isGreenWorldPage
                       ? "text-gw-green-dark hover:text-gw-green"
                       : "text-foreground/80 hover:text-gold-light"
@@ -74,7 +74,7 @@ const Header = () => {
               ) : (
                 <Link
                   to={link.path}
-                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-[11px] md:text-xs uppercase link-underline transition-all duration-300 ${
                     isGreenWorldPage
                       ? location.pathname === link.path
                         ? "text-gw-green"
@@ -118,7 +118,7 @@ const Header = () => {
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}
-                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-[11px] md:text-xs uppercase link-underline transition-all duration-300 ${
                     isGreenWorldPage
                       ? "text-gw-green-dark hover:text-gw-green"
                       : "text-foreground/80 hover:text-gold-light"
@@ -129,7 +129,7 @@ const Header = () => {
               ) : (
                 <Link
                   to={link.path}
-                  className={`text-base font-medium tracking-wide link-underline transition-all duration-300 ${
+                  className={`text-[11px] md:text-xs uppercase link-underline transition-all duration-300 ${
                     isGreenWorldPage
                       ? location.pathname === link.path
                         ? "text-gw-green"
