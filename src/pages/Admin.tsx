@@ -758,38 +758,66 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             <p className="text-sm text-muted-foreground mb-3">
               {doneCount} of {queue.length} uploaded
               {failedCount > 0 ? ` · ${failedCount} failed` : ""}
+              {duplicateCount > 0 ? ` · ${duplicateCount} possible duplicate${duplicateCount === 1 ? "" : "s"}` : ""}
             </p>
             <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {queue.map((q) => (
                 <li
                   key={q.id}
-                  className="flex items-center justify-between gap-3 text-sm border border-border rounded-md px-3 py-2 bg-background/40"
+                  className="text-sm border border-border rounded-md px-3 py-2 bg-background/40"
                 >
-                  <span className="truncate text-foreground flex-1 min-w-0">{q.name}</span>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span
-                      className={
-                        q.status === "done"
-                          ? "text-[hsl(var(--gold-light))]"
-                          : q.status === "failed"
-                            ? "text-destructive"
-                            : "text-muted-foreground"
-                      }
-                    >
-                      {q.status === "queued" && "Queued"}
-                      {q.status === "converting" && "Converting…"}
-                      {q.status === "optimizing" && "Optimizing…"}
-                      {q.status === "uploading" && "Uploading…"}
-                      {q.status === "done" &&
-                        `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
-                      {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
-                    </span>
-                    {q.status === "failed" && (
-                      <Button size="sm" variant="outline" onClick={() => retryItem(q)}>
-                        Retry
-                      </Button>
-                    )}
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate text-foreground flex-1 min-w-0">{q.name}</span>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span
+                        className={
+                          q.status === "done"
+                            ? "text-[hsl(var(--gold-light))]"
+                            : q.status === "failed"
+                              ? "text-destructive"
+                              : q.status === "duplicate"
+                                ? "text-amber-500"
+                                : q.status === "skipped"
+                                  ? "text-muted-foreground/70"
+                                  : "text-muted-foreground"
+                        }
+                      >
+                        {q.status === "queued" && "Queued"}
+                        {q.status === "duplicate" && "Possible duplicate"}
+                        {q.status === "converting" && "Converting…"}
+                        {q.status === "optimizing" && "Optimizing…"}
+                        {q.status === "uploading" && "Uploading…"}
+                        {q.status === "done" &&
+                          `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
+                        {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
+                        {q.status === "skipped" && "Skipped"}
+                      </span>
+                      {q.status === "failed" && (
+                        <Button size="sm" variant="outline" onClick={() => retryItem(q)}>
+                          Retry
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                  {q.status === "duplicate" && (
+                    <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
+                      <p className="text-xs text-muted-foreground">
+                        Looks like a duplicate of a photo you already have.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => skipQueueItem(q.id)}>
+                          Skip
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => uploadDuplicateAnyway(q.id)}
+                        >
+                          Add anyway
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
