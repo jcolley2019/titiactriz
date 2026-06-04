@@ -670,6 +670,68 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     altSavedTimers.current.set(id, t);
   };
 
+  const [generatingAltIds, setGeneratingAltIds] = useState<Set<string>>(new Set());
+  const [altBulk, setAltBulk] = useState<{ done: number; total: number } | null>(null);
+
+  const generateAltFor = useCallback(async (photoId: string): Promise<boolean> => {
+    setGeneratingAltIds((prev) => {
+      const next = new Set(prev);
+      next.add(photoId);
+      return next;
+    });
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-alt-text", {
+        body: { id: photoId },
+      });
+      if (error) throw error;
+      const text = typeof data?.alt_text === "string" ? data.alt_text.trim() : "";
+      if (!text) throw new Error("Empty alt text");
+      setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, alt_text: text } : p)));
+      altLastSaved.current.set(photoId, text);
+      const { error: upErr } = await supabase
+        .from("gallery_photos")
+        .update({ alt_text: text })
+        .eq("id", photoId);
+      if (upErr) throw upErr;
+      flashSaved(photoId);
+      return true;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Generation failed";
+      toast({ title: "Alt text failed", description: msg, variant: "destructive" });
+      return false;
+    } finally {
+      setGeneratingAltIds((prev) => {
+        const next = new Set(prev);
+        next.delete(photoId);
+        return next;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fillAllMissingAlt = useCallback(async () => {
+    const targets = photos
+      .filter((p) => !p.is_archived && (!p.alt_text || p.alt_text.trim() === ""))
+      .map((p) => p.id);
+    if (targets.length === 0) return;
+    setAltBulk({ done: 0, total: targets.length });
+    let nextIndex = 0;
+    let done = 0;
+    const worker = async () => {
+      while (true) {
+        const i = nextIndex++;
+        if (i >= targets.length) return;
+        await generateAltFor(targets[i]);
+        done++;
+        setAltBulk({ done, total: targets.length });
+      }
+    };
+    const concurrency = Math.min(3, targets.length);
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    setAltBulk(null);
+    toast({ title: "Alt text generated", description: `${done} of ${targets.length} processed.` });
+  }, [photos, generateAltFor]);
+
   const saveAltText = async (photo: Photo) => {
     const current = photo.alt_text ?? "";
     if (altLastSaved.current.get(photo.id) === current) return;
