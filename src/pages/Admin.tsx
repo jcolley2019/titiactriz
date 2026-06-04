@@ -1,8 +1,25 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react";
 import { Helmet } from "react-helmet-async";
 import imageCompression from "browser-image-compression";
 import type { Session } from "@supabase/supabase-js";
-import { Reorder, useDragControls } from "framer-motion";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, MoreVertical, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -213,11 +230,9 @@ type SortableRowProps = {
   onPublishedChange: (v: boolean) => void;
   onArchive: () => void;
   onDelete: () => void;
-  onDragStart: () => void;
-  onDragEnd: () => void;
 };
 
-const SortableRow = ({
+const SortableRow = memo(({
   photo,
   position,
   selected,
@@ -228,26 +243,32 @@ const SortableRow = ({
   onPublishedChange,
   onArchive,
   onDelete,
-  onDragStart,
-  onDragEnd,
 }: SortableRowProps) => {
-  const controls = useDragControls();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: photo.id });
   const missingAlt = !photo.alt_text || photo.alt_text.trim() === "";
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.85 : 1,
+  };
   return (
-    <Reorder.Item
-      value={photo}
-      dragListener={false}
-      dragControls={controls}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+    <li
+      ref={setNodeRef}
+      style={style}
       className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
       <button
         type="button"
-        onPointerDown={(e) => {
-          controls.start(e);
-          onDragStart();
-        }}
+        {...attributes}
+        {...listeners}
         className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
         aria-label="Drag to reorder"
       >
@@ -308,9 +329,10 @@ const SortableRow = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </Reorder.Item>
+    </li>
   );
-};
+});
+SortableRow.displayName = "SortableRow";
 
 /* ---------------- Management Panel ---------------- */
 const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
@@ -716,15 +738,28 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     handleFiles(e.dataTransfer.files);
   };
 
-  const activePhotos = photos
-    .filter((p) => !p.is_archived)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const archivedPhotos = photos
-    .filter((p) => p.is_archived)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const livePreviewPhotos = activePhotos
-    .filter((p) => p.is_published)
-    .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text }));
+  const activePhotos = useMemo(
+    () =>
+      photos
+        .filter((p) => !p.is_archived)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [photos],
+  );
+  const archivedPhotos = useMemo(
+    () =>
+      photos
+        .filter((p) => p.is_archived)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [photos],
+  );
+  const livePreviewPhotos = useMemo(
+    () =>
+      activePhotos
+        .filter((p) => p.is_published)
+        .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text })),
+    [activePhotos],
+  );
+  const activePhotoIds = useMemo(() => activePhotos.map((p) => p.id), [activePhotos]);
 
   const doneCount = queue.filter((q) => q.status === "done").length;
   const failedCount = queue.filter((q) => q.status === "failed").length;
@@ -766,18 +801,31 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setSelected(new Set());
   };
 
-  const handleReorder = (newOrder: Photo[]) => {
-    // Replace active subset in photos array with new order; archived untouched
-    setPhotos((prev) => {
-      const archived = prev.filter((p) => p.is_archived);
-      const updated = newOrder.map((p, i) => ({ ...p, sort_order: i + 1 }));
-      return [...updated, ...archived];
-    });
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const onDndDragStart = (_e: DragStartEvent) => {
+    setRowDragging(true);
   };
 
-  const onReorderEnd = async () => {
+  const onDndDragEnd = async (e: DragEndEvent) => {
     setRowDragging(false);
-    await persistOrder(activePhotos.map((p) => p.id));
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = activePhotoIds.indexOf(String(active.id));
+    const newIndex = activePhotoIds.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    const newActive = arrayMove(activePhotos, oldIndex, newIndex).map((p, i) => ({
+      ...p,
+      sort_order: i + 1,
+    }));
+    setPhotos((prev) => {
+      const archived = prev.filter((p) => p.is_archived);
+      return [...newActive, ...archived];
+    });
+    await persistOrder(newActive.map((p) => p.id));
   };
 
 
@@ -993,30 +1041,35 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                 </Button>
               </div>
             </div>
-            <Reorder.Group
-              axis="y"
-              values={activePhotos}
-              onReorder={handleReorder}
-              className="space-y-3 list-none"
+            <DndContext
+              sensors={dndSensors}
+              collisionDetection={closestCenter}
+              onDragStart={onDndDragStart}
+              onDragEnd={onDndDragEnd}
             >
-              {activePhotos.map((p, i) => (
-                <SortableRow
-                  key={p.id}
-                  photo={p}
-                  position={i + 1}
-                  selected={selected.has(p.id)}
-                  saved={savedAltIds.has(p.id)}
-                  onSelectedChange={(v) => toggleSelect(p.id, v)}
-                  onAltChange={(v) => updateRow(p.id, { alt_text: v })}
-                  onAltBlur={() => saveAltText(p)}
-                  onPublishedChange={(v) => togglePublished(p, v)}
-                  onArchive={() => setArchived(p, true)}
-                  onDelete={() => setDeleteTarget(p)}
-                  onDragStart={() => setRowDragging(true)}
-                  onDragEnd={onReorderEnd}
-                />
-              ))}
-            </Reorder.Group>
+              <SortableContext
+                items={activePhotoIds}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-3 list-none">
+                  {activePhotos.map((p, i) => (
+                    <SortableRow
+                      key={p.id}
+                      photo={p}
+                      position={i + 1}
+                      selected={selected.has(p.id)}
+                      saved={savedAltIds.has(p.id)}
+                      onSelectedChange={(v) => toggleSelect(p.id, v)}
+                      onAltChange={(v) => updateRow(p.id, { alt_text: v })}
+                      onAltBlur={() => saveAltText(p)}
+                      onPublishedChange={(v) => togglePublished(p, v)}
+                      onArchive={() => setArchived(p, true)}
+                      onDelete={() => setDeleteTarget(p)}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
           </>
         )}
 
