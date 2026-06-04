@@ -63,9 +63,9 @@ const HomeVariantToggle = () => {
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           )}
           <div>
-            <h2 className="font-serif text-xl text-foreground">Home page variant</h2>
-            <p className="text-sm text-muted-foreground">
-              Choose which landing page renders at <span className="font-mono">/</span>.
+            <h2 className="font-serif text-base text-foreground leading-tight">Home page variant</h2>
+            <p className="text-xs text-muted-foreground">
+              Which landing page renders at <span className="font-mono">/</span>.
             </p>
           </div>
         </div>
