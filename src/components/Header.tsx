@@ -56,7 +56,7 @@ const Header = () => {
     >
       <nav className="container-editorial flex items-center justify-between">
         {/* Left Nav */}
-        <ul className="hidden lg:flex items-center gap-10">
+        <ul className="hidden lg:flex items-center gap-10" style={{ fontFamily: "'Jost', 'Outfit', system-ui, sans-serif", letterSpacing: '0.35em' }}>
           {navLinks.slice(0, 3).map((link) => (
             <li key={link.name}>
               {link.path.includes("#") ? (
@@ -111,7 +111,7 @@ const Header = () => {
 
 
         {/* Right Nav */}
-        <ul className="hidden lg:flex items-center gap-10">
+        <ul className="hidden lg:flex items-center gap-10" style={{ fontFamily: "'Jost', 'Outfit', system-ui, sans-serif", letterSpacing: '0.35em' }}>
           {navLinks.slice(3).map((link) => (
             <li key={link.name}>
               {link.path.includes("#") ? (
