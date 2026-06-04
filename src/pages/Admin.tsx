@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreVertical, ChevronDown, ChevronRight } from "lucide-react";
+import { GripVertical, MoreVertical, ChevronDown, ChevronRight, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -224,9 +224,11 @@ type SortableRowProps = {
   position: number;
   selected: boolean;
   saved: boolean;
+  generating: boolean;
   onSelectedChange: (v: boolean) => void;
   onAltChange: (v: string) => void;
   onAltBlur: () => void;
+  onGenerateAlt: () => void;
   onPublishedChange: (v: boolean) => void;
   onArchive: () => void;
   onDelete: () => void;
@@ -237,9 +239,11 @@ const SortableRow = memo(({
   position,
   selected,
   saved,
+  generating,
   onSelectedChange,
   onAltChange,
   onAltBlur,
+  onGenerateAlt,
   onPublishedChange,
   onArchive,
   onDelete,
@@ -301,11 +305,30 @@ const SortableRow = memo(({
             <span className="text-xs text-[hsl(var(--gold-light))]">Saved</span>
           )}
         </div>
-        <Input
-          value={photo.alt_text ?? ""}
-          onChange={(e) => onAltChange(e.target.value)}
-          onBlur={onAltBlur}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            value={photo.alt_text ?? ""}
+            onChange={(e) => onAltChange(e.target.value)}
+            onBlur={onAltBlur}
+            disabled={generating}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onGenerateAlt}
+            disabled={generating}
+            title="Generate Spanish alt text with AI"
+            aria-label="Generate alt text"
+            className="shrink-0 px-2"
+          >
+            {generating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
@@ -646,6 +669,68 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     }, 1800);
     altSavedTimers.current.set(id, t);
   };
+
+  const [generatingAltIds, setGeneratingAltIds] = useState<Set<string>>(new Set());
+  const [altBulk, setAltBulk] = useState<{ done: number; total: number } | null>(null);
+
+  const generateAltFor = useCallback(async (photoId: string): Promise<boolean> => {
+    setGeneratingAltIds((prev) => {
+      const next = new Set(prev);
+      next.add(photoId);
+      return next;
+    });
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-alt-text", {
+        body: { id: photoId },
+      });
+      if (error) throw error;
+      const text = typeof data?.alt_text === "string" ? data.alt_text.trim() : "";
+      if (!text) throw new Error("Empty alt text");
+      setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, alt_text: text } : p)));
+      altLastSaved.current.set(photoId, text);
+      const { error: upErr } = await supabase
+        .from("gallery_photos")
+        .update({ alt_text: text })
+        .eq("id", photoId);
+      if (upErr) throw upErr;
+      flashSaved(photoId);
+      return true;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Generation failed";
+      toast({ title: "Alt text failed", description: msg, variant: "destructive" });
+      return false;
+    } finally {
+      setGeneratingAltIds((prev) => {
+        const next = new Set(prev);
+        next.delete(photoId);
+        return next;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fillAllMissingAlt = useCallback(async () => {
+    const targets = photos
+      .filter((p) => !p.is_archived && (!p.alt_text || p.alt_text.trim() === ""))
+      .map((p) => p.id);
+    if (targets.length === 0) return;
+    setAltBulk({ done: 0, total: targets.length });
+    let nextIndex = 0;
+    let done = 0;
+    const worker = async () => {
+      while (true) {
+        const i = nextIndex++;
+        if (i >= targets.length) return;
+        await generateAltFor(targets[i]);
+        done++;
+        setAltBulk({ done, total: targets.length });
+      }
+    };
+    const concurrency = Math.min(3, targets.length);
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    setAltBulk(null);
+    toast({ title: "Alt text generated", description: `${done} of ${targets.length} processed.` });
+  }, [photos, generateAltFor]);
 
   const saveAltText = async (photo: Photo) => {
     const current = photo.alt_text ?? "";
@@ -1011,10 +1096,31 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               {activePhotos.length} live — galleries look best around 20 to 30.
             </p>
             {missingAltCount > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
-                {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
-              </p>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
+                  {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={fillAllMissingAlt}
+                  disabled={altBulk !== null}
+                  className="gap-2"
+                >
+                  {altBulk ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {altBulk.done} of {altBulk.total}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Fill all missing alt text
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -1072,6 +1178,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                       position={i + 1}
                       selected={selected.has(p.id)}
                       saved={savedAltIds.has(p.id)}
+                      generating={generatingAltIds.has(p.id)}
+                      onGenerateAlt={() => generateAltFor(p.id)}
                       onSelectedChange={(v) => toggleSelect(p.id, v)}
                       onAltChange={(v) => updateRow(p.id, { alt_text: v })}
                       onAltBlur={() => saveAltText(p)}
