@@ -133,6 +133,8 @@ type QueueItem = {
   status: QueueStatus;
   error?: string;
   optimizedSize?: number;
+  file: File;
+  sortOrder: number;
 };
 
 const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolean }> => {
