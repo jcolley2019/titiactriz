@@ -52,7 +52,8 @@ const HomeEditorial = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
-  const [play, setPlay] = useState(false);
+  const [introStarted, setIntroStarted] = useState(false);
+  const [framePlay, setFramePlay] = useState(false);
 
   const {
     register,
@@ -62,11 +63,15 @@ const HomeEditorial = () => {
   } = useForm<ContactFormData>({ resolver: zodResolver(contactSchema) });
 
   useEffect(() => {
+    setIntroStarted(true);
+  }, []);
+
+  useEffect(() => {
     const el = heroRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([e]) => setPlay(e.isIntersecting),
-      { threshold: 0.35 }
+      ([e]) => setFramePlay(e.isIntersecting),
+      { threshold: 0.3 }
     );
     io.observe(el);
     return () => io.disconnect();
