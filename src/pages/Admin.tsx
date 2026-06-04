@@ -495,19 +495,38 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   };
 
-  const saveRow = async (photo: Photo) => {
+  const flashSaved = (id: string) => {
+    setSavedAltIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    const prevTimer = altSavedTimers.current.get(id);
+    if (prevTimer) window.clearTimeout(prevTimer);
+    const t = window.setTimeout(() => {
+      setSavedAltIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      altSavedTimers.current.delete(id);
+    }, 1800);
+    altSavedTimers.current.set(id, t);
+  };
+
+  const saveAltText = async (photo: Photo) => {
+    const current = photo.alt_text ?? "";
+    if (altLastSaved.current.get(photo.id) === current) return;
+    altLastSaved.current.set(photo.id, current);
     const { error } = await supabase
       .from("gallery_photos")
-      .update({
-        alt_text: photo.alt_text,
-        sort_order: Number(photo.sort_order) || 0,
-      })
+      .update({ alt_text: current })
       .eq("id", photo.id);
     if (error) {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Saved" });
+    flashSaved(photo.id);
   };
 
   const togglePublished = async (photo: Photo, value: boolean) => {
@@ -519,6 +538,37 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     if (error) {
       updateRow(photo.id, { is_published: !value });
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const setArchived = async (photo: Photo, archived: boolean) => {
+    const prev = photos;
+    setPhotos((ps) => ps.map((p) => (p.id === photo.id ? { ...p, is_archived: archived } : p)));
+    const { error } = await (supabase
+      .from("gallery_photos") as unknown as {
+      update: (v: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: unknown }> };
+    })
+      .update({ is_archived: archived })
+      .eq("id", photo.id);
+    if (error) {
+      setPhotos(prev);
+      const msg = error instanceof Error ? error.message : "Update failed";
+      toast({ title: "Update failed", description: msg, variant: "destructive" });
+      return;
+    }
+    toast({ title: archived ? "Archived" : "Restored" });
+  };
+
+  const persistOrder = async (orderedIds: string[]) => {
+    // Sequential sort_order 1..N for active photos
+    const updates = orderedIds.map((id, i) =>
+      supabase.from("gallery_photos").update({ sort_order: i + 1 }).eq("id", id),
+    );
+    const results = await Promise.all(updates);
+    const firstErr = results.find((r) => r.error)?.error;
+    if (firstErr) {
+      toast({ title: "Reorder failed", description: firstErr.message, variant: "destructive" });
+      await load();
     }
   };
 
