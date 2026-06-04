@@ -20,7 +20,6 @@ import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
-import cpMonogram from "@/assets/cp-monogram.png.asset.json";
 
 
 const heroPortrait = "/hero-portrait.webp";
