@@ -224,7 +224,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={`skeleton-${i}`}
-                  className="flex-shrink-0 w-56 h-72 rounded-sm bg-muted/30 animate-pulse"
+                  className={skeletonClass}
                 />
               ))}
             </div>
