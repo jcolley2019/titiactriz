@@ -625,66 +625,124 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* List */}
       <section>
-        <h2 className="font-serif text-xl text-foreground mb-4">Photos</h2>
+        <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <div>
+            <h2 className="font-serif text-xl text-foreground">Photos</h2>
+            {missingAltCount > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
+                {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
+              </p>
+            )}
+          </div>
+        </div>
+
         {loading ? (
           <p className="text-muted-foreground text-sm">Loading…</p>
         ) : photos.length === 0 ? (
           <p className="text-muted-foreground text-sm">No photos yet.</p>
         ) : (
-          <ul className="space-y-3">
-            {photos.map((p) => (
-              <li
-                key={p.id}
-                className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[88px_1fr_120px_auto_auto] md:items-center"
-              >
-                <img
-                  src={p.image_url}
-                  alt={p.alt_text ?? ""}
-                  className="object-cover rounded-md border border-border"
-                  style={{ width: 88, height: 88 }}
-                  loading="lazy"
+          <>
+            <div className="flex items-center gap-3 mb-3 p-3 bg-card border border-border rounded-lg flex-wrap">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={(v) => toggleSelectAll(v === true)}
                 />
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Alt text</Label>
-                  <Input
-                    value={p.alt_text ?? ""}
-                    onChange={(e) => updateRow(p.id, { alt_text: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Sort order</Label>
-                  <Input
-                    type="number"
-                    value={p.sort_order}
-                    onChange={(e) => updateRow(p.id, { sort_order: Number(e.target.value) })}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={p.is_published}
-                    onCheckedChange={(v) => togglePublished(p, v)}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {p.is_published ? "Published" : "Hidden"}
-                  </span>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button size="sm" variant="outline" onClick={() => saveRow(p)}>
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setDeleteTarget(p)}
+                <span className="text-muted-foreground">
+                  {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+                </span>
+              </label>
+              <div className="flex gap-2 ml-auto">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkSetPublished(true)}
+                >
+                  Publish selected
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkSetPublished(false)}
+                >
+                  Hide selected
+                </Button>
+              </div>
+            </div>
+            <ul className="space-y-3">
+              {photos.map((p) => {
+                const missingAlt = !p.alt_text || p.alt_text.trim() === "";
+                return (
+                  <li
+                    key={p.id}
+                    className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_88px_1fr_120px_auto_auto] md:items-center"
                   >
-                    Delete
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    <Checkbox
+                      checked={selected.has(p.id)}
+                      onCheckedChange={(v) => toggleSelect(p.id, v === true)}
+                    />
+                    <img
+                      src={p.image_url}
+                      alt={p.alt_text ?? ""}
+                      className="object-cover rounded-md border border-border"
+                      style={{ width: 88, height: 88 }}
+                      loading="lazy"
+                    />
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">Alt text</Label>
+                        {missingAlt && (
+                          <span
+                            title="Needs alt text"
+                            className="inline-block w-2 h-2 rounded-full bg-amber-500"
+                          />
+                        )}
+                      </div>
+                      <Input
+                        value={p.alt_text ?? ""}
+                        onChange={(e) => updateRow(p.id, { alt_text: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Sort order</Label>
+                      <Input
+                        type="number"
+                        value={p.sort_order}
+                        onChange={(e) => updateRow(p.id, { sort_order: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={p.is_published}
+                        onCheckedChange={(v) => togglePublished(p, v)}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {p.is_published ? "Published" : "Hidden"}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="outline" onClick={() => saveRow(p)}>
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeleteTarget(p)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </section>
+
 
       <AlertDialog
         open={!!deleteTarget}
