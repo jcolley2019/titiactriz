@@ -149,7 +149,7 @@ const HomeEditorial = () => {
           fontWeight: 400,
         }}
       >
-        <span style={{ color: CREAM }}>C</span>
+        <span style={{ color: "#ffffff" }}>C</span>
         <span style={{ color: GOLD, marginLeft: "-0.45em" }}>P</span>
       </div>
       <svg width="92" height="18" viewBox="0 0 92 18" fill="none" className="max-w-[60%] h-auto">
