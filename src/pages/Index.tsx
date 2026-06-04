@@ -129,68 +129,7 @@ const Index = () => {
   };
 
 
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const container = scrollRef.current;
-      const scrollAmount = 300;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      
-      if (direction === "right") {
-        // If at or near the end, loop to start
-        if (container.scrollLeft >= maxScroll - 10) {
-          container.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: scrollAmount, behavior: "smooth" });
-        }
-      } else {
-        // If at or near the start, loop to end
-        if (container.scrollLeft <= 10) {
-          container.scrollTo({ left: maxScroll, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-        }
-      }
-    }
-  };
-
-  // Auto-scroll effect using requestAnimationFrame for smooth continuous scroll
-  const scrollAccumulator = useRef(0);
-  
-  useEffect(() => {
-    if (!isAutoScrolling) return;
-    
-    let animationId: number;
-    const speed = 0.3; // pixels per frame (accumulated for sub-pixel precision)
-    
-    const step = () => {
-      if (scrollRef.current) {
-        const container = scrollRef.current;
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        
-        scrollAccumulator.current += speed;
-        if (scrollAccumulator.current >= 1) {
-          const pixels = Math.floor(scrollAccumulator.current);
-          scrollAccumulator.current -= pixels;
-          
-          if (container.scrollLeft >= maxScroll - 1) {
-            container.scrollLeft = 0;
-          } else {
-            container.scrollLeft += pixels;
-          }
-        }
-      }
-      animationId = requestAnimationFrame(step);
-    };
-    
-    animationId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationId);
-  }, [isAutoScrolling]);
-
-  // Pause auto-scroll on hover
-  const handleMouseEnter = () => setIsAutoScrolling(false);
-  const handleMouseLeave = () => setIsAutoScrolling(true);
 
   return (
     <>
