@@ -305,11 +305,30 @@ const SortableRow = memo(({
             <span className="text-xs text-[hsl(var(--gold-light))]">Saved</span>
           )}
         </div>
-        <Input
-          value={photo.alt_text ?? ""}
-          onChange={(e) => onAltChange(e.target.value)}
-          onBlur={onAltBlur}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            value={photo.alt_text ?? ""}
+            onChange={(e) => onAltChange(e.target.value)}
+            onBlur={onAltBlur}
+            disabled={generating}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onGenerateAlt}
+            disabled={generating}
+            title="Generate Spanish alt text with AI"
+            aria-label="Generate alt text"
+            className="shrink-0 px-2"
+          >
+            {generating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
