@@ -38,25 +38,20 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
   }, []);
 
   const isEn = i18n.language?.startsWith('en');
-  const nextLang = isEn ? 'es' : 'en';
 
-  const toggleLanguage = () => {
-    i18n.changeLanguage(nextLang);
+  const setLang = (lng: 'en' | 'es') => {
+    if (i18n.language?.startsWith(lng)) return;
+    i18n.changeLanguage(lng);
   };
 
-  const getVariantClasses = () => {
-    switch (variant) {
-      case 'light':
-        return 'text-white/80 hover:text-white hover:bg-white/10';
-      case 'greenworld':
-        return 'text-gw-green-dark hover:text-gw-green hover:bg-gw-green/10';
-      default:
-        return 'text-muted-foreground hover:text-foreground';
-    }
-  };
+  const triggerClasses =
+    variant === 'light'
+      ? 'text-white/80 hover:text-white hover:bg-white/10'
+      : variant === 'greenworld'
+        ? 'text-gw-green-dark hover:text-gw-green hover:bg-gw-green/10'
+        : 'text-muted-foreground hover:text-foreground';
 
   const goAdmin = () => navigate('/admin');
-
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
@@ -68,43 +63,57 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
         <Button
           variant="ghost"
           size="sm"
-          className={`gap-2 ${getVariantClasses()}`}
+          className={`gap-2 ${triggerClasses}`}
           aria-label={t('nav.menu', 'Menu')}
         >
           <Menu className="w-5 h-5" />
           <span className="sr-only">{t('nav.menu', 'Menu')}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[12rem]">
-        <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+      <DropdownMenuContent align="end" className="min-w-[13rem]">
+        <DropdownMenuLabel className="text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground font-normal">
           {t('nav.language', 'Language')}
         </DropdownMenuLabel>
-        <div className="px-2 py-1.5">
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className="w-full inline-flex items-center justify-between rounded-md border border-border bg-background/40 px-1 py-1 text-xs font-medium tracking-wider"
+        <div className="px-2 pb-2 pt-1">
+          <div
+            role="group"
             aria-label={t('nav.switchLanguage', 'Switch language')}
+            className="relative flex items-center rounded-full border border-border bg-background/40 p-0.5 text-xs font-semibold tracking-[0.2em]"
           >
             <span
-              className={`flex-1 px-3 py-1 rounded-sm transition-colors ${
-                isEn
-                  ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
-                  : 'text-muted-foreground'
+              aria-hidden
+              className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-[hsl(var(--accent))] transition-transform duration-200 ease-out"
+              style={{ transform: isEn ? 'translateX(0)' : 'translateX(100%)' }}
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setLang('en');
+              }}
+              className={`relative z-10 flex-1 rounded-full px-3 py-1.5 transition-colors ${
+                isEn ? 'text-[hsl(var(--accent-foreground))]' : 'text-muted-foreground hover:text-foreground'
               }`}
+              aria-pressed={isEn}
             >
               EN
-            </span>
-            <span
-              className={`flex-1 px-3 py-1 rounded-sm transition-colors ${
-                !isEn
-                  ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
-                  : 'text-muted-foreground'
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setLang('es');
+              }}
+              className={`relative z-10 flex-1 rounded-full px-3 py-1.5 transition-colors ${
+                !isEn ? 'text-[hsl(var(--accent-foreground))]' : 'text-muted-foreground hover:text-foreground'
               }`}
+              aria-pressed={!isEn}
             >
               ES
-            </span>
-          </button>
+            </button>
+          </div>
         </div>
         <DropdownMenuSeparator />
         {session ? (
