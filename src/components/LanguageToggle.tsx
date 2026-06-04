@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +17,7 @@ interface LanguageToggleProps {
 
 const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
   const { i18n, t } = useTranslation();
+  const navigate = useNavigate();
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -63,11 +64,15 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/admin" className="flex items-center w-full">
-            <Lock className="w-3.5 h-3.5 mr-2" />
-            {t('nav.adminLogin', 'Admin Login')}
-          </Link>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            navigate('/admin');
+          }}
+          className="cursor-pointer"
+        >
+          <Lock className="w-3.5 h-3.5 mr-2" />
+          {t('nav.adminLogin', 'Admin Login')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
