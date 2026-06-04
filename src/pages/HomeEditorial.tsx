@@ -236,7 +236,7 @@ const HomeEditorial = () => {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
             {/* LEFT: name lockup */}
             <div className="order-2 lg:order-1 flex flex-col items-center text-center">
-              <div className="editorial-title flex flex-col items-center w-full">
+              <div className="editorial-title mx-auto w-fit flex flex-col items-center text-center">
                 <h1
                   className="leading-[0.95] tracking-[0.04em] uppercase"
                   style={{ fontFamily: "var(--font-display)" }}
@@ -257,8 +257,7 @@ const HomeEditorial = () => {
 
                 {/* Divider with center diamond drawing outward */}
                 <div
-                  className="relative my-4 sm:my-5 md:my-6 flex items-center justify-center"
-                  style={{ width: "min(100%, 14ch)" }}
+                  className="relative mt-5 mb-4 sm:mb-5 md:mb-6 flex w-full items-center justify-center"
                   aria-hidden
                 >
                   <span
@@ -267,7 +266,7 @@ const HomeEditorial = () => {
                   />
                   <svg
                     viewBox="0 0 16 16"
-                    className="editorial-divider-diamond absolute left-1/2 -translate-x-1/2 w-3 h-3"
+                    className="editorial-divider-diamond absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3"
                     style={{ background: "#0e0c09" }}
                   >
                     <rect
