@@ -605,10 +605,21 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     handleFiles(e.dataTransfer.files);
   };
 
+  const activePhotos = photos
+    .filter((p) => !p.is_archived)
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const archivedPhotos = photos
+    .filter((p) => p.is_archived)
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const livePreviewPhotos = activePhotos
+    .filter((p) => p.is_published)
+    .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text }));
+
   const doneCount = queue.filter((q) => q.status === "done").length;
   const failedCount = queue.filter((q) => q.status === "failed").length;
-  const missingAltCount = photos.filter((p) => !p.alt_text || p.alt_text.trim() === "").length;
-  const allSelected = photos.length > 0 && selected.size === photos.length;
+  const duplicateCount = queue.filter((q) => q.status === "duplicate").length;
+  const missingAltCount = activePhotos.filter((p) => !p.alt_text || p.alt_text.trim() === "").length;
+  const allSelected = activePhotos.length > 0 && selected.size === activePhotos.length;
   const someSelected = selected.size > 0 && !allSelected;
 
   const toggleSelect = (id: string, value: boolean) => {
@@ -621,7 +632,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   };
 
   const toggleSelectAll = (value: boolean) => {
-    setSelected(value ? new Set(photos.map((p) => p.id)) : new Set());
+    setSelected(value ? new Set(activePhotos.map((p) => p.id)) : new Set());
   };
 
   const bulkSetPublished = async (value: boolean) => {
@@ -643,6 +654,21 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     toast({ title: value ? "Published selected" : "Hidden selected", description: `${ids.length} photo(s) updated` });
     setSelected(new Set());
   };
+
+  const handleReorder = (newOrder: Photo[]) => {
+    // Replace active subset in photos array with new order; archived untouched
+    setPhotos((prev) => {
+      const archived = prev.filter((p) => p.is_archived);
+      const updated = newOrder.map((p, i) => ({ ...p, sort_order: i + 1 }));
+      return [...updated, ...archived];
+    });
+  };
+
+  const onReorderEnd = async () => {
+    setRowDragging(false);
+    await persistOrder(activePhotos.map((p) => p.id));
+  };
+
 
 
   return (
