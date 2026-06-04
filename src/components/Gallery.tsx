@@ -40,13 +40,24 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
     let cancelled = false;
     (async () => {
       // Try with is_archived filter; fall back if column doesn't exist yet.
-      let result = await supabase
+      const base = supabase
         .from("gallery_photos")
         .select("id, image_url, alt_text")
-        .eq("is_published", true)
+        .eq("is_published", true);
+      let result = await (base as unknown as {
+        eq: (c: string, v: unknown) => typeof base;
+      })
         .eq("is_archived", false)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
+      if (result.error && /is_archived/i.test(result.error.message)) {
+        result = await supabase
+          .from("gallery_photos")
+          .select("id, image_url, alt_text")
+          .eq("is_published", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true });
+      }
       if (result.error && /is_archived/i.test(result.error.message)) {
         result = await supabase
           .from("gallery_photos")
