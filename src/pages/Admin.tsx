@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -132,6 +133,8 @@ type QueueItem = {
   status: QueueStatus;
   error?: string;
   optimizedSize?: number;
+  file: File;
+  sortOrder: number;
 };
 
 const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolean }> => {
@@ -192,6 +195,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [batchRunning, setBatchRunning] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const closePreview = useCallback(() => {
     setPreview((prev) => {
@@ -226,15 +231,33 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setQueue((prev) => prev.map((q) => (q.id === id ? { ...q, ...patch } : q)));
   };
 
+  const processItem = async (item: QueueItem) => {
+    try {
+      updateQueueItem(item.id, {
+        status: isHeic(item.file) ? "converting" : "optimizing",
+        error: undefined,
+      });
+      const { blob } = await optimizeFile(item.file);
+      updateQueueItem(item.id, { status: "uploading", optimizedSize: blob.size });
+      const image_url = await uploadBlob(blob);
+      const { error: insErr } = await supabase.from("gallery_photos").insert({
+        image_url,
+        alt_text: null,
+        sort_order: item.sortOrder,
+        is_published: true,
+      });
+      if (insErr) throw insErr;
+      updateQueueItem(item.id, { status: "done" });
+      return true;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed";
+      updateQueueItem(item.id, { status: "failed", error: msg });
+      return false;
+    }
+  };
+
   const runBatch = async (files: File[]) => {
     setBatchRunning(true);
-    const items: QueueItem[] = files.map((f) => ({
-      id: crypto.randomUUID(),
-      name: f.name,
-      size: f.size,
-      status: "queued",
-    }));
-    setQueue(items);
 
     // Determine base sort_order
     const { data: maxRow } = await supabase
@@ -245,45 +268,39 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .maybeSingle();
     const baseSort = (maxRow?.sort_order ?? 0) + 1;
 
-    let nextIndex = 0;
-    const tasks = files.map((file, i) => ({ file, item: items[i], orderIndex: i }));
+    const items: QueueItem[] = files.map((f, i) => ({
+      id: crypto.randomUUID(),
+      name: f.name,
+      size: f.size,
+      status: "queued",
+      file: f,
+      sortOrder: baseSort + i,
+    }));
+    setQueue(items);
 
+    let nextIndex = 0;
     const worker = async () => {
       while (true) {
         const idx = nextIndex++;
-        if (idx >= tasks.length) return;
-        const { file, item, orderIndex } = tasks[idx];
-        try {
-          if (isHeic(file)) {
-            updateQueueItem(item.id, { status: "converting" });
-          } else {
-            updateQueueItem(item.id, { status: "optimizing" });
-          }
-          const { blob } = await optimizeFile(file);
-          updateQueueItem(item.id, { status: "uploading", optimizedSize: blob.size });
-          const image_url = await uploadBlob(blob);
-          const { error: insErr } = await supabase.from("gallery_photos").insert({
-            image_url,
-            alt_text: null,
-            sort_order: baseSort + orderIndex,
-            is_published: true,
-          });
-          if (insErr) throw insErr;
-          updateQueueItem(item.id, { status: "done" });
-        } catch (e: unknown) {
-          const msg = e instanceof Error ? e.message : "Failed";
-          updateQueueItem(item.id, { status: "failed", error: msg });
-        }
+        if (idx >= items.length) return;
+        await processItem(items[idx]);
       }
     };
 
-    const concurrency = Math.min(3, tasks.length);
+    const concurrency = Math.min(3, items.length);
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
     setBatchRunning(false);
     await load();
     toast({ title: "Batch complete" });
   };
+
+  const retryItem = async (item: QueueItem) => {
+    updateQueueItem(item.id, { status: "queued", error: undefined });
+    const ok = await processItem(item);
+    if (ok) await load();
+  };
+
 
   const handleFiles = (fileList: FileList | File[] | null) => {
     setFileError(null);
@@ -442,6 +459,43 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
   const doneCount = queue.filter((q) => q.status === "done").length;
   const failedCount = queue.filter((q) => q.status === "failed").length;
+  const missingAltCount = photos.filter((p) => !p.alt_text || p.alt_text.trim() === "").length;
+  const allSelected = photos.length > 0 && selected.size === photos.length;
+  const someSelected = selected.size > 0 && !allSelected;
+
+  const toggleSelect = (id: string, value: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (value) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (value: boolean) => {
+    setSelected(value ? new Set(photos.map((p) => p.id)) : new Set());
+  };
+
+  const bulkSetPublished = async (value: boolean) => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    const ids = Array.from(selected);
+    const prev = photos;
+    setPhotos((ps) => ps.map((p) => (selected.has(p.id) ? { ...p, is_published: value } : p)));
+    const { error } = await supabase
+      .from("gallery_photos")
+      .update({ is_published: value })
+      .in("id", ids);
+    setBulkBusy(false);
+    if (error) {
+      setPhotos(prev);
+      toast({ title: "Bulk update failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: value ? "Published selected" : "Hidden selected", description: `${ids.length} photo(s) updated` });
+    setSelected(new Set());
+  };
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-32 pb-10">
@@ -537,24 +591,31 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   key={q.id}
                   className="flex items-center justify-between gap-3 text-sm border border-border rounded-md px-3 py-2 bg-background/40"
                 >
-                  <span className="truncate text-foreground">{q.name}</span>
-                  <span
-                    className={
-                      q.status === "done"
-                        ? "text-[hsl(var(--gold-light))]"
-                        : q.status === "failed"
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                    }
-                  >
-                    {q.status === "queued" && "Queued"}
-                    {q.status === "converting" && "Converting…"}
-                    {q.status === "optimizing" && "Optimizing…"}
-                    {q.status === "uploading" && "Uploading…"}
-                    {q.status === "done" &&
-                      `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
-                    {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
-                  </span>
+                  <span className="truncate text-foreground flex-1 min-w-0">{q.name}</span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span
+                      className={
+                        q.status === "done"
+                          ? "text-[hsl(var(--gold-light))]"
+                          : q.status === "failed"
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }
+                    >
+                      {q.status === "queued" && "Queued"}
+                      {q.status === "converting" && "Converting…"}
+                      {q.status === "optimizing" && "Optimizing…"}
+                      {q.status === "uploading" && "Uploading…"}
+                      {q.status === "done" &&
+                        `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
+                      {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
+                    </span>
+                    {q.status === "failed" && (
+                      <Button size="sm" variant="outline" onClick={() => retryItem(q)}>
+                        Retry
+                      </Button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -564,66 +625,124 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* List */}
       <section>
-        <h2 className="font-serif text-xl text-foreground mb-4">Photos</h2>
+        <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <div>
+            <h2 className="font-serif text-xl text-foreground">Photos</h2>
+            {missingAltCount > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
+                {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
+              </p>
+            )}
+          </div>
+        </div>
+
         {loading ? (
           <p className="text-muted-foreground text-sm">Loading…</p>
         ) : photos.length === 0 ? (
           <p className="text-muted-foreground text-sm">No photos yet.</p>
         ) : (
-          <ul className="space-y-3">
-            {photos.map((p) => (
-              <li
-                key={p.id}
-                className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[88px_1fr_120px_auto_auto] md:items-center"
-              >
-                <img
-                  src={p.image_url}
-                  alt={p.alt_text ?? ""}
-                  className="object-cover rounded-md border border-border"
-                  style={{ width: 88, height: 88 }}
-                  loading="lazy"
+          <>
+            <div className="flex items-center gap-3 mb-3 p-3 bg-card border border-border rounded-lg flex-wrap">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={(v) => toggleSelectAll(v === true)}
                 />
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Alt text</Label>
-                  <Input
-                    value={p.alt_text ?? ""}
-                    onChange={(e) => updateRow(p.id, { alt_text: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Sort order</Label>
-                  <Input
-                    type="number"
-                    value={p.sort_order}
-                    onChange={(e) => updateRow(p.id, { sort_order: Number(e.target.value) })}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={p.is_published}
-                    onCheckedChange={(v) => togglePublished(p, v)}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {p.is_published ? "Published" : "Hidden"}
-                  </span>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button size="sm" variant="outline" onClick={() => saveRow(p)}>
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setDeleteTarget(p)}
+                <span className="text-muted-foreground">
+                  {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+                </span>
+              </label>
+              <div className="flex gap-2 ml-auto">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkSetPublished(true)}
+                >
+                  Publish selected
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkSetPublished(false)}
+                >
+                  Hide selected
+                </Button>
+              </div>
+            </div>
+            <ul className="space-y-3">
+              {photos.map((p) => {
+                const missingAlt = !p.alt_text || p.alt_text.trim() === "";
+                return (
+                  <li
+                    key={p.id}
+                    className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_88px_1fr_120px_auto_auto] md:items-center"
                   >
-                    Delete
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    <Checkbox
+                      checked={selected.has(p.id)}
+                      onCheckedChange={(v) => toggleSelect(p.id, v === true)}
+                    />
+                    <img
+                      src={p.image_url}
+                      alt={p.alt_text ?? ""}
+                      className="object-cover rounded-md border border-border"
+                      style={{ width: 88, height: 88 }}
+                      loading="lazy"
+                    />
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">Alt text</Label>
+                        {missingAlt && (
+                          <span
+                            title="Needs alt text"
+                            className="inline-block w-2 h-2 rounded-full bg-amber-500"
+                          />
+                        )}
+                      </div>
+                      <Input
+                        value={p.alt_text ?? ""}
+                        onChange={(e) => updateRow(p.id, { alt_text: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Sort order</Label>
+                      <Input
+                        type="number"
+                        value={p.sort_order}
+                        onChange={(e) => updateRow(p.id, { sort_order: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={p.is_published}
+                        onCheckedChange={(v) => togglePublished(p, v)}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {p.is_published ? "Published" : "Hidden"}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="outline" onClick={() => saveRow(p)}>
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeleteTarget(p)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </section>
+
 
       <AlertDialog
         open={!!deleteTarget}
