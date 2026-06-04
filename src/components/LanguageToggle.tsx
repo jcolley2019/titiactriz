@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
