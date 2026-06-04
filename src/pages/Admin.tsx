@@ -471,7 +471,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               {preview && (
                 <>
                   {formatBytes(preview.originalSize)} → {formatBytes(preview.optimizedSize)} ·
-                  WebP, max 1600px
+                  WebP, max 2400px
                 </>
               )}
             </DialogDescription>
