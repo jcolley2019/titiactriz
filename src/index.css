@@ -492,7 +492,9 @@
 @keyframes editorial-corner-fade { from { opacity:0;} to { opacity:1;} }
 
 .editorial-title, .editorial-roles, .editorial-subtitle, .editorial-cta { opacity:0; }
-.editorial-divider-line { transform:scaleX(0); transform-origin:center; }
+.editorial-divider-half { display:block; height:1px; background:#C9A55C; transform:scaleX(0); }
+.editorial-divider-left  { transform-origin:right center; }
+.editorial-divider-right { transform-origin:left center; }
 .editorial-divider-diamond, .editorial-monogram { opacity:0; }
 .editorial-frame-top { transform:scaleX(0); transform-origin:left; }
 .editorial-frame-right { transform:scaleY(0); transform-origin:top; }
@@ -502,8 +504,9 @@
 
 /* ONE-TIME intro (class added on mount, never removed; scrolling does NOT replay it) */
 .editorial-intro .editorial-title    { animation: editorial-fade-up .8s ease .1s forwards; }
-.editorial-intro .editorial-divider-diamond { animation: editorial-diamond-in .6s ease .6s forwards; }
-.editorial-intro .editorial-divider-line    { animation: editorial-divider-grow .8s ease .9s forwards; }
+.editorial-intro .editorial-divider-diamond { animation: editorial-diamond-in .5s ease 1.1s both; }
+.editorial-intro .editorial-divider-left,
+.editorial-intro .editorial-divider-right   { animation: editorial-divider-grow .6s ease .9s both; }
 .editorial-intro .editorial-roles    { animation: editorial-fade-up .8s ease 1s forwards; }
 .editorial-intro .editorial-subtitle { animation: editorial-fade-up .8s ease 1.2s forwards; }
 .editorial-intro .editorial-monogram { animation: editorial-monogram-cycle 2.6s ease 1.3s forwards; }
@@ -517,7 +520,7 @@
 .editorial-hero-play .editorial-frame-corner { animation: editorial-corner-fade .6s ease 1.9s forwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .editorial-title,.editorial-roles,.editorial-subtitle,.editorial-cta,.editorial-divider-line,.editorial-divider-diamond,
+  .editorial-title,.editorial-roles,.editorial-subtitle,.editorial-cta,.editorial-divider-half,.editorial-divider-diamond,
   .editorial-frame-top,.editorial-frame-right,.editorial-frame-bottom,.editorial-frame-left,.editorial-frame-corner {
     animation:none !important; opacity:1 !important; transform:none !important;
   }

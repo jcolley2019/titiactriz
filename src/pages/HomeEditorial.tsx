@@ -257,17 +257,13 @@ const HomeEditorial = () => {
 
                 {/* Divider with center diamond drawing outward */}
                 <div
-                  className="relative mt-5 flex w-full items-center justify-center"
+                  className="mt-5 flex w-full items-center justify-center gap-2"
                   aria-hidden
                 >
-                  <span
-                    className="editorial-divider-line block h-px w-full"
-                    style={{ backgroundColor: GOLD }}
-                  />
+                  <span className="editorial-divider-half editorial-divider-left flex-1" />
                   <svg
                     viewBox="0 0 16 16"
-                    className="editorial-divider-diamond absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3"
-                    style={{ background: "#0e0c09" }}
+                    className="editorial-divider-diamond w-3 h-3 shrink-0"
                   >
                     <rect
                       x="3"
@@ -278,6 +274,7 @@ const HomeEditorial = () => {
                       fill={GOLD}
                     />
                   </svg>
+                  <span className="editorial-divider-half editorial-divider-right flex-1" />
                 </div>
               </div>
 
