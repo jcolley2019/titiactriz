@@ -1113,13 +1113,20 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             </DialogDescription>
           </DialogHeader>
           {preview && (
-            <div className="flex items-center justify-center bg-muted/30 rounded-md overflow-hidden">
-              <img
-                src={preview.url}
-                alt="Optimized preview"
-                className="max-h-[60vh] w-auto object-contain"
-              />
-            </div>
+            <>
+              {preview.duplicateOfId && (
+                <p className="text-xs text-amber-500">
+                  Looks like a duplicate of a photo you already have.
+                </p>
+              )}
+              <div className="flex items-center justify-center bg-muted/30 rounded-md overflow-hidden">
+                <img
+                  src={preview.url}
+                  alt="Optimized preview"
+                  className="max-h-[60vh] w-auto object-contain"
+                />
+              </div>
+            </>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={closePreview} disabled={singleUploading}>
