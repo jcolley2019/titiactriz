@@ -208,6 +208,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [rowDragging, setRowDragging] = useState(false);
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const [savedAltIds, setSavedAltIds] = useState<Set<string>>(new Set());
+  const altSavedTimers = useRef<Map<string, number>>(new Map());
+  const altLastSaved = useRef<Map<string, string>>(new Map());
+
 
   // Single-file preview flow
   const [singleUploading, setSingleUploading] = useState(false);
