@@ -53,6 +53,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import LivePreviewDock from "@/components/admin/LivePreviewDock";
+import HomeVariantToggle from "@/components/admin/HomeVariantToggle";
 
 type Photo = {
   id: string;
@@ -939,6 +940,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           Log out
         </Button>
       </div>
+
+      <HomeVariantToggle />
 
       {/* Upload */}
       <section className="bg-card border border-border rounded-lg p-6 mb-10">
