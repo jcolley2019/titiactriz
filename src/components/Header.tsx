@@ -110,7 +110,7 @@ const Header = () => {
         </div>
 
         {/* RIGHT */}
-        <ul className="hidden md:flex items-center gap-7 md:gap-8 justify-self-end">
+        <ul className="hidden md:flex items-center gap-5 lg:gap-7 justify-self-end">
           {rightLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
