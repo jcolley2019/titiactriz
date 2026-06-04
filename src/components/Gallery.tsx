@@ -34,24 +34,35 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   const offsetRef = useRef(0);
   const lastTimeRef = useRef<number | null>(null);
 
-  // Fetch published photos
+  // Fetch published photos (only when no prop passed)
   useEffect(() => {
+    if (photosProp) return;
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase
+      // Try with is_archived filter; fall back if column doesn't exist yet.
+      let result = await supabase
         .from("gallery_photos")
         .select("id, image_url, alt_text")
         .eq("is_published", true)
+        .eq("is_archived", false)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
+      if (result.error && /is_archived/i.test(result.error.message)) {
+        result = await supabase
+          .from("gallery_photos")
+          .select("id, image_url, alt_text")
+          .eq("is_published", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true });
+      }
       if (cancelled) return;
-      if (!error && data) setPhotos(data as Photo[]);
+      if (!result.error && result.data) setFetchedPhotos(result.data as Photo[]);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [photosProp]);
 
   // Reduced motion preference
   useEffect(() => {
