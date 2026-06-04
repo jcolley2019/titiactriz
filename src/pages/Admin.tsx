@@ -224,9 +224,11 @@ type SortableRowProps = {
   position: number;
   selected: boolean;
   saved: boolean;
+  generating: boolean;
   onSelectedChange: (v: boolean) => void;
   onAltChange: (v: string) => void;
   onAltBlur: () => void;
+  onGenerateAlt: () => void;
   onPublishedChange: (v: boolean) => void;
   onArchive: () => void;
   onDelete: () => void;
@@ -237,9 +239,11 @@ const SortableRow = memo(({
   position,
   selected,
   saved,
+  generating,
   onSelectedChange,
   onAltChange,
   onAltBlur,
+  onGenerateAlt,
   onPublishedChange,
   onArchive,
   onDelete,
