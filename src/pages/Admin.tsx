@@ -457,6 +457,48 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog
+        open={!!preview}
+        onOpenChange={(open) => {
+          if (!open && !uploading) closePreview();
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review optimized photo</DialogTitle>
+            <DialogDescription>
+              {preview && (
+                <>
+                  {formatBytes(preview.originalSize)} → {formatBytes(preview.optimizedSize)} ·
+                  WebP, max 1600px
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {preview && (
+            <div className="flex items-center justify-center bg-muted/30 rounded-md overflow-hidden">
+              <img
+                src={preview.url}
+                alt="Optimized preview"
+                className="max-h-[60vh] w-auto object-contain"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={closePreview} disabled={uploading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmUpload}
+              disabled={uploading}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {uploadStage === "uploading" ? "Uploading…" : "Confirm & upload"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
