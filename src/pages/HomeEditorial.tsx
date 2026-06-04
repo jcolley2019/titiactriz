@@ -139,16 +139,52 @@ const HomeEditorial = () => {
     </svg>
   );
 
-  // CP monogram with vine flourish below
+  // CP monogram — Cinzel letters, C (cream) intersected by P (gold), with vine flourish below-left
   const CPMonogram = () => (
-    <img
-      src={cpMonogram.url}
-      alt="CP monogram"
-      className="w-[88px] sm:w-[104px] md:w-[120px] h-auto"
-      loading="lazy"
-      decoding="async"
-    />
+    <div
+      className="relative inline-flex flex-col items-center"
+      aria-hidden
+      style={{ fontFamily: "var(--font-display)" }}
+    >
+      <div
+        className="relative leading-none"
+        style={{ fontSize: "clamp(3.5rem, 8vw, 5.5rem)", letterSpacing: 0 }}
+      >
+        <span
+          className="relative z-10"
+          style={{ color: CREAM, fontWeight: 400 }}
+        >
+          C
+        </span>
+        <span
+          className="absolute top-0 z-20"
+          style={{
+            color: GOLD,
+            fontWeight: 400,
+            left: "55%",
+          }}
+        >
+          P
+        </span>
+      </div>
+      {/* vine flourish — positioned bottom-left like the original monogram */}
+      <svg
+        viewBox="0 0 80 24"
+        className="absolute -bottom-2 left-0 w-[44%] h-auto"
+        style={{ transform: "translateX(-20%)" }}
+      >
+        <g fill="none" stroke={GOLD} strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 14 C 20 8, 50 8, 74 12" />
+          <path d="M18 11 C 16 7, 13 7, 12 10 C 13 13, 16 13, 18 11 Z" fill={GOLD} fillOpacity="0.9" />
+          <path d="M32 9 C 30 5, 27 5, 26 8 C 27 11, 30 11, 32 9 Z" fill={GOLD} fillOpacity="0.9" />
+          <path d="M48 9 C 50 5, 53 5, 54 8 C 53 11, 50 11, 48 9 Z" fill={GOLD} fillOpacity="0.9" />
+          <circle cx="62" cy="11" r="1" fill={GOLD} />
+          <path d="M8 16 C 6 18, 4 19, 2 18" />
+        </g>
+      </svg>
+    </div>
   );
+
 
 
 
