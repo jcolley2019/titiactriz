@@ -62,7 +62,7 @@ const HomeEditorial = () => {
 
   useEffect(() => {
     if (prefersReducedMotion) return;
-    const t1 = window.setTimeout(() => setFrameVisible(false), 6500);
+    const t1 = window.setTimeout(() => setFrameVisible(false), 7500);
     return () => window.clearTimeout(t1);
   }, [prefersReducedMotion]);
 
