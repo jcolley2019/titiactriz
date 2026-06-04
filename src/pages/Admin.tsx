@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import LivePreviewDock from "@/components/admin/LivePreviewDock";
 
 type Photo = {
   id: string;
