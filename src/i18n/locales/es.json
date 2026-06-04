@@ -9,7 +9,7 @@
   },
   "nav": {
     "home": "Inicio",
-    "titansAgency": "Titans Agency Latam",
+    "titansAgency": "Titans Agency",
     "greenWorld": "Green World",
     "portfolio": "Portafolio",
     "socials": "Redes Sociales",
@@ -73,7 +73,7 @@
     "title": "Destacados",
     "subtitle": "Descubre más sobre mi trabajo, emprendimientos y proyectos creativos.",
     "titans": {
-      "title": "Titans Agency Latam",
+      "title": "Titans Agency",
       "description": "Crecimiento en TikTok, apoyo a creadores y estrategia de monetización para creadores latinoamericanos."
     },
     "greenWorld": {
