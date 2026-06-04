@@ -195,6 +195,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [batchRunning, setBatchRunning] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Photo | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const closePreview = useCallback(() => {
     setPreview((prev) => {
