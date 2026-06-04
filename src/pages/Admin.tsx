@@ -137,7 +137,15 @@ const LoginCard = () => {
 };
 
 /* ---------------- Pipeline ---------------- */
-type QueueStatus = "queued" | "converting" | "optimizing" | "uploading" | "done" | "failed";
+type QueueStatus =
+  | "queued"
+  | "duplicate"
+  | "converting"
+  | "optimizing"
+  | "uploading"
+  | "done"
+  | "failed"
+  | "skipped";
 type QueueItem = {
   id: string;
   name: string;
@@ -147,6 +155,16 @@ type QueueItem = {
   optimizedSize?: number;
   file: File;
   sortOrder: number;
+  contentHash?: string;
+  duplicateOfId?: string;
+};
+
+const sha256Hex = async (file: File): Promise<string> => {
+  const buf = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 };
 
 const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolean }> => {
