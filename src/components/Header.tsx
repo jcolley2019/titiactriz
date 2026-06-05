@@ -36,10 +36,17 @@ const EventsCtaLink = ({ to, label, badge, variant, onNavigate }: EventsCtaProps
 
 
 const Header = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { board, loading } = useEventsBoard();
+
+  const eventsVisible = !loading && board.pageVisible === true;
+  const activeLang = (i18n.language || "es").startsWith("es") ? "es" : "en";
+  const firstBadgeRaw = board.items?.[0]?.badge?.[activeLang] ?? "";
+  const firstBadge = firstBadgeRaw.trim();
+
 
   const leftLinks = [
     { name: t("nav.home"), path: "/" },
