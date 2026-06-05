@@ -19,41 +19,48 @@ export type EventButton = {
   icon?: ButtonIcon;
 };
 
-/**
- * Unified event item. The card has become a flexible block:
- * badge, title, optional image (above/below), description, optional bullets,
- * note, optional video, and a row of buttons with icons.
- *
- * Most fields are optional in the type so the previous admin component
- * (EventsBoardManager) keeps compiling during the transition. The parser
- * always fills concrete defaults at runtime.
- */
-export type EventItem = {
+type BaseItem = {
   id: string;
   size: "full" | "half";
   title: Localized;
+};
+
+/**
+ * Flexible event block. All items render through this shape.
+ * The new flexible fields (imageUrl, imagePosition, bulletsOn, bullets,
+ * videoUrl) are optional so the current admin keeps compiling — the parser
+ * always returns concrete defaults at runtime. `details` is legacy and
+ * ignored by the renderer; it is removed in the next pass with the new admin.
+ */
+export type EventCardItem = BaseItem & {
+  type: "event";
   badge: Localized;
   description: Localized;
   note: Localized;
-  imageUrl: string;
-  imagePosition: "above" | "below";
-  bulletsOn: boolean;
-  bullets: Localized[];
-  videoUrl: string;
-  buttons: EventButton[];
-  // legacy fields kept so the current admin still compiles.
-  // Ignored by the renderer; removed in the next pass.
-  type?: "event" | "video" | "link";
   details: Localized[];
-  url: string;
-  buttonLabel: Localized;
+  buttons: EventButton[];
+  imageUrl?: string;
+  imagePosition?: "above" | "below";
+  bulletsOn?: boolean;
+  bullets?: Localized[];
+  videoUrl?: string;
 };
 
-// Legacy aliases so the existing admin (EventsBoardManager) keeps compiling.
-export type EventCardItem = EventItem;
-export type VideoItem = EventItem;
-export type LinkItem = EventItem;
+// Legacy variants kept so the existing admin (EventsBoardManager) still
+// compiles. They render as flexible event blocks too.
+export type VideoItem = BaseItem & {
+  type: "video";
+  videoUrl: string;
+};
 
+export type LinkItem = BaseItem & {
+  type: "link";
+  url: string;
+  buttonLabel: Localized;
+  imageUrl: string;
+};
+
+export type EventItem = EventCardItem | VideoItem | LinkItem;
 
 export type EventsBoard = {
   pageVisible: boolean;
@@ -68,6 +75,7 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
     {
       id: "smartfilms-2026",
       size: "full",
+      type: "event",
       title: {
         es: "SmartFilms Colombia 2026",
         en: "SmartFilms Colombia 2026",
@@ -81,6 +89,7 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
         es: "Los ganadores se eligen con un 10% de votación del público: tu apoyo cuenta.",
         en: "Winners are chosen with 10% public voting — your support counts.",
       },
+      details: [],
       imageUrl: "",
       imagePosition: "above",
       bulletsOn: false,
@@ -142,6 +151,7 @@ const coerceSize = (v: unknown): "full" | "half" =>
 const coercePosition = (v: unknown): "above" | "below" =>
   v === "below" ? "below" : "above";
 
+// Every item is normalized into the flexible event shape.
 const coerceItem = (v: unknown): EventItem | null => {
   if (!isObj(v)) return null;
   const id = typeof v.id === "string" && v.id ? v.id : null;
@@ -152,13 +162,15 @@ const coerceItem = (v: unknown): EventItem | null => {
   const buttons = Array.isArray(v.buttons)
     ? (v.buttons.map(coerceButton).filter(Boolean) as EventButton[])
     : [];
-  return {
+  const item: EventCardItem = {
     id,
     size: coerceSize(v.size),
+    type: "event",
     title: coerceLocalized(v.title),
     badge: coerceLocalized(v.badge),
     description: coerceLocalized(v.description),
     note: coerceLocalized(v.note),
+    details: [],
     imageUrl: typeof v.imageUrl === "string" ? v.imageUrl : "",
     imagePosition: coercePosition(v.imagePosition),
     bulletsOn: v.bulletsOn === true,
@@ -166,6 +178,7 @@ const coerceItem = (v: unknown): EventItem | null => {
     videoUrl: typeof v.videoUrl === "string" ? v.videoUrl : "",
     buttons,
   };
+  return item;
 };
 
 export const parseBoard = (value: unknown): EventsBoard => {
