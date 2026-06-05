@@ -368,12 +368,13 @@ const HomeEditorial = () => {
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[460px] max-h-[64vh] h-auto object-contain"
+                className="w-full max-w-[220px] sm:max-w-[400px] lg:max-w-[460px] max-h-[26svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_75%] sm:object-contain"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
               />
             </div>
+
           </div>
         </div>
       </section>
