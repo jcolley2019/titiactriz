@@ -93,6 +93,7 @@ const formatBytes = (b: number) =>
 
 /* ---------------- Login ---------------- */
 const LoginCard = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,7 +106,7 @@ const LoginCard = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError("Invalid email or password. Please try again.");
+      setError(t("admin.login.invalid"));
     }
   };
 
@@ -115,12 +116,12 @@ const LoginCard = () => {
         onSubmit={onSubmit}
         className="w-full max-w-sm bg-card border border-border rounded-lg p-6 shadow-[var(--shadow-card)]"
       >
-        <h1 className="font-serif text-2xl text-foreground mb-1">Admin</h1>
-        <p className="text-sm text-muted-foreground mb-6">Sign in to manage the gallery.</p>
+        <h1 className="font-serif text-2xl text-foreground mb-1">{t("admin.login.title")}</h1>
+        <p className="text-sm text-muted-foreground mb-6">{t("admin.login.subtitle")}</p>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("admin.login.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -131,7 +132,7 @@ const LoginCard = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("admin.login.password")}</Label>
             <Input
               id="password"
               type="password"
@@ -147,7 +148,7 @@ const LoginCard = () => {
             disabled={loading}
             className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? t("admin.login.signingIn") : t("admin.login.signIn")}
           </Button>
         </div>
       </form>
@@ -250,6 +251,7 @@ const SortableRow = memo(({
   onArchive,
   onDelete,
 }: SortableRowProps) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -276,7 +278,7 @@ const SortableRow = memo(({
         {...attributes}
         {...listeners}
         className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
-        aria-label="Drag to reorder"
+        aria-label={t("admin.photos.dragToReorder")}
       >
         <GripVertical className="w-4 h-4" />
       </button>
@@ -296,15 +298,15 @@ const SortableRow = memo(({
       />
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">Alt text</Label>
+          <Label className="text-xs text-muted-foreground">{t("admin.photos.altText")}</Label>
           {missingAlt && (
             <span
-              title="Needs alt text"
+              title={t("admin.photos.needsAlt")}
               className="inline-block w-2 h-2 rounded-full bg-amber-500"
             />
           )}
           {saved && (
-            <span className="text-xs text-[hsl(var(--gold-light))]">Saved</span>
+            <span className="text-xs text-[hsl(var(--gold-light))]">{t("admin.photos.saved")}</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -320,8 +322,8 @@ const SortableRow = memo(({
             variant="outline"
             onClick={onGenerateAlt}
             disabled={generating}
-            title="Generate Spanish alt text with AI"
-            aria-label="Generate alt text"
+            title={t("admin.photos.generateAltTitle")}
+            aria-label={t("admin.photos.generateAlt")}
             className="shrink-0 px-2"
           >
             {generating ? (
@@ -335,22 +337,22 @@ const SortableRow = memo(({
       <div className="flex items-center gap-2">
         <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
         <span className="text-xs text-muted-foreground">
-          {photo.is_published ? "Published" : "Hidden"}
+          {photo.is_published ? t("admin.photos.published") : t("admin.photos.hidden")}
         </span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost" aria-label="More" className="px-2">
+          <Button size="sm" variant="ghost" aria-label={t("admin.photos.more")} className="px-2">
             <MoreVertical className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => onArchive()}>Archive</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onArchive()}>{t("admin.photos.archive")}</DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => onDelete()}
             className="text-destructive focus:text-destructive"
           >
-            Delete
+            {t("admin.photos.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
