@@ -21,7 +21,18 @@ const EventsBanner = () => {
 
   const activeLang: "es" | "en" = (i18n.language || "es").startsWith("es") ? "es" : "en";
 
-  const bannerText = (board?.bannerText?.[activeLang] ?? "").trim();
+  // Primary: editor-controlled bannerText. Fallback: first event's badge + title
+  // so the banner is never blank when pageVisible is on and events exist.
+  const explicitText = (board?.bannerText?.[activeLang] ?? "").trim();
+  let bannerText = explicitText;
+  if (!bannerText && board?.items?.length) {
+    const first = board.items[0];
+    const title = (first?.title?.[activeLang] ?? "").trim();
+    const badge = (first?.badge?.[activeLang] ?? "").trim();
+    if (title) {
+      bannerText = badge ? `${badge} — ${title}` : title;
+    }
+  }
   const dismissKey = bannerText ? DISMISS_PREFIX + hashText(activeLang + "|" + bannerText) : "";
 
   const [dismissed, setDismissed] = useState(false);
