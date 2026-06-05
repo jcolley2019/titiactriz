@@ -26,11 +26,11 @@ const Footer = () => {
 
   return (
     <footer className="relative z-10 border-t border-border/30 bg-background/80 backdrop-blur-sm">
-      <div className="container-editorial py-20">
+      <div className="container-editorial py-12">
         {/* Gold accent line */}
-        <div className="gold-line mb-16" />
+        <div className="gold-line mb-8" />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
           {/* Brand */}
           <div>
             <h3 className="font-serif text-2xl mb-5">
@@ -86,7 +86,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom */}
-        <div className="mt-16 pt-8 border-t border-border/20 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-10 pt-6 border-t border-border/20 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground/70">
             {t("footer.copyright", { year: currentYear })}
           </p>
