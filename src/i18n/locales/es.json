@@ -516,7 +516,18 @@
       "saving": "Guardando...",
       "saved": "Eventos actualizados",
       "saveError": "No se pudo guardar. Intenta de nuevo.",
-      "emptyState": "Aún no hay tarjetas. Agrega una."
+      "emptyState": "Aún no hay tarjetas. Agrega una.",
+      "imageLabel": "Imagen",
+      "imageAbove": "Arriba de la descripción",
+      "imageBelow": "Debajo de la descripción",
+      "dropImage": "Arrastra una imagen o haz clic para subir",
+      "removeImage": "Quitar imagen",
+      "bulletsToggleLabel": "Mostrar viñetas",
+      "bulletsSectionLabel": "Viñetas",
+      "addBullet": "Agregar viñeta",
+      "removeBullet": "Quitar",
+      "addVideo": "Agregar video",
+      "removeVideo": "Quitar video"
     },
     "upload": {
       "title": "Subir fotos",
