@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import LivePreviewDock from "@/components/admin/LivePreviewDock";
 import HomeVariantToggle from "@/components/admin/HomeVariantToggle";
-import EventsManager from "@/components/admin/EventsManager";
+import EventsBoardManager from "@/components/admin/EventsBoardManager";
 
 type Photo = {
   id: string;
@@ -948,7 +948,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       <HomeVariantToggle />
 
-      <EventsManager />
+      <EventsBoardManager />
 
       {/* Upload */}
       <section className="bg-card border border-border rounded-lg p-6 mb-10">
