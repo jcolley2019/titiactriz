@@ -354,7 +354,7 @@ const EventFields = ({
         {item.buttons.map((b, idx) => (
           <div
             key={idx}
-            className="grid gap-2 md:grid-cols-[1fr_1fr_auto] items-start border border-border rounded-md p-2"
+            className="grid gap-2 md:grid-cols-[1fr_1fr_auto_auto] items-start border border-border rounded-md p-2"
           >
             <div className="space-y-1">
               <Label className="text-[0.65rem] text-muted-foreground uppercase">
@@ -375,6 +375,27 @@ const EventFields = ({
                 placeholder="https://"
               />
             </div>
+            <div className="space-y-1">
+              <Label className="text-[0.65rem] text-muted-foreground uppercase">
+                {t("admin.eventsBoard.iconLabel")}
+              </Label>
+              <select
+                value={b.icon ?? "auto"}
+                onChange={(e) =>
+                  setButton(idx, { icon: e.target.value as EventButton["icon"] })
+                }
+                className="h-10 rounded-md border border-input bg-background px-2 text-sm"
+              >
+                <option value="auto">{t("admin.eventsBoard.iconAuto")}</option>
+                <option value="website">{t("admin.eventsBoard.iconWebsite")}</option>
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+                <option value="youtube">YouTube</option>
+                <option value="facebook">Facebook</option>
+                <option value="x">X</option>
+                <option value="none">{t("admin.eventsBoard.iconNone")}</option>
+              </select>
+            </div>
             <Button
               type="button"
               size="sm"
@@ -387,49 +408,64 @@ const EventFields = ({
             </Button>
           </div>
         ))}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={addButton}
-          disabled={item.buttons.length >= 3}
-        >
-          <Plus className="w-3 h-3 mr-1" />
-          {t("admin.eventsBoard.addButton")}
-        </Button>
-      </div>
 
-      <div className="space-y-2">
-        <FieldLabel>{t("admin.eventsBoard.videoUrlLabel")}</FieldLabel>
-        {item.videoUrl ? (
-          <div className="flex gap-2">
-            <Input
-              value={item.videoUrl}
-              onChange={(e) => onChange({ videoUrl: e.target.value })}
-              placeholder="https://youtube.com/..."
-            />
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onChange({ videoUrl: "" })}
-            >
-              <X className="w-3 h-3 mr-1" />
-              {t("admin.eventsBoard.removeVideo")}
-            </Button>
+        {item.videoUrl && (
+          <div className="space-y-1">
+            <FieldLabel>{t("admin.eventsBoard.videoUrlLabel")}</FieldLabel>
+            <div className="flex gap-2">
+              <Input
+                value={item.videoUrl}
+                onChange={(e) => onChange({ videoUrl: e.target.value })}
+                placeholder="https://youtube.com/..."
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => onChange({ videoUrl: "" })}
+              >
+                <X className="w-3 h-3 mr-1" />
+                {t("admin.eventsBoard.removeVideo")}
+              </Button>
+            </div>
           </div>
-        ) : (
+        )}
+
+        <div className="flex flex-wrap gap-2 pt-1">
           <Button
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => onChange({ videoUrl: " " })}
+            onClick={addButton}
+            disabled={item.buttons.length >= 3}
           >
             <Plus className="w-3 h-3 mr-1" />
-            {t("admin.eventsBoard.addVideo")}
+            {t("admin.eventsBoard.addButton")}
           </Button>
-        )}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={addSocialIcon}
+            disabled={item.buttons.length >= 3}
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            {t("admin.eventsBoard.addSocialIcon")}
+          </Button>
+          {!item.videoUrl && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange({ videoUrl: " " })}
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              {t("admin.eventsBoard.addVideo")}
+            </Button>
+          )}
+        </div>
       </div>
+
     </div>
   );
 };
