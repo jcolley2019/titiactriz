@@ -208,10 +208,10 @@ const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolea
     return { blob: file, converted: false };
   }
   const blob = await imageCompression(working as File, {
-    maxWidthOrHeight: 2400,
+    maxWidthOrHeight: 3200,
     fileType: "image/webp",
     initialQuality: 0.92,
-    maxSizeMB: 2.5,
+    maxSizeMB: 4,
     useWebWorker: true,
     preserveExif: false,
   });
