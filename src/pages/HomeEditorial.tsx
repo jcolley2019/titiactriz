@@ -184,7 +184,7 @@ const HomeEditorial = () => {
         style={{ backgroundColor: "#0e0c09" }}
       >
         {/* Contained, centered hero box */}
-        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-122px)] md:min-h-0 px-5 pt-5 pb-7 md:p-14">
+        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-122px)] md:min-h-0 px-5 pt-4 pb-5 md:p-14">
 
           {/* Four solid gold border bars */}
           <span
@@ -304,7 +304,7 @@ const HomeEditorial = () => {
                   {t("hero.tagline")}
                 </p>
                 <p
-                  className="leading-relaxed"
+                  className="leading-relaxed hidden sm:block"
                   style={{
                     color: "rgba(240, 233, 218, 0.72)",
                     fontFamily: "var(--font-sans)",
@@ -317,7 +317,7 @@ const HomeEditorial = () => {
               </div>
 
               {/* Monogram hands off to CTA buttons (same grid cell, no layout shift) */}
-              <div className="relative mx-auto mt-7 sm:mt-6 mb-1 sm:mb-0 flex min-h-[56px] sm:min-h-[64px] w-full items-center justify-center">
+              <div className="relative mx-auto mt-5 sm:mt-6 mb-1 sm:mb-0 flex min-h-[56px] sm:min-h-[64px] w-full items-center justify-center">
 
                 <span
                   aria-hidden
