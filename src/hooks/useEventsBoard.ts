@@ -32,38 +32,28 @@ export type EventItem = {
   id: string;
   size: "full" | "half";
   title: Localized;
-  badge?: Localized;
-  description?: Localized;
-  note?: Localized;
-  imageUrl?: string;
-  imagePosition?: "above" | "below";
-  bulletsOn?: boolean;
-  bullets?: Localized[];
-  videoUrl?: string;
-  buttons?: EventButton[];
-  // legacy fields kept optional so the current admin still compiles.
-  // They are ignored by the renderer and removed in the next pass.
-  type?: "event" | "video" | "link";
-  details?: Localized[];
-  url?: string;
-  buttonLabel?: Localized;
-};
-
-// Legacy aliases so the existing admin (EventsBoardManager) keeps compiling.
-// They are removed when the admin is rewritten.
-export type EventCardItem = EventItem & {
   badge: Localized;
   description: Localized;
   note: Localized;
-  details: Localized[];
+  imageUrl: string;
+  imagePosition: "above" | "below";
+  bulletsOn: boolean;
+  bullets: Localized[];
+  videoUrl: string;
   buttons: EventButton[];
-};
-export type VideoItem = EventItem & { videoUrl: string };
-export type LinkItem = EventItem & {
+  // legacy fields kept so the current admin still compiles.
+  // Ignored by the renderer; removed in the next pass.
+  type?: "event" | "video" | "link";
+  details: Localized[];
   url: string;
   buttonLabel: Localized;
-  imageUrl: string;
 };
+
+// Legacy aliases so the existing admin (EventsBoardManager) keeps compiling.
+export type EventCardItem = EventItem;
+export type VideoItem = EventItem;
+export type LinkItem = EventItem;
+
 
 export type EventsBoard = {
   pageVisible: boolean;
