@@ -236,6 +236,10 @@ type SortableRowProps = {
   onPublishedChange: (v: boolean) => void;
   onArchive: () => void;
   onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 };
 
 const SortableRow = memo(({
@@ -251,6 +255,10 @@ const SortableRow = memo(({
   onPublishedChange,
   onArchive,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }: SortableRowProps) => {
   const { t } = useTranslation();
   const {
