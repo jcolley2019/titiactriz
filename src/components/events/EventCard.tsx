@@ -310,11 +310,12 @@ const LinkVariant = ({ item, lang }: { item: LinkItem; lang: Lang }) => {
 
 /* ---------- ROOT ---------- */
 
-const EventCard = ({ item }: { item: EventItem }) => {
-  const lang = useLang();
-  if (item.type === "event") return <EventVariant item={item} lang={lang} />;
-  if (item.type === "video") return <VideoVariant item={item} lang={lang} />;
-  return <LinkVariant item={item} lang={lang} />;
+const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
+  const fallback = useLang();
+  const active: Lang = lang ?? fallback;
+  if (item.type === "event") return <EventVariant item={item} lang={active} />;
+  if (item.type === "video") return <VideoVariant item={item} lang={active} />;
+  return <LinkVariant item={item} lang={active} />;
 };
 
 export default EventCard;
