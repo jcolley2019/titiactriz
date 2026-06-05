@@ -6,6 +6,13 @@ import { useEventsBoard } from "@/hooks/useEventsBoard";
 
 const DISMISS_PREFIX = "eventsBannerDismissed:";
 
+// Tiny stable hash for dismissal keys (djb2).
+const hashText = (s: string): string => {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+};
+
 const EventsBanner = () => {
   const { board, loading } = useEventsBoard();
   const { t, i18n } = useTranslation();
@@ -14,20 +21,23 @@ const EventsBanner = () => {
 
   const activeLang: "es" | "en" = (i18n.language || "es").startsWith("es") ? "es" : "en";
 
-  const items = (board?.items ?? []).filter((it) => it.title?.[activeLang]?.trim());
-  const topId = items[0]?.id;
+  const bannerText = (board?.bannerText?.[activeLang] ?? "").trim();
+  const dismissKey = bannerText ? DISMISS_PREFIX + hashText(activeLang + "|" + bannerText) : "";
 
   const [dismissed, setDismissed] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    if (!topId) return;
+    if (!dismissKey) {
+      setDismissed(false);
+      return;
+    }
     try {
-      setDismissed(localStorage.getItem(DISMISS_PREFIX + topId) === "1");
+      setDismissed(localStorage.getItem(dismissKey) === "1");
     } catch {
       setDismissed(false);
     }
-  }, [topId]);
+  }, [dismissKey]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -40,7 +50,7 @@ const EventsBanner = () => {
 
   if (loading) return null;
   if (!board?.pageVisible) return null;
-  if (items.length === 0) return null;
+  if (!bannerText) return null;
   if (location.pathname.startsWith("/events")) return null;
   if (dismissed) return null;
 
@@ -50,7 +60,7 @@ const EventsBanner = () => {
     e.stopPropagation();
     e.preventDefault();
     try {
-      if (topId) localStorage.setItem(DISMISS_PREFIX + topId, "1");
+      if (dismissKey) localStorage.setItem(dismissKey, "1");
     } catch {}
     setDismissed(true);
   };
@@ -58,28 +68,18 @@ const EventsBanner = () => {
   const goEvents = () => navigate("/events");
 
   const Separator = () => (
-    <span aria-hidden className="mx-4 text-[#C9A55C]/70 text-[10px]">◆</span>
+    <span aria-hidden className="mx-6 text-[#C9A55C]/70 text-[10px]">◆</span>
   );
 
   const renderSegment = (key: string) => (
     <div key={key} className="flex items-center shrink-0 pr-2">
-      {items.map((it, idx) => {
-        const badge = it.badge?.[activeLang]?.trim();
-        const title = it.title[activeLang];
-        return (
-          <div key={`${key}-${it.id}-${idx}`} className="flex items-center shrink-0">
-            {badge && (
-              <span className="mr-2 px-1.5 py-[1px] text-[9px] tracking-[0.18em] uppercase border border-[#C9A55C]/50 text-[#C9A55C] rounded-sm">
-                {badge}
-              </span>
-            )}
-            <span className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase whitespace-nowrap" style={{ fontFamily: "Jost, sans-serif" }}>
-              {title}
-            </span>
-            <Separator />
-          </div>
-        );
-      })}
+      <span
+        className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase whitespace-nowrap"
+        style={{ fontFamily: "Jost, sans-serif" }}
+      >
+        {bannerText}
+      </span>
+      <Separator />
     </div>
   );
 
@@ -110,22 +110,12 @@ const EventsBanner = () => {
         >
           {reducedMotion ? (
             <div className="h-full flex items-center px-4">
-              {(() => {
-                const first = items[0];
-                const badge = first.badge?.[activeLang]?.trim();
-                return (
-                  <div className="flex items-center">
-                    {badge && (
-                      <span className="mr-2 px-1.5 py-[1px] text-[9px] tracking-[0.18em] uppercase border border-[#C9A55C]/50 text-[#C9A55C] rounded-sm">
-                        {badge}
-                      </span>
-                    )}
-                    <span className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase" style={{ fontFamily: "Jost, sans-serif" }}>
-                      {first.title[activeLang]}
-                    </span>
-                  </div>
-                );
-              })()}
+              <span
+                className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase"
+                style={{ fontFamily: "Jost, sans-serif" }}
+              >
+                {bannerText}
+              </span>
             </div>
           ) : (
             <div
