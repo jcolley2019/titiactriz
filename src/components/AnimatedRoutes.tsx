@@ -13,6 +13,7 @@ const Socials = lazy(() => import("@/pages/Socials"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Events = lazy(() => import("@/pages/Events"));
+const Studio = lazy(() => import("@/pages/Studio"));
 
 const RouteFallback = () => (
   <div
@@ -84,6 +85,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <Suspense fallback={<RouteFallback />}>
                 <Events />
+              </Suspense>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/studio"
+          element={
+            <PageTransition>
+              <Suspense fallback={<RouteFallback />}>
+                <Studio />
               </Suspense>
             </PageTransition>
           }

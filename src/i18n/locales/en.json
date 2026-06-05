@@ -112,7 +112,37 @@
     "quickLinks": "Quick Links",
     "connect": "Connect",
     "copyright": "© {{year}} Cristyna Polentino. All rights reserved.",
-    "madeWith": "Made with passion in Colombia"
+    "madeWith": "Made with passion in Colombia",
+    "studioCredit": "Site by Joey Colley",
+    "studioCta": "Want one like this?"
+  },
+  "studio": {
+    "seo": {
+      "title": "Studio | Websites and AI-powered apps — Joey Colley",
+      "description": "Joey Colley designs and builds custom websites and AI-powered apps, built to grow."
+    },
+    "hero": {
+      "eyebrow": "The studio behind this site",
+      "title": "Custom websites and AI-powered apps",
+      "subtitle": "I'm Joey Colley. I design and build websites and AI-powered apps: fast, custom, and built to grow. This site is one of them.",
+      "cta": "Let's talk about your project"
+    },
+    "work": {
+      "eyebrow": "Selected work",
+      "title": "Things I've built",
+      "visit": "Visit site",
+      "items": {
+        "titiactriz": "This site. A bilingual portfolio for a Colombian actress.",
+        "titilinks": "Bilingual biolink platform for Latino creators.",
+        "joeyc": "My personal brand with an AI content studio.",
+        "luxvibe": "Luxury hotel booking across 2M+ properties.",
+        "fieldreport": "Field documentation app with AI-generated summaries."
+      }
+    },
+    "cta": {
+      "line": "Got an idea? Let's build it.",
+      "button": "Start a project"
+    }
   },
   "gallery": {
     "eyebrow": "A glimpse into",
