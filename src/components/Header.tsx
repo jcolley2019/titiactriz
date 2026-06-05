@@ -160,9 +160,8 @@ const Header = () => {
 
 
 
-        {/* Mobile right cluster */}
-        <div className="md:hidden flex items-center gap-3 justify-self-end">
-          <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
+        {/* Mobile right cluster — single hamburger only */}
+        <div className="md:hidden flex items-center justify-self-end">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-2 transition-colors ${
@@ -175,6 +174,7 @@ const Header = () => {
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
+
       </nav>
 
       {/* Mobile Menu */}
