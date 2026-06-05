@@ -226,6 +226,8 @@ const EventFields = ({
       ],
     });
   };
+  const addSocialIcon = addButton;
+
   const removeButton = (idx: number) => {
     onChange({ buttons: item.buttons.filter((_, i) => i !== idx) });
   };
