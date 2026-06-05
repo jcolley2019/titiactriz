@@ -411,6 +411,25 @@
       "subtitle": "Sígueme en tu plataforma favorita para estar al día con mis últimos proyectos y contenido."
     }
   },
+  "events": {
+    "title": "Eventos",
+    "intro": "Lo último en lo que estoy trabajando.",
+    "sf": {
+      "badge": "EN COMPETENCIA",
+      "blurb": "Compito en la 12a edición de SmartFilms, el festival de cine hecho con celular más grande del mundo. La temática de este año: retrofuturismo, donde el pasado y el futuro se encuentran.",
+      "factEdition": "12a edición",
+      "factTheme": "Retrofuturismo",
+      "factPrize": "+100M COP en premios",
+      "deadline": "Inscripciones hasta el 22 de junio de 2026",
+      "filmLabel": "Mi cortometraje",
+      "categoryLabel": "Categoría",
+      "voteNote": "Los ganadores se eligen con un 10% de votación del público: tu apoyo cuenta.",
+      "watch": "Ver el cortometraje",
+      "vote": "Vota por mi corto",
+      "festival": "Sobre SmartFilms"
+    },
+    "more": "Más eventos próximamente."
+  },
   "admin": {
     "login": {
       "title": "Admin",
