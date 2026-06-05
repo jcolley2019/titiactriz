@@ -937,6 +937,22 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setSelected(new Set());
   };
 
+  const moveActivePhoto = async (id: string, dir: -1 | 1) => {
+    const index = activePhotoIds.indexOf(id);
+    if (index < 0) return;
+    const target = index + dir;
+    if (target < 0 || target >= activePhotos.length) return;
+    const newActive = arrayMove(activePhotos, index, target).map((p, i) => ({
+      ...p,
+      sort_order: i + 1,
+    }));
+    setPhotos((prev) => {
+      const archived = prev.filter((p) => p.is_archived);
+      return [...newActive, ...archived];
+    });
+    await persistOrder(newActive.map((p) => p.id));
+  };
+
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
