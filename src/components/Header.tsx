@@ -3,49 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import LanguageToggle from "./LanguageToggle";
-import { useEventsBoard } from "@/hooks/useEventsBoard";
 import monogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
 
-type EventsCtaProps = {
-  to: string;
-  label: string;
-  badge?: string;
-  variant: "desktop" | "mobile";
-  onNavigate?: () => void;
-};
-
-const EventsCtaLink = ({ to, label, badge, variant, onNavigate }: EventsCtaProps) => {
-  const isDesktop = variant === "desktop";
-  const base = isDesktop
-    ? "inline-flex items-center gap-2 rounded-full border border-[#C9A55C]/70 bg-[#C9A55C]/5 px-3 py-1.5 text-xs lg:text-[13px] uppercase tracking-[0.16em] transition-all duration-300 hover:bg-[#C9A55C]/15 hover:border-[#C9A55C] whitespace-nowrap"
-    : "inline-flex items-center gap-2 rounded-full border border-[#C9A55C]/70 bg-[#C9A55C]/5 px-4 py-2 text-base font-serif transition-all duration-300 hover:bg-[#C9A55C]/15 max-w-full";
-  return (
-    <Link to={to} onClick={onNavigate} className={base} aria-label={badge ? `${label} — ${badge}` : label}>
-      <span aria-hidden className="events-cta-dot inline-block w-[7px] h-[7px] rounded-full bg-[#C9A55C] shrink-0" />
-      <span className="events-cta-shimmer font-medium truncate">{label}</span>
-      {badge && (
-        <span
-          className={`events-cta-shimmer ${isDesktop ? "text-[0.6rem]" : "text-[0.65rem]"} uppercase tracking-[0.18em] border-l border-[#C9A55C]/40 pl-2 ml-1 truncate max-w-[10ch]`}
-        >
-          {badge}
-        </span>
-      )}
-    </Link>
-  );
-};
-
-
 const Header = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { board, loading } = useEventsBoard();
 
-  const eventsVisible = !loading && board.pageVisible === true;
-  const activeLang = (i18n.language || "es").startsWith("es") ? "es" : "en";
-  const firstBadgeRaw = board.items?.[0]?.badge?.[activeLang] ?? "";
-  const firstBadge = firstBadgeRaw.trim();
+
 
 
   const leftLinks = [
@@ -148,16 +114,6 @@ const Header = () => {
 
         {/* RIGHT */}
         <ul className="hidden md:flex items-center gap-5 lg:gap-7 justify-self-end">
-          {eventsVisible && (
-            <li>
-              <EventsCtaLink
-                to="/events"
-                label={t("events.title")}
-                badge={firstBadge || undefined}
-                variant="desktop"
-              />
-            </li>
-          )}
           {rightLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
@@ -165,6 +121,7 @@ const Header = () => {
             <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
           </li>
         </ul>
+
 
 
         {/* Mobile right cluster */}
@@ -199,26 +156,14 @@ const Header = () => {
         }`}
       >
         <ul className="container-editorial py-8 space-y-4">
-          {eventsVisible && (
-            <li
-              className="opacity-0 animate-fade-up"
-              style={{ animationDelay: "0s", animationFillMode: "forwards" }}
-            >
-              <EventsCtaLink
-                to="/events"
-                label={t("events.title")}
-                badge={firstBadge || undefined}
-                variant="mobile"
-                onNavigate={() => setIsMobileMenuOpen(false)}
-              />
-            </li>
-          )}
           {mobileLinks.map((link, index) => (
             <li
               key={link.name}
               className="opacity-0 animate-fade-up"
-              style={{ animationDelay: `${(index + (eventsVisible ? 1 : 0)) * 0.1}s`, animationFillMode: "forwards" }}
+              style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}
             >
+
+
 
               {link.path.includes("#") ? (
                 <a
