@@ -593,6 +593,8 @@
       "published": "Published",
       "hidden": "Hidden",
       "dragToReorder": "Drag to reorder",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
       "generateAlt": "Generate alt text",
       "generateAltTitle": "Generate Spanish alt text with AI",
       "needsAlt": "Needs alt text",
