@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import imageCompression from "browser-image-compression";
 import type { Session } from "@supabase/supabase-js";
