@@ -527,7 +527,12 @@
       "addBullet": "Agregar viñeta",
       "removeBullet": "Quitar",
       "addVideo": "Agregar video",
-      "removeVideo": "Quitar video"
+      "removeVideo": "Quitar video",
+      "iconLabel": "Ícono",
+      "iconAuto": "Automático",
+      "iconWebsite": "Sitio web",
+      "iconNone": "Ninguno",
+      "addSocialIcon": "Agregar ícono social"
     },
     "upload": {
       "title": "Subir fotos",
