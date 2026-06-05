@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
@@ -8,23 +9,24 @@ import {
   type HomeVariant,
 } from "@/hooks/useHomeVariant";
 
-const OPTIONS: { value: HomeVariant; label: string; description: string }[] = [
-  {
-    value: "editorial",
-    label: "Editorial",
-    description: "New centered layout with animated gold frame.",
-  },
-  {
-    value: "classic",
-    label: "Classic",
-    description: "Original landing page (HomeClassic).",
-  },
-];
-
 const HomeVariantToggle = () => {
+  const { t } = useTranslation();
   const [variant, setVariantState] = useState<HomeVariant | null>(null);
   const [saving, setSaving] = useState<HomeVariant | null>(null);
   const [open, setOpen] = useState(false);
+
+  const OPTIONS: { value: HomeVariant; label: string; description: string }[] = [
+    {
+      value: "editorial",
+      label: t("admin.homeVariant.editorialLabel"),
+      description: t("admin.homeVariant.editorialDesc"),
+    },
+    {
+      value: "classic",
+      label: t("admin.homeVariant.classicLabel"),
+      description: t("admin.homeVariant.classicDesc"),
+    },
+  ];
 
   useEffect(() => {
     fetchHomeVariant().then(setVariantState);
@@ -37,12 +39,12 @@ const HomeVariantToggle = () => {
       await setHomeVariant(next);
       setVariantState(next);
       toast({
-        title: "Home page updated",
-        description: `Now showing the ${next} variant at /.`,
+        title: t("admin.homeVariant.updated"),
+        description: t("admin.homeVariant.updatedDesc", { variant: next }),
       });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to update";
-      toast({ title: "Update failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.homeVariant.failedFallback");
+      toast({ title: t("admin.homeVariant.updateFailed"), description: msg, variant: "destructive" });
     } finally {
       setSaving(null);
     }
@@ -63,9 +65,9 @@ const HomeVariantToggle = () => {
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           )}
           <div>
-            <h2 className="font-serif text-base text-foreground leading-tight">Home page variant</h2>
+            <h2 className="font-serif text-base text-foreground leading-tight">{t("admin.homeVariant.title")}</h2>
             <p className="text-xs text-muted-foreground">
-              Which landing page renders at <span className="font-mono">/</span>.
+              {t("admin.homeVariant.subtitle")} <span className="font-mono">/</span>.
             </p>
           </div>
         </div>
@@ -98,7 +100,7 @@ const HomeVariantToggle = () => {
                 {isSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin text-accent" />
                 ) : active ? (
-                  <span className="text-xs uppercase tracking-wider text-accent">Active</span>
+                  <span className="text-xs uppercase tracking-wider text-accent">{t("admin.homeVariant.active")}</span>
                 ) : null}
               </div>
               <p className="text-xs text-muted-foreground">{opt.description}</p>
