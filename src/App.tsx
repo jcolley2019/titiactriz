@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import AnimatedRoutes from "./components/AnimatedRoutes";
+import EventsBanner from "./components/events/EventsBanner";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <div className="flex flex-col min-h-screen">
+            <EventsBanner />
             <Header />
             <ScrollToTopButton />
             <main className="flex-1">
