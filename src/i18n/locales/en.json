@@ -527,7 +527,12 @@
       "addBullet": "Add bullet",
       "removeBullet": "Remove",
       "addVideo": "Add video",
-      "removeVideo": "Remove video"
+      "removeVideo": "Remove video",
+      "iconLabel": "Icon",
+      "iconAuto": "Auto",
+      "iconWebsite": "Website",
+      "iconNone": "None",
+      "addSocialIcon": "Add social icon"
     },
     "upload": {
       "title": "Upload photos",
