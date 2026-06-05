@@ -147,12 +147,10 @@ const coerceItem = (v: unknown): EventItem | null => {
   const item: EventCardItem = {
     id,
     size: coerceSize(v.size),
-    type: "event",
     title: coerceLocalized(v.title),
     badge: coerceLocalized(v.badge),
     description: coerceLocalized(v.description),
     note: coerceLocalized(v.note),
-    details: [],
     imageUrl: typeof v.imageUrl === "string" ? v.imageUrl : "",
     imagePosition: coercePosition(v.imagePosition),
     bulletsOn: v.bulletsOn === true,
