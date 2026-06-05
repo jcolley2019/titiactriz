@@ -26,18 +26,14 @@ type BaseItem = {
 };
 
 /**
- * Flexible event block. All items render through this shape.
- * The new flexible fields (imageUrl, imagePosition, bulletsOn, bullets,
- * videoUrl) are optional so the current admin keeps compiling — the parser
- * always returns concrete defaults at runtime. `details` is legacy and
- * ignored by the renderer; it is removed in the next pass with the new admin.
+ * Flexible event block. All items render through this shape. Unknown keys
+ * from older saved rows (e.g. legacy `type`, `details`) are ignored by the
+ * defensive parser.
  */
 export type EventCardItem = BaseItem & {
-  type: "event";
   badge: Localized;
   description: Localized;
   note: Localized;
-  details: Localized[];
   buttons: EventButton[];
   imageUrl?: string;
   imagePosition?: "above" | "below";
@@ -46,26 +42,13 @@ export type EventCardItem = BaseItem & {
   videoUrl?: string;
 };
 
-// Legacy variants kept so the existing admin (EventsBoardManager) still
-// compiles. They render as flexible event blocks too.
-export type VideoItem = BaseItem & {
-  type: "video";
-  videoUrl: string;
-};
-
-export type LinkItem = BaseItem & {
-  type: "link";
-  url: string;
-  buttonLabel: Localized;
-  imageUrl: string;
-};
-
-export type EventItem = EventCardItem | VideoItem | LinkItem;
+export type EventItem = EventCardItem;
 
 export type EventsBoard = {
   pageVisible: boolean;
   items: EventItem[];
 };
+
 
 export const EVENTS_BOARD_KEY = "events_board";
 
@@ -75,8 +58,8 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
     {
       id: "smartfilms-2026",
       size: "full",
-      type: "event",
       title: {
+
         es: "SmartFilms Colombia 2026",
         en: "SmartFilms Colombia 2026",
       },
