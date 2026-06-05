@@ -148,6 +148,16 @@ const Header = () => {
 
         {/* RIGHT */}
         <ul className="hidden md:flex items-center gap-5 lg:gap-7 justify-self-end">
+          {eventsVisible && (
+            <li>
+              <EventsCtaLink
+                to="/events"
+                label={t("events.title")}
+                badge={firstBadge || undefined}
+                variant="desktop"
+              />
+            </li>
+          )}
           {rightLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
@@ -155,6 +165,7 @@ const Header = () => {
             <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
           </li>
         </ul>
+
 
         {/* Mobile right cluster */}
         <div className="md:hidden flex items-center gap-3 justify-self-end">
@@ -188,12 +199,27 @@ const Header = () => {
         }`}
       >
         <ul className="container-editorial py-8 space-y-4">
+          {eventsVisible && (
+            <li
+              className="opacity-0 animate-fade-up"
+              style={{ animationDelay: "0s", animationFillMode: "forwards" }}
+            >
+              <EventsCtaLink
+                to="/events"
+                label={t("events.title")}
+                badge={firstBadge || undefined}
+                variant="mobile"
+                onNavigate={() => setIsMobileMenuOpen(false)}
+              />
+            </li>
+          )}
           {mobileLinks.map((link, index) => (
             <li
               key={link.name}
               className="opacity-0 animate-fade-up"
-              style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}
+              style={{ animationDelay: `${(index + (eventsVisible ? 1 : 0)) * 0.1}s`, animationFillMode: "forwards" }}
             >
+
               {link.path.includes("#") ? (
                 <a
                   href={link.path}
