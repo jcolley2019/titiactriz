@@ -363,6 +363,7 @@ SortableRow.displayName = "SortableRow";
 
 /* ---------------- Management Panel ---------------- */
 const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
+  const { t } = useTranslation();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [fileError, setFileError] = useState<string | null>(null);
