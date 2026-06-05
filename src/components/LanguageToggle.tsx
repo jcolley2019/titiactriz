@@ -78,43 +78,33 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
           <div
             role="group"
             aria-label={t('nav.switchLanguage', 'Switch language')}
-            className="relative flex items-center rounded-full border border-border bg-background/40 p-0.5 text-xs font-semibold tracking-[0.2em]"
+            className="flex rounded-md border border-border overflow-hidden text-xs font-semibold tracking-[0.2em]"
           >
-            <span
-              aria-hidden
-              className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-[hsl(var(--accent))] transition-transform duration-200 ease-out"
-              style={{ transform: isEn ? 'translateX(0)' : 'translateX(100%)' }}
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setLang('en');
-              }}
-              className={`relative z-10 flex-1 rounded-full px-3 py-1.5 transition-colors ${
-                isEn ? 'text-[hsl(var(--accent-foreground))]' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              aria-pressed={isEn}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setLang('es');
-              }}
-              className={`relative z-10 flex-1 rounded-full px-3 py-1.5 transition-colors ${
-                !isEn ? 'text-[hsl(var(--accent-foreground))]' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              aria-pressed={!isEn}
-            >
-              ES
-            </button>
+            {(['es', 'en'] as const).map((lng) => {
+              const active = lng === 'en' ? isEn : !isEn;
+              return (
+                <button
+                  key={lng}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLang(lng);
+                  }}
+                  className={`flex-1 px-3 py-1.5 uppercase transition-colors ${
+                    active
+                      ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
+                      : 'bg-transparent text-muted-foreground hover:bg-[hsl(var(--accent))]/10 hover:text-foreground'
+                  }`}
+                  aria-pressed={active}
+                >
+                  {lng}
+                </button>
+              );
+            })}
           </div>
         </div>
+
         <DropdownMenuSeparator />
         {session ? (
           <>
