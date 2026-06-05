@@ -1258,18 +1258,18 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete permanently?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.deleteDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This cannot be undone. The photo and its file will be removed.
+              {t("admin.deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("admin.deleteDialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t("admin.deleteDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1283,13 +1283,13 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Review optimized photo</DialogTitle>
+            <DialogTitle>{t("admin.previewDialog.title")}</DialogTitle>
             <DialogDescription>
               {preview && (
-                <>
-                  {formatBytes(preview.originalSize)} → {formatBytes(preview.optimizedSize)} ·
-                  WebP, max 2400px
-                </>
+                t("admin.previewDialog.description", {
+                  from: formatBytes(preview.originalSize),
+                  to: formatBytes(preview.optimizedSize),
+                })
               )}
             </DialogDescription>
           </DialogHeader>
@@ -1297,13 +1297,13 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             <>
               {preview.duplicateOfId && (
                 <p className="text-xs text-amber-500">
-                  Looks like a duplicate of a photo you already have.
+                  {t("admin.previewDialog.duplicateHint")}
                 </p>
               )}
               <div className="flex items-center justify-center bg-muted/30 rounded-md overflow-hidden">
                 <img
                   src={preview.url}
-                  alt="Optimized preview"
+                  alt={t("admin.previewDialog.previewAlt")}
                   className="max-h-[60vh] w-auto object-contain"
                 />
               </div>
@@ -1311,14 +1311,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={closePreview} disabled={singleUploading}>
-              Cancel
+              {t("admin.previewDialog.cancel")}
             </Button>
             <Button
               onClick={confirmUpload}
               disabled={singleUploading}
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
-              {singleStage === "uploading" ? "Uploading…" : "Confirm & upload"}
+              {singleStage === "uploading" ? t("admin.previewDialog.uploading") : t("admin.previewDialog.confirmUpload")}
             </Button>
           </DialogFooter>
         </DialogContent>
