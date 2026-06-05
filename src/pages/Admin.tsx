@@ -412,7 +412,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .order("sort_order", { ascending: true });
     setLoading(false);
     if (error) {
-      toast({ title: "Failed to load photos", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.loadFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setPhotos(data ?? []);
@@ -517,7 +517,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
     setBatchRunning(false);
     await load();
-    toast({ title: "Batch complete" });
+    toast({ title: t("admin.queue.batchComplete") });
   };
 
   const skipQueueItem = (id: string) => {
@@ -603,8 +603,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       const url = URL.createObjectURL(blob);
       setPreview({ blob, url, originalSize, optimizedSize: blob.size, contentHash, duplicateOfId });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Optimization failed";
-      toast({ title: "Optimization failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.optimizationFailedFallback");
+      toast({ title: t("admin.toasts.optimizationFailed"), description: msg, variant: "destructive" });
     } finally {
       setSingleUploading(false);
       setSingleStage("idle");
@@ -638,14 +638,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       const reduction = `${formatBytes(preview.originalSize)} → ${formatBytes(preview.optimizedSize)}`;
       setLastReduction(reduction);
-      toast({ title: "Photo uploaded", description: `Optimized: ${reduction}` });
+      toast({ title: t("admin.toasts.photoUploaded"), description: t("admin.toasts.optimizedDesc", { reduction }) });
       setPendingFile(null);
       resetFileInput();
       closePreview();
       await load();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Upload failed";
-      toast({ title: "Upload failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.uploadFailedFallback");
+      toast({ title: t("admin.toasts.uploadFailed"), description: msg, variant: "destructive" });
     } finally {
       setSingleUploading(false);
       setSingleStage("idle");
@@ -690,7 +690,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       });
       if (error) throw error;
       const text = typeof data?.alt_text === "string" ? data.alt_text.trim() : "";
-      if (!text) throw new Error("Empty alt text");
+      if (!text) throw new Error(t("admin.toasts.emptyAlt"));
       setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, alt_text: text } : p)));
       altLastSaved.current.set(photoId, text);
       const { error: upErr } = await supabase
@@ -701,8 +701,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       flashSaved(photoId);
       return true;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Generation failed";
-      toast({ title: "Alt text failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.altFailedFallback");
+      toast({ title: t("admin.toasts.altFailed"), description: msg, variant: "destructive" });
       return false;
     } finally {
       setGeneratingAltIds((prev) => {
@@ -734,7 +734,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const concurrency = Math.min(3, targets.length);
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     setAltBulk(null);
-    toast({ title: "Alt text generated", description: `${done} of ${targets.length} processed.` });
+    toast({ title: t("admin.toasts.altGenerated"), description: t("admin.toasts.altGeneratedDesc", { done, total: targets.length }) });
   }, [photos, generateAltFor]);
 
   const saveAltText = async (photo: Photo) => {
@@ -746,7 +746,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .update({ alt_text: current })
       .eq("id", photo.id);
     if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
     flashSaved(photo.id);
@@ -760,7 +760,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .eq("id", photo.id);
     if (error) {
       updateRow(photo.id, { is_published: !value });
-      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.updateFailed"), description: error.message, variant: "destructive" });
     }
   };
 
@@ -775,11 +775,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .eq("id", photo.id);
     if (error) {
       setPhotos(prev);
-      const msg = error instanceof Error ? error.message : "Update failed";
-      toast({ title: "Update failed", description: msg, variant: "destructive" });
+      const msg = error instanceof Error ? error.message : t("admin.toasts.updateFailedFallback");
+      toast({ title: t("admin.toasts.updateFailed"), description: msg, variant: "destructive" });
       return;
     }
-    toast({ title: archived ? "Archived" : "Restored" });
+    toast({ title: archived ? t("admin.toasts.archived") : t("admin.toasts.restored") });
   };
 
   const persistOrder = async (orderedIds: string[]) => {
@@ -790,7 +790,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const results = await Promise.all(updates);
     const firstErr = results.find((r) => r.error)?.error;
     if (firstErr) {
-      toast({ title: "Reorder failed", description: firstErr.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.reorderFailed"), description: firstErr.message, variant: "destructive" });
       await load();
     }
   };
@@ -814,11 +814,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       }
       const { error: dbErr } = await supabase.from("gallery_photos").delete().eq("id", photo.id);
       if (dbErr) throw dbErr;
-      toast({ title: "Deleted" });
+      toast({ title: t("admin.toasts.deleted") });
       setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Delete failed";
-      toast({ title: "Delete failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.deleteFailedFallback");
+      toast({ title: t("admin.toasts.deleteFailed"), description: msg, variant: "destructive" });
     }
   };
 
@@ -897,10 +897,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setBulkBusy(false);
     if (error) {
       setPhotos(prev);
-      toast({ title: "Bulk update failed", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.bulkUpdateFailed"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: value ? "Published selected" : "Hidden selected", description: `${ids.length} photo(s) updated` });
+    toast({ title: value ? t("admin.toasts.publishedSelected") : t("admin.toasts.hiddenSelected"), description: t("admin.toasts.bulkDesc", { count: ids.length }) });
     setSelected(new Set());
   };
 
