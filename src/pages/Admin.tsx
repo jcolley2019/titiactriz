@@ -272,32 +272,34 @@ const SortableRow = memo(({
     <li
       ref={setNodeRef}
       style={style}
-      className="bg-card border border-border rounded-lg p-4 grid gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
+      className="bg-card border border-border rounded-lg p-3 md:p-4 grid gap-3 md:gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
-        aria-label={t("admin.photos.dragToReorder")}
-      >
-        <GripVertical className="w-4 h-4" />
-      </button>
-      <Checkbox
-        checked={selected}
-        onCheckedChange={(v) => onSelectedChange(v === true)}
-      />
-      <span className="text-xs text-muted-foreground tabular-nums w-6 text-center">
-        {position}
-      </span>
-      <img
-        src={photo.image_url}
-        alt={photo.alt_text ?? ""}
-        className="object-cover rounded-md border border-border"
-        style={{ width: 88, height: 88 }}
-        loading="lazy"
-      />
-      <div className="space-y-2">
+      <div className="flex items-center gap-2 md:contents">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none shrink-0"
+          aria-label={t("admin.photos.dragToReorder")}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+        <Checkbox
+          checked={selected}
+          onCheckedChange={(v) => onSelectedChange(v === true)}
+          className="shrink-0"
+        />
+        <span className="text-xs text-muted-foreground tabular-nums w-6 text-center shrink-0">
+          {position}
+        </span>
+        <img
+          src={photo.image_url}
+          alt={photo.alt_text ?? ""}
+          className="w-14 h-14 md:w-[88px] md:h-[88px] object-cover rounded-md border border-border shrink-0 ml-auto md:ml-0"
+          loading="lazy"
+        />
+      </div>
+      <div className="space-y-2 min-w-0">
         <div className="flex items-center gap-2">
           <Label className="text-xs text-muted-foreground">{t("admin.photos.altText")}</Label>
           {missingAlt && (
@@ -335,28 +337,30 @@ const SortableRow = memo(({
           </Button>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
-        <span className="text-xs text-muted-foreground">
-          {photo.is_published ? t("admin.photos.published") : t("admin.photos.hidden")}
-        </span>
+      <div className="flex items-center justify-between md:contents">
+        <div className="flex items-center gap-2">
+          <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
+          <span className="text-xs text-muted-foreground">
+            {photo.is_published ? t("admin.photos.published") : t("admin.photos.hidden")}
+          </span>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="ghost" aria-label={t("admin.photos.more")} className="px-2">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => onArchive()}>{t("admin.photos.archive")}</DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => onDelete()}
+              className="text-destructive focus:text-destructive"
+            >
+              {t("admin.photos.delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost" aria-label={t("admin.photos.more")} className="px-2">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => onArchive()}>{t("admin.photos.archive")}</DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={() => onDelete()}
-            className="text-destructive focus:text-destructive"
-          >
-            {t("admin.photos.delete")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </li>
   );
 });
