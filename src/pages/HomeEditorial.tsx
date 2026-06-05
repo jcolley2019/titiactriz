@@ -258,7 +258,7 @@ const HomeEditorial = () => {
 
                 {/* Divider with center diamond drawing outward */}
                 <div
-                  className="mt-2 sm:mt-5 flex w-full items-center justify-center gap-2"
+                  className="mt-1.5 sm:mt-4 flex w-full items-center justify-center gap-2"
                   aria-hidden
                 >
                   <span className="editorial-divider-half editorial-divider-left flex-1" />
@@ -280,7 +280,7 @@ const HomeEditorial = () => {
               </div>
 
               <p
-                className="editorial-roles uppercase mt-2 sm:mt-4"
+                className="editorial-roles uppercase mt-3 sm:mt-5"
                 style={{
                   color: CREAM,
                   fontFamily: "var(--font-sans)",
