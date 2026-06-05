@@ -458,6 +458,26 @@
       "updateFailed": "Error al actualizar",
       "failedFallback": "No se pudo actualizar"
     },
+    "events": {
+      "sectionTitle": "Eventos",
+      "sectionSubtitle": "Gestiona el evento destacado y si la página se muestra al público.",
+      "visibleLabel": "Mostrar la página de Eventos",
+      "visibleHelp": "Cuando está desactivado, la página de eventos no se muestra al público.",
+      "filmTitleLabel": "Título del cortometraje",
+      "filmTitlePlaceholder": "Ej: El último viaje",
+      "categoryLabel": "Categoría",
+      "categoryPlaceholder": "Ej: Categoría LGBTIQ+",
+      "watchUrlLabel": "Enlace para ver el cortometraje",
+      "voteUrlLabel": "Enlace de votación",
+      "festivalUrlLabel": "Enlace del festival",
+      "urlPlaceholder": "https://...",
+      "previewLabel": "Vista previa",
+      "previewHiddenNote": "Oculto — no se muestra al público",
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "saved": "Evento actualizado",
+      "saveError": "No se pudo guardar. Intenta de nuevo."
+    },
     "upload": {
       "title": "Subir fotos",
       "dropHere": "Arrastra y suelta fotos aquí",
