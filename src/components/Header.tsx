@@ -1,15 +1,51 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Lock, LayoutDashboard, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import LanguageToggle from "./LanguageToggle";
+import { useEventsBoard } from "@/hooks/useEventsBoard";
 import monogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
 
 const Header = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const { board } = useEventsBoard();
+  const eventsVisible = !!board?.pageVisible;
   const location = useLocation();
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSession(data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const isEn = i18n.language?.startsWith("en");
+  const setLang = (lng: "es" | "en") => {
+    if (i18n.language?.startsWith(lng)) return;
+    i18n.changeLanguage(lng);
+  };
+  const closeMenu = () => setIsMobileMenuOpen(false);
+  const handleAdmin = () => {
+    closeMenu();
+    navigate("/admin");
+  };
+  const handleSignOut = async () => {
+    closeMenu();
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
 
 
 
