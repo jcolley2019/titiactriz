@@ -1094,19 +1094,19 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
           <div>
             <h2 className="font-serif text-xl text-foreground">
-              Photos{" "}
+              {t("admin.photos.heading")}{" "}
               <span className="text-sm text-muted-foreground font-sans">
-                · {activePhotos.length} photo{activePhotos.length === 1 ? "" : "s"}
+                {t("admin.photos.count", { count: activePhotos.length })}
               </span>
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              {activePhotos.length} live — galleries look best around 20 to 30.
+              {t("admin.photos.liveCount", { count: activePhotos.length })}
             </p>
             {missingAltCount > 0 && (
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">
                   <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
-                  {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
+                  {t("admin.photos.missingAlt", { count: missingAltCount })}
                 </p>
                 <Button
                   size="sm"
@@ -1118,12 +1118,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   {altBulk ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      {altBulk.done} of {altBulk.total}
+                      {t("admin.photos.fillProgress", { done: altBulk.done, total: altBulk.total })}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-3.5 h-3.5" />
-                      Fill all missing alt text
+                      {t("admin.photos.fillAll")}
                     </>
                   )}
                 </Button>
@@ -1133,9 +1133,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         </div>
 
         {loading ? (
-          <p className="text-muted-foreground text-sm">Loading…</p>
+          <p className="text-muted-foreground text-sm">{t("admin.photos.loading")}</p>
         ) : activePhotos.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No photos yet.</p>
+          <p className="text-muted-foreground text-sm">{t("admin.photos.empty")}</p>
         ) : (
           <>
             <div className="flex items-center gap-3 mb-3 p-3 bg-card border border-border rounded-lg flex-wrap">
@@ -1145,7 +1145,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   onCheckedChange={(v) => toggleSelectAll(v === true)}
                 />
                 <span className="text-muted-foreground">
-                  {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+                  {selected.size > 0 ? t("admin.photos.selectedCount", { count: selected.size }) : t("admin.photos.selectAll")}
                 </span>
               </label>
               <div className="flex gap-2 ml-auto">
@@ -1155,7 +1155,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   disabled={selected.size === 0 || bulkBusy}
                   onClick={() => bulkSetPublished(true)}
                 >
-                  Publish selected
+                  {t("admin.photos.publishSelected")}
                 </Button>
                 <Button
                   size="sm"
@@ -1163,7 +1163,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   disabled={selected.size === 0 || bulkBusy}
                   onClick={() => bulkSetPublished(false)}
                 >
-                  Hide selected
+                  {t("admin.photos.hideSelected")}
                 </Button>
               </div>
             </div>
@@ -1215,7 +1215,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               ) : (
                 <ChevronRight className="w-4 h-4" />
               )}
-              Archived ({archivedPhotos.length})
+              {t("admin.photos.archived")} ({archivedPhotos.length})
             </button>
             {archivedOpen && (
               <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -1232,14 +1232,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                     />
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs text-muted-foreground truncate">
-                        {p.alt_text || "Untitled"}
+                        {p.alt_text || t("admin.photos.untitled")}
                       </span>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setArchived(p, false)}
                       >
-                        Restore
+                        {t("admin.photos.restore")}
                       </Button>
                     </div>
                   </li>
