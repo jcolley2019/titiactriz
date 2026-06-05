@@ -157,6 +157,7 @@ const EventsBanner = () => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 
