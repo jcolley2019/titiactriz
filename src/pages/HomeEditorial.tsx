@@ -317,7 +317,7 @@ const HomeEditorial = () => {
               </div>
 
               {/* Monogram hands off to CTA buttons (same grid cell, no layout shift) */}
-              <div className="relative mx-auto mt-3 sm:mt-6 flex min-h-[52px] sm:min-h-[64px] w-full items-center justify-center">
+              <div className="relative mx-auto mt-7 sm:mt-6 mb-1 sm:mb-0 flex min-h-[56px] sm:min-h-[64px] w-full items-center justify-center">
 
                 <span
                   aria-hidden
