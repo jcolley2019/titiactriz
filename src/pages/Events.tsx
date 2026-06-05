@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import SEO from "@/components/SEO";
-import SmartFilmsCard from "@/components/events/SmartFilmsCard";
-import { useEventSettings } from "@/hooks/useEventSettings";
+import EventsGrid from "@/components/events/EventsGrid";
+import { useEventsBoard } from "@/hooks/useEventsBoard";
 
 const CREAM = "#f0e9da";
 const DARK = "#0e0c09";
@@ -14,7 +14,7 @@ const editorialFontVars: React.CSSProperties = {
 
 const Events = () => {
   const { t, i18n } = useTranslation();
-  const { settings, loading } = useEventSettings();
+  const { board, loading } = useEventsBoard();
   const lang = (i18n.language || "es").startsWith("en") ? "en" : "es";
   const title =
     lang === "en"
@@ -24,6 +24,11 @@ const Events = () => {
     lang === "en"
       ? "Cristyna Polentino is competing in SmartFilms Colombia 2026, the world's largest cellphone-film festival. Theme: retro-futurism."
       : "Cristyna Polentino compite en SmartFilms Colombia 2026, el festival de cine hecho con celular más grande del mundo. Temática: retrofuturismo.";
+
+  const hasItems = board.items.length > 0;
+  const showGrid = !loading && board.pageVisible && hasItems;
+  const showMore =
+    !loading && (!board.pageVisible || !hasItems || showGrid);
 
   return (
     <main
@@ -47,18 +52,9 @@ const Events = () => {
         </p>
       </div>
 
-      {!loading && settings.visible && <SmartFilmsCard data={settings} />}
+      {showGrid && <EventsGrid items={board.items} />}
 
-      {!loading && !settings.visible && (
-        <p
-          className="text-center mt-12 text-xs md:text-sm uppercase tracking-[0.25em]"
-          style={{ color: `${CREAM}80`, fontFamily: "var(--font-sans)" }}
-        >
-          {t("events.more")}
-        </p>
-      )}
-
-      {!loading && settings.visible && (
+      {showMore && (
         <p
           className="text-center mt-12 text-xs md:text-sm uppercase tracking-[0.25em]"
           style={{ color: `${CREAM}80`, fontFamily: "var(--font-sans)" }}
