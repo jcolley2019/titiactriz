@@ -6,13 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import SmartFilmsCard from "@/components/events/SmartFilmsCard";
+import SmartFilmsCard from "./SmartFilmsCard";
 import {
   EVENT_SETTINGS_DEFAULT,
   fetchEventSettings,
   setEventSettings,
   type EventSettings,
-} from "@/hooks/useEventSettings";
+} from "./useEventSettings";
 
 const EventsManager = () => {
   const { t } = useTranslation();
