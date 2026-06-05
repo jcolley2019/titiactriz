@@ -55,7 +55,7 @@ export const setEventSettings = async (next: EventSettings): Promise<void> => {
     .upsert([
       {
         key: EVENT_SETTINGS_KEY,
-        value: next as unknown as Record<string, unknown>,
+        value: next as unknown as never,
         updated_at: new Date().toISOString(),
       },
     ]);
