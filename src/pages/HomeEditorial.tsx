@@ -177,14 +177,14 @@ const HomeEditorial = () => {
       <section
         ref={heroRef}
         className={
-          "relative min-h-[100svh] md:min-h-[100vh] flex items-center justify-center overflow-hidden px-4 md:px-12 pt-3 md:pt-24 pb-4 md:pb-12 " +
+          "relative min-h-[calc(100svh-100px)] md:min-h-[100vh] flex items-stretch md:items-center justify-center overflow-hidden px-4 md:px-12 pt-2 md:pt-24 pb-2 md:pb-12 " +
           (introStarted ? "editorial-intro " : "") +
           (framePlay ? "editorial-hero-play" : "")
         }
         style={{ backgroundColor: "#0e0c09" }}
       >
         {/* Contained, centered hero box */}
-        <div className="relative mx-auto w-full max-w-6xl p-5 md:p-14">
+        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-116px)] md:min-h-0 px-5 pt-5 pb-7 md:p-14">
 
           {/* Four solid gold border bars */}
           <span
