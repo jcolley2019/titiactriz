@@ -177,14 +177,15 @@ const HomeEditorial = () => {
       <section
         ref={heroRef}
         className={
-          "relative min-h-[100svh] flex items-center justify-center overflow-hidden px-6 md:px-12 pt-24 pb-12 " +
+          "relative min-h-[100svh] md:min-h-[100vh] flex items-center justify-center overflow-hidden px-4 md:px-12 pt-16 md:pt-24 pb-4 md:pb-12 " +
           (introStarted ? "editorial-intro " : "") +
           (framePlay ? "editorial-hero-play" : "")
         }
         style={{ backgroundColor: "#0e0c09" }}
       >
         {/* Contained, centered hero box */}
-        <div className="relative mx-auto w-full max-w-6xl p-8 md:p-14">
+        <div className="relative mx-auto w-full max-w-6xl p-5 md:p-14">
+
           {/* Four solid gold border bars */}
           <span
             aria-hidden
@@ -233,7 +234,7 @@ const HomeEditorial = () => {
             className="editorial-frame-corner absolute bottom-2 right-2 md:bottom-3 md:right-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-100"
           />
 
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+          <div className="grid lg:grid-cols-2 gap-3 lg:gap-12 items-center relative z-10">
             {/* LEFT: name lockup */}
             <div className="order-2 lg:order-1 flex w-full flex-col items-center text-center">
               <div className="editorial-title mx-auto w-fit text-center">
@@ -257,7 +258,7 @@ const HomeEditorial = () => {
 
                 {/* Divider with center diamond drawing outward */}
                 <div
-                  className="mt-5 flex w-full items-center justify-center gap-2"
+                  className="mt-2 sm:mt-5 flex w-full items-center justify-center gap-2"
                   aria-hidden
                 >
                   <span className="editorial-divider-half editorial-divider-left flex-1" />
@@ -279,7 +280,7 @@ const HomeEditorial = () => {
               </div>
 
               <p
-                className="editorial-roles uppercase mt-4"
+                className="editorial-roles uppercase mt-2 sm:mt-4"
                 style={{
                   color: CREAM,
                   fontFamily: "var(--font-sans)",
@@ -290,7 +291,8 @@ const HomeEditorial = () => {
                 {t("hero.rolesLine")}
               </p>
 
-              <div className="editorial-subtitle max-w-md mt-5 flex flex-col gap-3">
+              <div className="editorial-subtitle max-w-md mt-2 sm:mt-5 flex flex-col gap-1.5 sm:gap-3">
+
                 <p
                   className="italic leading-relaxed"
                   style={{
@@ -315,7 +317,8 @@ const HomeEditorial = () => {
               </div>
 
               {/* Monogram hands off to CTA buttons (same grid cell, no layout shift) */}
-              <div className="relative mx-auto mt-6 flex min-h-[64px] w-full items-center justify-center">
+              <div className="relative mx-auto mt-3 sm:mt-6 flex min-h-[52px] sm:min-h-[64px] w-full items-center justify-center">
+
                 <span
                   aria-hidden
                   className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -365,12 +368,13 @@ const HomeEditorial = () => {
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[320px] sm:max-w-[400px] lg:max-w-[460px] max-h-[64vh] h-auto object-contain"
+                className="w-full max-w-[220px] sm:max-w-[400px] lg:max-w-[460px] max-h-[26svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_75%] sm:object-contain"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
               />
             </div>
+
           </div>
         </div>
       </section>
