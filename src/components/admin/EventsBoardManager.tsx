@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Loader2, Trash2, Plus, X, Upload } from "lucide-react";
+import { GripVertical, Loader2, Trash2, Plus, X, Upload, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -571,6 +571,7 @@ const EventsBoardManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editLang, setEditLang] = useState<Lang>("es");
+  const [open, setOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -646,16 +647,32 @@ const EventsBoardManager = () => {
 
   return (
     <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
-      <div className="px-6 py-4 border-b border-border">
-        <h2 className="font-serif text-base text-foreground leading-tight">
-          {t("admin.eventsBoard.sectionTitle")}
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          {t("admin.eventsBoard.sectionSubtitle")}
-        </p>
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-3">
+          {open ? (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          )}
+          <div>
+            <h2 className="font-serif text-base text-foreground leading-tight">
+              {t("admin.eventsBoard.sectionTitle")}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.eventsBoard.sectionSubtitle")}
+            </p>
+          </div>
+        </div>
+      </button>
 
-      <div className="px-6 py-4 space-y-6">
+      {open && (
+      <div className="px-6 py-4 space-y-6 border-t border-border">
+
         <div className="flex items-start gap-3">
           <Switch
             checked={board.pageVisible}
@@ -779,6 +796,7 @@ const EventsBoardManager = () => {
           </Button>
         </div>
       </div>
+      )}
     </section>
   );
 };
