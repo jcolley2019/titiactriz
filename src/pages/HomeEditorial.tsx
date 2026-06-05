@@ -177,7 +177,7 @@ const HomeEditorial = () => {
       <section
         ref={heroRef}
         className={
-          "relative min-h-[100svh] md:min-h-[100vh] flex items-center justify-center overflow-hidden px-4 md:px-12 pt-16 md:pt-24 pb-4 md:pb-12 " +
+          "relative min-h-[100svh] md:min-h-[100vh] flex items-center justify-center overflow-hidden px-4 md:px-12 pt-3 md:pt-24 pb-4 md:pb-12 " +
           (introStarted ? "editorial-intro " : "") +
           (framePlay ? "editorial-hero-play" : "")
         }
@@ -368,7 +368,7 @@ const HomeEditorial = () => {
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[220px] sm:max-w-[400px] lg:max-w-[460px] max-h-[26svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_75%] sm:object-contain"
+                className="w-full max-w-[220px] sm:max-w-[400px] lg:max-w-[460px] max-h-[26svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_35%] sm:object-contain"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
