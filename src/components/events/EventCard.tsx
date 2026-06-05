@@ -373,7 +373,6 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
   const imageUrl = (v.imageUrl || "").trim();
   const imagePosition = v.imagePosition === "below" ? "below" : "above";
   const videoUrl = (v.videoUrl || "").trim();
-  const videoId = videoUrl ? parseYouTubeId(videoUrl) : null;
 
   const bulletList = (v.bullets ?? [])
     .map((b) => pick(b, active))
@@ -488,23 +487,8 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
         </p>
       )}
 
-      {videoId && (
-        <div className={`mx-auto mb-8 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
-          <div
-            className="relative w-full overflow-hidden"
-            style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
-          >
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={title || "Video"}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+      {videoUrl && <VideoBlock url={videoUrl} title={title} isFull={isFull} />}
+
 
       {buttons.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
