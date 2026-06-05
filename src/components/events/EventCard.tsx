@@ -159,29 +159,46 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
   const fallback = useLang();
   const active: Lang = lang ?? fallback;
 
-  const isFull = item.size === "full";
-  const badge = pick(item.badge, active);
-  const title = pick(item.title, active);
-  const description = pick(item.description, active);
-  const note = pick(item.note, active);
+  // Read all fields through a permissive view: legacy video/link variants
+  // may not declare every field, but we render them all the same way.
+  const v = item as {
+    size?: "full" | "half";
+    title?: Localized;
+    badge?: Localized;
+    description?: Localized;
+    note?: Localized;
+    imageUrl?: string;
+    imagePosition?: "above" | "below";
+    bulletsOn?: boolean;
+    bullets?: Localized[];
+    videoUrl?: string;
+    buttons?: EventButton[];
+  };
 
-  const imageUrl = (item.imageUrl || "").trim();
-  const imagePosition = item.imagePosition === "below" ? "below" : "above";
-  const videoUrl = (item.videoUrl || "").trim();
+  const isFull = v.size === "full";
+  const badge = pick(v.badge, active);
+  const title = pick(v.title, active);
+  const description = pick(v.description, active);
+  const note = pick(v.note, active);
+
+  const imageUrl = (v.imageUrl || "").trim();
+  const imagePosition = v.imagePosition === "below" ? "below" : "above";
+  const videoUrl = (v.videoUrl || "").trim();
   const videoId = videoUrl ? parseYouTubeId(videoUrl) : null;
 
-  const bulletList = (item.bullets ?? [])
+  const bulletList = (v.bullets ?? [])
     .map((b) => pick(b, active))
     .filter((s) => s.length > 0);
-  const showBullets = !!item.bulletsOn && bulletList.length > 0;
+  const showBullets = !!v.bulletsOn && bulletList.length > 0;
 
-  const buttons = (item.buttons ?? [])
+  const buttons = (v.buttons ?? [])
     .map((b) => ({
       label: pick(b.label, active),
       url: (b.url || "").trim(),
       icon: (b.icon ?? "auto") as ButtonIcon,
     }))
     .filter((b) => b.url.length > 0);
+
 
   const Image = imageUrl ? (
     <div className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
