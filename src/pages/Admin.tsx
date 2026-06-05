@@ -937,11 +937,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     <div className="max-w-5xl mx-auto px-4 pt-32 pb-[340px]">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">Gallery Admin</h1>
-          <p className="text-sm text-muted-foreground">Manage gallery photos.</p>
+          <h1 className="font-serif text-3xl text-foreground">{t("admin.header.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("admin.header.subtitle")}</p>
         </div>
         <Button variant="outline" onClick={onSignOut}>
-          Log out
+          {t("admin.header.logOut")}
         </Button>
       </div>
 
@@ -949,7 +949,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* Upload */}
       <section className="bg-card border border-border rounded-lg p-6 mb-10">
-        <h2 className="font-serif text-xl text-foreground mb-4">Upload photos</h2>
+        <h2 className="font-serif text-xl text-foreground mb-4">{t("admin.upload.title")}</h2>
 
         <div
           onDragOver={(e) => {
@@ -965,10 +965,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           }`}
         >
           <p className="text-sm text-foreground mb-1">
-            Drag &amp; drop photos here
+            {t("admin.upload.dropHere")}
           </p>
           <p className="text-xs text-muted-foreground mb-4">
-            JPEG, PNG, WebP, or HEIC/HEIF · multiple files OK
+            {t("admin.upload.formats")}
           </p>
           <input
             ref={fileInputRef}
@@ -984,21 +984,21 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             onClick={() => fileInputRef.current?.click()}
             disabled={batchRunning}
           >
-            Select files
+            {t("admin.upload.selectFiles")}
           </Button>
         </div>
 
         {fileError && <p className="mt-3 text-sm text-destructive">{fileError}</p>}
         {lastReduction && !singleUploading && (
           <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">
-            Optimized: {lastReduction}
+            {t("admin.upload.optimized")}: {lastReduction}
           </p>
         )}
 
         {pendingFile && !preview && (
           <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm text-muted-foreground">
-              Selected: <span className="text-foreground">{pendingFile.name}</span> ·{" "}
+              {t("admin.upload.selected")}: <span className="text-foreground">{pendingFile.name}</span> ·{" "}
               {formatBytes(pendingFile.size)}
             </p>
             <Button
@@ -1007,12 +1007,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {singleStage === "converting"
-                ? "Converting…"
+                ? t("admin.upload.converting")
                 : singleStage === "optimizing"
-                  ? "Optimizing…"
+                  ? t("admin.upload.optimizing")
                   : singleStage === "uploading"
-                    ? "Uploading…"
-                    : "Preview & upload"}
+                    ? t("admin.upload.uploading")
+                    : t("admin.upload.previewUpload")}
             </Button>
           </div>
         )}
@@ -1020,9 +1020,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         {queue.length > 0 && (
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-3">
-              {doneCount} of {queue.length} uploaded
-              {failedCount > 0 ? ` · ${failedCount} failed` : ""}
-              {duplicateCount > 0 ? ` · ${duplicateCount} possible duplicate${duplicateCount === 1 ? "" : "s"}` : ""}
+              {t("admin.queue.summary", { done: doneCount, total: queue.length })}
+              {failedCount > 0 ? t("admin.queue.failedSuffix", { count: failedCount }) : ""}
+              {duplicateCount > 0 ? t("admin.queue.duplicatesSuffix", { count: duplicateCount }) : ""}
             </p>
             <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {queue.map((q) => (
@@ -1046,19 +1046,19 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                                   : "text-muted-foreground"
                         }
                       >
-                        {q.status === "queued" && "Queued"}
-                        {q.status === "duplicate" && "Possible duplicate"}
-                        {q.status === "converting" && "Converting…"}
-                        {q.status === "optimizing" && "Optimizing…"}
-                        {q.status === "uploading" && "Uploading…"}
+                        {q.status === "queued" && t("admin.queue.queued")}
+                        {q.status === "duplicate" && t("admin.queue.possibleDuplicate")}
+                        {q.status === "converting" && t("admin.queue.converting")}
+                        {q.status === "optimizing" && t("admin.queue.optimizing")}
+                        {q.status === "uploading" && t("admin.queue.uploading")}
                         {q.status === "done" &&
-                          `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
-                        {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
-                        {q.status === "skipped" && "Skipped"}
+                          `${t("admin.queue.done")}${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
+                        {q.status === "failed" && t("admin.queue.failed", { error: q.error ?? t("admin.queue.errorFallback") })}
+                        {q.status === "skipped" && t("admin.queue.skipped")}
                       </span>
                       {q.status === "failed" && (
                         <Button size="sm" variant="outline" onClick={() => retryItem(q)}>
-                          Retry
+                          {t("admin.queue.retry")}
                         </Button>
                       )}
                     </div>
@@ -1066,18 +1066,18 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   {q.status === "duplicate" && (
                     <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
                       <p className="text-xs text-muted-foreground">
-                        Looks like a duplicate of a photo you already have.
+                        {t("admin.queue.duplicateHint")}
                       </p>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => skipQueueItem(q.id)}>
-                          Skip
+                          {t("admin.queue.skip")}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => uploadDuplicateAnyway(q.id)}
                         >
-                          Add anyway
+                          {t("admin.queue.addAnyway")}
                         </Button>
                       </div>
                     </div>
