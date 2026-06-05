@@ -368,7 +368,7 @@ const HomeEditorial = () => {
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[245px] sm:max-w-[400px] lg:max-w-[460px] max-h-[29svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_35%] sm:object-contain"
+                className="w-full max-w-[260px] sm:max-w-[400px] lg:max-w-[460px] max-h-[44svh] sm:max-h-[64vh] lg:max-h-none h-auto object-contain sm:object-contain"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
