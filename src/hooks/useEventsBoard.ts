@@ -46,6 +46,7 @@ export type EventItem = EventCardItem;
 
 export type EventsBoard = {
   pageVisible: boolean;
+  bannerText: Localized;
   items: EventItem[];
 };
 
@@ -54,6 +55,10 @@ export const EVENTS_BOARD_KEY = "events_board";
 
 export const EVENTS_BOARD_DEFAULT: EventsBoard = {
   pageVisible: true,
+  bannerText: {
+    es: "EN COMPETENCIA — SmartFilms Colombia 2026",
+    en: "NOW COMPETING — SmartFilms Colombia 2026",
+  },
   items: [
     {
       id: "smartfilms-2026",
@@ -165,12 +170,13 @@ export const parseBoard = (value: unknown): EventsBoard => {
   if (!isObj(value)) return EVENTS_BOARD_DEFAULT;
   const pageVisible =
     typeof value.pageVisible === "boolean" ? value.pageVisible : true;
+  const bannerText = coerceLocalized(value.bannerText);
   const rawItems = Array.isArray(value.items) ? value.items : null;
-  if (!rawItems) return EVENTS_BOARD_DEFAULT;
+  if (!rawItems) return { ...EVENTS_BOARD_DEFAULT, pageVisible, bannerText };
   const items = (rawItems
     .map(coerceItem)
     .filter(Boolean) as EventItem[]).slice(0, 4);
-  return { pageVisible, items };
+  return { pageVisible, bannerText, items };
 };
 
 export const fetchEventsBoard = async (): Promise<EventsBoard> => {

@@ -690,6 +690,31 @@ const EventsBoardManager = () => {
           </div>
         </div>
 
+        <div className="space-y-1">
+          <Label className="text-foreground text-sm">
+            {t("admin.eventsBoard.bannerText")}
+          </Label>
+          <Input
+            maxLength={120}
+            value={board.bannerText?.[editLang] ?? ""}
+            onChange={(e) =>
+              setBoard((prev) => ({
+                ...prev,
+                bannerText: setLocalized(
+                  prev.bannerText ?? { es: "", en: "" },
+                  editLang,
+                  e.target.value,
+                ),
+              }))
+            }
+            disabled={loading}
+          />
+          <p className="text-xs text-muted-foreground">
+            {t("admin.eventsBoard.bannerHelp")}
+          </p>
+        </div>
+
+
         <div className="flex items-center gap-3">
           <Label className="text-xs text-muted-foreground">
             {t("admin.eventsBoard.editLangLabel")}

@@ -483,6 +483,8 @@
       "sectionSubtitle": "Manage event cards, their order, and whether the page is shown.",
       "pageVisibleLabel": "Show the Events page",
       "pageVisibleHelp": "When off, the page is hidden from the public.",
+      "bannerText": "Banner text",
+      "bannerHelp": "This is the message that scrolls in the top banner. Leave empty to hide the banner.",
       "addEvent": "Add event",
       "addVideo": "Add video",
       "addLink": "Add link",

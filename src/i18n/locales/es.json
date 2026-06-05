@@ -483,6 +483,8 @@
       "sectionSubtitle": "Gestiona las tarjetas de eventos, su orden y si la página se muestra.",
       "pageVisibleLabel": "Mostrar la página de Eventos",
       "pageVisibleHelp": "Cuando está desactivado, la página no se muestra al público.",
+      "bannerText": "Texto del banner",
+      "bannerHelp": "Este es el mensaje que se desplaza en el banner superior. Déjalo vacío para ocultar el banner.",
       "addEvent": "Agregar evento",
       "addVideo": "Agregar video",
       "addLink": "Agregar enlace",
