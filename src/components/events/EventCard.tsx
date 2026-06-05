@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
 import type {
@@ -60,6 +61,21 @@ const Corners = () => (
 
 /* ---------- Video ---------- */
 
+type VideoPlatform = "youtube" | "tiktok" | "instagram" | "unknown";
+
+const detectVideoPlatform = (url: string): VideoPlatform => {
+  if (!url) return "unknown";
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "youtu.be" || host.endsWith("youtube.com")) return "youtube";
+    if (host.endsWith("tiktok.com")) return "tiktok";
+    if (host.endsWith("instagram.com")) return "instagram";
+    return "unknown";
+  } catch {
+    return "unknown";
+  }
+};
+
 const parseYouTubeId = (url: string): string | null => {
   if (!url) return null;
   try {
@@ -78,6 +94,179 @@ const parseYouTubeId = (url: string): string | null => {
     return null;
   }
 };
+
+const loadScriptOnce = (src: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    if (typeof document === "undefined") return reject(new Error("no document"));
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${src}"]`,
+    );
+    if (existing) {
+      if (existing.dataset.loaded === "true") return resolve();
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(new Error("load error")), {
+        once: true,
+      });
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = () => {
+      s.dataset.loaded = "true";
+      resolve();
+    };
+    s.onerror = () => reject(new Error("load error"));
+    document.body.appendChild(s);
+  });
+
+const FallbackVideoLink = ({ url }: { url: string }) => {
+  const { t } = useTranslation();
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
+      style={{ color: CREAM, borderColor: GOLD }}
+    >
+      {t("events.watchVideo", "Watch video")}
+    </a>
+  );
+};
+
+const YouTubeEmbed = ({ url, title }: { url: string; title: string }) => {
+  const id = parseYouTubeId(url);
+  if (!id) return <FallbackVideoLink url={url} />;
+  return (
+    <div
+      className="relative w-full overflow-hidden"
+      style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
+    >
+      <iframe
+        className="absolute inset-0 w-full h-full"
+        src={`https://www.youtube.com/embed/${id}`}
+        title={title || "Video"}
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
+};
+
+const TikTokEmbed = ({ url }: { url: string }) => {
+  const [failed, setFailed] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  let videoId = "";
+  try {
+    const parts = new URL(url).pathname.split("/").filter(Boolean);
+    const idx = parts.findIndex((p) => p === "video");
+    if (idx >= 0 && parts[idx + 1]) videoId = parts[idx + 1];
+  } catch {
+    // ignore
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    loadScriptOnce("https://www.tiktok.com/embed.js").catch(() => {
+      if (!cancelled) setFailed(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (failed) return <FallbackVideoLink url={url} />;
+
+  return (
+    <div ref={ref} className="mx-auto" style={{ maxWidth: 605 }}>
+      <blockquote
+        className="tiktok-embed"
+        cite={url}
+        data-video-id={videoId || undefined}
+        style={{ maxWidth: 605, minWidth: 280, margin: "0 auto" }}
+      >
+        <section>
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            {url}
+          </a>
+        </section>
+      </blockquote>
+    </div>
+  );
+};
+
+const InstagramEmbed = ({ url }: { url: string }) => {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadScriptOnce("https://www.instagram.com/embed.js")
+      .then(() => {
+        if (cancelled) return;
+        const w = window as unknown as {
+          instgrm?: { Embeds?: { process?: () => void } };
+        };
+        try {
+          w.instgrm?.Embeds?.process?.();
+        } catch {
+          setFailed(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  if (failed) return <FallbackVideoLink url={url} />;
+
+  return (
+    <div className="mx-auto" style={{ maxWidth: 540 }}>
+      <blockquote
+        className="instagram-media"
+        data-instgrm-permalink={url}
+        data-instgrm-version="14"
+        style={{
+          background: "#FFF",
+          maxWidth: 540,
+          minWidth: 280,
+          margin: "0 auto",
+          padding: 0,
+        }}
+      >
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          {url}
+        </a>
+      </blockquote>
+    </div>
+  );
+};
+
+const VideoBlock = ({
+  url,
+  title,
+  isFull,
+}: {
+  url: string;
+  title: string;
+  isFull: boolean;
+}) => {
+  const platform = detectVideoPlatform(url);
+  const wrapper = `mx-auto mb-8 ${isFull ? "max-w-3xl" : "max-w-md"}`;
+
+  let content: React.ReactNode;
+  if (platform === "youtube") content = <YouTubeEmbed url={url} title={title} />;
+  else if (platform === "tiktok") content = <TikTokEmbed url={url} />;
+  else if (platform === "instagram") content = <InstagramEmbed url={url} />;
+  else content = <FallbackVideoLink url={url} />;
+
+  return <div className={wrapper}>{content}</div>;
+};
+
 
 /* ---------- Icons ---------- */
 
@@ -184,7 +373,6 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
   const imageUrl = (v.imageUrl || "").trim();
   const imagePosition = v.imagePosition === "below" ? "below" : "above";
   const videoUrl = (v.videoUrl || "").trim();
-  const videoId = videoUrl ? parseYouTubeId(videoUrl) : null;
 
   const bulletList = (v.bullets ?? [])
     .map((b) => pick(b, active))
@@ -299,23 +487,8 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
         </p>
       )}
 
-      {videoId && (
-        <div className={`mx-auto mb-8 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
-          <div
-            className="relative w-full overflow-hidden"
-            style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
-          >
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={title || "Video"}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+      {videoUrl && <VideoBlock url={videoUrl} title={title} isFull={isFull} />}
+
 
       {buttons.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
