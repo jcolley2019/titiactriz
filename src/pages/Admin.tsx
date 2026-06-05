@@ -272,14 +272,14 @@ const SortableRow = memo(({
     <li
       ref={setNodeRef}
       style={style}
-      className="bg-card border border-border rounded-lg p-3 md:p-4 grid gap-3 md:gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
+      className="bg-card border border-border rounded-lg p-3 md:p-4 flex flex-col gap-3 md:grid md:gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
       <div className="flex items-center gap-2 md:contents">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none shrink-0"
+          className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none shrink-0 md:order-1"
           aria-label={t("admin.photos.dragToReorder")}
         >
           <GripVertical className="w-4 h-4" />
@@ -287,58 +287,12 @@ const SortableRow = memo(({
         <Checkbox
           checked={selected}
           onCheckedChange={(v) => onSelectedChange(v === true)}
-          className="shrink-0"
+          className="shrink-0 md:order-2"
         />
-        <span className="text-xs text-muted-foreground tabular-nums w-6 text-center shrink-0">
+        <span className="text-xs text-muted-foreground tabular-nums w-6 text-center shrink-0 md:order-3">
           {position}
         </span>
-        <img
-          src={photo.image_url}
-          alt={photo.alt_text ?? ""}
-          className="w-14 h-14 md:w-[88px] md:h-[88px] object-cover rounded-md border border-border shrink-0 ml-auto md:ml-0"
-          loading="lazy"
-        />
-      </div>
-      <div className="space-y-2 min-w-0">
-        <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">{t("admin.photos.altText")}</Label>
-          {missingAlt && (
-            <span
-              title={t("admin.photos.needsAlt")}
-              className="inline-block w-2 h-2 rounded-full bg-amber-500"
-            />
-          )}
-          {saved && (
-            <span className="text-xs text-[hsl(var(--gold-light))]">{t("admin.photos.saved")}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Input
-            value={photo.alt_text ?? ""}
-            onChange={(e) => onAltChange(e.target.value)}
-            onBlur={onAltBlur}
-            disabled={generating}
-          />
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={onGenerateAlt}
-            disabled={generating}
-            title={t("admin.photos.generateAltTitle")}
-            aria-label={t("admin.photos.generateAlt")}
-            className="shrink-0 px-2"
-          >
-            {generating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-          </Button>
-        </div>
-      </div>
-      <div className="flex items-center justify-between md:contents">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto md:ml-0 md:order-6">
           <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
           <span className="text-xs text-muted-foreground">
             {photo.is_published ? t("admin.photos.published") : t("admin.photos.hidden")}
@@ -346,7 +300,7 @@ const SortableRow = memo(({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="ghost" aria-label={t("admin.photos.more")} className="px-2">
+            <Button size="sm" variant="ghost" aria-label={t("admin.photos.more")} className="px-2 shrink-0 md:order-7">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -360,6 +314,52 @@ const SortableRow = memo(({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+      <div className="flex items-center gap-3 md:contents">
+        <img
+          src={photo.image_url}
+          alt={photo.alt_text ?? ""}
+          className="w-28 h-28 md:w-[88px] md:h-[88px] object-cover rounded-md border border-border shrink-0 md:order-4"
+          loading="lazy"
+        />
+        <div className="space-y-2 min-w-0 flex-1 md:order-5">
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">{t("admin.photos.altText")}</Label>
+            {missingAlt && (
+              <span
+                title={t("admin.photos.needsAlt")}
+                className="inline-block w-2 h-2 rounded-full bg-amber-500"
+              />
+            )}
+            {saved && (
+              <span className="text-xs text-[hsl(var(--gold-light))]">{t("admin.photos.saved")}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              value={photo.alt_text ?? ""}
+              onChange={(e) => onAltChange(e.target.value)}
+              onBlur={onAltBlur}
+              disabled={generating}
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onGenerateAlt}
+              disabled={generating}
+              title={t("admin.photos.generateAltTitle")}
+              aria-label={t("admin.photos.generateAlt")}
+              className="shrink-0 px-2"
+            >
+              {generating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </li>
   );
