@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Eye } from "lucide-react";
 import Gallery from "@/components/Gallery";
 
@@ -14,6 +15,7 @@ type Props = {
 };
 
 const LivePreviewDock = ({ photos, isDragging = false }: Props) => {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -22,18 +24,18 @@ const LivePreviewDock = ({ photos, isDragging = false }: Props) => {
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
             <Eye className="w-3.5 h-3.5 text-accent" />
-            Live preview
+            {t("admin.livePreview.label")}
             <span className="text-muted-foreground/60 normal-case tracking-normal">
-              · {photos.length} photo{photos.length === 1 ? "" : "s"}
+              {t("admin.livePreview.count", { count: photos.length })}
             </span>
           </div>
           <button
             type="button"
             onClick={() => setCollapsed((v) => !v)}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            aria-label={collapsed ? "Expand preview" : "Collapse preview"}
+            aria-label={collapsed ? t("admin.livePreview.expandAria") : t("admin.livePreview.collapseAria")}
           >
-            {collapsed ? "Expand" : "Collapse"}
+            {collapsed ? t("admin.livePreview.expand") : t("admin.livePreview.collapse")}
             {collapsed ? (
               <ChevronUp className="w-4 h-4" />
             ) : (
@@ -46,7 +48,7 @@ const LivePreviewDock = ({ photos, isDragging = false }: Props) => {
           <div className="pb-3">
             {photos.length === 0 ? (
               <p className="text-xs text-muted-foreground py-6 text-center">
-                No published photos to preview.
+                {t("admin.livePreview.empty")}
               </p>
             ) : (
               <Gallery photos={photos} pauseAutoScroll={isDragging} compact />

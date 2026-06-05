@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import imageCompression from "browser-image-compression";
 import type { Session } from "@supabase/supabase-js";
@@ -92,6 +93,7 @@ const formatBytes = (b: number) =>
 
 /* ---------------- Login ---------------- */
 const LoginCard = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -104,7 +106,7 @@ const LoginCard = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError("Invalid email or password. Please try again.");
+      setError(t("admin.login.invalid"));
     }
   };
 
@@ -114,12 +116,12 @@ const LoginCard = () => {
         onSubmit={onSubmit}
         className="w-full max-w-sm bg-card border border-border rounded-lg p-6 shadow-[var(--shadow-card)]"
       >
-        <h1 className="font-serif text-2xl text-foreground mb-1">Admin</h1>
-        <p className="text-sm text-muted-foreground mb-6">Sign in to manage the gallery.</p>
+        <h1 className="font-serif text-2xl text-foreground mb-1">{t("admin.login.title")}</h1>
+        <p className="text-sm text-muted-foreground mb-6">{t("admin.login.subtitle")}</p>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("admin.login.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -130,7 +132,7 @@ const LoginCard = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("admin.login.password")}</Label>
             <Input
               id="password"
               type="password"
@@ -146,7 +148,7 @@ const LoginCard = () => {
             disabled={loading}
             className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? t("admin.login.signingIn") : t("admin.login.signIn")}
           </Button>
         </div>
       </form>
@@ -249,6 +251,7 @@ const SortableRow = memo(({
   onArchive,
   onDelete,
 }: SortableRowProps) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -275,7 +278,7 @@ const SortableRow = memo(({
         {...attributes}
         {...listeners}
         className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none"
-        aria-label="Drag to reorder"
+        aria-label={t("admin.photos.dragToReorder")}
       >
         <GripVertical className="w-4 h-4" />
       </button>
@@ -295,15 +298,15 @@ const SortableRow = memo(({
       />
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">Alt text</Label>
+          <Label className="text-xs text-muted-foreground">{t("admin.photos.altText")}</Label>
           {missingAlt && (
             <span
-              title="Needs alt text"
+              title={t("admin.photos.needsAlt")}
               className="inline-block w-2 h-2 rounded-full bg-amber-500"
             />
           )}
           {saved && (
-            <span className="text-xs text-[hsl(var(--gold-light))]">Saved</span>
+            <span className="text-xs text-[hsl(var(--gold-light))]">{t("admin.photos.saved")}</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -319,8 +322,8 @@ const SortableRow = memo(({
             variant="outline"
             onClick={onGenerateAlt}
             disabled={generating}
-            title="Generate Spanish alt text with AI"
-            aria-label="Generate alt text"
+            title={t("admin.photos.generateAltTitle")}
+            aria-label={t("admin.photos.generateAlt")}
             className="shrink-0 px-2"
           >
             {generating ? (
@@ -334,22 +337,22 @@ const SortableRow = memo(({
       <div className="flex items-center gap-2">
         <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
         <span className="text-xs text-muted-foreground">
-          {photo.is_published ? "Published" : "Hidden"}
+          {photo.is_published ? t("admin.photos.published") : t("admin.photos.hidden")}
         </span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="ghost" aria-label="More" className="px-2">
+          <Button size="sm" variant="ghost" aria-label={t("admin.photos.more")} className="px-2">
             <MoreVertical className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => onArchive()}>Archive</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onArchive()}>{t("admin.photos.archive")}</DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => onDelete()}
             className="text-destructive focus:text-destructive"
           >
-            Delete
+            {t("admin.photos.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -360,6 +363,7 @@ SortableRow.displayName = "SortableRow";
 
 /* ---------------- Management Panel ---------------- */
 const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
+  const { t } = useTranslation();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -408,7 +412,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .order("sort_order", { ascending: true });
     setLoading(false);
     if (error) {
-      toast({ title: "Failed to load photos", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.loadFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setPhotos(data ?? []);
@@ -513,7 +517,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
     setBatchRunning(false);
     await load();
-    toast({ title: "Batch complete" });
+    toast({ title: t("admin.queue.batchComplete") });
   };
 
   const skipQueueItem = (id: string) => {
@@ -558,7 +562,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const rejected = arr.length - accepted.length;
     if (rejected > 0) {
       setFileError(
-        `${rejected} file(s) skipped — unsupported type. Allowed: JPEG, PNG, WebP, HEIC/HEIF.`,
+        t("admin.upload.fileError", { count: rejected }),
       );
     }
     if (accepted.length === 0) {
@@ -599,8 +603,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       const url = URL.createObjectURL(blob);
       setPreview({ blob, url, originalSize, optimizedSize: blob.size, contentHash, duplicateOfId });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Optimization failed";
-      toast({ title: "Optimization failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.optimizationFailedFallback");
+      toast({ title: t("admin.toasts.optimizationFailed"), description: msg, variant: "destructive" });
     } finally {
       setSingleUploading(false);
       setSingleStage("idle");
@@ -634,14 +638,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       const reduction = `${formatBytes(preview.originalSize)} → ${formatBytes(preview.optimizedSize)}`;
       setLastReduction(reduction);
-      toast({ title: "Photo uploaded", description: `Optimized: ${reduction}` });
+      toast({ title: t("admin.toasts.photoUploaded"), description: t("admin.toasts.optimizedDesc", { reduction }) });
       setPendingFile(null);
       resetFileInput();
       closePreview();
       await load();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Upload failed";
-      toast({ title: "Upload failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.uploadFailedFallback");
+      toast({ title: t("admin.toasts.uploadFailed"), description: msg, variant: "destructive" });
     } finally {
       setSingleUploading(false);
       setSingleStage("idle");
@@ -686,7 +690,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       });
       if (error) throw error;
       const text = typeof data?.alt_text === "string" ? data.alt_text.trim() : "";
-      if (!text) throw new Error("Empty alt text");
+      if (!text) throw new Error(t("admin.toasts.emptyAlt"));
       setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, alt_text: text } : p)));
       altLastSaved.current.set(photoId, text);
       const { error: upErr } = await supabase
@@ -697,8 +701,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       flashSaved(photoId);
       return true;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Generation failed";
-      toast({ title: "Alt text failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.altFailedFallback");
+      toast({ title: t("admin.toasts.altFailed"), description: msg, variant: "destructive" });
       return false;
     } finally {
       setGeneratingAltIds((prev) => {
@@ -730,7 +734,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const concurrency = Math.min(3, targets.length);
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
     setAltBulk(null);
-    toast({ title: "Alt text generated", description: `${done} of ${targets.length} processed.` });
+    toast({ title: t("admin.toasts.altGenerated"), description: t("admin.toasts.altGeneratedDesc", { done, total: targets.length }) });
   }, [photos, generateAltFor]);
 
   const saveAltText = async (photo: Photo) => {
@@ -742,7 +746,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .update({ alt_text: current })
       .eq("id", photo.id);
     if (error) {
-      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
     flashSaved(photo.id);
@@ -756,7 +760,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .eq("id", photo.id);
     if (error) {
       updateRow(photo.id, { is_published: !value });
-      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.updateFailed"), description: error.message, variant: "destructive" });
     }
   };
 
@@ -771,11 +775,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       .eq("id", photo.id);
     if (error) {
       setPhotos(prev);
-      const msg = error instanceof Error ? error.message : "Update failed";
-      toast({ title: "Update failed", description: msg, variant: "destructive" });
+      const msg = error instanceof Error ? error.message : t("admin.toasts.updateFailedFallback");
+      toast({ title: t("admin.toasts.updateFailed"), description: msg, variant: "destructive" });
       return;
     }
-    toast({ title: archived ? "Archived" : "Restored" });
+    toast({ title: archived ? t("admin.toasts.archived") : t("admin.toasts.restored") });
   };
 
   const persistOrder = async (orderedIds: string[]) => {
@@ -786,7 +790,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const results = await Promise.all(updates);
     const firstErr = results.find((r) => r.error)?.error;
     if (firstErr) {
-      toast({ title: "Reorder failed", description: firstErr.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.reorderFailed"), description: firstErr.message, variant: "destructive" });
       await load();
     }
   };
@@ -810,11 +814,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       }
       const { error: dbErr } = await supabase.from("gallery_photos").delete().eq("id", photo.id);
       if (dbErr) throw dbErr;
-      toast({ title: "Deleted" });
+      toast({ title: t("admin.toasts.deleted") });
       setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Delete failed";
-      toast({ title: "Delete failed", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("admin.toasts.deleteFailedFallback");
+      toast({ title: t("admin.toasts.deleteFailed"), description: msg, variant: "destructive" });
     }
   };
 
@@ -893,10 +897,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setBulkBusy(false);
     if (error) {
       setPhotos(prev);
-      toast({ title: "Bulk update failed", description: error.message, variant: "destructive" });
+      toast({ title: t("admin.toasts.bulkUpdateFailed"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: value ? "Published selected" : "Hidden selected", description: `${ids.length} photo(s) updated` });
+    toast({ title: value ? t("admin.toasts.publishedSelected") : t("admin.toasts.hiddenSelected"), description: t("admin.toasts.bulkDesc", { count: ids.length }) });
     setSelected(new Set());
   };
 
@@ -933,11 +937,11 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     <div className="max-w-5xl mx-auto px-4 pt-32 pb-[340px]">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl text-foreground">Gallery Admin</h1>
-          <p className="text-sm text-muted-foreground">Manage gallery photos.</p>
+          <h1 className="font-serif text-3xl text-foreground">{t("admin.header.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("admin.header.subtitle")}</p>
         </div>
         <Button variant="outline" onClick={onSignOut}>
-          Log out
+          {t("admin.header.logOut")}
         </Button>
       </div>
 
@@ -945,7 +949,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       {/* Upload */}
       <section className="bg-card border border-border rounded-lg p-6 mb-10">
-        <h2 className="font-serif text-xl text-foreground mb-4">Upload photos</h2>
+        <h2 className="font-serif text-xl text-foreground mb-4">{t("admin.upload.title")}</h2>
 
         <div
           onDragOver={(e) => {
@@ -961,10 +965,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           }`}
         >
           <p className="text-sm text-foreground mb-1">
-            Drag &amp; drop photos here
+            {t("admin.upload.dropHere")}
           </p>
           <p className="text-xs text-muted-foreground mb-4">
-            JPEG, PNG, WebP, or HEIC/HEIF · multiple files OK
+            {t("admin.upload.formats")}
           </p>
           <input
             ref={fileInputRef}
@@ -980,21 +984,21 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             onClick={() => fileInputRef.current?.click()}
             disabled={batchRunning}
           >
-            Select files
+            {t("admin.upload.selectFiles")}
           </Button>
         </div>
 
         {fileError && <p className="mt-3 text-sm text-destructive">{fileError}</p>}
         {lastReduction && !singleUploading && (
           <p className="mt-3 text-sm text-[hsl(var(--gold-light))]">
-            Optimized: {lastReduction}
+            {t("admin.upload.optimized")}: {lastReduction}
           </p>
         )}
 
         {pendingFile && !preview && (
           <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm text-muted-foreground">
-              Selected: <span className="text-foreground">{pendingFile.name}</span> ·{" "}
+              {t("admin.upload.selected")}: <span className="text-foreground">{pendingFile.name}</span> ·{" "}
               {formatBytes(pendingFile.size)}
             </p>
             <Button
@@ -1003,12 +1007,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {singleStage === "converting"
-                ? "Converting…"
+                ? t("admin.upload.converting")
                 : singleStage === "optimizing"
-                  ? "Optimizing…"
+                  ? t("admin.upload.optimizing")
                   : singleStage === "uploading"
-                    ? "Uploading…"
-                    : "Preview & upload"}
+                    ? t("admin.upload.uploading")
+                    : t("admin.upload.previewUpload")}
             </Button>
           </div>
         )}
@@ -1016,9 +1020,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         {queue.length > 0 && (
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-3">
-              {doneCount} of {queue.length} uploaded
-              {failedCount > 0 ? ` · ${failedCount} failed` : ""}
-              {duplicateCount > 0 ? ` · ${duplicateCount} possible duplicate${duplicateCount === 1 ? "" : "s"}` : ""}
+              {t("admin.queue.summary", { done: doneCount, total: queue.length })}
+              {failedCount > 0 ? t("admin.queue.failedSuffix", { count: failedCount }) : ""}
+              {duplicateCount > 0 ? t("admin.queue.duplicatesSuffix", { count: duplicateCount }) : ""}
             </p>
             <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {queue.map((q) => (
@@ -1042,19 +1046,19 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                                   : "text-muted-foreground"
                         }
                       >
-                        {q.status === "queued" && "Queued"}
-                        {q.status === "duplicate" && "Possible duplicate"}
-                        {q.status === "converting" && "Converting…"}
-                        {q.status === "optimizing" && "Optimizing…"}
-                        {q.status === "uploading" && "Uploading…"}
+                        {q.status === "queued" && t("admin.queue.queued")}
+                        {q.status === "duplicate" && t("admin.queue.possibleDuplicate")}
+                        {q.status === "converting" && t("admin.queue.converting")}
+                        {q.status === "optimizing" && t("admin.queue.optimizing")}
+                        {q.status === "uploading" && t("admin.queue.uploading")}
                         {q.status === "done" &&
-                          `Done${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
-                        {q.status === "failed" && `Failed: ${q.error ?? "error"}`}
-                        {q.status === "skipped" && "Skipped"}
+                          `${t("admin.queue.done")}${q.optimizedSize ? ` · ${formatBytes(q.optimizedSize)}` : ""}`}
+                        {q.status === "failed" && t("admin.queue.failed", { error: q.error ?? t("admin.queue.errorFallback") })}
+                        {q.status === "skipped" && t("admin.queue.skipped")}
                       </span>
                       {q.status === "failed" && (
                         <Button size="sm" variant="outline" onClick={() => retryItem(q)}>
-                          Retry
+                          {t("admin.queue.retry")}
                         </Button>
                       )}
                     </div>
@@ -1062,18 +1066,18 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   {q.status === "duplicate" && (
                     <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
                       <p className="text-xs text-muted-foreground">
-                        Looks like a duplicate of a photo you already have.
+                        {t("admin.queue.duplicateHint")}
                       </p>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => skipQueueItem(q.id)}>
-                          Skip
+                          {t("admin.queue.skip")}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => uploadDuplicateAnyway(q.id)}
                         >
-                          Add anyway
+                          {t("admin.queue.addAnyway")}
                         </Button>
                       </div>
                     </div>
@@ -1090,19 +1094,19 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
           <div>
             <h2 className="font-serif text-xl text-foreground">
-              Photos{" "}
+              {t("admin.photos.heading")}{" "}
               <span className="text-sm text-muted-foreground font-sans">
-                · {activePhotos.length} photo{activePhotos.length === 1 ? "" : "s"}
+                {t("admin.photos.count", { count: activePhotos.length })}
               </span>
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              {activePhotos.length} live — galleries look best around 20 to 30.
+              {t("admin.photos.liveCount", { count: activePhotos.length })}
             </p>
             {missingAltCount > 0 && (
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">
                   <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
-                  {missingAltCount} photo{missingAltCount === 1 ? "" : "s"} missing alt text
+                  {t("admin.photos.missingAlt", { count: missingAltCount })}
                 </p>
                 <Button
                   size="sm"
@@ -1114,12 +1118,12 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   {altBulk ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      {altBulk.done} of {altBulk.total}
+                      {t("admin.photos.fillProgress", { done: altBulk.done, total: altBulk.total })}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-3.5 h-3.5" />
-                      Fill all missing alt text
+                      {t("admin.photos.fillAll")}
                     </>
                   )}
                 </Button>
@@ -1129,9 +1133,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         </div>
 
         {loading ? (
-          <p className="text-muted-foreground text-sm">Loading…</p>
+          <p className="text-muted-foreground text-sm">{t("admin.photos.loading")}</p>
         ) : activePhotos.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No photos yet.</p>
+          <p className="text-muted-foreground text-sm">{t("admin.photos.empty")}</p>
         ) : (
           <>
             <div className="flex items-center gap-3 mb-3 p-3 bg-card border border-border rounded-lg flex-wrap">
@@ -1141,7 +1145,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   onCheckedChange={(v) => toggleSelectAll(v === true)}
                 />
                 <span className="text-muted-foreground">
-                  {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+                  {selected.size > 0 ? t("admin.photos.selectedCount", { count: selected.size }) : t("admin.photos.selectAll")}
                 </span>
               </label>
               <div className="flex gap-2 ml-auto">
@@ -1151,7 +1155,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   disabled={selected.size === 0 || bulkBusy}
                   onClick={() => bulkSetPublished(true)}
                 >
-                  Publish selected
+                  {t("admin.photos.publishSelected")}
                 </Button>
                 <Button
                   size="sm"
@@ -1159,7 +1163,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                   disabled={selected.size === 0 || bulkBusy}
                   onClick={() => bulkSetPublished(false)}
                 >
-                  Hide selected
+                  {t("admin.photos.hideSelected")}
                 </Button>
               </div>
             </div>
@@ -1211,7 +1215,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
               ) : (
                 <ChevronRight className="w-4 h-4" />
               )}
-              Archived ({archivedPhotos.length})
+              {t("admin.photos.archived")} ({archivedPhotos.length})
             </button>
             {archivedOpen && (
               <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -1228,14 +1232,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                     />
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs text-muted-foreground truncate">
-                        {p.alt_text || "Untitled"}
+                        {p.alt_text || t("admin.photos.untitled")}
                       </span>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setArchived(p, false)}
                       >
-                        Restore
+                        {t("admin.photos.restore")}
                       </Button>
                     </div>
                   </li>
@@ -1254,18 +1258,18 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete permanently?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.deleteDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This cannot be undone. The photo and its file will be removed.
+              {t("admin.deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("admin.deleteDialog.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t("admin.deleteDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1279,13 +1283,13 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Review optimized photo</DialogTitle>
+            <DialogTitle>{t("admin.previewDialog.title")}</DialogTitle>
             <DialogDescription>
               {preview && (
-                <>
-                  {formatBytes(preview.originalSize)} → {formatBytes(preview.optimizedSize)} ·
-                  WebP, max 2400px
-                </>
+                t("admin.previewDialog.description", {
+                  from: formatBytes(preview.originalSize),
+                  to: formatBytes(preview.optimizedSize),
+                })
               )}
             </DialogDescription>
           </DialogHeader>
@@ -1293,13 +1297,13 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
             <>
               {preview.duplicateOfId && (
                 <p className="text-xs text-amber-500">
-                  Looks like a duplicate of a photo you already have.
+                  {t("admin.previewDialog.duplicateHint")}
                 </p>
               )}
               <div className="flex items-center justify-center bg-muted/30 rounded-md overflow-hidden">
                 <img
                   src={preview.url}
-                  alt="Optimized preview"
+                  alt={t("admin.previewDialog.previewAlt")}
                   className="max-h-[60vh] w-auto object-contain"
                 />
               </div>
@@ -1307,14 +1311,14 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={closePreview} disabled={singleUploading}>
-              Cancel
+              {t("admin.previewDialog.cancel")}
             </Button>
             <Button
               onClick={confirmUpload}
               disabled={singleUploading}
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
-              {singleStage === "uploading" ? "Uploading…" : "Confirm & upload"}
+              {singleStage === "uploading" ? t("admin.previewDialog.uploading") : t("admin.previewDialog.confirmUpload")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1327,6 +1331,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
 /* ---------------- Page ---------------- */
 const Admin = () => {
+  const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
   const [checking, setChecking] = useState(true);
 
@@ -1356,8 +1361,8 @@ const Admin = () => {
       timer = window.setTimeout(async () => {
         await supabase.auth.signOut();
         toast({
-          title: "Signed out",
-          description: "You were logged out after 15 minutes of inactivity.",
+          title: t("admin.toasts.signedOut"),
+          description: t("admin.toasts.signedOutDesc"),
         });
       }, TIMEOUT_MS);
     };
