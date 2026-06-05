@@ -238,7 +238,140 @@ const Header = () => {
               )}
             </li>
           ))}
+
+          {eventsVisible && (
+            <li
+              className="opacity-0 animate-fade-up"
+              style={{ animationDelay: `${mobileLinks.length * 0.1}s`, animationFillMode: "forwards" }}
+            >
+              <Link
+                to="/events"
+                onClick={closeMenu}
+                className={`block py-3 text-xl font-serif transition-colors ${
+                  location.pathname === "/events"
+                    ? isTitansPage
+                      ? "text-titans-red"
+                      : isGreenWorldPage
+                        ? "text-gw-white"
+                        : "text-gold-light"
+                    : isTitansPage
+                      ? "text-white/90 hover:text-white"
+                      : isGreenWorldPage
+                        ? "text-gw-white/90 hover:text-gw-white"
+                        : "text-foreground/70 hover:text-gold-light"
+                }`}
+              >
+                {t("nav.events", "Events")}
+              </Link>
+            </li>
+          )}
+
+          {/* Divider */}
+          <li aria-hidden className="pt-2">
+            <div
+              className={`h-px w-full ${
+                isTitansPage
+                  ? "bg-white/15"
+                  : isGreenWorldPage
+                    ? "bg-gw-white/20"
+                    : "bg-border/60"
+              }`}
+            />
+          </li>
+
+          {/* ES/EN segmented control */}
+          <li>
+            <div
+              role="group"
+              aria-label={t("nav.switchLanguage", "Switch language")}
+              className={`flex rounded-md overflow-hidden text-xs font-semibold tracking-[0.2em] border ${
+                isTitansPage
+                  ? "border-white/20"
+                  : isGreenWorldPage
+                    ? "border-gw-white/25"
+                    : "border-border"
+              }`}
+            >
+              {(["es", "en"] as const).map((lng) => {
+                const active = lng === "en" ? !!isEn : !isEn;
+                return (
+                  <button
+                    key={lng}
+                    type="button"
+                    onClick={() => {
+                      setLang(lng);
+                      closeMenu();
+                    }}
+                    className={`flex-1 px-3 py-2 uppercase transition-colors ${
+                      active
+                        ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]"
+                        : isTitansPage
+                          ? "bg-transparent text-white/70 hover:text-white"
+                          : isGreenWorldPage
+                            ? "bg-transparent text-gw-white/70 hover:text-gw-white"
+                            : "bg-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                    aria-pressed={active}
+                  >
+                    {lng}
+                  </button>
+                );
+              })}
+            </div>
+          </li>
+
+          {/* Admin entry */}
+          <li>
+            {session ? (
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleAdmin}
+                  className={`flex items-center gap-2 py-3 text-base font-serif transition-colors text-left ${
+                    isTitansPage
+                      ? "text-white/90 hover:text-white"
+                      : isGreenWorldPage
+                        ? "text-gw-white/90 hover:text-gw-white"
+                        : "text-foreground/70 hover:text-gold-light"
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  {t("nav.admin", "Admin")}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className={`flex items-center gap-2 py-3 text-base font-serif transition-colors text-left ${
+                    isTitansPage
+                      ? "text-white/90 hover:text-white"
+                      : isGreenWorldPage
+                        ? "text-gw-white/90 hover:text-gw-white"
+                        : "text-foreground/70 hover:text-gold-light"
+                  }`}
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t("nav.signOut", "Log out")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAdmin}
+                className={`flex items-center gap-2 py-3 text-base font-serif transition-colors text-left ${
+                  isTitansPage
+                    ? "text-white/90 hover:text-white"
+                    : isGreenWorldPage
+                      ? "text-gw-white/90 hover:text-gw-white"
+                      : "text-foreground/70 hover:text-gold-light"
+                }`}
+              >
+                <Lock className="w-4 h-4" />
+                {t("nav.adminLogin", "Admin Login")}
+              </button>
+            )}
+          </li>
         </ul>
+
       </div>
     </header>
   );
