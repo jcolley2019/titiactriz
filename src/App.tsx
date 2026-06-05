@@ -23,8 +23,8 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <div className="flex flex-col min-h-screen">
-            <EventsBanner />
             <Header />
+            <EventsBanner />
             <ScrollToTopButton />
             <main className="flex-1">
               <AnimatedRoutes />
