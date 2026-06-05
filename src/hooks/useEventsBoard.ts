@@ -72,7 +72,6 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
         es: "Los ganadores se eligen con un 10% de votación del público: tu apoyo cuenta.",
         en: "Winners are chosen with 10% public voting — your support counts.",
       },
-      details: [],
       imageUrl: "",
       imagePosition: "above",
       bulletsOn: false,
