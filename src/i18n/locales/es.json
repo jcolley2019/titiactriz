@@ -112,7 +112,37 @@
     "quickLinks": "Enlaces Rápidos",
     "connect": "Conectar",
     "copyright": "© {{year}} Cristyna Polentino. Todos los derechos reservados.",
-    "madeWith": "Hecho con pasión en Colombia"
+    "madeWith": "Hecho con pasión en Colombia",
+    "studioCredit": "Sitio creado por Joey Colley",
+    "studioCta": "¿Quieres uno así?"
+  },
+  "studio": {
+    "seo": {
+      "title": "Estudio | Sitios web y apps con IA — Joey Colley",
+      "description": "Joey Colley diseña y construye sitios web y aplicaciones impulsadas por IA, hechas a la medida y listas para crecer."
+    },
+    "hero": {
+      "eyebrow": "El estudio detrás de este sitio",
+      "title": "Sitios web y apps con IA, hechos a la medida",
+      "subtitle": "Soy Joey Colley. Diseño y construyo sitios web y aplicaciones impulsadas por IA: rápido, a la medida y listas para crecer. Este sitio es uno de ellos.",
+      "cta": "Hablemos de tu proyecto"
+    },
+    "work": {
+      "eyebrow": "Trabajo seleccionado",
+      "title": "Cosas que he construido",
+      "visit": "Ver sitio",
+      "items": {
+        "titiactriz": "Este sitio. Portafolio bilingüe para una actriz colombiana.",
+        "titilinks": "Plataforma de biolinks bilingüe para creadores latinos.",
+        "joeyc": "Mi marca personal con un estudio de contenido con IA.",
+        "luxvibe": "Reservas de hoteles de lujo con más de 2 millones de propiedades.",
+        "fieldreport": "App de documentación de obra con resúmenes por IA."
+      }
+    },
+    "cta": {
+      "line": "¿Tienes una idea? Construyámosla.",
+      "button": "Iniciar un proyecto"
+    }
   },
   "gallery": {
     "eyebrow": "Un vistazo a",
