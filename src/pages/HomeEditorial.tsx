@@ -177,14 +177,14 @@ const HomeEditorial = () => {
       <section
         ref={heroRef}
         className={
-          "relative min-h-[100svh] md:min-h-[100vh] flex items-center justify-center overflow-hidden px-4 md:px-12 pt-3 md:pt-24 pb-4 md:pb-12 " +
+          "relative min-h-[calc(100svh-100px)] md:min-h-[100vh] flex items-stretch md:items-center justify-center overflow-hidden px-4 md:px-12 pt-2 md:pt-24 pb-2 md:pb-12 " +
           (introStarted ? "editorial-intro " : "") +
           (framePlay ? "editorial-hero-play" : "")
         }
         style={{ backgroundColor: "#0e0c09" }}
       >
         {/* Contained, centered hero box */}
-        <div className="relative mx-auto w-full max-w-6xl p-5 md:p-14">
+        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-116px)] md:min-h-0 px-5 pt-5 pb-7 md:p-14">
 
           {/* Four solid gold border bars */}
           <span
@@ -291,7 +291,7 @@ const HomeEditorial = () => {
                 {t("hero.rolesLine")}
               </p>
 
-              <div className="editorial-subtitle max-w-md mt-2 sm:mt-5 flex flex-col gap-1.5 sm:gap-3">
+              <div className="editorial-subtitle max-w-md mt-2 sm:mt-5 flex flex-col gap-2.5 sm:gap-3">
 
                 <p
                   className="italic leading-relaxed"
@@ -317,7 +317,7 @@ const HomeEditorial = () => {
               </div>
 
               {/* Monogram hands off to CTA buttons (same grid cell, no layout shift) */}
-              <div className="relative mx-auto mt-3 sm:mt-6 flex min-h-[52px] sm:min-h-[64px] w-full items-center justify-center">
+              <div className="relative mx-auto mt-7 sm:mt-6 mb-1 sm:mb-0 flex min-h-[56px] sm:min-h-[64px] w-full items-center justify-center">
 
                 <span
                   aria-hidden
@@ -368,7 +368,7 @@ const HomeEditorial = () => {
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[220px] sm:max-w-[400px] lg:max-w-[460px] max-h-[26svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_35%] sm:object-contain"
+                className="w-full max-w-[245px] sm:max-w-[400px] lg:max-w-[460px] max-h-[29svh] sm:max-h-[64vh] lg:max-h-none h-auto object-cover object-[center_35%] sm:object-contain"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
