@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
-import type { EventSettings } from "@/hooks/useEventSettings";
+import type { EventSettings } from "./useEventSettings";
 
 const GOLD = "#C9A55C";
 const CREAM = "#f0e9da";
