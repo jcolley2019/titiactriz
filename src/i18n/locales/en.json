@@ -458,6 +458,26 @@
       "updateFailed": "Update failed",
       "failedFallback": "Failed to update"
     },
+    "events": {
+      "sectionTitle": "Events",
+      "sectionSubtitle": "Manage the featured event and whether the page is shown publicly.",
+      "visibleLabel": "Show the Events page",
+      "visibleHelp": "When off, the events page is hidden from the public.",
+      "filmTitleLabel": "Short film title",
+      "filmTitlePlaceholder": "e.g. The Last Journey",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "e.g. LGBTIQ+ category",
+      "watchUrlLabel": "Watch link",
+      "voteUrlLabel": "Vote link",
+      "festivalUrlLabel": "Festival link",
+      "urlPlaceholder": "https://...",
+      "previewLabel": "Preview",
+      "previewHiddenNote": "Hidden — not shown publicly",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Event updated",
+      "saveError": "Could not save. Please try again."
+    },
     "upload": {
       "title": "Upload photos",
       "dropHere": "Drag & drop photos here",
