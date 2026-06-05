@@ -184,7 +184,7 @@ const HomeEditorial = () => {
         style={{ backgroundColor: "#0e0c09" }}
       >
         {/* Contained, centered hero box */}
-        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-116px)] md:min-h-0 px-5 pt-5 pb-7 md:p-14">
+        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-122px)] md:min-h-0 px-5 pt-5 pb-7 md:p-14">
 
           {/* Four solid gold border bars */}
           <span
