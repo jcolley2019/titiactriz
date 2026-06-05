@@ -1244,6 +1244,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                       onPublishedChange={(v) => togglePublished(p, v)}
                       onArchive={() => setArchived(p, true)}
                       onDelete={() => setDeleteTarget(p)}
+                      onMoveUp={() => moveActivePhoto(p.id, -1)}
+                      onMoveDown={() => moveActivePhoto(p.id, 1)}
+                      isFirst={i === 0}
+                      isLast={i === activePhotos.length - 1}
                     />
                   ))}
                 </ul>
