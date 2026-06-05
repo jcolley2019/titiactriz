@@ -2,9 +2,8 @@ import { useTranslation } from "react-i18next";
 import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
 import type {
   EventItem,
-  EventCardItem,
-  VideoItem,
-  LinkItem,
+  EventButton,
+  ButtonIcon,
   Localized,
 } from "@/hooks/useEventsBoard";
 
@@ -23,25 +22,6 @@ const useLang = (): Lang => {
   const { i18n } = useTranslation();
   return (i18n.language || "es").startsWith("es") ? "es" : "en";
 };
-
-const Diamond = () => (
-  <svg
-    aria-hidden
-    width="6"
-    height="6"
-    viewBox="0 0 6 6"
-    className="inline-block mx-2 align-middle"
-  >
-    <rect
-      x="3"
-      y="0"
-      width="4.24"
-      height="4.24"
-      transform="rotate(45 3 0)"
-      fill={GOLD}
-    />
-  </svg>
-);
 
 const frameStyle: React.CSSProperties = {
   backgroundColor: "#13110d",
@@ -78,20 +58,142 @@ const Corners = () => (
   </>
 );
 
-/* ---------- EVENT ---------- */
+/* ---------- Video ---------- */
 
-const EventVariant = ({ item, lang }: { item: EventCardItem; lang: Lang }) => {
+const parseYouTubeId = (url: string): string | null => {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return u.pathname.slice(1) || null;
+    if (host.endsWith("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      const parts = u.pathname.split("/").filter(Boolean);
+      const idx = parts.findIndex((p) => p === "shorts" || p === "embed");
+      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+/* ---------- Icons ---------- */
+
+const IconWebsite = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
+const IconInstagram = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+  </svg>
+);
+
+const IconTikTok = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+  </svg>
+);
+
+const IconYouTube = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+  </svg>
+);
+
+const IconFacebook = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+  </svg>
+);
+
+const IconX = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+const detectIcon = (url: string): ButtonIcon => {
+  if (!url) return "website";
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    if (host.includes("tiktok.com")) return "tiktok";
+    if (host.includes("instagram.com")) return "instagram";
+    if (host.includes("youtube.com") || host === "youtu.be") return "youtube";
+    if (host.includes("facebook.com") || host === "fb.com") return "facebook";
+    if (host === "x.com" || host.includes("twitter.com")) return "x";
+    return "website";
+  } catch {
+    return "website";
+  }
+};
+
+const renderIcon = (icon: ButtonIcon, className: string) => {
+  switch (icon) {
+    case "instagram":
+      return <IconInstagram className={className} />;
+    case "tiktok":
+      return <IconTikTok className={className} />;
+    case "youtube":
+      return <IconYouTube className={className} />;
+    case "facebook":
+      return <IconFacebook className={className} />;
+    case "x":
+      return <IconX className={className} />;
+    case "website":
+      return <IconWebsite className={className} />;
+    default:
+      return <IconWebsite className={className} />;
+  }
+};
+
+/* ---------- Card ---------- */
+
+const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
+  const fallback = useLang();
+  const active: Lang = lang ?? fallback;
+
   const isFull = item.size === "full";
-  const badge = pick(item.badge, lang);
-  const title = pick(item.title, lang);
-  const description = pick(item.description, lang);
-  const note = pick(item.note, lang);
-  const details = item.details
-    .map((d) => pick(d, lang))
+  const badge = pick(item.badge, active);
+  const title = pick(item.title, active);
+  const description = pick(item.description, active);
+  const note = pick(item.note, active);
+
+  const imageUrl = (item.imageUrl || "").trim();
+  const imagePosition = item.imagePosition === "below" ? "below" : "above";
+  const videoUrl = (item.videoUrl || "").trim();
+  const videoId = videoUrl ? parseYouTubeId(videoUrl) : null;
+
+  const bulletList = (item.bullets ?? [])
+    .map((b) => pick(b, active))
     .filter((s) => s.length > 0);
-  const buttons = item.buttons
-    .map((b) => ({ label: pick(b.label, lang), url: b.url }))
-    .filter((b) => b.url);
+  const showBullets = !!item.bulletsOn && bulletList.length > 0;
+
+  const buttons = (item.buttons ?? [])
+    .map((b) => ({
+      label: pick(b.label, active),
+      url: (b.url || "").trim(),
+      icon: (b.icon ?? "auto") as ButtonIcon,
+    }))
+    .filter((b) => b.url.length > 0);
+
+  const Image = imageUrl ? (
+    <div className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
+      <img
+        src={imageUrl}
+        alt={title || ""}
+        loading="lazy"
+        className="w-full h-auto max-h-[420px] object-cover rounded-md"
+        style={{ border: `1px solid ${GOLD}` }}
+      />
+    </div>
+  ) : null;
 
   return (
     <article
@@ -129,6 +231,8 @@ const EventVariant = ({ item, lang }: { item: EventCardItem; lang: Lang }) => {
         </h2>
       )}
 
+      {imagePosition === "above" && Image}
+
       {description && (
         <p
           className={`mx-auto mb-6 ${
@@ -140,20 +244,31 @@ const EventVariant = ({ item, lang }: { item: EventCardItem; lang: Lang }) => {
         </p>
       )}
 
-      {details.length > 0 && (
-        <div
-          className={`flex flex-wrap items-center justify-center uppercase tracking-[0.15em] mb-6 ${
-            isFull ? "text-xs md:text-sm" : "text-[0.7rem]"
+      {imagePosition === "below" && Image}
+
+      {showBullets && (
+        <ul
+          className={`mx-auto mb-6 text-left grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 ${
+            isFull ? "max-w-2xl text-sm" : "max-w-md text-sm"
           }`}
-          style={{ color: GOLD, fontFamily: "var(--font-sans)" }}
+          style={{ color: `${CREAM}e6` }}
         >
-          {details.map((f, i) => (
-            <span key={i} className="inline-flex items-center">
-              {i > 0 && <Diamond />}
-              <span>{f}</span>
-            </span>
+          {bulletList.map((b, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span
+                aria-hidden
+                className="inline-block mt-2 shrink-0"
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: GOLD,
+                  transform: "rotate(45deg)",
+                }}
+              />
+              <span>{b}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {note && (
@@ -167,18 +282,41 @@ const EventVariant = ({ item, lang }: { item: EventCardItem; lang: Lang }) => {
         </p>
       )}
 
+      {videoId && (
+        <div className={`mx-auto mb-8 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
+          <div
+            className="relative w-full overflow-hidden"
+            style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
+          >
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title={title || "Video"}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
       {buttons.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           {buttons.map((b, i) => {
             const primary = i === 0;
+            const resolved: ButtonIcon =
+              b.icon === "auto" ? detectIcon(b.url) : b.icon;
+            const showIcon = resolved !== "none";
+            const labelText = b.label;
             const base =
-              "inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:-translate-y-0.5";
+              "inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:-translate-y-0.5";
             return (
               <a
                 key={i}
                 href={b.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={labelText || b.url}
                 className={primary ? base : `${base} border`}
                 style={
                   primary
@@ -186,7 +324,8 @@ const EventVariant = ({ item, lang }: { item: EventCardItem; lang: Lang }) => {
                     : { color: CREAM, borderColor: GOLD }
                 }
               >
-                {b.label || b.url}
+                {showIcon && renderIcon(resolved, "w-4 h-4")}
+                {labelText && <span>{labelText}</span>}
               </a>
             );
           })}
@@ -194,128 +333,6 @@ const EventVariant = ({ item, lang }: { item: EventCardItem; lang: Lang }) => {
       )}
     </article>
   );
-};
-
-/* ---------- VIDEO ---------- */
-
-const parseYouTubeId = (url: string): string | null => {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    const host = u.hostname.replace(/^www\./, "");
-    if (host === "youtu.be") return u.pathname.slice(1) || null;
-    if (host.endsWith("youtube.com")) {
-      const v = u.searchParams.get("v");
-      if (v) return v;
-      const parts = u.pathname.split("/").filter(Boolean);
-      const idx = parts.findIndex((p) => p === "shorts" || p === "embed");
-      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-const VideoVariant = ({ item, lang }: { item: VideoItem; lang: Lang }) => {
-  const title = pick(item.title, lang);
-  const id = parseYouTubeId(item.videoUrl);
-  return (
-    <article className="relative h-full p-6 md:p-8" style={frameStyle}>
-      {title && (
-        <h2
-          className="text-xl md:text-2xl leading-tight mb-4 text-center"
-          style={{ fontFamily: "var(--font-display)", color: CREAM }}
-        >
-          {title}
-        </h2>
-      )}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
-      >
-        {id ? (
-          <iframe
-            className="absolute inset-0 w-full h-full"
-            src={`https://www.youtube.com/embed/${id}`}
-            title={title || "Video"}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <div
-            className="absolute inset-0 flex items-center justify-center text-xs uppercase tracking-[0.2em]"
-            style={{ color: `${CREAM}80` }}
-          >
-            —
-          </div>
-        )}
-      </div>
-    </article>
-  );
-};
-
-/* ---------- LINK ---------- */
-
-const LinkVariant = ({ item, lang }: { item: LinkItem; lang: Lang }) => {
-  const title = pick(item.title, lang);
-  const label = pick(item.buttonLabel, lang);
-  const url = item.url;
-
-  return (
-    <article
-      className="relative h-full p-6 md:p-8 text-center flex flex-col"
-      style={frameStyle}
-    >
-      {title && (
-        <h2
-          className="text-xl md:text-2xl leading-tight mb-4"
-          style={{ fontFamily: "var(--font-display)", color: CREAM }}
-        >
-          {title}
-        </h2>
-      )}
-
-      {item.imageUrl && (
-        <div
-          className="relative w-full overflow-hidden mb-4"
-          style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
-        >
-          <img
-            src={item.imageUrl}
-            alt={title || ""}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </div>
-      )}
-
-      {url && (
-        <div className="mt-auto pt-2">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:-translate-y-0.5"
-            style={{ backgroundColor: GOLD, color: DARK }}
-          >
-            {label || "→"}
-          </a>
-        </div>
-      )}
-    </article>
-  );
-};
-
-/* ---------- ROOT ---------- */
-
-const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
-  const fallback = useLang();
-  const active: Lang = lang ?? fallback;
-  if (item.type === "event") return <EventVariant item={item} lang={active} />;
-  if (item.type === "video") return <VideoVariant item={item} lang={active} />;
-  return <LinkVariant item={item} lang={active} />;
 };
 
 export default EventCard;
