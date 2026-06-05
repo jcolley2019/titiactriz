@@ -21,7 +21,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreVertical, ChevronDown, ChevronRight, Sparkles, Loader2 } from "lucide-react";
+import { GripVertical, MoreVertical, ChevronUp, ChevronDown, ChevronRight, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,6 +236,10 @@ type SortableRowProps = {
   onPublishedChange: (v: boolean) => void;
   onArchive: () => void;
   onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 };
 
 const SortableRow = memo(({
@@ -251,6 +255,10 @@ const SortableRow = memo(({
   onPublishedChange,
   onArchive,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }: SortableRowProps) => {
   const { t } = useTranslation();
   const {
@@ -275,11 +283,31 @@ const SortableRow = memo(({
       className="bg-card border border-border rounded-lg p-3 md:p-4 flex flex-col gap-3 md:grid md:gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
       <div className="flex items-center gap-2 md:contents">
+        <div className="flex flex-col md:hidden shrink-0 -my-1">
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={isFirst}
+            aria-label={t("admin.photos.moveUp")}
+            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={isLast}
+            aria-label={t("admin.photos.moveDown")}
+            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none shrink-0 md:order-1"
+          className="hidden md:flex p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none shrink-0 md:order-1"
           aria-label={t("admin.photos.dragToReorder")}
         >
           <GripVertical className="w-4 h-4" />
@@ -909,6 +937,22 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     setSelected(new Set());
   };
 
+  const moveActivePhoto = async (id: string, dir: -1 | 1) => {
+    const index = activePhotoIds.indexOf(id);
+    if (index < 0) return;
+    const target = index + dir;
+    if (target < 0 || target >= activePhotos.length) return;
+    const newActive = arrayMove(activePhotos, index, target).map((p, i) => ({
+      ...p,
+      sort_order: i + 1,
+    }));
+    setPhotos((prev) => {
+      const archived = prev.filter((p) => p.is_archived);
+      return [...newActive, ...archived];
+    });
+    await persistOrder(newActive.map((p) => p.id));
+  };
+
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -1200,6 +1244,10 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
                       onPublishedChange={(v) => togglePublished(p, v)}
                       onArchive={() => setArchived(p, true)}
                       onDelete={() => setDeleteTarget(p)}
+                      onMoveUp={() => moveActivePhoto(p.id, -1)}
+                      onMoveDown={() => moveActivePhoto(p.id, 1)}
+                      isFirst={i === 0}
+                      isLast={i === activePhotos.length - 1}
                     />
                   ))}
                 </ul>
