@@ -562,7 +562,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
     const rejected = arr.length - accepted.length;
     if (rejected > 0) {
       setFileError(
-        `${rejected} file(s) skipped — unsupported type. Allowed: JPEG, PNG, WebP, HEIC/HEIF.`,
+        t("admin.upload.fileError", { count: rejected }),
       );
     }
     if (accepted.length === 0) {
@@ -1331,6 +1331,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
 /* ---------------- Page ---------------- */
 const Admin = () => {
+  const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
   const [checking, setChecking] = useState(true);
 
@@ -1360,8 +1361,8 @@ const Admin = () => {
       timer = window.setTimeout(async () => {
         await supabase.auth.signOut();
         toast({
-          title: "Signed out",
-          description: "You were logged out after 15 minutes of inactivity.",
+          title: t("admin.toasts.signedOut"),
+          description: t("admin.toasts.signedOutDesc"),
         });
       }, TIMEOUT_MS);
     };
