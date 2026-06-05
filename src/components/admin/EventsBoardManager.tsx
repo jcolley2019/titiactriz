@@ -48,11 +48,9 @@ const emptyLocalized = (): Localized => ({ es: "", en: "" });
 const makeEvent = (): EventCardItem => ({
   id: crypto.randomUUID(),
   size: "half",
-  type: "event",
   title: emptyLocalized(),
   badge: emptyLocalized(),
   description: emptyLocalized(),
-  details: [],
   note: emptyLocalized(),
   imageUrl: "",
   imagePosition: "above",
@@ -61,6 +59,7 @@ const makeEvent = (): EventCardItem => ({
   videoUrl: "",
   buttons: [],
 });
+
 
 const setLocalized = (
   current: Localized,
