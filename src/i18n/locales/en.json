@@ -516,7 +516,18 @@
       "saving": "Saving...",
       "saved": "Events updated",
       "saveError": "Could not save. Please try again.",
-      "emptyState": "No cards yet. Add one."
+      "emptyState": "No cards yet. Add one.",
+      "imageLabel": "Image",
+      "imageAbove": "Above description",
+      "imageBelow": "Below description",
+      "dropImage": "Drag an image or click to upload",
+      "removeImage": "Remove image",
+      "bulletsToggleLabel": "Show bullet points",
+      "bulletsSectionLabel": "Bullet points",
+      "addBullet": "Add bullet",
+      "removeBullet": "Remove",
+      "addVideo": "Add video",
+      "removeVideo": "Remove video"
     },
     "upload": {
       "title": "Upload photos",
