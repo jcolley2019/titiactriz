@@ -95,10 +95,14 @@ const EventsBanner = () => {
   );
 
   return (
+    <>
+      {/* In-flow spacer so page content (already cleared from the fixed header)
+          is pushed an extra 38px down, keeping the hero below the banner. */}
+      <div aria-hidden className="w-full" style={{ height: 38 }} />
     <div
       role="region"
       aria-label={label}
-      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen max-w-[100vw] bg-[#0a0a0a] border-y border-[#C9A55C]/25 select-none overflow-x-hidden"
+      className="fixed left-0 right-0 top-[60px] md:top-[68px] z-40 w-screen max-w-[100vw] bg-[#0a0a0a] border-y border-[#C9A55C]/25 select-none overflow-x-hidden"
       style={{ height: 38 }}
     >
       <div className="h-full flex items-stretch">
