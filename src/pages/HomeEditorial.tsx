@@ -234,7 +234,7 @@ const HomeEditorial = () => {
             className="editorial-frame-corner absolute bottom-2 right-2 md:bottom-3 md:right-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-100"
           />
 
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+          <div className="grid lg:grid-cols-2 gap-3 lg:gap-12 items-center relative z-10">
             {/* LEFT: name lockup */}
             <div className="order-2 lg:order-1 flex w-full flex-col items-center text-center">
               <div className="editorial-title mx-auto w-fit text-center">
