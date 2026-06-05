@@ -593,6 +593,8 @@
       "published": "Publicada",
       "hidden": "Oculta",
       "dragToReorder": "Arrastra para reordenar",
+      "moveUp": "Subir",
+      "moveDown": "Bajar",
       "generateAlt": "Generar texto alternativo",
       "generateAltTitle": "Generar texto alternativo en español con IA",
       "needsAlt": "Necesita texto alternativo",
