@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
 import type {
