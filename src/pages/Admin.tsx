@@ -188,6 +188,8 @@ const sha256Hex = async (file: File): Promise<string> => {
     .join("");
 };
 
+const SKIP_COMPRESS_BYTES = 600 * 1024; // images already <= 600KB are uploaded untouched
+
 const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolean }> => {
   let working: File | Blob = file;
   let converted = false;
@@ -201,11 +203,15 @@ const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolea
     });
     converted = true;
   }
+  // Already small enough -> keep the original as-is, no re-compression.
+  if (!converted && file.size <= SKIP_COMPRESS_BYTES) {
+    return { blob: file, converted: false };
+  }
   const blob = await imageCompression(working as File, {
     maxWidthOrHeight: 2400,
     fileType: "image/webp",
-    initialQuality: 0.85,
-    maxSizeMB: 1.0,
+    initialQuality: 0.92,
+    maxSizeMB: 2.5,
     useWebWorker: true,
     preserveExif: false,
   });
@@ -213,10 +219,15 @@ const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolea
 };
 
 const uploadBlob = async (blob: Blob): Promise<string> => {
-  const path = `photos/${crypto.randomUUID()}.webp`;
+  const type = blob.type || "image/webp";
+  const ext =
+    type === "image/jpeg" ? "jpg" :
+    type === "image/png" ? "png" :
+    "webp";
+  const path = `photos/${crypto.randomUUID()}.${ext}`;
   const { error: upErr } = await supabase.storage
     .from(BUCKET)
-    .upload(path, blob, { upsert: false, contentType: "image/webp" });
+    .upload(path, blob, { upsert: false, contentType: type });
   if (upErr) throw upErr;
   const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
   return pub.publicUrl;
