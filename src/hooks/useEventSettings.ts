@@ -52,11 +52,13 @@ export const fetchEventSettings = async (): Promise<EventSettings> => {
 export const setEventSettings = async (next: EventSettings): Promise<void> => {
   const { error } = await supabase
     .from("site_settings")
-    .upsert({
-      key: EVENT_SETTINGS_KEY,
-      value: next as unknown as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
-    });
+    .upsert([
+      {
+        key: EVENT_SETTINGS_KEY,
+        value: next as unknown as Record<string, unknown>,
+        updated_at: new Date().toISOString(),
+      },
+    ]);
   if (error) throw error;
 };
 
