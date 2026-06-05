@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useEventsBoard } from "@/hooks/useEventsBoard";
 
 const Footer = () => {
   const { t } = useTranslation();
+  const { board, loading } = useEventsBoard();
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
@@ -11,12 +13,16 @@ const Footer = () => {
     { name: "YouTube", href: "https://youtube.com/@mimundoderoles6875?si=Zc74Dd2fgQjQrNpG", icon: "youtube" },
   ];
 
+  const eventsVisible = !loading && board.pageVisible === true;
+
   const footerLinks = [
     { name: t("nav.home"), path: "/" },
+    ...(eventsVisible ? [{ name: t("events.title"), path: "/events" }] : []),
     { name: t("nav.titansAgency"), path: "/titans-agency" },
     { name: t("nav.greenWorld"), path: "/green-world" },
     { name: t("nav.portfolio"), path: "/work" },
   ];
+
 
   return (
     <footer className="relative z-10 border-t border-border/30 bg-background/80 backdrop-blur-sm">
