@@ -291,7 +291,7 @@ const HomeEditorial = () => {
                 {t("hero.rolesLine")}
               </p>
 
-              <div className="editorial-subtitle max-w-md mt-2 sm:mt-5 flex flex-col gap-1.5 sm:gap-3">
+              <div className="editorial-subtitle max-w-md mt-2 sm:mt-5 flex flex-col gap-2.5 sm:gap-3">
 
                 <p
                   className="italic leading-relaxed"
