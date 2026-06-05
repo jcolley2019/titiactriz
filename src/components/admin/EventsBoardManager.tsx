@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import imageCompression from "browser-image-compression";
 import {
   DndContext,
   PointerSensor,
@@ -17,13 +18,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Loader2, Trash2, Plus, X } from "lucide-react";
+import { GripVertical, Loader2, Trash2, Plus, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   fetchEventsBoard,
   setEventsBoard,
@@ -31,14 +33,13 @@ import {
   type EventsBoard,
   type EventItem,
   type EventCardItem,
-  type VideoItem,
-  type LinkItem,
   type Localized,
   type EventButton,
 } from "@/hooks/useEventsBoard";
 import EventsGrid from "@/components/events/EventsGrid";
 
 const PREVIEW_BG = "#0e0c09";
+const BUCKET = "gallery";
 
 type Lang = "es" | "en";
 
@@ -53,25 +54,12 @@ const makeEvent = (): EventCardItem => ({
   description: emptyLocalized(),
   details: [],
   note: emptyLocalized(),
-  buttons: [],
-});
-
-const makeVideo = (): VideoItem => ({
-  id: crypto.randomUUID(),
-  size: "half",
-  type: "video",
-  title: emptyLocalized(),
-  videoUrl: "",
-});
-
-const makeLink = (): LinkItem => ({
-  id: crypto.randomUUID(),
-  size: "half",
-  type: "link",
-  title: emptyLocalized(),
-  url: "",
-  buttonLabel: emptyLocalized(),
   imageUrl: "",
+  imagePosition: "above",
+  bulletsOn: false,
+  bullets: [],
+  videoUrl: "",
+  buttons: [],
 });
 
 const setLocalized = (
@@ -80,16 +68,123 @@ const setLocalized = (
   value: string,
 ): Localized => ({ ...current, [lang]: value });
 
-type SortableCardProps = {
-  item: EventItem;
-  editLang: Lang;
-  onChange: (patch: Partial<EventItem>) => void;
-  onDelete: () => void;
+const uploadEventImage = async (file: File): Promise<string> => {
+  let blob: Blob = file;
+  try {
+    blob = await imageCompression(file, {
+      maxWidthOrHeight: 2400,
+      fileType: "image/webp",
+      initialQuality: 0.85,
+      maxSizeMB: 1.0,
+      useWebWorker: true,
+      preserveExif: false,
+    });
+  } catch {
+    // fall back to original file
+  }
+  const path = `events/${crypto.randomUUID()}.webp`;
+  const { error: upErr } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { upsert: false, contentType: "image/webp" });
+  if (upErr) throw upErr;
+  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return pub.publicUrl;
 };
 
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs text-muted-foreground">{children}</Label>
 );
+
+const ImageUploader = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+}) => {
+  const { t } = useTranslation();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    setBusy(true);
+    try {
+      const url = await uploadEventImage(file);
+      onChange(url);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      toast({
+        title: t("admin.eventsBoard.saveError"),
+        description: msg,
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-3">
+        <img
+          src={value}
+          alt=""
+          className="w-24 h-24 object-cover rounded-md border border-border"
+        />
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => onChange("")}
+        >
+          <X className="w-3 h-3 mr-1" />
+          {t("admin.eventsBoard.removeImage")}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        handleFiles(e.dataTransfer.files);
+      }}
+      onClick={() => inputRef.current?.click()}
+      className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-md p-6 cursor-pointer transition-colors ${
+        dragOver
+          ? "border-accent bg-accent/5"
+          : "border-border hover:border-accent/50"
+      }`}
+    >
+      {busy ? (
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      ) : (
+        <Upload className="w-5 h-5 text-muted-foreground" />
+      )}
+      <span className="text-xs text-muted-foreground text-center">
+        {t("admin.eventsBoard.dropImage")}
+      </span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+    </div>
+  );
+};
 
 const EventFields = ({
   item,
@@ -102,19 +197,16 @@ const EventFields = ({
 }) => {
   const { t } = useTranslation();
 
-  const setDetail = (idx: number, value: string) => {
-    const next = item.details.map((d, i) =>
-      i === idx ? setLocalized(d, editLang, value) : d,
+  const bullets = item.bullets ?? [];
+  const setBullet = (idx: number, value: string) => {
+    const next = bullets.map((b, i) =>
+      i === idx ? setLocalized(b, editLang, value) : b,
     );
-    onChange({ details: next });
+    onChange({ bullets: next });
   };
-  const addDetail = () => {
-    if (item.details.length >= 5) return;
-    onChange({ details: [...item.details, emptyLocalized()] });
-  };
-  const removeDetail = (idx: number) => {
-    onChange({ details: item.details.filter((_, i) => i !== idx) });
-  };
+  const addBullet = () => onChange({ bullets: [...bullets, emptyLocalized()] });
+  const removeBullet = (idx: number) =>
+    onChange({ bullets: bullets.filter((_, i) => i !== idx) });
 
   const setButton = (idx: number, patch: Partial<EventButton>) => {
     const next = item.buttons.map((b, i) => (i === idx ? { ...b, ...patch } : b));
@@ -128,7 +220,10 @@ const EventFields = ({
   const addButton = () => {
     if (item.buttons.length >= 3) return;
     onChange({
-      buttons: [...item.buttons, { label: emptyLocalized(), url: "" }],
+      buttons: [
+        ...item.buttons,
+        { label: emptyLocalized(), url: "", icon: "auto" },
+      ],
     });
   };
   const removeButton = (idx: number) => {
@@ -155,6 +250,35 @@ const EventFields = ({
           }
         />
       </div>
+
+      <div className="space-y-2">
+        <FieldLabel>{t("admin.eventsBoard.imageLabel")}</FieldLabel>
+        <ImageUploader
+          value={item.imageUrl ?? ""}
+          onChange={(url) => onChange({ imageUrl: url })}
+        />
+        <div className="flex rounded-md border border-border overflow-hidden w-fit">
+          {(["above", "below"] as const).map((pos) => (
+            <button
+              key={pos}
+              type="button"
+              onClick={() => onChange({ imagePosition: pos })}
+              className={`px-3 py-1 text-xs ${
+                (item.imagePosition ?? "above") === pos
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-transparent text-muted-foreground hover:bg-accent/10"
+              }`}
+            >
+              {t(
+                pos === "above"
+                  ? "admin.eventsBoard.imageAbove"
+                  : "admin.eventsBoard.imageBelow",
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-1">
         <FieldLabel>{t("admin.eventsBoard.descriptionLabel")}</FieldLabel>
         <Textarea
@@ -169,35 +293,49 @@ const EventFields = ({
       </div>
 
       <div className="space-y-2">
-        <FieldLabel>{t("admin.eventsBoard.detailsLabel")}</FieldLabel>
-        {item.details.map((d, idx) => (
-          <div key={idx} className="flex gap-2">
-            <Input
-              value={d[editLang]}
-              onChange={(e) => setDetail(idx, e.target.value)}
-            />
+        <div className="flex items-center gap-3">
+          <Switch
+            checked={!!item.bulletsOn}
+            onCheckedChange={(v) => onChange({ bulletsOn: v })}
+          />
+          <Label className="text-xs text-muted-foreground">
+            {t("admin.eventsBoard.bulletsToggleLabel")}
+          </Label>
+        </div>
+        {item.bulletsOn && (
+          <div className="space-y-2">
+            <FieldLabel>{t("admin.eventsBoard.bulletsSectionLabel")}</FieldLabel>
+            <div className="grid gap-2 md:grid-cols-2">
+              {bullets.map((b, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <Input
+                    value={b[editLang]}
+                    onChange={(e) => setBullet(idx, e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeBullet(idx)}
+                    className="px-2 text-destructive hover:text-destructive"
+                    aria-label={t("admin.eventsBoard.removeBullet")}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
             <Button
               type="button"
               size="sm"
-              variant="ghost"
-              onClick={() => removeDetail(idx)}
-              className="px-2 text-destructive hover:text-destructive"
-              aria-label={t("admin.eventsBoard.removeDetail")}
+              variant="outline"
+              onClick={addBullet}
             >
-              <X className="w-4 h-4" />
+              <Plus className="w-3 h-3 mr-1" />
+              {t("admin.eventsBoard.addBullet")}
             </Button>
           </div>
-        ))}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={addDetail}
-          disabled={item.details.length >= 5}
-        >
-          <Plus className="w-3 h-3 mr-1" />
-          {t("admin.eventsBoard.addDetail")}
-        </Button>
+        )}
       </div>
 
       <div className="space-y-1">
@@ -260,93 +398,47 @@ const EventFields = ({
           {t("admin.eventsBoard.addButton")}
         </Button>
       </div>
-    </div>
-  );
-};
 
-const VideoFields = ({
-  item,
-  editLang,
-  onChange,
-}: {
-  item: VideoItem;
-  editLang: Lang;
-  onChange: (patch: Partial<VideoItem>) => void;
-}) => {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-3">
-      <div className="space-y-1">
-        <FieldLabel>{t("admin.eventsBoard.titleLabel")}</FieldLabel>
-        <Input
-          value={item.title[editLang]}
-          onChange={(e) =>
-            onChange({ title: setLocalized(item.title, editLang, e.target.value) })
-          }
-        />
-      </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         <FieldLabel>{t("admin.eventsBoard.videoUrlLabel")}</FieldLabel>
-        <Input
-          value={item.videoUrl}
-          onChange={(e) => onChange({ videoUrl: e.target.value })}
-          placeholder="https://youtube.com/..."
-        />
+        {item.videoUrl ? (
+          <div className="flex gap-2">
+            <Input
+              value={item.videoUrl}
+              onChange={(e) => onChange({ videoUrl: e.target.value })}
+              placeholder="https://youtube.com/..."
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange({ videoUrl: "" })}
+            >
+              <X className="w-3 h-3 mr-1" />
+              {t("admin.eventsBoard.removeVideo")}
+            </Button>
+          </div>
+        ) : (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => onChange({ videoUrl: " " })}
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            {t("admin.eventsBoard.addVideo")}
+          </Button>
+        )}
       </div>
     </div>
   );
 };
 
-const LinkFields = ({
-  item,
-  editLang,
-  onChange,
-}: {
-  item: LinkItem;
+type SortableCardProps = {
+  item: EventItem;
   editLang: Lang;
-  onChange: (patch: Partial<LinkItem>) => void;
-}) => {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-3">
-      <div className="space-y-1">
-        <FieldLabel>{t("admin.eventsBoard.titleLabel")}</FieldLabel>
-        <Input
-          value={item.title[editLang]}
-          onChange={(e) =>
-            onChange({ title: setLocalized(item.title, editLang, e.target.value) })
-          }
-        />
-      </div>
-      <div className="space-y-1">
-        <FieldLabel>{t("admin.eventsBoard.linkUrlLabel")}</FieldLabel>
-        <Input
-          value={item.url}
-          onChange={(e) => onChange({ url: e.target.value })}
-          placeholder="https://"
-        />
-      </div>
-      <div className="space-y-1">
-        <FieldLabel>{t("admin.eventsBoard.buttonTextLabel")}</FieldLabel>
-        <Input
-          value={item.buttonLabel[editLang]}
-          onChange={(e) =>
-            onChange({
-              buttonLabel: setLocalized(item.buttonLabel, editLang, e.target.value),
-            })
-          }
-        />
-      </div>
-      <div className="space-y-1">
-        <FieldLabel>{t("admin.eventsBoard.thumbnailLabel")}</FieldLabel>
-        <Input
-          value={item.imageUrl}
-          onChange={(e) => onChange({ imageUrl: e.target.value })}
-          placeholder="https://"
-        />
-      </div>
-    </div>
-  );
+  onChange: (patch: Partial<EventItem>) => void;
+  onDelete: () => void;
 };
 
 const SortableCard = ({ item, editLang, onChange, onDelete }: SortableCardProps) => {
@@ -366,12 +458,8 @@ const SortableCard = ({ item, editLang, onChange, onDelete }: SortableCardProps)
     opacity: isDragging ? 0.85 : 1,
   };
 
-  const typeLabel =
-    item.type === "event"
-      ? t("admin.eventsBoard.typeEvent")
-      : item.type === "video"
-        ? t("admin.eventsBoard.typeVideo")
-        : t("admin.eventsBoard.typeLink");
+  // All items are normalized to event shape by the parser.
+  const eventItem = item as EventCardItem;
 
   return (
     <li
@@ -390,7 +478,7 @@ const SortableCard = ({ item, editLang, onChange, onDelete }: SortableCardProps)
           <GripVertical className="w-4 h-4" />
         </button>
         <span className="text-xs uppercase tracking-wider text-accent">
-          {typeLabel}
+          {t("admin.eventsBoard.typeEvent")}
         </span>
         <div className="ml-auto flex items-center gap-2">
           <div className="flex rounded-md border border-border overflow-hidden">
@@ -430,27 +518,11 @@ const SortableCard = ({ item, editLang, onChange, onDelete }: SortableCardProps)
         </div>
       </div>
 
-      {item.type === "event" && (
-        <EventFields
-          item={item}
-          editLang={editLang}
-          onChange={(p) => onChange(p as Partial<EventItem>)}
-        />
-      )}
-      {item.type === "video" && (
-        <VideoFields
-          item={item}
-          editLang={editLang}
-          onChange={(p) => onChange(p as Partial<EventItem>)}
-        />
-      )}
-      {item.type === "link" && (
-        <LinkFields
-          item={item}
-          editLang={editLang}
-          onChange={(p) => onChange(p as Partial<EventItem>)}
-        />
-      )}
+      <EventFields
+        item={eventItem}
+        editLang={editLang}
+        onChange={(p) => onChange(p as Partial<EventItem>)}
+      />
     </li>
   );
 };
@@ -499,11 +571,9 @@ const EventsBoardManager = () => {
     }));
   };
 
-  const addItem = (kind: "event" | "video" | "link") => {
+  const addItem = () => {
     if (board.items.length >= 4) return;
-    const next =
-      kind === "event" ? makeEvent() : kind === "video" ? makeVideo() : makeLink();
-    setBoard((prev) => ({ ...prev, items: [...prev.items, next] }));
+    setBoard((prev) => ({ ...prev, items: [...prev.items, makeEvent()] }));
   };
 
   const onDragEnd = (e: DragEndEvent) => {
@@ -593,28 +663,11 @@ const EventsBoardManager = () => {
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => addItem("event")}
+            onClick={addItem}
             disabled={atMax}
           >
+            <Plus className="w-3 h-3 mr-1" />
             {t("admin.eventsBoard.addEvent")}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => addItem("video")}
-            disabled={atMax}
-          >
-            {t("admin.eventsBoard.addVideo")}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => addItem("link")}
-            disabled={atMax}
-          >
-            {t("admin.eventsBoard.addLink")}
           </Button>
           {atMax && (
             <span className="text-xs text-muted-foreground ml-1">
