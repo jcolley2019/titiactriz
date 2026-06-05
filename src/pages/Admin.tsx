@@ -283,24 +283,24 @@ const SortableRow = memo(({
       className="bg-card border border-border rounded-lg p-3 md:p-4 flex flex-col gap-3 md:grid md:gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
       <div className="flex items-center gap-2 md:contents">
-        <div className="flex flex-col md:hidden shrink-0 -my-1">
+        <div className="flex flex-col gap-1 md:hidden shrink-0">
           <button
             type="button"
             onClick={onMoveUp}
             disabled={isFirst}
             aria-label={t("admin.photos.moveUp")}
-            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+            className="h-7 w-7 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted disabled:opacity-30 disabled:pointer-events-none"
           >
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-5 h-5" />
           </button>
           <button
             type="button"
             onClick={onMoveDown}
             disabled={isLast}
             aria-label={t("admin.photos.moveDown")}
-            className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+            className="h-7 w-7 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted disabled:opacity-30 disabled:pointer-events-none"
           >
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-5 h-5" />
           </button>
         </div>
         <button
