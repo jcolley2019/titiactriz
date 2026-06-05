@@ -434,6 +434,25 @@
   }
 }
 
+/* Mobile inline nav links — fit 4 within ~390px */
+.mobile-nav-link {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+@media (max-width: 380px) {
+  .mobile-nav-link {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+}
+@media (max-width: 340px) {
+  .mobile-nav-link {
+    font-size: 9.5px;
+    letter-spacing: 0.03em;
+  }
+}
+
 /* Titans Agency: react-phone-number-input dark theme styling */
 .titans-phone-input {
   display: flex;
