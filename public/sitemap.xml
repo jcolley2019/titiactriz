@@ -41,4 +41,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://titiactriz.com/events</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://titiactriz.com/events" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://titiactriz.com/events" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://titiactriz.com/events" />
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

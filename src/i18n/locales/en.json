@@ -411,6 +411,25 @@
       "subtitle": "Follow me on your favorite platform to stay connected with my latest projects and content."
     }
   },
+  "events": {
+    "title": "Events",
+    "intro": "The latest I'm working on.",
+    "sf": {
+      "badge": "NOW COMPETING",
+      "blurb": "I'm competing in the 12th edition of SmartFilms, the world's largest festival of films made on a phone. This year's theme: retro-futurism, where past meets future.",
+      "factEdition": "12th edition",
+      "factTheme": "Retro-futurism",
+      "factPrize": "100M+ COP in prizes",
+      "deadline": "Submissions close June 22, 2026",
+      "filmLabel": "My short film",
+      "categoryLabel": "Category",
+      "voteNote": "Winners are chosen with 10% public voting — your support counts.",
+      "watch": "Watch the short",
+      "vote": "Vote for my film",
+      "festival": "About SmartFilms"
+    },
+    "more": "More events coming soon."
+  },
   "admin": {
     "login": {
       "title": "Admin",
