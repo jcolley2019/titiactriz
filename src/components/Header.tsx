@@ -88,7 +88,7 @@ const Header = () => {
   };
 
   const linkBase =
-    "text-xs lg:text-[13px] uppercase font-light link-underline transition-all duration-300 whitespace-nowrap";
+    "text-xs lg:text-[13px] uppercase font-light leading-none link-underline transition-all duration-300 whitespace-nowrap";
   const linkColor = (active: boolean) =>
     isGreenWorldPage
       ? active
