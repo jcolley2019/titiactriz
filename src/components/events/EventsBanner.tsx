@@ -137,7 +137,7 @@ const EventsBanner = () => {
             <div
               className="absolute inset-y-0 left-0 flex items-center whitespace-nowrap will-change-transform"
               style={{
-                animation: "events-banner-marquee 60s linear infinite",
+                animation: "events-banner-marquee 180s linear infinite",
                 paddingLeft: "1rem",
               }}
             >

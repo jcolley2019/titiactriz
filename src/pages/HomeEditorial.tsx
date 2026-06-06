@@ -184,7 +184,7 @@ const HomeEditorial = () => {
         style={{ backgroundColor: "#0e0c09" }}
       >
         {/* Contained, centered hero box */}
-        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-122px)] md:min-h-0 px-5 pt-4 pb-5 md:p-14">
+        <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-122px)] md:min-h-0 px-5 pt-4 pb-5 md:p-14 min-[2200px]:max-w-[1500px] min-[2800px]:max-w-[1850px] min-[3400px]:max-w-[2200px] min-[2200px]:p-20 min-[3400px]:p-28">
 
           {/* Four solid gold border bars */}
           <span
@@ -243,13 +243,13 @@ const HomeEditorial = () => {
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   <span
-                    className="block font-normal"
+                    className="block font-normal min-[2200px]:![font-size:5.5rem] min-[3400px]:![font-size:7.5rem]"
                     style={{ color: CREAM, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
                   >
                     Cristyna
                   </span>
                   <span
-                    className="block font-normal mt-1 sm:mt-2"
+                    className="block font-normal mt-1 sm:mt-2 min-[2200px]:![font-size:5.5rem] min-[3400px]:![font-size:7.5rem]"
                     style={{ color: GOLD, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
                   >
                     Polentino
@@ -280,7 +280,7 @@ const HomeEditorial = () => {
               </div>
 
               <p
-                className="editorial-roles uppercase mt-3 sm:mt-5"
+                className="editorial-roles uppercase mt-3 sm:mt-5 min-[2200px]:![font-size:1.1rem] min-[3400px]:![font-size:1.4rem]"
                 style={{
                   color: CREAM,
                   fontFamily: "var(--font-sans)",
@@ -368,7 +368,7 @@ const HomeEditorial = () => {
               <img
                 src={heroPortrait}
                 alt="Cristyna Polentino"
-                className="w-full max-w-[260px] sm:max-w-[400px] lg:max-w-[460px] max-h-[44svh] sm:max-h-[64vh] lg:max-h-none h-auto object-contain sm:object-contain"
+                className="w-full max-w-[260px] sm:max-w-[400px] lg:max-w-[460px] max-h-[44svh] sm:max-h-[64vh] lg:max-h-none h-auto object-contain sm:object-contain min-[2200px]:max-w-[600px] min-[3400px]:max-w-[760px]"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
