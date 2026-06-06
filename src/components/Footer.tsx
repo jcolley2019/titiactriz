@@ -91,18 +91,15 @@ const Footer = () => {
             {t("footer.copyright", { year: currentYear })}
           </p>
           <p className="text-xs text-muted-foreground/70">
+            {t("footer.studioCredit")} —{" "}
+            <Link to="/studio" className="text-accent hover:text-gold-light link-underline">
+              {t("footer.studioCta")}
+            </Link>
+          </p>
+          <p className="text-xs text-muted-foreground/70">
             {t("footer.madeWith")}
           </p>
         </div>
-        <p className="mt-4 text-center text-xs text-muted-foreground/70">
-          {t("footer.studioCredit")} —{" "}
-          <Link
-            to="/studio"
-            className="text-accent hover:text-gold-light link-underline"
-          >
-            {t("footer.studioCta")}
-          </Link>
-        </p>
       </div>
     </footer>
   );
