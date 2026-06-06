@@ -22,14 +22,23 @@ const EventsBanner = () => {
 
   const activeLang: "es" | "en" = (i18n.language || "es").startsWith("es") ? "es" : "en";
 
-  // Primary: editor-controlled bannerText. Fallback: first event's badge + title
-  // so the banner is never blank when pageVisible is on and events exist.
-  const explicitText = (board?.bannerText?.[activeLang] ?? "").trim();
+  const fallbackLang: "es" | "en" = activeLang === "es" ? "en" : "es";
+
+  // Primary: editor-controlled bannerText. Fallback to the other language so
+  // the banner is never blank when only one locale has been filled in.
+  // Final fallback: first event's badge + title.
+  const explicitText =
+    (board?.bannerText?.[activeLang] ?? "").trim() ||
+    (board?.bannerText?.[fallbackLang] ?? "").trim();
   let bannerText = explicitText;
   if (!bannerText && board?.items?.length) {
     const first = board.items[0];
-    const title = (first?.title?.[activeLang] ?? "").trim();
-    const badge = (first?.badge?.[activeLang] ?? "").trim();
+    const title =
+      (first?.title?.[activeLang] ?? "").trim() ||
+      (first?.title?.[fallbackLang] ?? "").trim();
+    const badge =
+      (first?.badge?.[activeLang] ?? "").trim() ||
+      (first?.badge?.[fallbackLang] ?? "").trim();
     if (title) {
       bannerText = badge ? `${badge} — ${title}` : title;
     }
