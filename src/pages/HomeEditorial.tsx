@@ -243,13 +243,13 @@ const HomeEditorial = () => {
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   <span
-                    className="block font-normal"
+                    className="block font-normal min-[2200px]:![font-size:5.5rem] min-[3400px]:![font-size:7.5rem]"
                     style={{ color: CREAM, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
                   >
                     Cristyna
                   </span>
                   <span
-                    className="block font-normal mt-1 sm:mt-2"
+                    className="block font-normal mt-1 sm:mt-2 min-[2200px]:![font-size:5.5rem] min-[3400px]:![font-size:7.5rem]"
                     style={{ color: GOLD, fontSize: "clamp(2rem, 7vw, 4.25rem)" }}
                   >
                     Polentino
