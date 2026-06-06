@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
 
 const DISMISS_PREFIX = "eventsBannerDismissed:";
+const MARQUEE_REPEAT = 10;
 
 // Tiny stable hash for dismissal keys (djb2).
 const hashText = (s: string): string => {
@@ -136,12 +137,11 @@ const EventsBanner = () => {
             <div
               className="absolute inset-y-0 left-0 flex items-center whitespace-nowrap will-change-transform group-hover:[animation-play-state:paused]"
               style={{
-                animation: "events-banner-marquee 38s linear infinite",
+                animation: "events-banner-marquee 60s linear infinite",
                 paddingLeft: "1rem",
               }}
             >
-              {renderSegment("a")}
-              {renderSegment("b")}
+              {Array.from({ length: MARQUEE_REPEAT * 2 }).map((_, i) => renderSegment(`seg-${i}`))}
             </div>
           )}
         </button>
