@@ -131,6 +131,7 @@
       "eyebrow": "Selected work",
       "title": "Things I've built",
       "visit": "Visit site",
+      "current": "You're already here — explore the site",
       "items": {
         "titiactriz": "This site. A bilingual portfolio for a Colombian actress.",
         "titilinks": "Bilingual biolink platform for Latino creators.",
