@@ -280,7 +280,7 @@ const HomeEditorial = () => {
               </div>
 
               <p
-                className="editorial-roles uppercase mt-3 sm:mt-5"
+                className="editorial-roles uppercase mt-3 sm:mt-5 min-[2200px]:![font-size:1.1rem] min-[3400px]:![font-size:1.4rem]"
                 style={{
                   color: CREAM,
                   fontFamily: "var(--font-sans)",
