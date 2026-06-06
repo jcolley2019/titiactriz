@@ -151,7 +151,7 @@ const EventsBanner = () => {
           type="button"
           onClick={goEvents}
           aria-label={label}
-          className="hidden md:flex shrink-0 h-full items-center px-4 border-l border-[#C9A55C]/25 text-[#C9A55C] text-[11px] tracking-[0.28em] uppercase leading-none hover:bg-[#C9A55C]/5 transition-colors"
+          className="hidden md:flex shrink-0 h-full items-center px-4 border-l border-[#C9A55C]/25 text-[#F0D78C] text-[11px] font-semibold tracking-[0.28em] uppercase leading-none translate-y-[1px] hover:bg-[#F0D78C]/5 transition-colors"
           style={{ fontFamily: "Cinzel, serif" }}
         >
           {label}
