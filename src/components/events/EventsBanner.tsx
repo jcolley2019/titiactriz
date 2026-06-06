@@ -86,7 +86,7 @@ const EventsBanner = () => {
   const renderSegment = (key: string) => (
     <div key={key} className="flex items-center shrink-0 pr-2">
       <span
-        className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none"
+        className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none translate-y-[1px]"
         style={{ fontFamily: "Jost, sans-serif" }}
       >
         {bannerText}
@@ -111,7 +111,7 @@ const EventsBanner = () => {
         <button
           type="button"
           onClick={goEvents}
-          className="shrink-0 h-full flex items-center px-4 border-r border-[#C9A55C]/25 text-[#C9A55C] text-[11px] tracking-[0.28em] uppercase leading-none hover:bg-[#C9A55C]/5 transition-colors"
+          className="shrink-0 h-full flex items-center px-4 border-r border-[#C9A55C]/25 text-[#F0D78C] text-[11px] font-semibold tracking-[0.28em] uppercase leading-none translate-y-[1px] hover:bg-[#F0D78C]/5 transition-colors"
           style={{ fontFamily: "Cinzel, serif" }}
         >
           {label}
@@ -127,7 +127,7 @@ const EventsBanner = () => {
           {reducedMotion ? (
             <div className="h-full flex items-center px-4">
               <span
-                className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase leading-none"
+                className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase leading-none translate-y-[1px]"
                 style={{ fontFamily: "Jost, sans-serif" }}
               >
                 {bannerText}
@@ -151,7 +151,7 @@ const EventsBanner = () => {
           type="button"
           onClick={goEvents}
           aria-label={label}
-          className="hidden md:flex shrink-0 h-full items-center px-4 border-l border-[#C9A55C]/25 text-[#C9A55C] text-[11px] tracking-[0.28em] uppercase leading-none hover:bg-[#C9A55C]/5 transition-colors"
+          className="hidden md:flex shrink-0 h-full items-center px-4 border-l border-[#C9A55C]/25 text-[#F0D78C] text-[11px] font-semibold tracking-[0.28em] uppercase leading-none translate-y-[1px] hover:bg-[#F0D78C]/5 transition-colors"
           style={{ fontFamily: "Cinzel, serif" }}
         >
           {label}
