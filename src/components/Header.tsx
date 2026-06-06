@@ -127,7 +127,7 @@ const Header = () => {
             : isGreenWorldPage
               ? "bg-gw-green-dark/98 backdrop-blur-xl py-3"
               : "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
-          : "bg-transparent py-4"
+          : "bg-transparent py-3"
       }`}
     >
       {/* Desktop nav — unchanged */}
