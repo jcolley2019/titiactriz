@@ -5,11 +5,11 @@ import { Section, SectionHeader } from "@/components/Section";
 import { Button } from "@/components/ui/button";
 
 const projects = [
-  { name: "titiactriz.com", url: "https://titiactriz.com", descKey: "studio.work.items.titiactriz" },
-  { name: "TitiLinks", url: "https://titilinks.com", descKey: "studio.work.items.titilinks" },
-  { name: "JoeyC.ai", url: "https://joeyc.ai", descKey: "studio.work.items.joeyc" },
-  { name: "Luxvibe", url: "https://luxvibe.io", descKey: "studio.work.items.luxvibe" },
-  { name: "FieldReport AI", url: "https://fieldreportai.app", descKey: "studio.work.items.fieldreport" },
+  { name: "titiactriz.com", url: "/", descKey: "studio.work.items.titiactriz", image: "/titiactriz-shot.webp", current: true },
+  { name: "TitiLinks", url: "https://titilinks.com", descKey: "studio.work.items.titilinks", image: "/titilinks-shot.webp" },
+  { name: "JoeyC.ai", url: "https://joeyc.ai", descKey: "studio.work.items.joeyc", image: "/joeyc-shot.webp" },
+  { name: "Luxvibe", url: "https://luxvibe.io", descKey: "studio.work.items.luxvibe", image: "/luxvibe-shot.webp" },
+  { name: "FieldReport AI", url: "https://fieldreportai.app", descKey: "studio.work.items.fieldreport", image: "/fieldreport-shot.webp" },
 ];
 
 const Studio = () => {
