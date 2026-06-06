@@ -419,8 +419,8 @@
   background: hsl(var(--muted-foreground));
 }
 
-/* Hide scrollbars on mobile (keep scrolling enabled) */
-@media (max-width: 640px) {
+/* Hide the page scrollbar at all widths (scrolling still works via wheel/trackpad/keyboard/touch) */
+@media (min-width: 0px) {
   html,
   body {
     scrollbar-width: none; /* Firefox */
