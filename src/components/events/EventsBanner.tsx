@@ -86,7 +86,7 @@ const EventsBanner = () => {
   const renderSegment = (key: string) => (
     <div key={key} className="flex items-center shrink-0 pr-2">
       <span
-        className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none"
+        className="text-[#C9A55C] text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none translate-y-[1px]"
         style={{ fontFamily: "Jost, sans-serif" }}
       >
         {bannerText}
