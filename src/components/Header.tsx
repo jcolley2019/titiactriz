@@ -88,7 +88,7 @@ const Header = () => {
   };
 
   const linkBase =
-    "text-xs lg:text-[13px] uppercase font-light link-underline transition-all duration-300 whitespace-nowrap";
+    "text-xs lg:text-[13px] uppercase font-light leading-none link-underline transition-all duration-300 whitespace-nowrap";
   const linkColor = (active: boolean) =>
     isGreenWorldPage
       ? active
@@ -127,7 +127,7 @@ const Header = () => {
             : isGreenWorldPage
               ? "bg-gw-green-dark/98 backdrop-blur-xl py-3"
               : "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
-          : "bg-transparent py-4"
+          : "bg-transparent py-3"
       }`}
     >
       {/* Desktop nav — unchanged */}
