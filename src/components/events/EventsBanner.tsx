@@ -122,7 +122,7 @@ const EventsBanner = () => {
           type="button"
           onClick={goEvents}
           aria-label={label}
-          className="flex-1 h-full overflow-hidden relative group text-left cursor-pointer"
+          className="flex-1 h-full overflow-hidden relative text-left cursor-pointer"
         >
           {reducedMotion ? (
             <div className="h-full flex items-center px-4">
@@ -135,7 +135,7 @@ const EventsBanner = () => {
             </div>
           ) : (
             <div
-              className="absolute inset-y-0 left-0 flex items-center whitespace-nowrap will-change-transform group-hover:[animation-play-state:paused]"
+              className="absolute inset-y-0 left-0 flex items-center whitespace-nowrap will-change-transform"
               style={{
                 animation: "events-banner-marquee 60s linear infinite",
                 paddingLeft: "1rem",
