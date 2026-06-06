@@ -43,7 +43,7 @@ const EventsBanner = () => {
       bannerText = badge ? `${badge} — ${title}` : title;
     }
   }
-  const dismissKey = bannerText ? DISMISS_PREFIX + hashText(activeLang + "|" + bannerText) : "";
+  const dismissKey = bannerText ? DISMISS_PREFIX + hashText(bannerText) : "";
 
   const [dismissed, setDismissed] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
