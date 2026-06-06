@@ -177,7 +177,7 @@ const HomeEditorial = () => {
       <section
         ref={heroRef}
         className={
-          "relative min-h-[calc(100svh-100px)] md:min-h-[calc(100vh-38px)] flex items-stretch md:items-center justify-center overflow-hidden px-4 md:px-12 pt-[72px] md:pt-16 pb-2 md:pb-12 " +
+          "relative min-h-[calc(100svh-100px)] md:min-h-[calc(100vh-38px)] flex items-stretch md:items-center justify-center overflow-hidden px-4 md:px-12 pt-[72px] md:pt-[4.5rem] pb-2 md:pb-12 " +
           (introStarted ? "editorial-intro " : "") +
           (framePlay ? "editorial-hero-play" : "")
         }
