@@ -5,11 +5,11 @@ import { Section, SectionHeader } from "@/components/Section";
 import { Button } from "@/components/ui/button";
 
 const projects = [
-  { name: "titiactriz.com", url: "https://titiactriz.com", descKey: "studio.work.items.titiactriz" },
-  { name: "TitiLinks", url: "https://titilinks.com", descKey: "studio.work.items.titilinks" },
-  { name: "JoeyC.ai", url: "https://joeyc.ai", descKey: "studio.work.items.joeyc" },
-  { name: "Luxvibe", url: "https://luxvibe.io", descKey: "studio.work.items.luxvibe" },
-  { name: "FieldReport AI", url: "https://fieldreportai.app", descKey: "studio.work.items.fieldreport" },
+  { name: "titiactriz.com", url: "/", descKey: "studio.work.items.titiactriz", image: "/titiactriz-shot.webp", current: true },
+  { name: "TitiLinks", url: "https://titilinks.com", descKey: "studio.work.items.titilinks", image: "/titilinks-shot.webp" },
+  { name: "JoeyC.ai", url: "https://joeyc.ai", descKey: "studio.work.items.joeyc", image: "/joeyc-shot.webp" },
+  { name: "Luxvibe", url: "https://luxvibe.io", descKey: "studio.work.items.luxvibe", image: "/luxvibe-shot.webp" },
+  { name: "FieldReport AI", url: "https://fieldreportai.app", descKey: "studio.work.items.fieldreport", image: "/fieldreport-shot.webp" },
 ];
 
 const Studio = () => {
@@ -71,21 +71,26 @@ const Studio = () => {
           {projects.map((item) => (
             <div
               key={item.name}
-              className="border border-border/40 bg-background/40 p-6 hover:border-accent/50 transition-colors flex flex-col"
+              className="border border-border/40 bg-background/40 hover:border-accent/50 transition-colors flex flex-col overflow-hidden"
             >
-              <h3 className="font-serif text-xl text-foreground">{item.name}</h3>
-              <p className="text-muted-foreground text-sm mt-2 flex-1">
-                {t(item.descKey)}
-              </p>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 text-accent text-caps text-xs hover:text-gold-light transition-colors"
-              >
-                {t("studio.work.visit")}
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              <div className="aspect-[2/1] overflow-hidden border-b border-border/40 bg-background">
+                <img src={item.image} alt={`${item.name} screenshot`} loading="lazy" className="w-full h-full object-cover object-top" />
+              </div>
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="font-serif text-xl text-foreground">{item.name}</h3>
+                <p className="text-muted-foreground text-sm mt-2 flex-1">{t(item.descKey)}</p>
+                {item.current ? (
+                  <a href={item.url} className="mt-4 inline-flex items-center gap-2 text-accent text-caps text-xs hover:text-gold-light transition-colors">
+                    {t("studio.work.current")}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-accent text-caps text-xs hover:text-gold-light transition-colors">
+                    {t("studio.work.visit")}
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>
