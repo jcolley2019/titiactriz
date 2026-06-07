@@ -374,7 +374,7 @@ const TitansAgency = () => {
                 {/* Logo - responsive sizing */}
                 <img
                   src={titansLogo}
-                  alt="Titans Agency Logo"
+                  alt="Logo de Titans Agency Latam"
                   className="relative z-10 w-32 h-32 sm:w-48 sm:h-48 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-full"
                 />
               </div>
