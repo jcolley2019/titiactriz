@@ -497,7 +497,7 @@ const TitansAgency = () => {
               <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
                 <img 
                   src={cristynaProfile} 
-                  alt="Titi Actriz" 
+                  alt="Cristyna Polentino, fundadora de Titans Agency Latam" 
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
