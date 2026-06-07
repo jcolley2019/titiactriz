@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import LanguageToggle from "./LanguageToggle";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
 import monogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
+import monogramTwoToneAsset from "@/assets/cp-monogram-twotone.png.asset.json";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
