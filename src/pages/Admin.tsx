@@ -1010,8 +1010,30 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
       <EventsBoardManager />
 
+      {/* Gallery (collapsible) */}
+      <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setGalleryOpen((o) => !o)}
+          className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
+          aria-expanded={galleryOpen}
+        >
+          <div className="flex items-center gap-3">
+            {galleryOpen ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            )}
+            <div>
+              <h2 className="font-serif text-base text-foreground leading-tight">Gallery</h2>
+              <p className="text-xs text-muted-foreground">Upload, manage, and reorder your photos.</p>
+            </div>
+          </div>
+        </button>
+        {galleryOpen && (
+          <div className="px-6 pt-4 pb-2 border-t border-border">
       {/* Upload */}
-      <section className="bg-card border border-border rounded-lg p-6 mb-10">
+      <section className="mb-8">
         <h2 className="font-serif text-xl text-foreground mb-4">{t("admin.upload.title")}</h2>
 
         <div
