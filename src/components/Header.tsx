@@ -145,11 +145,10 @@ const Header = () => {
         <div className="justify-self-center">
           <Link to="/" aria-label="Cristyna Polentino — Home" className="inline-flex">
             <img
-              src={monogramAsset.url}
+              src={isGreenWorldPage ? monogramTwoToneAsset.url : monogramAsset.url}
               alt="Cristyna Polentino CP monogram"
               className="h-9 md:h-11 w-auto select-none"
               draggable={false}
-              style={isGreenWorldPage ? { filter: "brightness(0)" } : undefined}
             />
           </Link>
         </div>
