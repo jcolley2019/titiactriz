@@ -1416,7 +1416,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
         </DialogContent>
       </Dialog>
 
-      <LivePreviewDock photos={livePreviewPhotos} isDragging={rowDragging} />
+      {galleryOpen && (
+        <LivePreviewDock photos={livePreviewPhotos} isDragging={rowDragging} />
+      )}
     </div>
   );
 };
