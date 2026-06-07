@@ -31,6 +31,7 @@ import {
   setEventsBoard,
   EVENTS_BOARD_DEFAULT,
   type EventsBoard,
+  type PageBanner,
   type EventItem,
   type EventCardItem,
   type Localized,
@@ -92,6 +93,117 @@ const uploadEventImage = async (file: File): Promise<string> => {
 
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs text-muted-foreground">{children}</Label>
+);
+
+const BannerEditor = ({
+  name,
+  banner,
+  editLang,
+  loading,
+  colorOptions,
+  onChange,
+}: {
+  name: string;
+  banner: PageBanner;
+  editLang: Lang;
+  loading: boolean;
+  colorOptions: { label: string; value: string }[];
+  onChange: (patch: Partial<PageBanner>) => void;
+}) => (
+  <div className="space-y-3 border border-border rounded-lg p-4">
+    <div className="flex items-center gap-3">
+      <Switch
+        checked={!!banner.enabled}
+        onCheckedChange={(v) => onChange({ enabled: v })}
+        disabled={loading}
+      />
+      <Label className="text-foreground text-sm font-medium">{name}</Label>
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Label (pill text, e.g. EVENTS / SALE!)</FieldLabel>
+      <Input
+        maxLength={40}
+        value={banner.label?.[editLang] ?? ""}
+        onChange={(e) =>
+          onChange({ label: setLocalized(banner.label ?? { es: "", en: "" }, editLang, e.target.value) })
+        }
+        disabled={loading}
+        placeholder="EVENTS"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Banner text</FieldLabel>
+      <Input
+        maxLength={160}
+        value={banner.text?.[editLang] ?? ""}
+        onChange={(e) =>
+          onChange({ text: setLocalized(banner.text ?? { es: "", en: "" }, editLang, e.target.value) })
+        }
+        disabled={loading}
+      />
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Link (optional — where it clicks to; blank = Events page)</FieldLabel>
+      <Input
+        value={banner.link ?? ""}
+        onChange={(e) => onChange({ link: e.target.value })}
+        disabled={loading}
+        placeholder="https://...  or  /green-world"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Show on pages</FieldLabel>
+      <div className="flex flex-wrap gap-4">
+        {([["home", "Home"], ["greenWorld", "Green World"], ["titans", "Titans"]] as const).map(
+          ([key, lbl]) => (
+            <label key={key} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Switch
+                checked={!!banner.pages?.[key]}
+                onCheckedChange={(v) =>
+                  onChange({
+                    pages: {
+                      ...(banner.pages ?? { home: false, greenWorld: false, titans: false }),
+                      [key]: v,
+                    },
+                  })
+                }
+                disabled={loading}
+              />
+              {lbl}
+            </label>
+          ),
+        )}
+      </div>
+    </div>
+
+    <div className="flex flex-wrap items-center gap-6">
+      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Switch
+          checked={!!banner.bold}
+          onCheckedChange={(v) => onChange({ bold: v })}
+          disabled={loading}
+        />
+        Bold text
+      </label>
+      <div className="flex items-center gap-2">
+        <FieldLabel>Text color</FieldLabel>
+        <select
+          value={banner.textColor ?? ""}
+          onChange={(e) => onChange({ textColor: e.target.value })}
+          disabled={loading}
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+        >
+          {colorOptions.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  </div>
 );
 
 const ImageUploader = ({
@@ -690,28 +802,54 @@ const EventsBoardManager = () => {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <Label className="text-foreground text-sm">
-            {t("admin.eventsBoard.bannerText")}
-          </Label>
-          <Input
-            maxLength={120}
-            value={board.bannerText?.[editLang] ?? ""}
-            onChange={(e) =>
-              setBoard((prev) => ({
-                ...prev,
-                bannerText: setLocalized(
-                  prev.bannerText ?? { es: "", en: "" },
-                  editLang,
-                  e.target.value,
-                ),
-              }))
+        <div className="space-y-3">
+          <BannerEditor
+            name="Main banner"
+            banner={board.mainBanner}
+            editLang={editLang}
+            loading={loading}
+            colorOptions={[
+              { label: "Gold", value: "#C9A55C" },
+              { label: "Light gold", value: "#F0D78C" },
+              { label: "White", value: "#FFFFFF" },
+              { label: "Black", value: "#0a0a0a" },
+              { label: "Green", value: "#0B6E4F" },
+              { label: "Red", value: "#AD1F1F" },
+            ]}
+            onChange={(patch) =>
+              setBoard((prev) => ({ ...prev, mainBanner: { ...prev.mainBanner, ...patch } }))
             }
-            disabled={loading}
           />
-          <p className="text-xs text-muted-foreground">
-            {t("admin.eventsBoard.bannerHelp")}
-          </p>
+          <BannerEditor
+            name="Green World banner"
+            banner={board.greenWorldBanner}
+            editLang={editLang}
+            loading={loading}
+            colorOptions={[
+              { label: "White", value: "#FFFFFF" },
+              { label: "Light gold", value: "#FFE08A" },
+              { label: "Gold", value: "#C9A55C" },
+              { label: "Black", value: "#0a0a0a" },
+            ]}
+            onChange={(patch) =>
+              setBoard((prev) => ({ ...prev, greenWorldBanner: { ...prev.greenWorldBanner, ...patch } }))
+            }
+          />
+          <BannerEditor
+            name="Titans banner"
+            banner={board.titansBanner}
+            editLang={editLang}
+            loading={loading}
+            colorOptions={[
+              { label: "White", value: "#FFFFFF" },
+              { label: "Red", value: "#AD1F1F" },
+              { label: "Gold", value: "#C9A55C" },
+              { label: "Black", value: "#0a0a0a" },
+            ]}
+            onChange={(patch) =>
+              setBoard((prev) => ({ ...prev, titansBanner: { ...prev.titansBanner, ...patch } }))
+            }
+          />
         </div>
 
 
