@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import LanguageToggle from "./LanguageToggle";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
 import monogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
+import monogramTwoToneAsset from "@/assets/cp-monogram-twotone.png.asset.json";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -144,11 +145,10 @@ const Header = () => {
         <div className="justify-self-center">
           <Link to="/" aria-label="Cristyna Polentino — Home" className="inline-flex">
             <img
-              src={monogramAsset.url}
+              src={isGreenWorldPage ? monogramTwoToneAsset.url : monogramAsset.url}
               alt="Cristyna Polentino CP monogram"
               className="h-9 md:h-11 w-auto select-none"
               draggable={false}
-              style={isGreenWorldPage ? { filter: "brightness(0)" } : undefined}
             />
           </Link>
         </div>
@@ -170,11 +170,10 @@ const Header = () => {
       >
         <Link to="/" aria-label="Cristyna Polentino — Home" className="inline-flex shrink-0">
           <img
-            src={monogramAsset.url}
+            src={isGreenWorldPage ? monogramTwoToneAsset.url : monogramAsset.url}
             alt="Cristyna Polentino CP monogram"
             className="h-7 xs:h-8 w-auto select-none"
             draggable={false}
-            style={isGreenWorldPage ? { filter: "brightness(0)" } : undefined}
           />
         </Link>
 
