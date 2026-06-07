@@ -574,7 +574,7 @@ const TitansAgency = () => {
             <div className="rounded-2xl overflow-hidden mb-6 max-w-sm mx-auto">
               <img
                 src={titansQRCode}
-                alt="Titans Agency QR Code"
+                alt="Código QR de Titans Agency Latam"
                 className="w-full h-auto object-cover"
                 style={{ 
                   imageRendering: 'crisp-edges',
