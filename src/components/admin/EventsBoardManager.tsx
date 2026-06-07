@@ -31,6 +31,7 @@ import {
   setEventsBoard,
   EVENTS_BOARD_DEFAULT,
   type EventsBoard,
+  type PageBanner,
   type EventItem,
   type EventCardItem,
   type Localized,
