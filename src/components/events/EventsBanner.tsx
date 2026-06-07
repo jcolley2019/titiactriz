@@ -122,7 +122,7 @@ const EventsBanner = () => {
   const renderSegment = (key: string) => (
     <div key={key} className="flex items-center shrink-0 pr-2">
       <span
-        className="text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none translate-y-[1px]"
+        className="text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none"
         style={{ fontFamily: "Jost, sans-serif", color: textColor, fontWeight: marqueeWeight }}
       >
         {bannerText}
