@@ -189,7 +189,7 @@ const EventsBanner = () => {
             type="button"
             onClick={handleDismiss}
             aria-label="Dismiss"
-            className="shrink-0 h-full flex items-center px-3 border-l transition-colors hover:bg-white/5"
+            className="shrink-0 h-full flex items-center px-3 transition-colors hover:bg-white/5"
             style={{ color: `${textColor}b3`, borderColor: scheme.border }}
           >
             <X size={14} />
