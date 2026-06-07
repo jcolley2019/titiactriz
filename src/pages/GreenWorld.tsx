@@ -90,7 +90,7 @@ const GreenWorld = () => {
         <div className="absolute top-0 left-0 right-0 h-[380px] md:h-[480px] z-20 flex items-center justify-center pb-8 md:pb-10 opacity-0 animate-fade-up pointer-events-none">
           <img
             src={gwLogo}
-            alt="Green World"
+            alt="Logo de Green World"
             className="h-44 md:h-56 w-auto"
           />
         </div>
