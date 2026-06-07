@@ -144,7 +144,7 @@ const EventsBanner = () => {
           <button
             type="button"
             onClick={goTo}
-            className="shrink-0 h-full flex items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none translate-y-[1px] transition-colors hover:bg-white/5"
+            className="shrink-0 h-full flex items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
             style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
           >
             {label}
