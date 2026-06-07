@@ -58,7 +58,29 @@ const GreenWorld = () => {
         path="/green-world"
         title="Green World | Suplementos Naturales y Bienestar — Cristyna Polentino"
         description="Green World: suplementos premium, tés herbales y productos de bienestar natural. Representante independiente Cristyna Polentino — Medellín, Colombia."
-      />
+      >
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Person",
+              "@id": "https://titiactriz.com/#cristyna",
+              "name": "Cristyna Polentino",
+              "url": "https://titiactriz.com",
+              "sameAs": ["https://wa.me/17866277567"]
+            },
+            {
+              "@type": "Service",
+              "name": "Green World — Distribuidora Independiente Cristyna Polentino",
+              "serviceType": "Suplementos naturales y oportunidad de negocio Green World",
+              "url": "https://titiactriz.com/green-world",
+              "provider": { "@id": "https://titiactriz.com/#cristyna" },
+              "areaServed": ["United States", "Latin America", "Colombia"],
+              "description": "Compra de productos Green World y registro como distribuidor independiente con Cristyna Polentino. Green World natural supplements and independent distributor enrollment, serving the US and Latin America."
+            }
+          ]
+        })}</script>
+      </SEO>
 
       {/* Hero Section - Two Column Layout */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark">
