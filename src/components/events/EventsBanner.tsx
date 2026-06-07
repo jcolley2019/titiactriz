@@ -15,12 +15,12 @@ const hashText = (s: string): string => {
 
 type SchemeKey = "main" | "greenWorld" | "titans";
 
-type Scheme = { bg: string; border: string; label: string; accent: string };
+type Scheme = { bg: string; border: string; label: string; accent: string; text: string };
 
 const SCHEMES: Record<SchemeKey, Scheme> = {
-  main:       { bg: "#0a0a0a", border: "#C9A55C",     label: "#F0D78C", accent: "#C9A55C" },
-  greenWorld: { bg: "#128A5E", border: "#FFFFFF",     label: "#FFFFFF", accent: "#FFFFFF" },
-  titans:     { bg: "#841F1F", border: "transparent", label: "#FFFFFF", accent: "#FFE3E3" },
+  main:       { bg: "#0a0a0a", border: "#C9A55C",     label: "#F0D78C", accent: "#C9A55C", text: "#C9A55C" },
+  greenWorld: { bg: "#128A5E", border: "#FFFFFF",     label: "#FFFFFF", accent: "#FFFFFF", text: "#FFFFFF" },
+  titans:     { bg: "#841F1F", border: "transparent", label: "#FFFFFF", accent: "#FFE3E3", text: "#FFFFFF" },
 };
 
 const EventsBanner = () => {
@@ -66,10 +66,10 @@ const EventsBanner = () => {
   }
 
   const activeBanner = banners && activeKey ? banners[activeKey] : null;
-  const scheme = SCHEMES[activeKey ?? "main"];
+  const scheme = SCHEMES[pageKey === "greenWorld" ? "greenWorld" : pageKey === "titans" ? "titans" : "main"];
   const bannerText = activeBanner ? textOf(activeBanner) : "";
   const label = activeBanner ? labelOf(activeBanner) : t("events.title");
-  const textColor = activeBanner?.textColor || scheme.accent;
+  const textColor = scheme.text;
   const marqueeWeight = activeBanner?.bold ? 700 : 400;
 
   const dismissKey = bannerText ? DISMISS_PREFIX + hashText(bannerText) : "";
