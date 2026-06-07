@@ -159,7 +159,7 @@ const EventsBanner = () => {
             {reducedMotion ? (
               <div className="h-full flex items-center px-4">
                 <span
-                  className="text-[11px] tracking-[0.22em] uppercase leading-none translate-y-[1px]"
+                  className="text-[11px] tracking-[0.22em] uppercase leading-none"
                   style={{ fontFamily: "Jost, sans-serif", color: textColor, fontWeight: marqueeWeight }}
                 >
                   {bannerText}
