@@ -18,9 +18,9 @@ type SchemeKey = "main" | "greenWorld" | "titans";
 type Scheme = { bg: string; border: string; label: string; accent: string };
 
 const SCHEMES: Record<SchemeKey, Scheme> = {
-  main:       { bg: "#0a0a0a", border: "rgba(201,165,92,0.25)", label: "#F0D78C", accent: "#C9A55C" },
-  greenWorld: { bg: "#0B6E4F", border: "rgba(255,255,255,0.28)", label: "#FFFFFF", accent: "#FFE08A" },
-  titans:     { bg: "#141414", border: "rgba(132,31,31,0.55)", label: "#FFFFFF", accent: "#AD1F1F" },
+  main:       { bg: "#0a0a0a", border: "#C9A55C",     label: "#F0D78C", accent: "#C9A55C" },
+  greenWorld: { bg: "#128A5E", border: "#FFFFFF",     label: "#FFFFFF", accent: "#FFFFFF" },
+  titans:     { bg: "#841F1F", border: "transparent", label: "#FFFFFF", accent: "#FFE3E3" },
 };
 
 const EventsBanner = () => {
