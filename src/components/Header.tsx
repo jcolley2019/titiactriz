@@ -121,13 +121,13 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
-        isScrolled
-          ? isTitansPage
-            ? "bg-titans-dark/98 backdrop-blur-xl py-3"
-            : isGreenWorldPage
-              ? "bg-gw-green-dark/98 backdrop-blur-xl py-3"
-              : "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
-          : "bg-transparent py-3"
+        isTitansPage
+          ? "bg-titans-dark/98 backdrop-blur-xl py-3"
+          : isGreenWorldPage
+            ? `bg-white py-3 border-b border-gw-green/15${isScrolled ? " shadow-sm" : ""}`
+            : isScrolled
+              ? "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
+              : "bg-transparent py-3"
       }`}
     >
       {/* Desktop nav — unchanged */}
@@ -148,6 +148,7 @@ const Header = () => {
               alt="Cristyna Polentino CP monogram"
               className="h-9 md:h-11 w-auto select-none"
               draggable={false}
+              style={isGreenWorldPage ? { filter: "brightness(0)" } : undefined}
             />
           </Link>
         </div>
@@ -173,6 +174,7 @@ const Header = () => {
             alt="Cristyna Polentino CP monogram"
             className="h-7 xs:h-8 w-auto select-none"
             draggable={false}
+            style={isGreenWorldPage ? { filter: "brightness(0)" } : undefined}
           />
         </Link>
 
