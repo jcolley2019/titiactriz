@@ -995,7 +995,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-32 pb-[340px]">
+    <div className={`max-w-5xl mx-auto px-4 pt-32 ${galleryOpen ? "pb-[340px]" : "pb-12"}`}>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-foreground">{t("admin.header.title")}</h1>
