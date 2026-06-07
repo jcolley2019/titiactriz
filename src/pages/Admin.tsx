@@ -1338,6 +1338,9 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
           </div>
         )}
       </section>
+          </div>
+        )}
+      </section>
 
 
 
