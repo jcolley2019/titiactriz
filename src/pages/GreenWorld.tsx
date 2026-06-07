@@ -123,7 +123,7 @@ const GreenWorld = () => {
                   rel="noopener noreferrer"
                   className="mt-6 p-5 bg-gw-white backdrop-blur-sm rounded-xl border border-gw-green/20 inline-flex items-center gap-4 opacity-0 animate-fade-up stagger-4 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
                 >
-                   <img src={gwRepIcon} alt="" className="w-12 h-12 rounded-full" />
+                   <img src={gwRepIcon} alt="Cristyna Polentino, representante independiente de Green World" className="w-12 h-12 rounded-full" />
                    <div>
                      <p className="text-gw-text/70 text-sm uppercase tracking-wider mb-1">{t("greenWorld.hero.representative")}</p>
                      <p className="text-gw-text font-bold text-2xl group-hover:text-gw-green transition-colors">{employeeInfo.name}</p>
