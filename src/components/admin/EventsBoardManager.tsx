@@ -95,6 +95,117 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs text-muted-foreground">{children}</Label>
 );
 
+const BannerEditor = ({
+  name,
+  banner,
+  editLang,
+  loading,
+  colorOptions,
+  onChange,
+}: {
+  name: string;
+  banner: PageBanner;
+  editLang: Lang;
+  loading: boolean;
+  colorOptions: { label: string; value: string }[];
+  onChange: (patch: Partial<PageBanner>) => void;
+}) => (
+  <div className="space-y-3 border border-border rounded-lg p-4">
+    <div className="flex items-center gap-3">
+      <Switch
+        checked={!!banner.enabled}
+        onCheckedChange={(v) => onChange({ enabled: v })}
+        disabled={loading}
+      />
+      <Label className="text-foreground text-sm font-medium">{name}</Label>
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Label (pill text, e.g. EVENTS / SALE!)</FieldLabel>
+      <Input
+        maxLength={40}
+        value={banner.label?.[editLang] ?? ""}
+        onChange={(e) =>
+          onChange({ label: setLocalized(banner.label ?? { es: "", en: "" }, editLang, e.target.value) })
+        }
+        disabled={loading}
+        placeholder="EVENTS"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Banner text</FieldLabel>
+      <Input
+        maxLength={160}
+        value={banner.text?.[editLang] ?? ""}
+        onChange={(e) =>
+          onChange({ text: setLocalized(banner.text ?? { es: "", en: "" }, editLang, e.target.value) })
+        }
+        disabled={loading}
+      />
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Link (optional — where it clicks to; blank = Events page)</FieldLabel>
+      <Input
+        value={banner.link ?? ""}
+        onChange={(e) => onChange({ link: e.target.value })}
+        disabled={loading}
+        placeholder="https://...  or  /green-world"
+      />
+    </div>
+
+    <div className="space-y-1">
+      <FieldLabel>Show on pages</FieldLabel>
+      <div className="flex flex-wrap gap-4">
+        {([["home", "Home"], ["greenWorld", "Green World"], ["titans", "Titans"]] as const).map(
+          ([key, lbl]) => (
+            <label key={key} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Switch
+                checked={!!banner.pages?.[key]}
+                onCheckedChange={(v) =>
+                  onChange({
+                    pages: {
+                      ...(banner.pages ?? { home: false, greenWorld: false, titans: false }),
+                      [key]: v,
+                    },
+                  })
+                }
+                disabled={loading}
+              />
+              {lbl}
+            </label>
+          ),
+        )}
+      </div>
+    </div>
+
+    <div className="flex flex-wrap items-center gap-6">
+      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Switch
+          checked={!!banner.bold}
+          onCheckedChange={(v) => onChange({ bold: v })}
+          disabled={loading}
+        />
+        Bold text
+      </label>
+      <div className="flex items-center gap-2">
+        <FieldLabel>Text color</FieldLabel>
+        <select
+          value={banner.textColor ?? ""}
+          onChange={(e) => onChange({ textColor: e.target.value })}
+          disabled={loading}
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+        >
+          {colorOptions.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  </div>
+);
+
 const ImageUploader = ({
   value,
   onChange,
