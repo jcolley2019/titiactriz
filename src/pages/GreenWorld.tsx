@@ -90,7 +90,7 @@ const GreenWorld = () => {
         <div className="absolute top-0 left-0 right-0 h-[380px] md:h-[480px] z-20 flex items-center justify-center pb-8 md:pb-10 opacity-0 animate-fade-up pointer-events-none">
           <img
             src={gwLogo}
-            alt="Green World"
+            alt="Logo de Green World"
             className="h-44 md:h-56 w-auto"
           />
         </div>
@@ -123,7 +123,7 @@ const GreenWorld = () => {
                   rel="noopener noreferrer"
                   className="mt-6 p-5 bg-gw-white backdrop-blur-sm rounded-xl border border-gw-green/20 inline-flex items-center gap-4 opacity-0 animate-fade-up stagger-4 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
                 >
-                   <img src={gwRepIcon} alt="" className="w-12 h-12 rounded-full" />
+                   <img src={gwRepIcon} alt="Cristyna Polentino, representante independiente de Green World" className="w-12 h-12 rounded-full" />
                    <div>
                      <p className="text-gw-text/70 text-sm uppercase tracking-wider mb-1">{t("greenWorld.hero.representative")}</p>
                      <p className="text-gw-text font-bold text-2xl group-hover:text-gw-green transition-colors">{employeeInfo.name}</p>
@@ -222,7 +222,7 @@ const GreenWorld = () => {
             <div className="relative">
               <ParallaxImage
                 src={wealthImage}
-                alt="Green World Business Opportunity"
+                alt="Oportunidad de negocio Green World con Cristyna Polentino"
                 containerClassName="rounded-2xl shadow-2xl max-w-lg mx-auto"
                 speed={0.12}
               />

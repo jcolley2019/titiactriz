@@ -374,7 +374,7 @@ const TitansAgency = () => {
                 {/* Logo - responsive sizing */}
                 <img
                   src={titansLogo}
-                  alt="Titans Agency Logo"
+                  alt="Logo de Titans Agency Latam"
                   className="relative z-10 w-32 h-32 sm:w-48 sm:h-48 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-full"
                 />
               </div>
@@ -497,7 +497,7 @@ const TitansAgency = () => {
               <div className="w-24 h-24 mx-auto mb-4 rounded-full border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] p-0.5">
                 <img 
                   src={cristynaProfile} 
-                  alt="Titi Actriz" 
+                  alt="Cristyna Polentino, fundadora de Titans Agency Latam" 
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
@@ -574,7 +574,7 @@ const TitansAgency = () => {
             <div className="rounded-2xl overflow-hidden mb-6 max-w-sm mx-auto">
               <img
                 src={titansQRCode}
-                alt="Titans Agency QR Code"
+                alt="Código QR de Titans Agency Latam"
                 className="w-full h-auto object-cover"
                 style={{ 
                   imageRendering: 'crisp-edges',
