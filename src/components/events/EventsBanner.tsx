@@ -122,7 +122,7 @@ const EventsBanner = () => {
   const renderSegment = (key: string) => (
     <div key={key} className="flex items-center shrink-0 pr-2">
       <span
-        className="text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none"
+        className="text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none translate-y-[1px]"
         style={{ fontFamily: "Jost, sans-serif", color: textColor, fontWeight: marqueeWeight }}
       >
         {bannerText}
@@ -147,7 +147,7 @@ const EventsBanner = () => {
             className="shrink-0 h-full flex items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
             style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
           >
-            {label}
+            <span className="translate-y-[1px]">{label}</span>
           </button>
 
           <button
@@ -159,7 +159,7 @@ const EventsBanner = () => {
             {reducedMotion ? (
               <div className="h-full flex items-center px-4">
                 <span
-                  className="text-[11px] tracking-[0.22em] uppercase leading-none"
+                  className="text-[11px] tracking-[0.22em] uppercase leading-none translate-y-[1px]"
                   style={{ fontFamily: "Jost, sans-serif", color: textColor, fontWeight: marqueeWeight }}
                 >
                   {bannerText}
@@ -182,7 +182,7 @@ const EventsBanner = () => {
             className="hidden md:flex shrink-0 h-full items-center px-4 border-l text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
             style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
           >
-            {label}
+            <span className="translate-y-[1px]">{label}</span>
           </button>
 
           <button
