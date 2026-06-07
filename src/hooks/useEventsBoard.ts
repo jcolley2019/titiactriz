@@ -4,32 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 export type Localized = { es: string; en: string };
 
 export type ButtonIcon =
-  | "auto"
-  | "website"
-  | "instagram"
-  | "tiktok"
-  | "youtube"
-  | "facebook"
-  | "x"
-  | "none";
+  | "auto" | "website" | "instagram" | "tiktok"
+  | "youtube" | "facebook" | "x" | "none";
 
-export type EventButton = {
-  label: Localized;
-  url: string;
-  icon?: ButtonIcon;
-};
+export type EventButton = { label: Localized; url: string; icon?: ButtonIcon };
 
-type BaseItem = {
-  id: string;
-  size: "full" | "half";
-  title: Localized;
-};
+type BaseItem = { id: string; size: "full" | "half"; title: Localized };
 
-/**
- * Flexible event block. All items render through this shape. Unknown keys
- * from older saved rows (e.g. legacy `type`, `details`) are ignored by the
- * defensive parser.
- */
 export type EventCardItem = BaseItem & {
   badge: Localized;
   description: Localized;
@@ -44,30 +25,68 @@ export type EventCardItem = BaseItem & {
 
 export type EventItem = EventCardItem;
 
+export type BannerPages = { home: boolean; greenWorld: boolean; titans: boolean };
+
+export type PageBanner = {
+  enabled: boolean;
+  label: Localized;   // pill text e.g. EVENTS / SALE!
+  text: Localized;    // scrolling message
+  link: string;       // click target; "" falls back to /events
+  pages: BannerPages;
+  bold: boolean;
+  textColor: string;  // hex
+};
+
 export type EventsBoard = {
   pageVisible: boolean;
-  bannerText: Localized;
+  bannerText: Localized; // legacy mirror of mainBanner.text (kept for compatibility)
+  mainBanner: PageBanner;
+  greenWorldBanner: PageBanner;
+  titansBanner: PageBanner;
   items: EventItem[];
 };
 
-
 export const EVENTS_BOARD_KEY = "events_board";
+
+const makeBanner = (
+  overrides: Partial<PageBanner> & { pages: BannerPages },
+): PageBanner => ({
+  enabled: false,
+  label: { es: "EVENTOS", en: "EVENTS" },
+  text: { es: "", en: "" },
+  link: "",
+  bold: false,
+  textColor: "#C9A55C",
+  ...overrides,
+});
+
+const SMARTFILMS_TEXT: Localized = {
+  es: "EN COMPETENCIA — SmartFilms Colombia 2026",
+  en: "NOW COMPETING — SmartFilms Colombia 2026",
+};
 
 export const EVENTS_BOARD_DEFAULT: EventsBoard = {
   pageVisible: true,
-  bannerText: {
-    es: "EN COMPETENCIA — SmartFilms Colombia 2026",
-    en: "NOW COMPETING — SmartFilms Colombia 2026",
-  },
+  bannerText: SMARTFILMS_TEXT,
+  mainBanner: makeBanner({
+    enabled: true,
+    text: SMARTFILMS_TEXT,
+    pages: { home: true, greenWorld: true, titans: true },
+    textColor: "#C9A55C",
+  }),
+  greenWorldBanner: makeBanner({
+    pages: { home: false, greenWorld: true, titans: false },
+    textColor: "#FFFFFF",
+  }),
+  titansBanner: makeBanner({
+    pages: { home: false, greenWorld: false, titans: true },
+    textColor: "#FFFFFF",
+  }),
   items: [
     {
       id: "smartfilms-2026",
       size: "full",
-      title: {
-
-        es: "SmartFilms Colombia 2026",
-        en: "SmartFilms Colombia 2026",
-      },
+      title: { es: "SmartFilms Colombia 2026", en: "SmartFilms Colombia 2026" },
       badge: { es: "EN COMPETENCIA", en: "NOW COMPETING" },
       description: {
         es: "Compito en la 12a edición de SmartFilms, el festival de cine hecho con celular más grande del mundo. La temática de este año: retrofuturismo, donde el pasado y el futuro se encuentran.",
@@ -105,51 +124,32 @@ const coerceLocalized = (v: unknown): Localized => {
 };
 
 const VALID_ICONS: ButtonIcon[] = [
-  "auto",
-  "website",
-  "instagram",
-  "tiktok",
-  "youtube",
-  "facebook",
-  "x",
-  "none",
+  "auto", "website", "instagram", "tiktok", "youtube", "facebook", "x", "none",
 ];
 
-const coerceIcon = (v: unknown): ButtonIcon => {
-  if (typeof v === "string" && (VALID_ICONS as string[]).includes(v)) {
-    return v as ButtonIcon;
-  }
-  return "auto";
-};
+const coerceIcon = (v: unknown): ButtonIcon =>
+  typeof v === "string" && (VALID_ICONS as string[]).includes(v)
+    ? (v as ButtonIcon)
+    : "auto";
 
 const coerceButton = (v: unknown): EventButton | null => {
   if (!isObj(v)) return null;
   const url = typeof v.url === "string" ? v.url : "";
-  return {
-    label: coerceLocalized(v.label),
-    url,
-    icon: coerceIcon(v.icon),
-  };
+  return { label: coerceLocalized(v.label), url, icon: coerceIcon(v.icon) };
 };
 
-const coerceSize = (v: unknown): "full" | "half" =>
-  v === "half" ? "half" : "full";
+const coerceSize = (v: unknown): "full" | "half" => (v === "half" ? "half" : "full");
+const coercePosition = (v: unknown): "above" | "below" => (v === "below" ? "below" : "above");
 
-const coercePosition = (v: unknown): "above" | "below" =>
-  v === "below" ? "below" : "above";
-
-// Every item is normalized into the flexible event shape.
 const coerceItem = (v: unknown): EventItem | null => {
   if (!isObj(v)) return null;
   const id = typeof v.id === "string" && v.id ? v.id : null;
   if (!id) return null;
-  const bullets = Array.isArray(v.bullets)
-    ? v.bullets.map(coerceLocalized)
-    : [];
+  const bullets = Array.isArray(v.bullets) ? v.bullets.map(coerceLocalized) : [];
   const buttons = Array.isArray(v.buttons)
     ? (v.buttons.map(coerceButton).filter(Boolean) as EventButton[])
     : [];
-  const item: EventCardItem = {
+  return {
     id,
     size: coerceSize(v.size),
     title: coerceLocalized(v.title),
@@ -163,20 +163,61 @@ const coerceItem = (v: unknown): EventItem | null => {
     videoUrl: typeof v.videoUrl === "string" ? v.videoUrl : "",
     buttons,
   };
-  return item;
+};
+
+const coercePages = (v: unknown, fallback: BannerPages): BannerPages => {
+  if (!isObj(v)) return fallback;
+  return {
+    home: typeof v.home === "boolean" ? v.home : fallback.home,
+    greenWorld: typeof v.greenWorld === "boolean" ? v.greenWorld : fallback.greenWorld,
+    titans: typeof v.titans === "boolean" ? v.titans : fallback.titans,
+  };
+};
+
+const coerceBanner = (v: unknown, defaults: PageBanner): PageBanner => {
+  if (!isObj(v)) return defaults;
+  return {
+    enabled: typeof v.enabled === "boolean" ? v.enabled : defaults.enabled,
+    label: isObj(v.label) ? coerceLocalized(v.label) : defaults.label,
+    text: coerceLocalized(v.text),
+    link: typeof v.link === "string" ? v.link : "",
+    pages: coercePages(v.pages, defaults.pages),
+    bold: v.bold === true,
+    textColor:
+      typeof v.textColor === "string" && v.textColor ? v.textColor : defaults.textColor,
+  };
 };
 
 export const parseBoard = (value: unknown): EventsBoard => {
   if (!isObj(value)) return EVENTS_BOARD_DEFAULT;
-  const pageVisible =
-    typeof value.pageVisible === "boolean" ? value.pageVisible : true;
-  const bannerText = coerceLocalized(value.bannerText);
+  const pageVisible = typeof value.pageVisible === "boolean" ? value.pageVisible : true;
+
+  // Legacy migration: older rows stored a single `bannerText`.
+  const legacyText = isObj(value.bannerText) ? coerceLocalized(value.bannerText) : null;
+  const mainDefaults = EVENTS_BOARD_DEFAULT.mainBanner;
+  let mainBanner = coerceBanner(value.mainBanner, mainDefaults);
+  if (!isObj(value.mainBanner) && legacyText) {
+    mainBanner = { ...mainDefaults, enabled: true, text: legacyText };
+  }
+  const greenWorldBanner = coerceBanner(
+    value.greenWorldBanner,
+    EVENTS_BOARD_DEFAULT.greenWorldBanner,
+  );
+  const titansBanner = coerceBanner(value.titansBanner, EVENTS_BOARD_DEFAULT.titansBanner);
+
   const rawItems = Array.isArray(value.items) ? value.items : null;
-  if (!rawItems) return { ...EVENTS_BOARD_DEFAULT, pageVisible, bannerText };
-  const items = (rawItems
-    .map(coerceItem)
-    .filter(Boolean) as EventItem[]).slice(0, 4);
-  return { pageVisible, bannerText, items };
+  const items = rawItems
+    ? ((rawItems.map(coerceItem).filter(Boolean) as EventItem[]).slice(0, 4))
+    : EVENTS_BOARD_DEFAULT.items;
+
+  return {
+    pageVisible,
+    bannerText: mainBanner.text,
+    mainBanner,
+    greenWorldBanner,
+    titansBanner,
+    items,
+  };
 };
 
 export const fetchEventsBoard = async (): Promise<EventsBoard> => {
@@ -206,12 +247,8 @@ export const useEventsBoard = (): { board: EventsBoard; loading: boolean } => {
   useEffect(() => {
     let cancelled = false;
     fetchEventsBoard()
-      .then((b) => {
-        if (!cancelled) setBoard(b);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .then((b) => { if (!cancelled) setBoard(b); })
+      .finally(() => { if (!cancelled) setLoading(false); });
 
     const channel = supabase
       .channel("site_settings_events_board")
@@ -230,10 +267,7 @@ export const useEventsBoard = (): { board: EventsBoard; loading: boolean } => {
       )
       .subscribe();
 
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
+    return () => { cancelled = true; supabase.removeChannel(channel); };
   }, []);
 
   return { board, loading };
