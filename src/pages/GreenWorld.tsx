@@ -222,7 +222,7 @@ const GreenWorld = () => {
             <div className="relative">
               <ParallaxImage
                 src={wealthImage}
-                alt="Green World Business Opportunity"
+                alt="Oportunidad de negocio Green World con Cristyna Polentino"
                 containerClassName="rounded-2xl shadow-2xl max-w-lg mx-auto"
                 speed={0.12}
               />
