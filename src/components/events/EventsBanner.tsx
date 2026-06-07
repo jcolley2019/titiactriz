@@ -137,7 +137,7 @@ const EventsBanner = () => {
       <div
         role="region"
         aria-label={label}
-        className="fixed left-0 right-0 top-[60px] md:top-[68px] z-40 w-screen max-w-[100vw] select-none overflow-x-hidden border-y"
+        className="fixed left-0 right-0 top-[60px] md:top-[68px] z-40 w-screen max-w-[100vw] select-none overflow-x-hidden border-y-2"
         style={{ height: 38, backgroundColor: scheme.bg, borderColor: scheme.border }}
       >
         <div className="h-full flex items-stretch">
