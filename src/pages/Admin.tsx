@@ -415,6 +415,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [rowDragging, setRowDragging] = useState(false);
   const [archivedOpen, setArchivedOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(true);
   const [savedAltIds, setSavedAltIds] = useState<Set<string>>(new Set());
   const altSavedTimers = useRef<Map<string, number>>(new Map());
   const altLastSaved = useRef<Map<string, string>>(new Map());
