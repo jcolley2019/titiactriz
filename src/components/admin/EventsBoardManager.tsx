@@ -802,28 +802,54 @@ const EventsBoardManager = () => {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <Label className="text-foreground text-sm">
-            {t("admin.eventsBoard.bannerText")}
-          </Label>
-          <Input
-            maxLength={120}
-            value={board.bannerText?.[editLang] ?? ""}
-            onChange={(e) =>
-              setBoard((prev) => ({
-                ...prev,
-                bannerText: setLocalized(
-                  prev.bannerText ?? { es: "", en: "" },
-                  editLang,
-                  e.target.value,
-                ),
-              }))
+        <div className="space-y-3">
+          <BannerEditor
+            name="Main banner"
+            banner={board.mainBanner}
+            editLang={editLang}
+            loading={loading}
+            colorOptions={[
+              { label: "Gold", value: "#C9A55C" },
+              { label: "Light gold", value: "#F0D78C" },
+              { label: "White", value: "#FFFFFF" },
+              { label: "Black", value: "#0a0a0a" },
+              { label: "Green", value: "#0B6E4F" },
+              { label: "Red", value: "#AD1F1F" },
+            ]}
+            onChange={(patch) =>
+              setBoard((prev) => ({ ...prev, mainBanner: { ...prev.mainBanner, ...patch } }))
             }
-            disabled={loading}
           />
-          <p className="text-xs text-muted-foreground">
-            {t("admin.eventsBoard.bannerHelp")}
-          </p>
+          <BannerEditor
+            name="Green World banner"
+            banner={board.greenWorldBanner}
+            editLang={editLang}
+            loading={loading}
+            colorOptions={[
+              { label: "White", value: "#FFFFFF" },
+              { label: "Light gold", value: "#FFE08A" },
+              { label: "Gold", value: "#C9A55C" },
+              { label: "Black", value: "#0a0a0a" },
+            ]}
+            onChange={(patch) =>
+              setBoard((prev) => ({ ...prev, greenWorldBanner: { ...prev.greenWorldBanner, ...patch } }))
+            }
+          />
+          <BannerEditor
+            name="Titans banner"
+            banner={board.titansBanner}
+            editLang={editLang}
+            loading={loading}
+            colorOptions={[
+              { label: "White", value: "#FFFFFF" },
+              { label: "Red", value: "#AD1F1F" },
+              { label: "Gold", value: "#C9A55C" },
+              { label: "Black", value: "#0a0a0a" },
+            ]}
+            onChange={(patch) =>
+              setBoard((prev) => ({ ...prev, titansBanner: { ...prev.titansBanner, ...patch } }))
+            }
+          />
         </div>
 
 
