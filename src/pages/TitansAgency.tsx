@@ -331,14 +331,33 @@ const TitansAgency = () => {
           "name": "Titans Agency Latam",
           "url": "https://titiactriz.com/titans-agency",
           "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
-          "founder": { "@type": "Person", "name": "Cristyna Polentino" },
+          "founder": {
+            "@type": "Person",
+            "name": "Cristyna Polentino",
+            "sameAs": [
+              "https://www.tiktok.com/@titina_polen",
+              "https://www.instagram.com/cristinapolentino_actriz",
+              "https://www.youtube.com/@mimundoderoles6875"
+            ]
+          },
           "areaServed": ["Latin America", "Spain", "United States"],
+          "knowsAbout": ["TikTok growth", "Creator monetization", "Brand partnerships", "Content strategy"],
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Medellín",
             "addressCountry": "CO"
           },
-          "sameAs": ["https://www.tiktok.com/@titansagencylatam"]
+          "sameAs": ["https://www.tiktok.com/@titansagencylatam"],
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Titans Agency Services",
+            "itemListElement": [
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Growth Strategy", "description": "Creator onboarding with personalized growth roadmaps." } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Content Systems", "description": "Content strategy frameworks and posting systems." } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Live Coaching", "description": "Coaching for live streams and short-form content." } },
+              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Brand Partnerships", "description": "Brand collaborations and sponsorship deals for creators." } }
+            ]
+          }
         })}</script>
       </SEO>
 
