@@ -9,6 +9,8 @@ import { useCinematicData } from "@/components/cinematic/useCinematicData";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
+import CinematicAbout from "@/components/cinematic/CinematicAbout";
+import CinematicContact from "@/components/cinematic/CinematicContact";
 import "@/components/cinematic/cinematic.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -92,6 +94,10 @@ const HomeCinematic = () => {
       />
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
+
+      <CinematicAbout reduced={prefersReduced} />
+
+      <CinematicContact />
     </div>
   );
 };
