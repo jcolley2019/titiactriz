@@ -468,6 +468,8 @@
       "subtitle": "Inicia sesión para gestionar la galería.",
       "email": "Correo electrónico",
       "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
       "signIn": "Iniciar sesión",
       "signingIn": "Iniciando sesión…",
       "invalid": "Correo o contraseña inválidos. Inténtalo de nuevo."
