@@ -4,6 +4,7 @@ import { Menu, X, Lock, LayoutDashboard, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { setLanguage } from "@/i18n";
 import LanguageToggle from "./LanguageToggle";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
 import monogram from "@/assets/cp-monogram-transparent.png";
@@ -34,10 +35,7 @@ const Header = () => {
   }, []);
 
   const isEn = i18n.language?.startsWith("en");
-  const setLang = (lng: "es" | "en") => {
-    if (i18n.language?.startsWith(lng)) return;
-    i18n.changeLanguage(lng);
-  };
+  const setLang = (lng: "es" | "en") => setLanguage(lng);
   const closeMenu = () => setIsMobileMenuOpen(false);
   const handleAdmin = () => {
     closeMenu();

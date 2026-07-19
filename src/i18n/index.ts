@@ -1,66 +1,109 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import es from './locales/es.json';
 
 /**
- * Language strategy
- * -----------------
- * 1. If the user previously picked a language, that choice (stored in
- *    localStorage under `i18nextLng`) ALWAYS wins on future loads.
- * 2. Otherwise we look at navigator.language / navigator.languages:
- *      - starts with "es"  -> Spanish
- *      - starts with "en"  -> English
- *      - anything else     -> Spanish (her primary market is Spanish-speaking
- *        South America; the browser's own translate UI handles other locales).
- * 3. Crawlers / no detectable preference -> Spanish (fallbackLng), so the
- *    indexed version of the site stays Spanish.
- * 4. The <html lang> attribute is kept in sync with the active language so
- *    assistive tech and search engines see the correct value.
+ * Language strategy (TA.6f)
+ * -------------------------
+ * The initial language is resolved SYNCHRONOUSLY at module import — this file is
+ * imported from main.tsx BEFORE ReactDOM renders and the EN/ES dictionaries are
+ * bundled inline (not fetched), so the very first paint is already in the right
+ * language. There is no effect-based detection and therefore no flash of the
+ * wrong language.
+ *
+ * Priority:
+ *   1. localStorage "ta_lang" ("es" | "en") — an explicit manual choice. It is
+ *      written by the toggle (setLanguage) and ALWAYS outranks detection.
+ *   2. else navigator.language (navigator.languages[0] as fallback): a value
+ *      starting with "es" (case-insensitive: es, es-CO, es-MX, es-US, …) → ES;
+ *      anything else → EN. Spanish-speaking followers and Titans creators land
+ *      in Spanish; everyone else in English — neither needs the toggle.
+ *   3. else (no navigator info at all) → ES (her primary market is Spanish-
+ *      speaking South America, and crawlers get the indexed Spanish version).
  */
 
-// Detection order: saved choice first, then browser, then the html tag.
-// `caches: ['localStorage']` makes i18next persist the manual toggle choice.
-// `supportedLngs` + `nonExplicitSupportedLngs` + `load: 'languageOnly'` map
-// regional codes like `es-CO`, `en-US`, `pt-BR` down to the base language;
-// anything not in supportedLngs falls through to fallbackLng ('es').
+export const LANG_STORAGE_KEY = 'ta_lang';
+export type AppLanguage = 'es' | 'en';
+
+/** Collapse any i18next language value down to the two we support. */
+const normalizeLang = (lng?: string | null): AppLanguage =>
+  (lng ?? '').toLowerCase().startsWith('en') ? 'en' : 'es';
+
+/** An explicit, previously-saved manual choice — the top priority. */
+function readStoredLang(): AppLanguage | null {
+  try {
+    const stored = localStorage.getItem(LANG_STORAGE_KEY);
+    if (stored === 'es' || stored === 'en') return stored;
+  } catch {
+    /* localStorage may be unavailable (privacy mode / SSR) */
+  }
+  return null;
+}
+
+/** es-* browser → ES, anything else → EN, no navigator info → ES. */
+function detectBrowserLang(): AppLanguage {
+  const nav = typeof navigator !== 'undefined' ? navigator : undefined;
+  const primary = nav?.language || nav?.languages?.[0];
+  if (!primary) return 'es';
+  return primary.toLowerCase().startsWith('es') ? 'es' : 'en';
+}
+
+function resolveInitialLang(): AppLanguage {
+  return readStoredLang() ?? detectBrowserLang();
+}
+
+// Keep <html lang> truthful (TA.6e) so the browser stops offering a
+// wrong-direction auto-translate once the visitor is on the right language.
+const syncHtmlLang = (lng: string) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = normalizeLang(lng);
+  }
+};
+
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
       en: { translation: en },
       es: { translation: es },
     },
+    // Resolved synchronously from storage/navigator — see resolveInitialLang.
+    lng: resolveInitialLang(),
     supportedLngs: ['en', 'es'],
-    nonExplicitSupportedLngs: true,
-    load: 'languageOnly',
     fallbackLng: 'es',
     interpolation: {
-      // React already escapes values by default, but we enable this for defense in depth
-      // All translation files contain static developer-controlled content only
+      // React already escapes values by default; this is defense in depth.
+      // All translation files contain static developer-controlled content only.
       escapeValue: true,
-    },
-    detection: {
-      // localStorage first so the manual toggle choice wins on return visits.
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage'],
     },
   });
 
-// Keep <html lang> in sync with the active language (es | en).
-const syncHtmlLang = (lng: string) => {
-  const base = (lng || 'es').split('-')[0];
-  const normalized = base === 'en' ? 'en' : 'es';
-  if (typeof document !== 'undefined') {
-    document.documentElement.lang = normalized;
-  }
-};
-
+// Initial load + every subsequent change keep <html lang> in sync.
 syncHtmlLang(i18n.language);
 i18n.on('languageChanged', syncHtmlLang);
+
+/**
+ * Switch the app language from a manual control (the ES/EN toggle).
+ * Persists "ta_lang" so the choice outranks browser detection on every later
+ * visit, then updates i18next (which syncs <html lang> via the listener above).
+ * Call this instead of i18n.changeLanguage directly so persistence never drifts
+ * from the switch.
+ */
+export function setLanguage(lng: AppLanguage) {
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, lng);
+  } catch {
+    /* ignore storage failures; the in-memory switch still applies */
+  }
+  if (i18n.language?.startsWith(lng)) {
+    // Already active (e.g. confirming the detected language): make sure the
+    // html tag is right; no languageChanged event will fire on a no-op change.
+    syncHtmlLang(lng);
+  } else {
+    i18n.changeLanguage(lng);
+  }
+}
 
 export default i18n;

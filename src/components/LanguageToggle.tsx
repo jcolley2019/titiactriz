@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { Menu, Lock, LayoutDashboard, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { setLanguage } from '@/i18n';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -39,10 +40,7 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
 
   const isEn = i18n.language?.startsWith('en');
 
-  const setLang = (lng: 'en' | 'es') => {
-    if (i18n.language?.startsWith(lng)) return;
-    i18n.changeLanguage(lng);
-  };
+  const setLang = (lng: 'en' | 'es') => setLanguage(lng);
 
   const triggerClasses =
     variant === 'light'
