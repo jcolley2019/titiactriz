@@ -7,6 +7,7 @@ import SEO from "@/components/SEO";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
 import { useCinematicData } from "@/components/cinematic/useCinematicData";
 import CinematicHero from "@/components/cinematic/CinematicHero";
+import CinematicReel from "@/components/cinematic/CinematicReel";
 import "@/components/cinematic/cinematic.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -78,6 +79,15 @@ const HomeCinematic = () => {
         subtitle={t("hero.rolesLine")}
         scrollLabel={t("common.scroll")}
         reduced={prefersReduced}
+      />
+
+      <CinematicReel
+        reduced={prefersReduced}
+        slides={[
+          { photo: photos[0], title: t("hero.roles.actress") },
+          { photo: photos[1], title: t("hero.roles.streamer") },
+          { photo: photos[2], title: t("hero.roles.entrepreneur") },
+        ]}
       />
     </div>
   );
