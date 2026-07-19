@@ -108,6 +108,12 @@ const LoginCard = () => {
     setLoading(false);
     if (error) {
       setError(t("admin.login.invalid"));
+      return;
+    }
+    // Honor ?next= for OAuth consent (must be a same-origin relative path).
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      window.location.href = next;
     }
   };
 
