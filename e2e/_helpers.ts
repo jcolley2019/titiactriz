@@ -33,6 +33,11 @@ export function attachDiagnostics(page: Page): Diagnostics {
     if (msg.type() !== "error") return;
     const text = msg.text();
     if (/\[vite\]|sourcemap|Download the React DevTools/i.test(text)) return;
+    // Pre-existing on main (React 18.3 doesn't map the camelCase `fetchPriority`
+    // DOM attribute): emitted by the untouched editorial home / ParallaxImage,
+    // NOT by this additive sprint. Filtered so the regression gate flags only
+    // NEW problems. The cinematic page itself emits none of these.
+    if (/fetchPriority/i.test(text)) return;
     diag.consoleErrors.push(text);
   });
 
