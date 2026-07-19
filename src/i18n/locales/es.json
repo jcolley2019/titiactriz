@@ -494,6 +494,20 @@
       "updateFailed": "Error al actualizar",
       "failedFallback": "No se pudo actualizar"
     },
+    "cinematicHero": {
+      "title": "Foto principal cinemática",
+      "subtitle": "Qué foto publicada encabeza la página de inicio cinemática.",
+      "default": "Predeterminada",
+      "custom": "Personalizada",
+      "defaultOption": "Predeterminada (primera foto)",
+      "loading": "Cargando fotos…",
+      "thumbAlt": "Foto de la galería",
+      "updated": "Foto principal cinemática actualizada",
+      "updatedPhoto": "La foto elegida ahora encabeza la página de inicio cinemática.",
+      "updatedDefault": "De vuelta a la predeterminada (primera foto publicada).",
+      "updateFailed": "Error al actualizar",
+      "failedFallback": "No se pudo actualizar"
+    },
     "events": {
       "sectionTitle": "Eventos",
       "sectionSubtitle": "Gestiona el evento destacado y si la página se muestra al público.",

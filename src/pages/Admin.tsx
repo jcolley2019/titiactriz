@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import LivePreviewDock from "@/components/admin/LivePreviewDock";
 import HomeVariantToggle from "@/components/admin/HomeVariantToggle";
+import CinematicHeroPicker from "@/components/admin/CinematicHeroPicker";
 import EventsBoardManager from "@/components/admin/EventsBoardManager";
 
 type Photo = {
@@ -1032,6 +1033,8 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
       </div>
 
       <HomeVariantToggle />
+
+      <CinematicHeroPicker />
 
       <EventsBoardManager />
 

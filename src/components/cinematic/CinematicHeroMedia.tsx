@@ -29,6 +29,7 @@ const CinematicHeroMedia = ({ photo, videoSrc, reduced }: Props) => {
         <img
           src={photo.image_url}
           alt=""
+          data-qa="cinematic-hero-img"
           className={`h-full w-full object-cover ${reduced ? "" : "cine-kenburns"}`}
           // Anchor from the top so the frame never crops the top of her head.
           // Paired with the `center top` Ken Burns origin in cinematic.css, the

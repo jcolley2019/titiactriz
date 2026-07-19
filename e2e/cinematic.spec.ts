@@ -81,6 +81,75 @@ test.describe("cinematic — desktop", () => {
   });
 });
 
+test.describe("cinematic — admin-selectable hero (TA.6a)", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  const HERO = '[data-qa="cinematic-hero-img"]';
+  const SETTING_MATCH = "cinematic_hero_photo";
+
+  const heroSrc = (page: import("@playwright/test").Page) =>
+    page.locator(HERO).first().getAttribute("src");
+
+  // Collect the distinct published photo srcs from the gallery marquee, in order.
+  async function galleryOrder(page: import("@playwright/test").Page) {
+    const imgs = page.locator('[data-qa="cinematic-marquee-track"] img');
+    const n = await imgs.count();
+    const seen: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const src = await imgs.nth(i).getAttribute("src");
+      if (src && !seen.includes(src)) seen.push(src);
+    }
+    return seen;
+  }
+
+  test("defaults to the first published photo when the key is absent", async ({ page }) => {
+    // Force the absent-key case regardless of production state (no DB write).
+    await page.route(`**/site_settings*${SETTING_MATCH}*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "null" }),
+    );
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 900);
+
+    const order = await galleryOrder(page);
+    expect(order.length, "gallery should expose the published pool").toBeGreaterThan(1);
+    const hero = await heroSrc(page);
+    expect(hero, "default hero should be the first published photo").toBe(order[0]);
+  });
+
+  test("honors cinematic_hero_photo when set to a non-default photo", async ({ page }) => {
+    // First, learn the real published pool with the key forced absent.
+    await page.route(`**/site_settings*${SETTING_MATCH}*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "null" }),
+    );
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 900);
+    const order = await galleryOrder(page);
+    const defaultHero = await heroSrc(page);
+    expect(order.length).toBeGreaterThan(1);
+    const chosen = order[1]; // a genuinely different, non-default published photo
+    expect(chosen).not.toBe(order[0]);
+
+    // Now mock the setting to that photo's URL (the reader accepts id OR url).
+    await page.unroute(`**/site_settings*${SETTING_MATCH}*`);
+    await page.route(`**/site_settings*${SETTING_MATCH}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ value: chosen }),
+      }),
+    );
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 900);
+
+    const hero = await heroSrc(page);
+    expect(hero, "hero should honor the selected photo").toBe(chosen);
+    expect(hero, "selected hero differs from the default").not.toBe(defaultHero);
+    expect(hero ?? "", "hero image from owned backend").toContain("nsmstwkjbjicpdclgecq");
+
+    await page.screenshot({ path: shot(`TA.${BRICK}-hero-selected.png`) });
+  });
+});
+
 test.describe("cinematic — mobile", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

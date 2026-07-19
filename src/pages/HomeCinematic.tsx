@@ -5,7 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import SEO from "@/components/SEO";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
-import { useCinematicData } from "@/components/cinematic/useCinematicData";
+import { useCinematicData, resolveHeroPhoto } from "@/components/cinematic/useCinematicData";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
@@ -38,11 +38,14 @@ const HomeCinematic = () => {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
-  const { photos, heroVideo } = useCinematicData();
+  const { photos, heroVideo, heroPhotoSetting } = useCinematicData();
 
-  // Hero keeps photo #1; the reel draws from the remaining photos (#2, #3, #4…)
-  // so the first reel slide never duplicates the hero image.
-  const reelPhotos = photos.slice(1);
+  // Hero photo: the admin-selected one (site_settings "cinematic_hero_photo")
+  // when it resolves to a published photo, otherwise the first published photo
+  // (today's default behavior). The reel draws from every OTHER published photo
+  // so it never duplicates whichever photo the hero actually uses.
+  const heroPhoto = resolveHeroPhoto(photos, heroPhotoSetting);
+  const reelPhotos = photos.filter((p) => p.id !== heroPhoto?.id);
 
   // Lenis ↔ GSAP ScrollTrigger, scoped to this page only.
   useEffect(() => {
@@ -81,7 +84,7 @@ const HomeCinematic = () => {
       />
 
       <CinematicHero
-        photo={photos[0]}
+        photo={heroPhoto}
         videoSrc={heroVideo}
         subtitle={t("hero.rolesLine")}
         scrollLabel={t("common.scroll")}

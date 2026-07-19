@@ -494,6 +494,20 @@
       "updateFailed": "Update failed",
       "failedFallback": "Failed to update"
     },
+    "cinematicHero": {
+      "title": "Cinematic hero photo",
+      "subtitle": "Which published photo leads the cinematic home page.",
+      "default": "Default",
+      "custom": "Custom",
+      "defaultOption": "Default (first photo)",
+      "loading": "Loading photos…",
+      "thumbAlt": "Gallery photo",
+      "updated": "Cinematic hero updated",
+      "updatedPhoto": "The chosen photo now leads the cinematic home page.",
+      "updatedDefault": "Back to the default (first published photo).",
+      "updateFailed": "Update failed",
+      "failedFallback": "Failed to update"
+    },
     "events": {
       "sectionTitle": "Events",
       "sectionSubtitle": "Manage the featured event and whether the page is shown publicly.",
