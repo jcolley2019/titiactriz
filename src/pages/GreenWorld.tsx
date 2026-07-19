@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import ParallaxImage from "@/components/ParallaxImage";
 import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
+import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
 
 import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard";
 
@@ -209,7 +210,7 @@ const GreenWorld = () => {
                 className="bg-gw-green hover:bg-gw-green-dark text-gw-white font-bold h-14 px-10 rounded-lg shadow-lg hover:shadow-xl transition-all mb-6"
                 asChild
               >
-                <a href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ==" target="_blank" rel="noopener noreferrer">
+                <a href={GREEN_WORLD_SHOP_URL} target="_blank" rel="noopener noreferrer">
                   <ShoppingBag className="w-5 h-5 mr-2" />
                   Shop Green World
                 </a>

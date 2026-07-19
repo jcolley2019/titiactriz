@@ -8,6 +8,7 @@ import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
 import { useCinematicData, resolveHeroPhoto } from "@/components/cinematic/useCinematicData";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
+import CinematicVentures from "@/components/cinematic/CinematicVentures";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
 import CinematicContact from "@/components/cinematic/CinematicContact";
@@ -105,6 +106,10 @@ const HomeCinematic = () => {
       />
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
+
+      {/* TA.6b: ventures act — a full-bleed Green World / Titans Agency split
+          panel sitting between the reel/gallery and the about section. */}
+      <CinematicVentures reduced={prefersReduced} />
 
       <CinematicAbout reduced={prefersReduced} />
 

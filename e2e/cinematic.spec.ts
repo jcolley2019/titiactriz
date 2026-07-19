@@ -191,3 +191,127 @@ test.describe("cinematic — reduced motion", () => {
     }
   });
 });
+
+const VENTURES = '[data-qa="cinematic-ventures"]';
+const GW_PANEL = '[data-qa="venture-green-world"]';
+const TITANS_PANEL = '[data-qa="venture-titans"]';
+const GW_CTA = '[data-qa="venture-green-world-cta"]';
+const TITANS_CTA = '[data-qa="venture-titans-cta"]';
+
+test.describe("cinematic — ventures split-panel (TA.6b) desktop", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("renders both panels; GW href matches the Green World page, Titans routes internally", async ({
+    page,
+  }) => {
+    const diag = attachDiagnostics(page);
+
+    // Canonical Green World shop destination straight from its own page CTA.
+    await page.goto("/green-world", { waitUntil: "domcontentloaded" });
+    await settle(page, 500);
+    const pageShopHref = await page
+      .getByRole("link", { name: /shop green world/i })
+      .first()
+      .getAttribute("href");
+    expect(pageShopHref, "green world page has a shop destination").toBeTruthy();
+
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await expect(page.locator(VENTURES), "ventures section present").toHaveCount(1);
+    await expect(page.locator(GW_PANEL)).toBeVisible();
+    await expect(page.locator(TITANS_PANEL)).toBeVisible();
+
+    const gwHref = await page.locator(GW_CTA).getAttribute("href");
+    const titansHref = await page.locator(TITANS_CTA).getAttribute("href");
+
+    expect(gwHref, "ventures GW href matches the Green World page destination").toBe(pageShopHref);
+    expect(gwHref ?? "", "GW CTA points at the external store").toContain("world-food.com");
+    await expect(page.locator(GW_CTA)).toHaveAttribute("target", "_blank");
+    await expect(page.locator(GW_CTA)).toHaveAttribute("rel", /noopener/);
+
+    expect(titansHref ?? "", "Titans routes internally to its page").toContain("/titans-agency");
+    expect(titansHref ?? "", "Titans link is not external").not.toContain("http");
+
+    await page.locator(VENTURES).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: shot(`TA.${BRICK}-ventures-desktop.png`) });
+
+    expect(diag.consoleErrors, "console errors on ventures").toEqual([]);
+    expect(diag.failedResponses, "failed requests on ventures").toEqual([]);
+  });
+
+  test("hovering a half expands it (flex width shift)", async ({ page }) => {
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    const gw = page.locator(GW_PANEL);
+    const titans = page.locator(TITANS_PANEL);
+    await gw.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800); // let the entrance reveal settle
+
+    const gwBefore = (await gw.boundingBox())!.width;
+    const titansBefore = (await titans.boundingBox())!.width;
+
+    await gw.hover();
+    await page.waitForTimeout(750); // flex-grow transition (500ms) + margin
+    await page.screenshot({ path: shot(`TA.${BRICK}-ventures-hover.png`) });
+
+    const gwAfter = (await gw.boundingBox())!.width;
+    const titansAfter = (await titans.boundingBox())!.width;
+
+    expect(gwAfter, "hovered Green World half widens").toBeGreaterThan(gwBefore + 10);
+    expect(titansAfter, "the other half narrows").toBeLessThan(titansBefore);
+  });
+});
+
+test.describe("cinematic — ventures split-panel (TA.6b) mobile", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("panels stack full-width with working CTAs", async ({ page }) => {
+    const diag = attachDiagnostics(page);
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 600);
+
+    await page.locator(VENTURES).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+    await expect(page.locator(GW_PANEL)).toBeVisible();
+    await expect(page.locator(TITANS_PANEL)).toBeVisible();
+    await expect(page.locator(GW_CTA)).toBeVisible();
+    await expect(page.locator(TITANS_CTA)).toBeVisible();
+
+    await page.screenshot({ path: shot(`TA.${BRICK}-ventures-mobile.png`) });
+
+    expect(diag.consoleErrors, "console errors (ventures mobile)").toEqual([]);
+    expect(diag.failedResponses, "failed requests (ventures mobile)").toEqual([]);
+  });
+});
+
+test.describe("cinematic — ventures split-panel (TA.6b) reduced motion", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("static side-by-side with both CTAs functional", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 500);
+
+    await page.locator(VENTURES).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+
+    await expect(page.locator(GW_PANEL)).toBeVisible();
+    await expect(page.locator(TITANS_PANEL)).toBeVisible();
+
+    const gwCta = page.locator(GW_CTA);
+    const titansCta = page.locator(TITANS_CTA);
+    await expect(gwCta).toBeVisible();
+    await expect(titansCta).toBeVisible();
+    expect(await gwCta.getAttribute("href"), "GW CTA still has its destination").toContain(
+      "world-food.com",
+    );
+    expect(await titansCta.getAttribute("href"), "Titans CTA still routes internally").toContain(
+      "/titans-agency",
+    );
+
+    await page.screenshot({ path: shot(`TA.${BRICK}-ventures-reduced.png`) });
+  });
+});

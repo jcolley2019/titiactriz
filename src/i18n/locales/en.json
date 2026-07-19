@@ -153,6 +153,20 @@
     "close": "Close",
     "imageAlt": "Gallery image {{number}}"
   },
+  "cinematic": {
+    "ventures": {
+      "greenWorld": {
+        "eyebrow": "The Wellness Venture",
+        "valueProp": "Premium natural supplements and wellness, shipped worldwide.",
+        "cta": "Shop Green World"
+      },
+      "titans": {
+        "eyebrow": "The Creator Agency",
+        "valueProp": "TikTok growth, monetization and brand deals for LATAM creators.",
+        "cta": "Enter Titans Agency"
+      }
+    }
+  },
   "titans": {
     "hero": {
       "subtitle": "TikTok growth, creator support, monetization strategy, and brand partnerships for Latin American creators.",

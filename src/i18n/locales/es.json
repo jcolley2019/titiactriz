@@ -153,6 +153,20 @@
     "close": "Cerrar",
     "imageAlt": "Imagen de galería {{number}}"
   },
+  "cinematic": {
+    "ventures": {
+      "greenWorld": {
+        "eyebrow": "El emprendimiento de bienestar",
+        "valueProp": "Suplementos naturales premium y bienestar, enviados a todo el mundo.",
+        "cta": "Comprar Green World"
+      },
+      "titans": {
+        "eyebrow": "La agencia de creadores",
+        "valueProp": "Crecimiento en TikTok, monetización y marcas para creadores de LATAM.",
+        "cta": "Entrar a Titans Agency"
+      }
+    }
+  },
   "titans": {
     "hero": {
       "subtitle": "Crecimiento en TikTok, apoyo a creadores, estrategia de monetización y alianzas de marca para creadores latinoamericanos.",
