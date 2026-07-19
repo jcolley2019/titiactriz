@@ -20,8 +20,8 @@ import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
-import cpMonogramAsset from "@/assets/cp-monogram-transparent.png.asset.json";
-import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
+import cpMonogram from "@/assets/cp-monogram-transparent.png";
+import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 
 
 const heroPortrait = "/hero-portrait.webp";
@@ -151,7 +151,7 @@ const HomeEditorial = () => {
   // CP monogram — transparent PNG
   const CPMonogram = () => (
     <img
-      src={cpMonogramAsset.url}
+      src={cpMonogram}
       alt="CP monogram"
       draggable={false}
       className="mx-auto mt-8 block h-auto w-[90px] md:w-[120px] select-none pointer-events-none"
@@ -211,25 +211,25 @@ const HomeEditorial = () => {
           {/* Four corner flourishes */}
           <img
             aria-hidden
-            src={cornerOrnAsset.url}
+            src={cornerOrn}
             alt=""
             className="editorial-frame-corner absolute top-2 left-2 md:top-3 md:left-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20"
           />
           <img
             aria-hidden
-            src={cornerOrnAsset.url}
+            src={cornerOrn}
             alt=""
             className="editorial-frame-corner absolute top-2 right-2 md:top-3 md:right-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-x-100"
           />
           <img
             aria-hidden
-            src={cornerOrnAsset.url}
+            src={cornerOrn}
             alt=""
             className="editorial-frame-corner absolute bottom-2 left-2 md:bottom-3 md:left-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-y-100"
           />
           <img
             aria-hidden
-            src={cornerOrnAsset.url}
+            src={cornerOrn}
             alt=""
             className="editorial-frame-corner absolute bottom-2 right-2 md:bottom-3 md:right-3 w-[48px] sm:w-[64px] md:w-[80px] h-auto select-none pointer-events-none z-20 -scale-100"
           />
@@ -324,7 +324,7 @@ const HomeEditorial = () => {
                   className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                 >
                   <img
-                    src={cpMonogramAsset.url}
+                    src={cpMonogram}
                     alt="CP monogram"
                     draggable={false}
                     className="editorial-monogram block h-auto w-[90px] md:w-[120px] select-none"
