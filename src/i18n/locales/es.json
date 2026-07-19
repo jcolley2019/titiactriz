@@ -485,6 +485,8 @@
       "editorialDesc": "Nuevo diseño centrado con marco dorado animado.",
       "classicLabel": "Clásica",
       "classicDesc": "Página de inicio original (HomeClassic).",
+      "cinematicLabel": "Cinemática",
+      "cinematicDesc": "Experiencia cinemática con desplazamiento, reel fijado y galería horizontal.",
       "updated": "Página de inicio actualizada",
       "updatedDesc": "Ahora se muestra la variante {{variant}} en /.",
       "updateFailed": "Error al actualizar",

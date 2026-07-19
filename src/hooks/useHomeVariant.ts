@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type HomeVariant = "editorial" | "classic";
+export type HomeVariant = "editorial" | "classic" | "cinematic";
 export const HOME_VARIANT_KEY = "home_variant";
 export const HOME_VARIANT_DEFAULT: HomeVariant = "editorial";
 
 const parseVariant = (v: unknown): HomeVariant =>
-  v === "classic" || v === "editorial" ? v : HOME_VARIANT_DEFAULT;
+  v === "classic" || v === "editorial" || v === "cinematic" ? v : HOME_VARIANT_DEFAULT;
 
 export const fetchHomeVariant = async (): Promise<HomeVariant> => {
   const { data } = await supabase

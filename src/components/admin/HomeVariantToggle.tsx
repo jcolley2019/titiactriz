@@ -26,6 +26,11 @@ const HomeVariantToggle = () => {
       label: t("admin.homeVariant.classicLabel"),
       description: t("admin.homeVariant.classicDesc"),
     },
+    {
+      value: "cinematic",
+      label: t("admin.homeVariant.cinematicLabel"),
+      description: t("admin.homeVariant.cinematicDesc"),
+    },
   ];
 
   useEffect(() => {

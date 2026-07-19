@@ -485,6 +485,8 @@
       "editorialDesc": "New centered layout with animated gold frame.",
       "classicLabel": "Classic",
       "classicDesc": "Original landing page (HomeClassic).",
+      "cinematicLabel": "Cinematic",
+      "cinematicDesc": "Scroll-driven cinematic experience with pinned reel and horizontal gallery.",
       "updated": "Home page updated",
       "updatedDesc": "Now showing the {{variant}} variant at /.",
       "updateFailed": "Update failed",
