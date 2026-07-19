@@ -63,6 +63,7 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
         <Button
           variant="ghost"
           size="sm"
+          data-qa="lang-menu-trigger"
           className={`gap-2 ${triggerClasses}`}
           aria-label={t('nav.menu', 'Menu')}
         >
@@ -77,8 +78,9 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
         <div className="px-2 pb-2 pt-1">
           <div
             role="group"
+            translate="no"
             aria-label={t('nav.switchLanguage', 'Switch language')}
-            className="flex rounded-md border border-border overflow-hidden text-xs font-semibold tracking-[0.2em]"
+            className="notranslate flex rounded-md border border-border overflow-hidden text-xs font-semibold tracking-[0.2em]"
           >
             {(['es', 'en'] as const).map((lng) => {
               const active = lng === 'en' ? isEn : !isEn;
@@ -86,6 +88,7 @@ const LanguageToggle = ({ variant = 'default' }: LanguageToggleProps) => {
                 <button
                   key={lng}
                   type="button"
+                  data-qa={`lang-${lng}`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

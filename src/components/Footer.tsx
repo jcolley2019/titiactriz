@@ -15,11 +15,11 @@ const Footer = () => {
 
   const eventsVisible = !loading && board.pageVisible === true;
 
-  const footerLinks = [
+  const footerLinks: { name: string; path: string; noTranslate?: boolean }[] = [
     { name: t("nav.home"), path: "/" },
     ...(eventsVisible ? [{ name: t("events.title"), path: "/events" }] : []),
-    { name: t("nav.titansAgency"), path: "/titans-agency" },
-    { name: t("nav.greenWorld"), path: "/green-world" },
+    { name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true },
+    { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
     { name: t("nav.portfolio"), path: "/work" },
   ];
 
@@ -33,7 +33,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
           {/* Brand */}
           <div>
-            <h3 className="font-serif text-2xl mb-5">
+            <h3 translate="no" className="notranslate font-serif text-2xl mb-5">
               Cristyna <span className="text-accent italic">Polentino</span>
             </h3>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
@@ -49,6 +49,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     to={link.path}
+                    translate={link.noTranslate ? "no" : undefined}
                     className="text-muted-foreground hover:text-gold-light transition-colors duration-300 text-sm link-underline"
                   >
                     {link.name}

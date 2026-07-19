@@ -212,12 +212,12 @@ const GreenWorld = () => {
               >
                 <a href={GREEN_WORLD_SHOP_URL} target="_blank" rel="noopener noreferrer">
                   <ShoppingBag className="w-5 h-5 mr-2" />
-                  Shop Green World
+                  Shop <span translate="no" className="notranslate">Green World</span>
                 </a>
               </Button>
-              
+
               <p className="text-gw-text/70 text-base leading-relaxed">
-                Contact Cristyna Polentino for personalized product recommendations and business opportunities.
+                Contact <span translate="no" className="notranslate">Cristyna Polentino</span> for personalized product recommendations and business opportunities.
               </p>
             </div>
             <div className="relative">

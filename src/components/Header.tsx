@@ -9,6 +9,8 @@ import { useEventsBoard } from "@/hooks/useEventsBoard";
 import monogram from "@/assets/cp-monogram-transparent.png";
 import monogramTwoTone from "@/assets/cp-monogram-twotone.png";
 
+type NavLink = { name: string; path: string; noTranslate?: boolean };
+
 const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -47,22 +49,24 @@ const Header = () => {
     navigate("/");
   };
 
-  const leftLinks = [
+  // `noTranslate` marks brand proper nouns (Green World / Titans Agency) so
+  // browser auto-translate leaves them intact.
+  const leftLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
-    { name: t("nav.greenWorld"), path: "/green-world" },
-    { name: t("nav.titansAgency"), path: "/titans-agency" },
+    { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
+    { name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true },
   ];
-  const rightLinks = [
+  const rightLinks: NavLink[] = [
     { name: t("nav.portfolio"), path: "/work" },
     { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
 
   // Mobile-only inline links: shorter "Titans" label, optionally Events
-  const mobileInlineLinks: { name: string; path: string }[] = [
+  const mobileInlineLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
-    { name: t("nav.greenWorld"), path: "/green-world" },
-    { name: t("nav.titansShort", "Titans"), path: "/titans-agency" },
+    { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
+    { name: t("nav.titansShort", "Titans"), path: "/titans-agency", noTranslate: true },
   ];
   if (eventsVisible) {
     mobileInlineLinks.push({ name: t("nav.events", "Events"), path: "/events" });
@@ -99,13 +103,15 @@ const Header = () => {
         ? "text-gold-light"
         : "text-[#f0e9da] hover:text-gold-light";
 
-  const renderLink = (link: { name: string; path: string }) => {
+  const renderLink = (link: NavLink) => {
     const active = location.pathname === link.path;
+    const noTranslate = link.noTranslate ? "no" : undefined;
     if (link.path.includes("#")) {
       return (
         <a
           href={link.path}
           onClick={() => handleNavClick(link.path)}
+          translate={noTranslate}
           className={`${linkBase} ${linkColor(false)}`}
         >
           {link.name}
@@ -113,7 +119,7 @@ const Header = () => {
       );
     }
     return (
-      <Link to={link.path} className={`${linkBase} ${linkColor(active)}`}>
+      <Link to={link.path} translate={noTranslate} className={`${linkBase} ${linkColor(active)}`}>
         {link.name}
       </Link>
     );
@@ -184,6 +190,7 @@ const Header = () => {
               <li key={link.path} className="min-w-0">
                 <Link
                   to={link.path}
+                  translate={link.noTranslate ? "no" : undefined}
                   className={`mobile-nav-link uppercase font-light whitespace-nowrap transition-colors ${
                     isGreenWorldPage
                       ? active
@@ -288,8 +295,9 @@ const Header = () => {
           <li>
             <div
               role="group"
+              translate="no"
               aria-label={t("nav.switchLanguage", "Switch language")}
-              className={`flex rounded-md overflow-hidden text-xs font-semibold tracking-[0.2em] border ${
+              className={`notranslate flex rounded-md overflow-hidden text-xs font-semibold tracking-[0.2em] border ${
                 isTitansPage
                   ? "border-white/20"
                   : isGreenWorldPage

@@ -84,7 +84,8 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced }: Prop
           <h1
             data-qa="section-heading"
             aria-label="Cristyna Polentino"
-            className="uppercase leading-[0.92] tracking-[0.05em]"
+            translate="no"
+            className="notranslate uppercase leading-[0.92] tracking-[0.05em]"
             style={{
               fontFamily: "var(--font-display)",
               fontSize: "clamp(2.75rem, 11vw, 9rem)",

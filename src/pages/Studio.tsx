@@ -77,7 +77,7 @@ const Studio = () => {
                 <img src={item.image} alt={`${item.name} screenshot`} loading="lazy" className="w-full h-full object-cover object-top" />
               </div>
               <div className="p-6 flex flex-col flex-1">
-                <h3 className="font-serif text-xl text-foreground">{item.name}</h3>
+                <h3 translate="no" className="notranslate font-serif text-xl text-foreground">{item.name}</h3>
                 <p className="text-muted-foreground text-sm mt-2 flex-1">{t(item.descKey)}</p>
                 {item.current ? (
                   <a href={item.url} className="mt-4 inline-flex items-center gap-2 text-accent text-caps text-xs hover:text-gold-light transition-colors">

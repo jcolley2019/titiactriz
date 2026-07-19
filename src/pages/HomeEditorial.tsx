@@ -239,7 +239,8 @@ const HomeEditorial = () => {
             <div className="order-2 lg:order-1 flex w-full flex-col items-center text-center">
               <div className="editorial-title mx-auto w-fit text-center">
                 <h1
-                  className="leading-[0.95] tracking-[0.04em] uppercase"
+                  translate="no"
+                  className="notranslate leading-[0.95] tracking-[0.04em] uppercase"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   <span
@@ -346,14 +347,16 @@ const HomeEditorial = () => {
                     href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ=="
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
+                    translate="no"
+                    className="notranslate inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
                     style={{ color: CREAM, borderColor: GOLD }}
                   >
                     Green World
                   </a>
                   <Link
                     to="/titans-agency"
-                    className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
+                    translate="no"
+                    className="notranslate inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
                     style={{ color: CREAM, borderColor: GOLD }}
                   >
                     Titans Agency
