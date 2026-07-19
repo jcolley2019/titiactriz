@@ -1,9 +1,13 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import SEO from "@/components/SEO";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
+import { useCinematicData } from "@/components/cinematic/useCinematicData";
+import CinematicHero from "@/components/cinematic/CinematicHero";
+import "@/components/cinematic/cinematic.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,8 +31,10 @@ const cinematicFontVars: React.CSSProperties = {
 };
 
 const HomeCinematic = () => {
+  const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
+  const { photos, heroVideo } = useCinematicData();
 
   // Lenis ↔ GSAP ScrollTrigger, scoped to this page only.
   useEffect(() => {
@@ -48,6 +54,12 @@ const HomeCinematic = () => {
     };
   }, [prefersReduced]);
 
+  // Keep ScrollTrigger measurements correct once async photos change layout.
+  useEffect(() => {
+    if (prefersReduced) return;
+    ScrollTrigger.refresh();
+  }, [photos, prefersReduced]);
+
   return (
     <div
       ref={rootRef}
@@ -60,25 +72,13 @@ const HomeCinematic = () => {
         description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio, Titans Agency y Green World."
       />
 
-      {/* Foundation shell — sections are added brick by brick (TA.1+). */}
-      <section
-        data-qa="cinematic-section"
-        className="relative flex min-h-[100svh] flex-col items-center justify-center px-6 text-center"
-      >
-        <h1
-          data-qa="section-heading"
-          className="uppercase tracking-[0.06em] leading-[0.95]"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(2.5rem, 9vw, 7rem)",
-          }}
-        >
-          <span className="block">Cristyna</span>
-          <span className="block" style={{ color: "#C9A55C" }}>
-            Polentino
-          </span>
-        </h1>
-      </section>
+      <CinematicHero
+        photo={photos[0]}
+        videoSrc={heroVideo}
+        subtitle={t("hero.rolesLine")}
+        scrollLabel={t("common.scroll")}
+        reduced={prefersReduced}
+      />
     </div>
   );
 };

@@ -1,0 +1,38 @@
+/* ===== Cinematic home (TA.SPRINT.1) — scoped styles =====
+   Class names are prefixed `cine-` to avoid collisions with the rest of the
+   site. Loaded only via the lazy /cinematic chunk. Every animation here is
+   disabled under prefers-reduced-motion (see the media query at the bottom). */
+
+/* Slow Ken Burns drift on the hero background image (1.0 → 1.08, ~12s loop). */
+@keyframes cine-kenburns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+.cine-kenburns {
+  transform-origin: center;
+  animation: cine-kenburns 12s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Bottom scroll cue — gentle pulse. */
+@keyframes cine-scrollcue {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50%      { opacity: 1;    transform: translateY(4px); }
+}
+.cine-scrollcue-line {
+  animation: cine-scrollcue 2s ease-in-out infinite;
+}
+
+/* Per-letter hero reveal is driven by GSAP; this is only the pre-paint state so
+   letters don't flash before the timeline hides them. GSAP restores them. */
+.cine-letter {
+  display: inline-block;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-kenburns { animation: none !important; transform: none !important; }
+  .cine-scrollcue-line { animation: none !important; }
+  /* GSAP is never instantiated under reduced motion, so letters stay visible. */
+  .cine-letter { transform: none !important; opacity: 1 !important; }
+}
