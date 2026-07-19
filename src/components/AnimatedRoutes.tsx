@@ -14,6 +14,7 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Events = lazy(() => import("@/pages/Events"));
 const Studio = lazy(() => import("@/pages/Studio"));
+const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
 
 const RouteFallback = () => (
   <div
@@ -104,6 +105,14 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<RouteFallback />}>
               <Admin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/.lovable/oauth/consent"
+          element={
+            <Suspense fallback={<RouteFallback />}>
+              <OAuthConsent />
             </Suspense>
           }
         />
