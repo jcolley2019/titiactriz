@@ -1,24 +1,28 @@
 import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CinematicPhoto } from "./useCinematicData";
-
-gsap.registerPlugin(ScrollTrigger);
 
 type Props = { photos: CinematicPhoto[]; reduced: boolean };
 
 /**
- * TA.3 horizontal gallery — vertical scroll drives a horizontal track through
- * ALL published photos (ordered by sort_order upstream), each with a subtle
- * parallax as it crosses the viewport, ending on a total-count marker. Under
- * reduced motion it becomes a plain vertical grid.
+ * TA.5a gallery — a self-driving infinite marquee. The track holds two identical
+ * copies of every published photo (ordered by sort_order upstream); a single
+ * linear GSAP tween drifts it left by exactly one copy's width and loops
+ * forever, so the wrap is seamless. The tween DURATION SCALES WITH THE PHOTO
+ * COUNT (~4s per photo), so the drift speed stays constant no matter how many
+ * photos exist — it never gets tedious as the gallery grows.
+ *
+ * The section is NOT scroll-pinned: it is a normal ~70vh flow section, so
+ * vertical scroll passes straight through. Hover (desktop) or touch-hold
+ * (mobile) pauses the drift; releasing resumes it. Under reduced motion it
+ * falls back to a plain static grid.
  */
 const CinematicGallery = ({ photos, reduced }: Props) => {
   const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
 
   const altFor = (p: CinematicPhoto, i: number) =>
     p.alt_text && p.alt_text.trim().length > 0
@@ -30,60 +34,47 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
 
     const ctx = gsap.context(() => {
       const track = trackRef.current!;
-      const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
-
-      const hAnim = gsap.to(track, {
-        x: () => -distance(),
+      // The track is two identical copies laid side by side. Shifting left by
+      // exactly 50% of its width lands copy #2 where copy #1 began — visually
+      // identical, so repeating from 0 is seamless. ~4s per photo keeps the
+      // pace constant regardless of how many photos there are.
+      tweenRef.current = gsap.to(track, {
+        xPercent: -50,
         ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top top",
-          end: () => `+=${distance()}`,
-          scrub: true,
-          pin: pinRef.current,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      // Subtle per-image parallax, tied to the horizontal scroll.
-      gsap.utils.toArray<HTMLElement>(".cine-gallery-img").forEach((img) => {
-        gsap.fromTo(
-          img,
-          { xPercent: -5 },
-          {
-            xPercent: 5,
-            ease: "none",
-            scrollTrigger: {
-              trigger: img,
-              containerAnimation: hAnim,
-              start: "left right",
-              end: "right left",
-              scrub: true,
-            },
-          },
-        );
+        duration: photos.length * 4,
+        repeat: -1,
       });
     }, sectionRef);
 
-    return () => ctx.revert();
+    return () => {
+      tweenRef.current = null;
+      ctx.revert();
+    };
   }, [reduced, photos.length]);
 
-  // Reduced motion: standard vertical grid.
+  const pause = () => tweenRef.current?.pause();
+  const resume = () => tweenRef.current?.resume();
+
+  const heading = (
+    <div className="mb-10 px-6 text-center">
+      <p className="text-caps mb-3" style={{ color: "#C9A55C" }}>
+        {t("gallery.eyebrow")}
+      </p>
+      <h2
+        data-qa="section-heading"
+        className="text-3xl md:text-4xl"
+        style={{ fontFamily: "var(--font-display)", color: "#f4ecdb" }}
+      >
+        {t("gallery.title")}
+      </h2>
+    </div>
+  );
+
+  // Reduced motion: standard static vertical grid (no drift, no duplication).
   if (reduced) {
     return (
       <section ref={sectionRef} data-qa="cinematic-gallery" className="relative px-6 py-20">
-        <div className="mb-10 text-center">
-          <p className="text-caps mb-3" style={{ color: "#C9A55C" }}>
-            {t("gallery.eyebrow")}
-          </p>
-          <h2
-            data-qa="section-heading"
-            className="text-3xl md:text-4xl"
-            style={{ fontFamily: "var(--font-display)", color: "#f4ecdb" }}
-          >
-            {t("gallery.title")}
-          </h2>
-        </div>
+        {heading}
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 md:grid-cols-3">
           {photos.map((p, i) => (
             <img
@@ -103,66 +94,54 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
     );
   }
 
+  // Two copies of the photo list for a seamless wrap. The second copy is
+  // aria-hidden so assistive tech doesn't announce every photo twice.
+  const doubled = photos.length > 0 ? [...photos, ...photos] : [];
+
   return (
-    <section ref={sectionRef} data-qa="cinematic-gallery" className="relative">
-      <div ref={pinRef} className="relative h-[100svh] overflow-hidden">
+    <section ref={sectionRef} data-qa="cinematic-gallery" className="relative overflow-hidden py-14 md:py-16">
+      {heading}
+
+      <div
+        data-qa="cinematic-marquee"
+        className="relative overflow-hidden"
+        onMouseEnter={pause}
+        onMouseLeave={resume}
+        onTouchStart={pause}
+        onTouchEnd={resume}
+        onTouchCancel={resume}
+      >
         <div
           ref={trackRef}
-          className="flex h-full items-center gap-6 pl-6 pr-6 md:gap-8 md:pl-12"
-          style={{ width: "max-content" }}
+          data-qa="cinematic-marquee-track"
+          className="flex w-max items-center"
+          style={{ willChange: "transform" }}
         >
-          {/* Intro panel */}
-          <div className="flex h-[62svh] w-[80vw] shrink-0 flex-col justify-center sm:w-[46vw] lg:w-[30vw]">
-            <p className="text-caps mb-3" style={{ color: "#C9A55C" }}>
-              {t("gallery.eyebrow")}
-            </p>
-            <h2
-              data-qa="section-heading"
-              className="leading-tight"
-              style={{
-                fontFamily: "var(--font-display)",
-                color: "#f4ecdb",
-                fontSize: "clamp(2rem, 4vw, 3.5rem)",
-              }}
-            >
-              {t("gallery.title")}
-            </h2>
-          </div>
-
-          {/* Photos */}
-          {photos.map((p, i) => (
-            <figure
-              key={p.id}
-              className="relative h-[62svh] aspect-[4/5] shrink-0 overflow-hidden rounded-sm"
-            >
-              <img
-                src={p.image_url}
-                alt={altFor(p, i)}
-                loading="lazy"
-                decoding="async"
-                className="cine-gallery-img absolute top-0 left-[-12%] h-full w-[124%] max-w-none object-cover"
-              />
-            </figure>
-          ))}
-
-          {/* End cap: total-count marker */}
-          <div className="flex h-[62svh] shrink-0 flex-col items-center justify-center px-16 text-center">
-            <span
-              className="leading-none"
-              style={{
-                fontFamily: "var(--font-display)",
-                color: "#C9A55C",
-                fontSize: "clamp(4rem, 12vw, 9rem)",
-              }}
-            >
-              {photos.length}
-            </span>
-            <span className="text-caps mt-3" style={{ color: "rgba(240,233,218,0.7)" }}>
-              {t("gallery.title")}
-            </span>
-          </div>
+          {doubled.map((p, i) => {
+            const isClone = i >= photos.length;
+            const originalIndex = i % photos.length;
+            return (
+              <figure
+                key={i}
+                aria-hidden={isClone}
+                className="relative mr-6 aspect-[4/5] h-[56svh] shrink-0 overflow-hidden rounded-sm md:mr-8"
+              >
+                <img
+                  src={p.image_url}
+                  alt={isClone ? "" : altFor(p, originalIndex)}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </figure>
+            );
+          })}
         </div>
       </div>
+
+      <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
+        {photos.length} · {t("gallery.title")}
+      </p>
     </section>
   );
 };

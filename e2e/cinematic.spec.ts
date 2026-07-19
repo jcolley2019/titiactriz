@@ -2,11 +2,16 @@ import { test, expect } from "@playwright/test";
 import { attachDiagnostics, scrollThrough, shot, BRICK } from "./_helpers";
 
 /**
- * Per-brick self-verification for /cinematic (TA.SPRINT.1 addendum).
+ * Per-brick self-verification for /cinematic (TA.SPRINT.1 + TA.5 polish).
  * Adaptive: sections are feature-detected via data-qa hooks, so the same
  * spec passes from the bare TA.0 shell through the finished page.
+ *
+ * TA.5a adds live-motion proof for the gallery: it is now a self-driving
+ * infinite marquee (no scroll pinning), so we assert its transform advances on
+ * its own over a 2s window and freezes while hovered.
  */
 const PATH = "/cinematic";
+const MARQUEE = '[data-qa="cinematic-marquee-track"]';
 
 async function settle(page: import("@playwright/test").Page, ms = 700) {
   await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
@@ -20,6 +25,10 @@ test.describe("cinematic — desktop", () => {
     const diag = attachDiagnostics(page);
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 800);
+
+    // Hero framing evidence: exact-viewport shot of the top of the page so the
+    // top-anchored object-position can be judged (no cropping of her head).
+    await page.screenshot({ path: shot(`TA.${BRICK}-hero-desktop.png`) });
 
     await page.screenshot({ path: shot(`TA.${BRICK}-desktop.png`), fullPage: true });
     await scrollThrough(page, `TA.${BRICK}`);
@@ -39,6 +48,37 @@ test.describe("cinematic — desktop", () => {
     expect(diag.consoleErrors, "console errors during load + scroll").toEqual([]);
     expect(diag.failedResponses, "failed network requests").toEqual([]);
   });
+
+  test("gallery marquee self-drives and pauses on hover", async ({ page }) => {
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 900);
+
+    const track = page.locator(MARQUEE);
+    await expect(track, "marquee track should be present under motion").toHaveCount(1);
+
+    const readTransform = () =>
+      track.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
+
+    // Park the cursor well away from the marquee so nothing is paused, then
+    // prove the track advances on its own over a 2s window.
+    await page.mouse.move(5, 5);
+    await page.waitForTimeout(150);
+    const t0 = await readTransform();
+    await page.waitForTimeout(2000);
+    const t1 = await readTransform();
+    expect(t0, "marquee should be transformed by GSAP").not.toBe("none");
+    expect(t1, "marquee transform should advance over 2s (self-driving)").not.toBe(t0);
+
+    // Hover the marquee → it must pause: transform stays put over 500ms.
+    // Hover the viewport-sized wrapper (not the ~19k-px-wide track, whose
+    // centre is far off-screen and therefore not hoverable).
+    await page.locator('[data-qa="cinematic-marquee"]').hover();
+    await page.waitForTimeout(200); // let the pause take effect
+    const h0 = await readTransform();
+    await page.waitForTimeout(500);
+    const h1 = await readTransform();
+    expect(h1, "marquee transform should be stable while hovered (paused)").toBe(h0);
+  });
 });
 
 test.describe("cinematic — mobile", () => {
@@ -49,6 +89,8 @@ test.describe("cinematic — mobile", () => {
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 600);
 
+    // Hero framing evidence at phone size.
+    await page.screenshot({ path: shot(`TA.${BRICK}-hero-mobile.png`) });
     await page.screenshot({ path: shot(`TA.${BRICK}-mobile.png`), fullPage: true });
 
     expect(diag.consoleErrors, "console errors (mobile)").toEqual([]);
@@ -57,13 +99,20 @@ test.describe("cinematic — mobile", () => {
 });
 
 test.describe("cinematic — reduced motion", () => {
-  test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  test.use({ viewport: { width: 1440, height: 900 } });
 
   test("static layout still renders every section heading", async ({ page }) => {
+    // NOTE: the `reducedMotion` test-fixture option is not honoured in this
+    // Playwright build (1.61.1) — matchMedia still reports no-preference. Emulate
+    // it explicitly on the page so the reduced-motion branch is actually exercised.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 400);
 
     await page.screenshot({ path: shot(`TA.${BRICK}-reduced.png`), fullPage: true });
+
+    // Under reduced motion the marquee is replaced by a static grid.
+    await expect(page.locator(MARQUEE), "no marquee under reduced motion").toHaveCount(0);
 
     const headings = page.locator('[data-qa="section-heading"]');
     const n = await headings.count();
