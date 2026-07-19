@@ -75,7 +75,11 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced }: Prop
     >
       <CinematicHeroMedia photo={photo} videoSrc={videoSrc} reduced={reduced} />
 
-      <div className="relative z-10 flex flex-col items-center">
+      {/* TA.6d: nudge the whole lockup down ~8vh (to ~58% of the viewport) so
+          the name overlaps her chest/torso and her head sits clearly above the
+          first line, at both viewports. Composes with the title's scroll
+          parallax (animated on titleRef, a child) and the reduced-motion path. */}
+      <div className="relative z-10 flex flex-col items-center" style={{ transform: "translateY(8vh)" }}>
         <div ref={titleRef}>
           <h1
             data-qa="section-heading"

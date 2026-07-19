@@ -31,10 +31,12 @@ const CinematicHeroMedia = ({ photo, videoSrc, reduced }: Props) => {
           alt=""
           data-qa="cinematic-hero-img"
           className={`h-full w-full object-cover ${reduced ? "" : "cine-kenburns"}`}
-          // Anchor from the top so the frame never crops the top of her head.
-          // Paired with the `center top` Ken Burns origin in cinematic.css, the
-          // slow zoom pushes downward/outward instead of eating the top edge.
-          style={{ objectPosition: "center top" }}
+          // TA.6d: anchor just below the very top (center 8%) so the subject
+          // rides a touch higher in the frame — her head keeps clear headroom
+          // and lands ABOVE the name lockup. Paired with the `center top` Ken
+          // Burns origin in cinematic.css, the slow zoom still pushes
+          // downward/outward instead of eating the top edge (never clips her head).
+          style={{ objectPosition: "center 8%" }}
           decoding="async"
         />
       ) : (
