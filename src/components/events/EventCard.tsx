@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import cornerOrnAsset from "@/assets/cp-corner-ornament-v2.png.asset.json";
+import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import type {
   EventItem,
   EventButton,
@@ -33,25 +33,25 @@ const frameStyle: React.CSSProperties = {
 const Corners = () => (
   <>
     <img
-      src={cornerOrnAsset.url}
+      src={cornerOrn}
       alt=""
       aria-hidden
       className="pointer-events-none absolute top-2 left-2 w-[40px] md:w-[56px] h-auto select-none"
     />
     <img
-      src={cornerOrnAsset.url}
+      src={cornerOrn}
       alt=""
       aria-hidden
       className="pointer-events-none absolute top-2 right-2 w-[40px] md:w-[56px] h-auto select-none -scale-x-100"
     />
     <img
-      src={cornerOrnAsset.url}
+      src={cornerOrn}
       alt=""
       aria-hidden
       className="pointer-events-none absolute bottom-2 left-2 w-[40px] md:w-[56px] h-auto select-none -scale-y-100"
     />
     <img
-      src={cornerOrnAsset.url}
+      src={cornerOrn}
       alt=""
       aria-hidden
       className="pointer-events-none absolute bottom-2 right-2 w-[40px] md:w-[56px] h-auto select-none -scale-100"
