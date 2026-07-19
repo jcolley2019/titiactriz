@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 _migration/
+
+# Playwright QA harness — screenshots + browser/report artifacts (never committed)
+_qa/
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
