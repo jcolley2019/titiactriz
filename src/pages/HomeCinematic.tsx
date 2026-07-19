@@ -8,6 +8,7 @@ import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
 import { useCinematicData } from "@/components/cinematic/useCinematicData";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
+import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import "@/components/cinematic/cinematic.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -89,6 +90,8 @@ const HomeCinematic = () => {
           { photo: photos[2], title: t("hero.roles.entrepreneur") },
         ]}
       />
+
+      <CinematicGallery photos={photos} reduced={prefersReduced} />
     </div>
   );
 };
