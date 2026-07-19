@@ -9,7 +9,9 @@
   to   { transform: scale(1.08); }
 }
 .cine-kenburns {
-  transform-origin: center;
+  /* Anchor the zoom at the top edge so it expands downward/outward and never
+     crawls up into the top of her head (pairs with object-position center top). */
+  transform-origin: center top;
   animation: cine-kenburns 12s ease-in-out infinite alternate;
   will-change: transform;
 }
