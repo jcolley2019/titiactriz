@@ -71,7 +71,7 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced }: Prop
     <section
       ref={sectionRef}
       data-qa="cinematic-section"
-      className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
+      className="cine-vh-full relative flex items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
     >
       <CinematicHeroMedia photo={photo} videoSrc={videoSrc} reduced={reduced} />
 
@@ -116,7 +116,7 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced }: Prop
       </div>
 
       {/* Scroll cue */}
-      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2">
+      <div data-qa="cinematic-scrollcue" className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2">
         <div className="flex flex-col items-center gap-2 text-[#f0e9da]/60">
           <span className="text-[10px] uppercase tracking-[0.3em]">{scrollLabel}</span>
           <span className="cine-scrollcue-line block h-10 w-px bg-gradient-to-b from-[#C9A55C]/80 to-transparent" />

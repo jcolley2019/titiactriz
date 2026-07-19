@@ -73,6 +73,47 @@ const HomeCinematic = () => {
     ScrollTrigger.refresh();
   }, [photos, prefersReduced]);
 
+  // TA.7d: own the scroll position for this cinematic route. Disable the
+  // browser's automatic scroll restoration — on a refresh it could otherwise
+  // restore a stale offset against a not-yet-measured layout — and start at the
+  // top. The prior policy is restored on unmount so other routes are unaffected.
+  useEffect(() => {
+    const supported = typeof history !== "undefined" && "scrollRestoration" in history;
+    const prev = supported ? history.scrollRestoration : undefined;
+    if (supported) {
+      try {
+        history.scrollRestoration = "manual";
+      } catch {
+        /* some browsers disallow setting it — best effort */
+      }
+    }
+    window.scrollTo(0, 0);
+    return () => {
+      if (supported && prev) {
+        try {
+          history.scrollRestoration = prev;
+        } catch {
+          /* noop */
+        }
+      }
+    };
+  }, []);
+
+  // TA.7d: web fonts change the measured height of the pinned/scrubbed sections.
+  // Refresh once they settle so every ScrollTrigger start/end is computed against
+  // the final layout (prevents a late height shift under motion).
+  useEffect(() => {
+    if (prefersReduced) return;
+    let cancelled = false;
+    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+    fonts?.ready.then(() => {
+      if (!cancelled) ScrollTrigger.refresh();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [prefersReduced]);
+
   return (
     <div
       ref={rootRef}

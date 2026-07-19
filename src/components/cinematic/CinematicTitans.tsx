@@ -90,7 +90,7 @@ const CinematicTitans = ({ reduced }: Props) => {
     <section
       ref={sectionRef}
       data-qa="cinematic-titans"
-      className="relative w-full min-h-[90vh] overflow-hidden md:min-h-screen"
+      className="cine-act-vh relative w-full overflow-hidden"
       style={{ backgroundColor: NEAR_BLACK }}
     >
       {reduced ? (
@@ -127,7 +127,7 @@ const CinematicTitans = ({ reduced }: Props) => {
       />
 
       {/* Type — lower third so the landed badge stays unobstructed. */}
-      <div className="relative z-20 flex min-h-[90vh] items-end md:min-h-screen">
+      <div className="cine-act-vh relative z-20 flex items-end">
         <div className="w-full px-6 pb-16 md:pb-24">
           <div className="cine-titans-type mx-auto max-w-2xl text-center md:mx-0 md:max-w-xl md:pl-6 md:text-left lg:pl-16">
             <p

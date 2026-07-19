@@ -135,7 +135,7 @@ const CinematicReel = ({ slides, reduced }: Props) => {
 
   return (
     <section ref={sectionRef} data-qa="cinematic-section" className="relative">
-      <div ref={pinRef} className="relative h-[100svh] w-full overflow-hidden">
+      <div ref={pinRef} className="cine-h-full relative w-full overflow-hidden">
         {slides.map((s, i) => (
           <div
             key={i}

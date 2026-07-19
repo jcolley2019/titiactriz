@@ -32,6 +32,21 @@
   will-change: transform;
 }
 
+/* ===== First-paint height reservation (TA.7d) =====
+   Every full-viewport cinematic section reserves its height in CSS before any
+   JS or media loads, so the document is never momentarily short (which briefly
+   floated the global footer into view on first paint / refresh). `svh` keeps the
+   mobile hero fully visible under the browser's dynamic URL bar; the plain-`vh`
+   line before each `svh` line is the fallback for browsers without `svh` support
+   (both set the same property — the later `svh` declaration wins where it's
+   understood, and is ignored where it isn't). */
+.cine-vh-full { min-height: 100vh; min-height: 100svh; }
+.cine-h-full  { height: 100vh; height: 100svh; }
+.cine-act-vh  { min-height: 90vh; min-height: 90svh; }
+@media (min-width: 768px) {
+  .cine-act-vh { min-height: 100vh; min-height: 100svh; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cine-kenburns { animation: none !important; transform: none !important; }
   .cine-scrollcue-line { animation: none !important; }

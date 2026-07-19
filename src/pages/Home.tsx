@@ -12,12 +12,20 @@ const HomeCinematic = lazy(() => import("./HomeCinematic"));
  * only on a true first visit while the variant fetch is in flight (TA.6c), and
  * as the cinematic chunk's Suspense fallback. Both home variants are dark, so a
  * charcoal hold ends seamlessly in the real page with no white flash between.
+ *
+ * TA.7d: `zIndex: 60` is load-bearing. While the hold is up, `<main>` holds only
+ * this fixed element (zero flow height), so the `min-h-screen` app shell
+ * collapses to Header + Footer and the global <Footer> (which is `relative
+ * z-10`) lands inside the first viewport. Without a stacking context above that
+ * z-10, the footer painted *over* the hold — the split-second bottom-of-page
+ * flash. z-60 sits above the footer (z-10) and header (z-50) so the hold fully
+ * covers the viewport until the real page mounts.
  */
 const HomeHold = () => (
   <div
     data-qa="home-hold"
     aria-hidden
-    style={{ position: "fixed", inset: 0, backgroundColor: "hsl(var(--background))" }}
+    style={{ position: "fixed", inset: 0, zIndex: 60, backgroundColor: "hsl(var(--background))" }}
   />
 );
 

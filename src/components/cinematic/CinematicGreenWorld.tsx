@@ -57,7 +57,7 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
     <section
       ref={sectionRef}
       data-qa="cinematic-greenworld"
-      className="relative w-full min-h-[90vh] overflow-hidden md:min-h-screen"
+      className="cine-act-vh relative w-full overflow-hidden"
       style={{ backgroundColor: IVORY }}
     >
       {/* Living wave art (seamless crossfade loop, lazy + visibility-gated). */}
@@ -88,7 +88,7 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
       />
 
       {/* Type layer — right-aligned on desktop, centred on mobile. */}
-      <div className="relative z-20 flex min-h-[90vh] items-center md:min-h-screen">
+      <div className="cine-act-vh relative z-20 flex items-center">
         <div className="ml-auto w-full max-w-xl px-6 py-16 text-center md:pr-14 md:text-right lg:pr-24">
           <div className="cine-gw-type">
             <p
