@@ -6,6 +6,7 @@ import PageTransition from "./PageTransition";
 import Home from "@/pages/Home";
 
 // Lazy-loaded routes (kept out of the home-page bundle)
+const HomeCinematic = lazy(() => import("@/pages/HomeCinematic"));
 const TitansAgency = lazy(() => import("@/pages/TitansAgency"));
 const GreenWorld = lazy(() => import("@/pages/GreenWorld"));
 const WorkResume = lazy(() => import("@/pages/WorkResume"));
@@ -37,6 +38,16 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <Home />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/cinematic"
+          element={
+            <PageTransition>
+              <Suspense fallback={<RouteFallback />}>
+                <HomeCinematic />
+              </Suspense>
             </PageTransition>
           }
         />
