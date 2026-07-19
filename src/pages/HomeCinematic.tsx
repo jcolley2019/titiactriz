@@ -40,6 +40,10 @@ const HomeCinematic = () => {
   const prefersReduced = useReducedMotion();
   const { photos, heroVideo } = useCinematicData();
 
+  // Hero keeps photo #1; the reel draws from the remaining photos (#2, #3, #4…)
+  // so the first reel slide never duplicates the hero image.
+  const reelPhotos = photos.slice(1);
+
   // Lenis ↔ GSAP ScrollTrigger, scoped to this page only.
   useEffect(() => {
     if (prefersReduced) return; // no scrolljacking / scrubbing under reduced motion
@@ -84,12 +88,16 @@ const HomeCinematic = () => {
         reduced={prefersReduced}
       />
 
+      {/* TA.5c: reel uses photos #2–4 so it never repeats the hero's photo #1.
+          `reelPhotos` is the non-hero pool (sort_order 2, 3, 4, …); when fewer
+          than 4 photos exist, the trailing slides simply render without an
+          image rather than reusing the hero photo. */}
       <CinematicReel
         reduced={prefersReduced}
         slides={[
-          { photo: photos[0], title: t("hero.roles.actress") },
-          { photo: photos[1], title: t("hero.roles.streamer") },
-          { photo: photos[2], title: t("hero.roles.entrepreneur") },
+          { photo: reelPhotos[0], title: t("hero.roles.actress") },
+          { photo: reelPhotos[1], title: t("hero.roles.streamer") },
+          { photo: reelPhotos[2], title: t("hero.roles.entrepreneur") },
         ]}
       />
 

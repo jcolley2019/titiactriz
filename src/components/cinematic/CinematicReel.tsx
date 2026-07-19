@@ -69,7 +69,8 @@ const SlideContent = ({
 );
 
 /**
- * TA.2 pinned reel — three "featured" slides (gallery photos 1–3). Under motion,
+ * TA.2 pinned reel — three "featured" slides (gallery photos 2–4; the hero
+ * owns photo 1, so the reel never repeats it). Under motion,
  * the stage is pinned for ~300vh and scrubbed: each slide's photo crossfades in
  * while an oversized 01/02/03 numeral and its title line animate up. Under
  * reduced motion the three slides simply stack, static.
