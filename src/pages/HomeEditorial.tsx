@@ -164,7 +164,7 @@ const HomeEditorial = () => {
 
 
   return (
-    <div style={editorialFontVars}>
+    <div data-qa="home-editorial" style={editorialFontVars}>
       <SEO
         path="/"
         title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"

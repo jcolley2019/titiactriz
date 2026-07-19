@@ -75,6 +75,7 @@ const HomeCinematic = () => {
   return (
     <div
       ref={rootRef}
+      data-qa="home-cinematic"
       style={{ ...cinematicFontVars, backgroundColor: "#0b0a08" }}
       className="relative w-full overflow-x-clip text-[#f0e9da]"
     >
