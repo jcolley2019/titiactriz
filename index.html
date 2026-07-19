@@ -107,7 +107,56 @@
   </head>
 
   <body>
+    <!--
+      TA.7e — static first-paint cover. A full-viewport charcoal layer present in
+      the very first byte of HTML, before any stylesheet or module script loads.
+      It out-races every React/CSS timing window: nothing (header, footer, unstyled
+      body) can paint into the viewport before the real first view is ready. Uses a
+      literal #121212 (=== hsl(var(--background))) and inline styles so it is opaque
+      with zero CSS, and the highest z-index so it sits above all app chrome.
+      Removed once the app CSS has applied AND React has committed its first frame;
+      a 4s safety timeout guarantees a JS/render failure can never leave it up.
+    -->
+    <div
+      id="ta-boot-cover"
+      aria-hidden="true"
+      style="position:fixed;inset:0;z-index:2147483647;background:#121212;"
+    ></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function () {
+        var cover = document.getElementById("ta-boot-cover");
+        if (!cover) return;
+        var done = false;
+        var remove = function () {
+          if (done) return;
+          done = true;
+          if (cover && cover.parentNode) cover.parentNode.removeChild(cover);
+        };
+        // Exposed for tests / manual override; normal removal is driven below.
+        window.__taRemoveBootCover = remove;
+        var root = document.getElementById("root");
+        var ready = function () {
+          // Reveal only once the app stylesheet has applied (the --background
+          // custom property resolves) AND React has committed its first frame —
+          // so lifting the cover never exposes an unstyled page or an empty #root.
+          var cssReady =
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--background")
+              .trim() !== "";
+          var reactReady = !!root && root.childElementCount > 0;
+          return cssReady && reactReady;
+        };
+        var tick = function () {
+          if (done) return;
+          if (ready()) return remove();
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        // Safety net — a JS/render failure must never brick the page behind the cover.
+        setTimeout(remove, 4000);
+      })();
+    </script>
   </body>
 </html>

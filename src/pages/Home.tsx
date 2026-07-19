@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { createPortal } from "react-dom";
 import HomeClassic from "./HomeClassic";
 import HomeEditorial from "./HomeEditorial";
 import { useHomeVariant } from "@/hooks/useHomeVariant";
@@ -13,21 +14,34 @@ const HomeCinematic = lazy(() => import("./HomeCinematic"));
  * as the cinematic chunk's Suspense fallback. Both home variants are dark, so a
  * charcoal hold ends seamlessly in the real page with no white flash between.
  *
- * TA.7d: `zIndex: 60` is load-bearing. While the hold is up, `<main>` holds only
- * this fixed element (zero flow height), so the `min-h-screen` app shell
- * collapses to Header + Footer and the global <Footer> (which is `relative
- * z-10`) lands inside the first viewport. Without a stacking context above that
- * z-10, the footer painted *over* the hold — the split-second bottom-of-page
- * flash. z-60 sits above the footer (z-10) and header (z-50) so the hold fully
- * covers the viewport until the real page mounts.
+ * TA.7e: the hold is PORTALED to <body>, not rendered in place. The `/` route is
+ * wrapped in <PageTransition>, a framer-motion `motion.div` that animates opacity
+ * and y (transform) on mount. Both properties establish a *stacking context*, so
+ * a `z-index` on any descendant — including TA.7d's `zIndex: 60` — is trapped
+ * INSIDE that wrapper. The wrapper itself is `z-index: auto` in the root stacking
+ * context, and the global <Footer> is `relative z-10` (a positive z-index), so
+ * for the ~300ms enter tween the footer painted *over* the whole wrapper, hold
+ * included — the production footer flash. Portaling the hold to <body> lifts it
+ * out of that wrapper into the root stacking context, where `zIndex: 60` truly
+ * beats the footer (z-10) and header (z-50).
+ *
+ * The background is a literal `#121212` (=== `hsl(var(--background))` in the dark
+ * theme) rather than the CSS var: in the production bundle the module script is
+ * emitted before the stylesheet <link>, so React can mount and paint one frame
+ * before app CSS applies — at which point `hsl(var(--background))` would resolve
+ * to nothing (a see-through cover). A literal keeps the hold opaque regardless.
  */
-const HomeHold = () => (
-  <div
-    data-qa="home-hold"
-    aria-hidden
-    style={{ position: "fixed", inset: 0, zIndex: 60, backgroundColor: "hsl(var(--background))" }}
-  />
-);
+const HomeHold = () => {
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      data-qa="home-hold"
+      aria-hidden
+      style={{ position: "fixed", inset: 0, zIndex: 60, backgroundColor: "#121212" }}
+    />,
+    document.body,
+  );
+};
 
 /**
  * Home route — variant is controlled from the Admin console
