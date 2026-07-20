@@ -562,6 +562,30 @@
         "saveFailed": "Could not save framing",
         "noPhoto": "Choose a photo before framing."
       },
+      "video": {
+        "title": "Hero background video",
+        "subtitle": "Upload an MP4 or WebM (max 60 MB, ~15 s). It leads the hero and takes precedence over the photo.",
+        "badge": "Video",
+        "slotDesc": "Hero background video — the photo is its poster.",
+        "uploadVideo": "Upload video",
+        "replaceVideo": "Replace video",
+        "adjustFraming": "Adjust framing",
+        "removeVideo": "Remove video — use photo",
+        "uploading": "Uploading video…",
+        "uploaded": "Hero video updated",
+        "uploadedDesc": "Frame it below, then save.",
+        "removed": "Hero video removed",
+        "removedDesc": "The hero now uses the photo with its Ken Burns motion.",
+        "removeFailed": "Could not remove the video",
+        "uploadFailed": "Could not upload the video",
+        "dragHint": "Drag the video to reposition. Use the slider to zoom.",
+        "precedenceNote": "A hero video is active — it leads the hero and takes precedence over the photo. The photo is used as the poster and the reduced-motion fallback.",
+        "reject": {
+          "type": "Use an MP4 or WebM video file.",
+          "size": "That video is too large — keep it under 60 MB.",
+          "duration": "That video is too long — keep it to about 15 seconds."
+        }
+      },
       "crop": {
         "causeTainted": "This image can't be read for framing (cross-origin restriction).",
         "causeModel": "A required resource hasn't finished loading. Try again.",

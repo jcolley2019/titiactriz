@@ -4,6 +4,8 @@ import {
   injectAdminSession,
   forceLanguage,
   routeSupabase,
+  stubHeroVideoMedia,
+  selectHeroVideoFile,
   MOCK_PHOTOS,
   type Write,
 } from "./_admin";
@@ -385,5 +387,148 @@ test.describe("ADMIN.MEDIA — i18n + reduced motion", () => {
     const headings = page.locator('[data-qa="section-heading"]');
     expect(await headings.count()).toBeGreaterThan(0);
     await page.screenshot({ path: shot("ADMIN.MEDIA-reduced.png"), fullPage: true });
+  });
+});
+
+/* ---------- (f) ADMIN.MEDIA.2 — hero video upload / frame / remove ---------- */
+const heroVideoUpserts = (writes: Write[]) =>
+  writes.filter(
+    (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("cinematic_hero_video"),
+  );
+const cinematicMediaUpserts = (writes: Write[]) =>
+  writes.filter(
+    (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("cinematic_media"),
+  );
+
+test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
+  test("rejects bad files; a valid upload sets the setting, opens the video editor, and saves decoupled framing", async ({
+    page,
+  }) => {
+    const writes: Write[] = [];
+    const pageErrors: string[] = [];
+    page.on("pageerror", (e) => pageErrors.push(e.message));
+
+    await stubHeroVideoMedia(page);
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS, writes });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    await expect(page.locator('[data-qa="media-hero-video"]')).toBeVisible();
+
+    // ---- validation: wrong type → oversize → overlong (TOAST_LIMIT=1 replaces) ----
+    await selectHeroVideoFile(page, { type: "text/plain", name: "notes.txt", sizeBytes: 1024 });
+    await expect(page.getByText(/Use an MP4 or WebM/i), "wrong type rejected").toBeVisible();
+
+    await selectHeroVideoFile(page, { type: "video/mp4", name: "big.mp4", sizeBytes: 63 * 1024 * 1024 });
+    await expect(page.getByText(/too large/i), "oversize rejected").toBeVisible();
+
+    await selectHeroVideoFile(page, { type: "video/mp4", name: "long.mp4", sizeBytes: 4096, durationSec: 20 });
+    await expect(page.getByText(/too long/i), "overlong rejected").toBeVisible();
+
+    expect(heroVideoUpserts(writes).length, "no rejected file was uploaded/persisted").toBe(0);
+    await expect(page.locator('[data-qa="media-editor-surface"]'), "no editor from a rejected file").toHaveCount(0);
+
+    // ---- valid upload → setting written → video-mode editor opens automatically ----
+    await selectHeroVideoFile(page, { type: "video/mp4", name: "hero.mp4", sizeBytes: 8192, durationSec: 8 });
+    const surface = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surface, "valid upload opens the framing editor").toBeVisible();
+    await expect(surface.locator('[data-qa="media-preview-video"]').first(), "editor is in VIDEO mode").toBeVisible();
+    await expect
+      .poll(() => heroVideoUpserts(writes).length, { timeout: 8000 })
+      .toBeGreaterThan(0);
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: shot("MEDIA2-editor-videomode.png") });
+
+    // Drag repositions the video framing.
+    const previewVideo = surface.locator("video").first();
+    const beforePos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    const box = (await surface.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 40, box.y + box.height / 2 - 40, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(200);
+    const afterPos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    expect(afterPos, "drag repositions the video preview").not.toBe(beforePos);
+
+    // Zoom the video framing.
+    await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      setter.call(input, "1.5");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await expect(page.locator('[data-qa="media-editor-zoom-value"]')).toHaveText(/1\.50/);
+
+    // Save → cinematic_media carries the DECOUPLED hero.video shape.
+    await page.locator('[data-qa="media-editor-save"]').click();
+    await page.waitForTimeout(400);
+    await expect(surface).toHaveCount(0);
+    const upserts = cinematicMediaUpserts(writes);
+    expect(upserts.length, "framing save persists cinematic_media").toBeGreaterThan(0);
+    const payload = JSON.parse(upserts[upserts.length - 1].body || "{}");
+    const row = Array.isArray(payload) ? payload[0] : payload;
+    expect(row.key).toBe("cinematic_media");
+    expect(row.value.hero.video, "decoupled video framing block written").toBeTruthy();
+    expect(row.value.hero.video.zoom).toBeCloseTo(1.5, 1);
+    expect(typeof row.value.hero.video.focal.x).toBe("number");
+    expect(typeof row.value.hero.video.focal.y).toBe("number");
+
+    // The hero slot now shows the video with a VIDEO badge.
+    const heroSlot = page.locator('[data-qa="media-slot"][data-slot="hero"]');
+    await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toBeVisible();
+    await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toBeVisible();
+    await page.screenshot({ path: shot("MEDIA2-heroslot-video.png") });
+
+    expect(pageErrors, "no uncaught errors during the hero-video flow").toEqual([]);
+  });
+});
+
+test.describe("ADMIN.MEDIA.2 — remove video reverts to image", () => {
+  test("Remove video clears the setting and the hero slot falls back to the photo", async ({ page }) => {
+    const writes: Write[] = [];
+    await stubHeroVideoMedia(page);
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, {
+      media: {
+        hero: { photo_id: null, focal: { x: 0.5, y: 0.08 }, zoom: 1, video: { focal: { x: 0.3, y: 0.7 }, zoom: 1.4 } },
+        reel: [
+          { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+          { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+          { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+        ],
+      },
+      photos: MOCK_PHOTOS,
+      heroVideo: "https://cdn.example.com/hero-loop.mp4",
+      writes,
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    const heroSlot = page.locator('[data-qa="media-slot"][data-slot="hero"]');
+    await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toBeVisible();
+    await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toBeVisible();
+
+    // Remove → the cinematic_hero_video setting is deleted.
+    await page.locator('[data-qa="media-hero-remove-video"]').click();
+    await page.waitForTimeout(500);
+    expect(
+      writes.filter((w) => w.method === "DELETE" && /cinematic_hero_video/.test(w.url)).length,
+      "cinematic_hero_video deleted",
+    ).toBeGreaterThan(0);
+
+    // Hero slot reverts to the photo (image + Ken Burns), video gone.
+    await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toHaveCount(0);
+    await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toHaveCount(0);
+    await expect(heroSlot.locator("img")).toBeVisible();
+    await expect(page.locator('[data-qa="media-hero-upload-video"]')).toContainText(/Upload video/i);
   });
 });
