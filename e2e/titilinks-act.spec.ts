@@ -2,13 +2,16 @@ import { test, expect, type Page } from "@playwright/test";
 import { attachDiagnostics, shot, BRICK } from "./_helpers";
 
 /**
- * TA.8 — TitiLinks act. A pinned product tour (browser-frame arrival → tour with
- * fly-in callouts → coming-soon announcement) followed by a logo-mask exit that
- * reveals the About section and unmounts. Verifies the pin engages + releases
- * cleanly, the frame's internal content translates, every callout appears, the
- * coming-soon CTA points at titilinks.com (_blank/noopener), the exit mask is
- * removed from the DOM afterwards, About is reachable, and EN/ES + reduced-motion
- * + mobile all hold.
+ * TA.8 / TA.8a — TitiLinks act. A pinned product tour (browser-frame arrival →
+ * tour with fly-in callouts → coming-soon announcement) followed by a CLEAN FADE
+ * RELEASE (TA.8a): the act's content fades + scales to 0.96 while a single thin
+ * gold line sweeps once, then normal scroll continues into About.
+ *
+ * TA.8a replaced the old logo-mask exit (a body-portalled SVG overlay that
+ * leaked opaque gold arcs over the coming-soon card and persisted into About).
+ * These specs now GUARANTEE the opposite: at every scroll position, top→bottom
+ * and back, no exit element exists outside the act's own section and the About
+ * pull-quote is never obstructed by an overlay.
  */
 const PATH = "/cinematic";
 const SECTION = '[data-qa="cinematic-titilinks"]';
@@ -17,7 +20,7 @@ const LANDING = '[data-qa="tl-landing"]';
 const CALLOUT = '[data-qa="tl-callout"]:visible';
 const CARD = '[data-qa="tl-comingsoon"]';
 const CTA = '[data-qa="tl-cta"]';
-const MASK = '[data-qa="tl-exit-mask"]';
+const MASK = '[data-qa="tl-exit-mask"]'; // removed in TA.8a — must NEVER exist
 const ABOUT = "#cinematic-about";
 const LANG_KEY = "ta_lang";
 
@@ -50,10 +53,80 @@ async function wheelUntil(
   return predicate();
 }
 
+const scrollState = (page: Page) =>
+  page.evaluate(() => ({
+    y: window.scrollY,
+    max: Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+  }));
+
+/** Wheel toward a target scrollY (Lenis-driven; window.scrollTo won't stick). */
+async function wheelToY(
+  page: Page,
+  target: number,
+  dir: 1 | -1,
+  { maxSteps = 80, delta = 700, pause = 70 } = {},
+) {
+  for (let i = 0; i < maxSteps; i++) {
+    const { y } = await scrollState(page);
+    if (dir > 0 ? y >= target - 4 : y <= target + 4) break;
+    await page.mouse.wheel(0, dir > 0 ? delta : -delta);
+    await page.waitForTimeout(pause);
+  }
+  await page.waitForTimeout(140); // let the scrub settle before sampling
+}
+
+/**
+ * At the CURRENT scroll position assert: (1) no logo-mask exists anywhere, (2)
+ * every exit-related element (data-qa^="tl-exit") is a descendant of the act's
+ * section, and (3) when the About pull-quote is on screen, elementFromPoint over
+ * its centre returns About content (never an overlay). Returns the About hit for
+ * diagnostics.
+ */
+async function assertCleanAt(page: Page, label: string) {
+  const res = await page.evaluate(() => {
+    const section = document.querySelector('[data-qa="cinematic-titilinks"]');
+    const exitEls = Array.from(document.querySelectorAll('[data-qa^="tl-exit"]'));
+    const masks = document.querySelectorAll('[data-qa="tl-exit-mask"]').length;
+    const outside = exitEls
+      .filter((el) => !section || !section.contains(el))
+      .map((el) => el.getAttribute("data-qa"));
+
+    const q = document.querySelector('#cinematic-about [data-qa="section-heading"]');
+    let about: { inView: boolean; ok: boolean; hit: string | null } = {
+      inView: false,
+      ok: true,
+      hit: null,
+    };
+    if (q) {
+      const r = q.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const cx = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1);
+      const cy = r.top + r.height / 2;
+      if (r.height > 0 && cy > 0 && cy < vh) {
+        const el = document.elementFromPoint(cx, cy) as HTMLElement | null;
+        about = {
+          inView: true,
+          ok: !!(el && el.closest("#cinematic-about")),
+          hit: el ? el.getAttribute("data-qa") ?? el.tagName : null,
+        };
+      }
+    }
+    return { masks, outside, about };
+  });
+
+  expect(res.masks, `no exit mask exists @${label}`).toBe(0);
+  expect(res.outside, `no exit element outside the act @${label}`).toEqual([]);
+  if (res.about.inView) {
+    expect(res.about.ok, `About unobstructed @${label} (hit=${res.about.hit})`).toBe(true);
+  }
+  return res;
+}
+
 test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
-  test("pinned tour → coming-soon → logo-mask exit → About", async ({ page }) => {
+  test("pinned tour → coming-soon → clean fade release → About", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await clearStoredLang(page);
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
@@ -121,27 +194,21 @@ test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
     await expect(cta).toHaveAttribute("rel", /noopener/);
     await expect(page.locator(CARD)).toContainText("COMING SOON");
 
-    // Exit: the logo-mask overlay mounts during the release.
-    const maskAppeared = await wheelUntil(
+    // Release: NO overlay ever mounts on the body. Finish scrolling into About.
+    await wheelUntil(
       page,
-      async () => (await page.locator(MASK).count()) > 0,
-      { maxSteps: 14, delta: 350, pause: 150 },
+      async () => page.locator(ABOUT).isVisible().catch(() => false),
+      { maxSteps: 24, delta: 600, pause: 140 },
     );
-    if (maskAppeared) await page.screenshot({ path: shot(`TA.${BRICK}-exit-mask-mid.png`) });
-    expect(maskAppeared, "logo-mask overlay mounts during the exit").toBe(true);
-
-    // Finish the exit: the overlay unmounts entirely and About is revealed.
-    await wheelUntil(page, async () => (await page.locator(MASK).count()) === 0, {
-      maxSteps: 16,
-      delta: 600,
-      pause: 150,
-    });
-    await page.waitForTimeout(600);
-    await expect(page.locator(MASK), "exit mask removed from the DOM").toHaveCount(0);
-
     await page.locator(ABOUT).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+
+    // No logo-mask ever existed; About is reachable and unobstructed.
+    await expect(page.locator(MASK), "logo-mask never mounts (TA.8a)").toHaveCount(0);
+    await assertCleanAt(page, "about-reached");
     await expect(page.locator(ABOUT), "About section reachable").toBeVisible();
     expect((await page.locator(ABOUT).textContent())?.trim().length ?? 0).toBeGreaterThan(0);
+    await page.screenshot({ path: shot("TA.8a-exit-clean.png") });
 
     // Document scroll continued well past the section — no scroll-lock residue.
     expect(await page.evaluate(() => window.scrollY), "scroll advanced past the act").toBeGreaterThan(1500);
@@ -149,6 +216,42 @@ test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
     expect(diag.consoleErrors, "console errors — TitiLinks act").toEqual([]);
     expect(diag.failedResponses, "failed requests — TitiLinks act").toEqual([]);
   });
+});
+
+test.describe("TA.8a — exit release leaks nothing (full-page scroll, both viewports)", () => {
+  for (const vp of [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "mobile", width: 390, height: 844 },
+  ]) {
+    test(`no exit element outside the act + About never obstructed — ${vp.name}`, async ({ page }) => {
+      const diag = attachDiagnostics(page);
+      await clearStoredLang(page);
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(PATH, { waitUntil: "domcontentloaded" });
+      await settle(page, 800);
+      await page.mouse.move(vp.width / 2, vp.height / 2);
+
+      const { max } = await scrollState(page);
+      const STEPS = 10; // 0%,10%,…,100%
+
+      // Top → bottom, sampling at every 10% increment.
+      for (let i = 0; i <= STEPS; i++) {
+        const target = Math.round((max * i) / STEPS);
+        await wheelToY(page, target, 1);
+        await assertCleanAt(page, `${vp.name} down ${i * 10}%`);
+      }
+
+      // Bottom → back to top, sampling at every 10% increment.
+      for (let i = STEPS; i >= 0; i--) {
+        const target = Math.round((max * i) / STEPS);
+        await wheelToY(page, target, -1);
+        await assertCleanAt(page, `${vp.name} up ${i * 10}%`);
+      }
+
+      expect(diag.consoleErrors, `console errors — leak sweep ${vp.name}`).toEqual([]);
+      expect(diag.failedResponses, `failed requests — leak sweep ${vp.name}`).toEqual([]);
+    });
+  }
 });
 
 test.describe("TA.8 — TitiLinks act (Spanish copy)", () => {
@@ -241,12 +344,17 @@ test.describe("TA.8 — mobile 390×844", () => {
     expect(await page.locator(CTA).getAttribute("href")).toBe("https://titilinks.com");
     await page.screenshot({ path: shot(`TA.${BRICK}-mobile.png`), fullPage: true });
 
-    // Finish scrolling; the exit unmounts and About is reachable.
-    await wheelUntil(page, async () => (await page.locator(MASK).count()) === 0 &&
-      (await page.locator(ABOUT).isVisible().catch(() => false)), { maxSteps: 20, delta: 600, pause: 140 });
+    // Finish scrolling; no overlay mounts and About is reachable + unobstructed.
+    await wheelUntil(page, async () => page.locator(ABOUT).isVisible().catch(() => false), {
+      maxSteps: 20,
+      delta: 600,
+      pause: 140,
+    });
     await page.locator(ABOUT).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
     await expect(page.locator(ABOUT)).toBeVisible();
     await expect(page.locator(MASK)).toHaveCount(0);
+    await assertCleanAt(page, "mobile about-reached");
 
     expect(diag.consoleErrors, "console errors — mobile").toEqual([]);
     expect(diag.failedResponses, "failed requests — mobile").toEqual([]);

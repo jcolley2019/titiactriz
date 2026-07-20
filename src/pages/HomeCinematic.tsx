@@ -162,7 +162,7 @@ const HomeCinematic = () => {
       <CinematicGreenWorld reduced={prefersReduced} />
       <CinematicTitans reduced={prefersReduced} />
 
-      {/* TA.8: TitiLinks act — pinned product tour → coming-soon → logo-mask exit. */}
+      {/* TA.8: TitiLinks act — pinned product tour → coming-soon → clean fade release. */}
       <CinematicTitiLinks reduced={prefersReduced} />
 
       <CinematicAbout reduced={prefersReduced} />

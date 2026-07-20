@@ -1,9 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Instagram, Youtube, Music, ShoppingBag } from "lucide-react";
+import { Instagram, Youtube, Music } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,18 +10,21 @@ gsap.registerPlugin(ScrollTrigger);
  * TA.8 — TitiLinks act. A scroll-driven showcase of Cristyna's link-in-bio
  * product (live at titilinks.com), placed after the Titans act and before About.
  *
- * Four scenes over a pinned range:
+ * Three scenes over a pinned range, then a clean release:
  *   1. Arrival — a floating browser-window frame settles as scroll begins.
  *   2. Tour — a native mini-recreation of the TitiLinks hero translates upward
  *      INSIDE the frame while phones parallax and gold feature chips fly in.
  *   3. Announcement — the frame recedes/blurs; a gold "COMING SOON" card irises
  *      in via an expanding circular clip-path with a CTA to titilinks.com.
- *   4. Exit — as the pin releases, a gold link-glyph mask overlay grows past the
- *      viewport to reveal the next section (About), then unmounts entirely.
+ *   Release (TA.8a) — as the pin ends, the act's content fades and scales down
+ *      slightly (~0.96) while a single thin gold line sweeps once horizontally;
+ *      normal scroll then continues into About. The release lives ENTIRELY inside
+ *      this section — nothing is portalled to <body>, so no overlay element can
+ *      ever exist outside the act at any scroll position.
  *
  * NO code sharing / iframe / embed with the real product — everything here is a
  * static, hand-built recreation. Under reduced motion the whole thing degrades
- * to a static, fully-functional stacked composition (no pin, no mask).
+ * to a static, fully-functional stacked composition (no pin, no release anim).
  */
 
 const TITILINKS_URL = "https://titilinks.com";
@@ -38,16 +40,6 @@ const CALLOUT_KEYS = [
   "ecommerce",
   "luxury",
 ] as const;
-
-/* ---------------- Link glyph (chain-link) ---------------- */
-/** Chain-link paths (lucide "link-2" geometry), reused by the exit mask. */
-const LinkGlyphPaths = ({ stroke, strokeWidth }: { stroke: string; strokeWidth: number }) => (
-  <g fill="none" stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 17H7A5 5 0 0 1 7 7h2" />
-    <path d="M15 7h2a5 5 0 1 1 0 10h-2" />
-    <path d="M8 12h8" />
-  </g>
-);
 
 /* ---------------- Mini phone mockup ---------------- */
 type PhoneVariant = { name: string; handle: string; accent: string; cover: string };
@@ -243,51 +235,6 @@ const BrowserFrame = ({
   </div>
 );
 
-/* ---------------- Exit mask overlay (portal) ---------------- */
-const ExitMask = ({ progress }: { progress: number }) => {
-  const [vp, setVp] = useState(() => ({
-    w: typeof window !== "undefined" ? window.innerWidth : 1440,
-    h: typeof window !== "undefined" ? window.innerHeight : 900,
-  }));
-  useEffect(() => {
-    const onR = () => setVp({ w: window.innerWidth, h: window.innerHeight });
-    window.addEventListener("resize", onR);
-    return () => window.removeEventListener("resize", onR);
-  }, []);
-
-  const { w, h } = vp;
-  const cx = w / 2;
-  const cy = h / 2;
-  // Grow the 24-unit glyph from a small emblem to well past the viewport edges.
-  const eased = Math.pow(Math.min(1, Math.max(0, progress)), 1.3);
-  const sMin = Math.max(w, h) * 0.06;
-  const sMax = (Math.max(w, h) * 1.5) / 12; // 24-unit glyph * s spans > viewport
-  const s = sMin + (sMax - sMin) * eased;
-  const gTransform = `translate(${cx} ${cy}) scale(${s}) translate(-12 -12)`;
-
-  return createPortal(
-    <div data-qa="tl-exit-mask" className="fixed inset-0 z-[70]" aria-hidden style={{ pointerEvents: "none" }}>
-      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
-        <defs>
-          <mask id="tl-exit-hole">
-            <rect x={0} y={0} width={w} height={h} fill="white" />
-            <g transform={gTransform}>
-              <LinkGlyphPaths stroke="black" strokeWidth={3} />
-            </g>
-          </mask>
-        </defs>
-        {/* Covering layer with a growing link-shaped hole. */}
-        <rect x={0} y={0} width={w} height={h} fill={TL_BG} mask="url(#tl-exit-hole)" />
-        {/* Gold glyph outline around the hole, with a one-shot shimmer sweep. */}
-        <g transform={gTransform} className="tl-exit-glyph">
-          <LinkGlyphPaths stroke={GOLD} strokeWidth={0.9} />
-        </g>
-      </svg>
-    </div>,
-    document.body,
-  );
-};
-
 /* ---------------- Static callouts row (shared) ---------------- */
 const Callouts = ({ refs }: { refs?: React.MutableRefObject<(HTMLSpanElement | null)[]> }) => {
   const { t } = useTranslation();
@@ -317,28 +264,27 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
   const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const exitMarkerRef = useRef<HTMLDivElement>(null);
+  const sweepRef = useRef<HTMLDivElement>(null);
   const calloutRefs = useRef<(HTMLSpanElement | null)[]>([]);
-
-  const [exitActive, setExitActive] = useState(false);
-  const [exitProgress, setExitProgress] = useState(0);
 
   useLayoutEffect(() => {
     if (reduced) return;
     const stage = stageRef.current;
-    const marker = exitMarkerRef.current;
     if (!stage) return;
 
     const ctx = gsap.context(() => {
-      // Scenes 1–3 over the pinned range.
+      // Scenes 1–3 plus the release, all on ONE pinned timeline. Because the
+      // release is part of this timeline (not a body portal), every animated
+      // element stays a descendant of this section at all times.
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: stage,
           start: "top top",
-          end: "+=250%",
+          end: "+=300%",
           scrub: true,
           pin: true,
           anticipatePin: 1,
@@ -382,21 +328,15 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
         3.0,
       );
 
-      // Scene 4 — exit: as the pin releases (marker travels up the viewport) a
-      // gold link-glyph mask grows to reveal About, then unmounts.
-      if (marker) {
-        ScrollTrigger.create({
-          trigger: marker,
-          start: "top bottom",
-          end: "top top",
-          scrub: 0.8,
-          onEnter: () => setExitActive(true),
-          onEnterBack: () => setExitActive(true),
-          onLeave: () => setExitActive(false),
-          onLeaveBack: () => setExitActive(false),
-          onUpdate: (self) => setExitProgress(self.progress),
-        });
-      }
+      // Release (TA.8a) — clean exit: the act's content fades + scales to 0.96
+      // while a single thin gold line sweeps once left→right. No portal, no
+      // fixed overlay: when the pin lets go, normal scroll continues into About
+      // and nothing from this act remains painted anywhere on the page.
+      tl.to(contentRef.current, { opacity: 0, scale: 0.96, duration: 0.6, ease: "power2.in" }, 3.7);
+      tl.set(sweepRef.current, { opacity: 1, scaleX: 0, transformOrigin: "left center" }, 3.7);
+      tl.to(sweepRef.current, { scaleX: 1, duration: 0.3, ease: "power1.in" }, 3.7);
+      tl.set(sweepRef.current, { transformOrigin: "right center" }, 4.0);
+      tl.to(sweepRef.current, { scaleX: 0, duration: 0.3, ease: "power1.out" }, 4.0);
     }, sectionRef);
 
     return () => ctx.revert();
@@ -436,44 +376,61 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
   return (
     <section ref={sectionRef} data-qa="cinematic-titilinks" className="relative w-full" style={{ backgroundColor: TL_BG }}>
       <div ref={stageRef} className="cine-vh-full relative w-full overflow-hidden" style={{ backgroundColor: TL_BG }}>
-        {/* Ambient gold spotlight + vignette. */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(50% 45% at 60% 40%, rgba(201,165,92,0.10) 0%, transparent 60%), radial-gradient(120% 100% at 50% 0%, transparent 55%, rgba(0,0,0,0.55) 100%)",
-          }}
-        />
-        <div className="relative z-10 mx-auto flex h-full max-w-6xl items-center px-6">
-          <div className="grid w-full items-center gap-8 lg:grid-cols-[1.15fr_0.6fr] lg:gap-10">
-            <BrowserFrame frameRef={frameRef} innerRef={innerRef} domain={t("cinematic.titilinks.domain")} />
-            <div className="hidden lg:block">
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: GOLD }}>
-                {t("cinematic.titilinks.eyebrow")}
-              </p>
-              <Callouts refs={calloutRefs} />
+        {/* Everything that fades/scales on release is inside this one wrapper. */}
+        <div ref={contentRef} className="absolute inset-0">
+          {/* Ambient gold spotlight + vignette. */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(50% 45% at 60% 40%, rgba(201,165,92,0.10) 0%, transparent 60%), radial-gradient(120% 100% at 50% 0%, transparent 55%, rgba(0,0,0,0.55) 100%)",
+            }}
+          />
+          <div className="relative z-10 mx-auto flex h-full max-w-6xl items-center px-6">
+            <div className="grid w-full items-center gap-8 lg:grid-cols-[1.15fr_0.6fr] lg:gap-10">
+              <BrowserFrame frameRef={frameRef} innerRef={innerRef} domain={t("cinematic.titilinks.domain")} />
+              <div className="hidden lg:block">
+                <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: GOLD }}>
+                  {t("cinematic.titilinks.eyebrow")}
+                </p>
+                <Callouts refs={calloutRefs} />
+              </div>
             </div>
           </div>
+
+          {/* Mobile callouts stack below the frame. */}
+          <div className="relative z-10 mx-auto -mt-2 max-w-2xl px-6 pb-6 lg:hidden">
+            <Callouts />
+          </div>
+
+          {/* Announcement card irises in over the whole stage during scene 3. */}
+          <ComingSoonCard cardRef={cardRef} clipped />
         </div>
 
-        {/* Mobile callouts stack below the frame. */}
-        <div className="relative z-10 mx-auto -mt-2 max-w-2xl px-6 pb-6 lg:hidden">
-          <Callouts />
-        </div>
-
-        {/* Announcement card irises in over the whole stage during scene 3. */}
-        <ComingSoonCard cardRef={cardRef} clipped />
+        {/* Release sweep — a single thin gold line, wiped once across on exit.
+            Lives inside the stage (never portalled), so it cannot leak past the
+            act. Starts collapsed + invisible; the timeline drives it. */}
+        <div
+          ref={sweepRef}
+          data-qa="tl-exit-sweep"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 z-[60]"
+          style={{
+            top: "calc(50% - 0.75px)",
+            height: "1.5px",
+            background: `linear-gradient(90deg, transparent, ${GOLD} 20%, ${GOLD} 80%, transparent)`,
+            boxShadow: "0 0 14px rgba(201,165,92,0.65)",
+            opacity: 0,
+            transform: "scaleX(0)",
+            transformOrigin: "left center",
+          }}
+        />
 
         {/* Accessible heading for the section (kept visually within the stage). */}
         <h2 data-qa="section-heading" className="sr-only">
           {t("cinematic.titilinks.brand")} — {t("cinematic.titilinks.headline")}
         </h2>
       </div>
-
-      {/* Zero-height marker after the pinned stage — drives the exit mask. */}
-      <div ref={exitMarkerRef} aria-hidden className="h-0 w-full" />
-
-      {exitActive && <ExitMask progress={exitProgress} />}
     </section>
   );
 };
