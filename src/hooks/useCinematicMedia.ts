@@ -24,11 +24,23 @@ export const CINEMATIC_MEDIA_KEY = "cinematic_media";
 
 export type Focal = { x: number; y: number };
 
+/**
+ * Optional, hero-only video framing (ADMIN.MEDIA.2). Decoupled from the image's
+ * framing — the TitiLinks pattern — so a hero can keep a portrait-tight photo
+ * crop and an independently-panned video. Absent = centered, zoom 1.
+ */
+export type VideoFraming = {
+  focal: Focal;
+  zoom: number;
+};
+
 /** One slot's stored framing. photo_id null = "use the resolver's default photo". */
 export type SlotFraming = {
   photo_id: string | null;
   focal: Focal;
   zoom: number;
+  /** Hero slot only: framing for the hero background video, if any. */
+  video?: VideoFraming;
 };
 
 /** The full cinematic_media value — one hero slot plus exactly three reel slots. */
@@ -46,6 +58,18 @@ export const DEFAULT_ZOOM = 1;
 export const HERO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.08 };
 /** Reel slides render object-cover centered today ≡ focal (0.5, 0.5). */
 export const REEL_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
+/** Hero video defaults to a plain centered, unzoomed cover. */
+export const VIDEO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
+
+/** Default (untouched) hero-video framing. */
+export const defaultVideoFraming = (): VideoFraming => ({
+  focal: { ...VIDEO_DEFAULT_FOCAL },
+  zoom: DEFAULT_ZOOM,
+});
+
+/** True when a video framing equals the centered/unzoomed default. */
+export const videoFramingIsDefault = (v: VideoFraming | undefined): boolean =>
+  !v || (v.focal.x === VIDEO_DEFAULT_FOCAL.x && v.focal.y === VIDEO_DEFAULT_FOCAL.y && v.zoom === DEFAULT_ZOOM);
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 export const clampZoom = (n: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, n));
@@ -61,17 +85,29 @@ const normFocal = (raw: unknown, fallback: Focal): Focal => {
   };
 };
 
+const normVideo = (raw: unknown): VideoFraming | undefined => {
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as { focal?: unknown; zoom?: unknown };
+  return {
+    focal: normFocal(r.focal, VIDEO_DEFAULT_FOCAL),
+    zoom: isNum(r.zoom) ? clampZoom(r.zoom) : DEFAULT_ZOOM,
+  };
+};
+
 const normSlot = (raw: unknown, defaultFocal: Focal): SlotFraming => {
   const r = (raw && typeof raw === "object" ? raw : {}) as {
     photo_id?: unknown;
     focal?: unknown;
     zoom?: unknown;
+    video?: unknown;
   };
+  const video = normVideo(r.video);
   return {
     photo_id:
       typeof r.photo_id === "string" && r.photo_id.length > 0 ? r.photo_id : null,
     focal: normFocal(r.focal, defaultFocal),
     zoom: isNum(r.zoom) ? clampZoom(r.zoom) : DEFAULT_ZOOM,
+    ...(video ? { video } : {}),
   };
 };
 
@@ -182,8 +218,15 @@ export type ResolvedSlot = {
   zoom: number;
 };
 
+/** The hero's resolved framing carries the video source + its own decoupled framing. */
+export type ResolvedHeroSlot = ResolvedSlot & {
+  videoSrc: string | null;
+  videoFocal: Focal;
+  videoZoom: number;
+};
+
 export type ResolvedCinematicMedia = {
-  hero: ResolvedSlot & { videoSrc: string | null };
+  hero: ResolvedHeroSlot;
   reel: [ResolvedSlot, ResolvedSlot, ResolvedSlot];
 };
 
@@ -214,11 +257,17 @@ export function getCinematicMedia(
   const heroExplicit = findPhoto(photos, media?.hero.photo_id ?? null);
   const heroPhoto = heroExplicit ?? resolveHeroPhoto(photos, legacyHeroSetting);
 
-  const hero: ResolvedSlot & { videoSrc: string | null } = {
+  // Video framing is decoupled from the image's framing: it applies whenever a
+  // video exists, independent of whether an explicit hero photo is set.
+  const videoFraming = media?.hero.video;
+
+  const hero: ResolvedHeroSlot = {
     photo: heroPhoto,
     focal: heroExplicit ? media!.hero.focal : { ...HERO_DEFAULT_FOCAL },
     zoom: heroExplicit ? media!.hero.zoom : DEFAULT_ZOOM,
     videoSrc: heroVideo,
+    videoFocal: videoFraming ? videoFraming.focal : { ...VIDEO_DEFAULT_FOCAL },
+    videoZoom: videoFraming ? videoFraming.zoom : DEFAULT_ZOOM,
   };
 
   // Non-hero pool preserves the existing dedupe (reel never repeats the hero).

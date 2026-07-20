@@ -85,10 +85,21 @@ test.describe("cinematic — admin-selectable hero (TA.6a)", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   const HERO = '[data-qa="cinematic-hero-img"]';
-  const SETTING_MATCH = "cinematic_hero_photo";
 
   const heroSrc = (page: import("@playwright/test").Page) =>
     page.locator(HERO).first().getAttribute("src");
+
+  // Deterministically mock ALL /cinematic site_settings reads: the hero-photo
+  // key returns `heroPhotoBody`; cinematic_media / cinematic_hero_video resolve
+  // absent so this LEGACY-path test is isolated from mutable admin state. (A real
+  // cinematic_media.hero.photo_id — now writable via ADMIN.MEDIA — would
+  // otherwise, correctly, take precedence over the legacy cinematic_hero_photo.)
+  const routeSettings = (page: import("@playwright/test").Page, heroPhotoBody: string) =>
+    page.route("**/site_settings*", (route) => {
+      const url = route.request().url();
+      const body = url.includes("cinematic_hero_photo") ? heroPhotoBody : "null";
+      return route.fulfill({ status: 200, contentType: "application/json", body });
+    });
 
   // Collect the distinct published photo srcs from the gallery marquee, in order.
   async function galleryOrder(page: import("@playwright/test").Page) {
@@ -104,9 +115,7 @@ test.describe("cinematic — admin-selectable hero (TA.6a)", () => {
 
   test("defaults to the first published photo when the key is absent", async ({ page }) => {
     // Force the absent-key case regardless of production state (no DB write).
-    await page.route(`**/site_settings*${SETTING_MATCH}*`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "null" }),
-    );
+    await routeSettings(page, "null");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 900);
 
@@ -118,9 +127,7 @@ test.describe("cinematic — admin-selectable hero (TA.6a)", () => {
 
   test("honors cinematic_hero_photo when set to a non-default photo", async ({ page }) => {
     // First, learn the real published pool with the key forced absent.
-    await page.route(`**/site_settings*${SETTING_MATCH}*`, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "null" }),
-    );
+    await routeSettings(page, "null");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 900);
     const order = await galleryOrder(page);
@@ -130,14 +137,8 @@ test.describe("cinematic — admin-selectable hero (TA.6a)", () => {
     expect(chosen).not.toBe(order[0]);
 
     // Now mock the setting to that photo's URL (the reader accepts id OR url).
-    await page.unroute(`**/site_settings*${SETTING_MATCH}*`);
-    await page.route(`**/site_settings*${SETTING_MATCH}*`, (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ value: chosen }),
-      }),
-    );
+    await page.unroute("**/site_settings*");
+    await routeSettings(page, JSON.stringify({ value: chosen }));
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 900);
 
