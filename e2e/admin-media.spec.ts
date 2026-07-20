@@ -193,6 +193,97 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
   });
 });
 
+/* ---------- (c2) TA.8a-c: pick → frame → save is mandatory ---------- */
+test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)", () => {
+  test("choose photo → editor opens → drag/zoom/devices → save → pencil re-opens", async ({ page }) => {
+    const writes: Write[] = [];
+    const pageErrors: string[] = [];
+    page.on("pageerror", (e) => pageErrors.push(e.message));
+
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS, writes });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    await expect(page.locator('[data-qa="admin-media"]')).toBeVisible();
+
+    // Open the gallery picker for the Hero slot.
+    await page
+      .locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-pick"]')
+      .click();
+    await expect(page.locator('[data-qa="media-picker-grid"]')).toBeVisible();
+
+    // Choosing a photo opens the framing editor immediately — and saves NOTHING.
+    const writesBefore = writes.length;
+    await page.locator('[data-qa="media-picker-photo"]').first().click();
+    const surface = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surface, "selection opens the framing editor automatically").toBeVisible();
+    await page.waitForTimeout(500); // image decode + surface measure
+    expect(writes.length, "selection alone never persists").toBe(writesBefore);
+    await page.screenshot({ path: shot("TA.8a-editor-open.png") });
+
+    // Drag → focal changes.
+    const previewImg = surface.locator("img").first();
+    const before = await previewImg.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    const box = (await surface.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 55, box.y + box.height / 2 - 30, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(200);
+    const after = await previewImg.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    expect(after, "drag repositions the preview").not.toBe(before);
+
+    // Zoom slider → readout + scale.
+    await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      setter.call(input, "1.5");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await expect(page.locator('[data-qa="media-editor-zoom-value"]')).toHaveText(/1\.50/);
+
+    // Device preview tabs render (phone/tablet/desktop).
+    const deviceTabs = page.locator('[data-qa="media-editor-devices"] > button');
+    expect(await deviceTabs.count(), "device preview tabs render").toBeGreaterThanOrEqual(3);
+    await page.locator('[data-qa="media-device-desktop"]').click();
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: shot("TA.8a-editor-devicetabs.png") });
+
+    // Save → upsert carries the chosen photo + framing.
+    await page.locator('[data-qa="media-editor-save"]').click();
+    await page.waitForTimeout(400);
+    await expect(surface).toHaveCount(0);
+    const upserts = writes.filter((w) => w.method === "POST" && /site_settings/.test(w.url));
+    expect(upserts.length, "save persists cinematic_media").toBeGreaterThan(0);
+    const payload = JSON.parse(upserts[upserts.length - 1].body || "{}");
+    const row = Array.isArray(payload) ? payload[0] : payload;
+    expect(row.key).toBe("cinematic_media");
+    expect(row.value.hero.photo_id).toBe("p1");
+    expect(row.value.hero.zoom).toBeCloseTo(1.5, 1);
+    await expect(
+      page.locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-badge"]'),
+    ).toHaveText(/custom/i);
+
+    // Pencil re-opens the editor for the current photo WITH the saved values.
+    await page
+      .locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-edit"]')
+      .click();
+    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+    await page.waitForTimeout(300);
+    await expect(
+      page.locator('[data-qa="media-editor-zoom-value"]'),
+      "pencil re-opens with the saved zoom",
+    ).toHaveText(/1\.50/);
+
+    expect(pageErrors, "no uncaught errors during pick→frame→save").toEqual([]);
+  });
+});
+
 /* ---------- (c3) TA.8a-b: hero controls consolidated into Media ---------- */
 test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () => {
   test("Settings drops the legacy hero picker (note only); Media hosts the hero slot", async ({ page }) => {

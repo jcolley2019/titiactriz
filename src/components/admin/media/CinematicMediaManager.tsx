@@ -28,10 +28,12 @@ import FramingEditor from "./FramingEditor";
  *
  * Four slots (Hero + Reel 1–3), each showing its resolved photo WITH framing.
  * The camera action opens the gallery picker; the pencil action opens the
- * framing editor. Choosing a photo pins it at default framing; the editor
- * refines focal/zoom; reset clears the slot. Writes go to cinematic_media, and
- * when every slot is back to default the key is removed entirely so the
- * absent-is-default contract stays intact.
+ * framing editor. Choosing a photo (TA.8a-c) NEVER saves on its own — it opens
+ * the framing editor with that photo at the slot's default framing, so the
+ * mandatory flow is pick → frame → save. Only the editor's Save persists; reset
+ * clears the slot. Writes go to cinematic_media, and when every slot is back to
+ * default the key is removed entirely so the absent-is-default contract stays
+ * intact.
  */
 type SlotKind = "hero" | "reel";
 type SlotDesc = { key: string; kind: SlotKind; reelIndex: number; titleKey?: string };
@@ -145,12 +147,13 @@ const CinematicMediaManager = () => {
     }
   };
 
-  // Choosing a photo pins it at default framing for that slot kind.
+  // Choosing a photo opens the framing editor at the slot's default framing.
+  // Selection alone never writes — the editor's Save is the only persist path,
+  // so every photo change goes through pick → frame → save.
   const assignPhoto = (d: SlotDesc, photo: CinematicPhoto) => {
     const base = defaultSlot(d.kind);
-    const next = writeSlot(config, d, { ...base, photo_id: photo.id });
     setPickerSlot(null);
-    void persist(next, d.key, "saved");
+    setEditor({ slot: d, photo, focal: base.focal, zoom: base.zoom });
   };
 
   const saveFraming = (focal: Focal, zoom: number) => {
