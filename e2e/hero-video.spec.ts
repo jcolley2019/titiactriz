@@ -188,3 +188,45 @@ test.describe("MEDIA3 — viewport selects the orientation source", () => {
   });
 });
 
+test.describe("MEDIA3 — fit mode renders a blurred backdrop over an uncropped video", () => {
+  test("desktop fit source shows contain foreground + blurred backdrop", async ({ page }) => {
+    const diag = attachDiagnostics(page);
+    const media = {
+      hero: {
+        photo_id: null,
+        focal: { x: 0.5, y: 0.08 },
+        zoom: 1,
+        video: {
+          landscape: { focal: { x: 0.5, y: 0.5 }, zoom: 1, fit: "fit" },
+          portrait: { focal: { x: 0.5, y: 0.5 }, zoom: 1, fit: "fill" },
+        },
+      },
+      reel: [
+        { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+        { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+        { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+      ],
+    };
+    await stubHeroVideoMedia(page);
+    await routeSupabase(page, { media, photos: MOCK_PHOTOS, heroVideo: LAND_URL });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(CINE, { waitUntil: "domcontentloaded" });
+    await settle(page, 600);
+
+    const backdrop = page.locator('[data-qa="cinematic-hero-video-backdrop"]');
+    await expect(backdrop, "fit mode adds a backdrop copy").toHaveCount(1);
+    const blur = await backdrop.evaluate((el) => getComputedStyle(el as HTMLElement).filter);
+    expect(blur, "backdrop is blurred").toMatch(/blur/);
+
+    const objectFit = await page
+      .locator(VIDEO)
+      .first()
+      .evaluate((el) => getComputedStyle(el as HTMLElement).objectFit);
+    expect(objectFit, "foreground video is uncropped (contain)").toBe("contain");
+    await page.screenshot({ path: shot("MEDIA3-fit-render.png") });
+
+    expect(diag.consoleErrors, "console errors — fit render").toEqual([]);
+    expect(diag.failedResponses, "failed requests — fit render").toEqual([]);
+  });
+});
+

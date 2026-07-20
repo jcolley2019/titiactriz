@@ -17,6 +17,8 @@ import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect } from "@/lib/device-presets
 import {
   MIN_ZOOM,
   MAX_ZOOM,
+  FIT_MIN_ZOOM,
+  clampSourceZoom,
   defaultHeroVideo,
   defaultVideoSource,
   type Focal,
@@ -143,7 +145,16 @@ const FramingEditor = ({
     if (isVideo) setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], zoom: z } }));
     else setImgZoom(z);
   };
-  const zoomMin = MIN_ZOOM;
+  const setFit = (nextFit: FitMode) =>
+    setVFraming((v) => {
+      const src = v[activeOrientation];
+      return {
+        ...v,
+        [activeOrientation]: { ...src, fit: nextFit, zoom: clampSourceZoom(src.zoom, nextFit) },
+      };
+    });
+
+  const zoomMin = isVideo && fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
 
   // Reset framing state each time the dialog opens fresh.
   useEffect(() => {
@@ -367,6 +378,43 @@ const FramingEditor = ({
             </div>
           )}
         </div>
+
+        {/* Fill / Fit display mode (video only). */}
+        {isVideo && (
+          <div className="flex items-center gap-3">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">
+              {t("admin.media.video.fitLabel")}
+            </span>
+            <div data-qa="media-editor-fit" className="flex gap-2">
+              <button
+                type="button"
+                data-qa="media-editor-fit-fill"
+                onClick={() => setFit("fill")}
+                aria-pressed={fit === "fill"}
+                className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
+                  fit === "fill"
+                    ? "border-accent bg-accent/10 text-foreground"
+                    : "border-border text-muted-foreground hover:border-accent/60"
+                }`}
+              >
+                {t("admin.media.video.fitFill")}
+              </button>
+              <button
+                type="button"
+                data-qa="media-editor-fit-fit"
+                onClick={() => setFit("fit")}
+                aria-pressed={fit === "fit"}
+                className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
+                  fit === "fit"
+                    ? "border-accent bg-accent/10 text-foreground"
+                    : "border-border text-muted-foreground hover:border-accent/60"
+                }`}
+              >
+                {t("admin.media.video.fitFit")}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Zoom */}
         <div className="flex items-center gap-3">

@@ -82,6 +82,38 @@ const FramedVideo = ({
     autoPlay,
   } as const;
 
+  // Fit mode: full-frame video over a blurred, oversized copy of itself.
+  if (fit === "fit") {
+    return (
+      <div data-qa="framed-video-fit" className="relative h-full w-full overflow-hidden">
+        {/* Blurred backdrop — same playback, aria-hidden, fills the whole box. */}
+        <video
+          {...videoBase}
+          data-qa={backdropDataQa}
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            objectPosition,
+            transform: "scale(1.25)",
+            filter: "blur(28px) brightness(0.65)",
+            willChange: "transform",
+          }}
+        />
+        {/* Foreground — the whole frame, letterboxed at its natural aspect. */}
+        <video
+          {...videoBase}
+          data-qa={videoDataQa}
+          className={`absolute inset-0 h-full w-full object-contain ${videoClassName}`.trim()}
+          style={{
+            transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+            transformOrigin: objectPosition,
+            willChange: zoom !== 1 ? "transform" : undefined,
+          }}
+        />
+      </div>
+    );
+  }
+
   // Fill mode (default): object-cover + a wrapper scale from the focal point.
   const wrapperStyle: CSSProperties | undefined =
     zoom > 1

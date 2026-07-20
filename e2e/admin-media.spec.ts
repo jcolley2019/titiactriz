@@ -579,4 +579,63 @@ test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
     expect(landscapeUpsert, "landscape source setting written").toBe(true);
     expect(portraitUpsert, "portrait source setting written").toBe(true);
   });
+
+  test("Fit mode adds a blurred backdrop, unlocks sub-cover zoom, and saves the fit shape", async ({
+    page,
+  }) => {
+    const writes: Write[] = [];
+    await stubHeroVideoMedia(page);
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS, writes });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    await uploadHeroVideoVia(page, "media-hero-upload-landscape", { name: "land.mp4", width: 1920, height: 1080 });
+    const surface = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surface).toBeVisible();
+
+    // Frame on the Desktop tab (landscape source, no mismatch noise).
+    await page.locator('[data-qa="media-device-desktop"]').click();
+    await page.waitForTimeout(200);
+
+    // Fill mode: the zoom slider cannot go below cover (1.0).
+    expect(await page.locator('[data-qa="media-editor-zoom"]').getAttribute("min")).toBe("1");
+
+    // Switch to Fit → backdrop appears, foreground becomes uncropped, zoom unlocks.
+    await page.locator('[data-qa="media-editor-fit-fit"]').click();
+    await page.waitForTimeout(200);
+    await expect(surface.locator('[data-qa="media-preview-backdrop"]'), "fit backdrop present").toBeVisible();
+    const objectFit = await surface
+      .locator('[data-qa="media-preview-video"]')
+      .first()
+      .evaluate((el) => getComputedStyle(el as HTMLElement).objectFit);
+    expect(objectFit, "foreground uncropped (contain)").toBe("contain");
+    const zoomMin = parseFloat((await page.locator('[data-qa="media-editor-zoom"]').getAttribute("min")) || "1");
+    expect(zoomMin, "fit unlocks sub-cover zoom").toBeLessThan(1);
+    await page.screenshot({ path: shot("MEDIA3-fit-mode.png") });
+
+    // Set a sub-cover zoom and save → cinematic_media carries fit + sub-cover zoom.
+    await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      setter.call(input, "0.7");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await expect(page.locator('[data-qa="media-editor-zoom-value"]')).toHaveText(/0\.70/);
+    await page.locator('[data-qa="media-editor-save"]').click();
+    await page.waitForTimeout(400);
+
+    const upserts = writes.filter(
+      (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("cinematic_media"),
+    );
+    expect(upserts.length).toBeGreaterThan(0);
+    const row = JSON.parse(upserts[upserts.length - 1].body || "{}");
+    const value = (Array.isArray(row) ? row[0] : row).value;
+    expect(value.hero.video.landscape.fit).toBe("fit");
+    expect(value.hero.video.landscape.zoom).toBeCloseTo(0.7, 1);
+  });
 });
