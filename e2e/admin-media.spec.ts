@@ -638,4 +638,35 @@ test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
     expect(value.hero.video.landscape.fit).toBe("fit");
     expect(value.hero.video.landscape.zoom).toBeCloseTo(0.7, 1);
   });
+
+  test("mismatch hint: a portrait clip previewed on the Desktop tab warns; the phone tab does not", async ({
+    page,
+  }) => {
+    await stubHeroVideoMedia(page);
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    // A portrait-shaped clip uploaded as the portrait source.
+    await uploadHeroVideoVia(page, "media-hero-upload-portrait", { name: "port.mp4", width: 1080, height: 1920 });
+    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+
+    // Phone tab: portrait clip on a portrait canvas → no heavy crop, no hint.
+    await page.locator('[data-qa="media-device-iphone-17-pro"]').click();
+    await page.waitForTimeout(250);
+    await expect(page.locator('[data-qa="media-editor-hint"]'), "no hint on a matching canvas").toHaveCount(0);
+
+    // Desktop tab: the portrait clip (no landscape source) fights the wide canvas.
+    await page.locator('[data-qa="media-device-desktop"]').click();
+    await page.waitForTimeout(250);
+    const hint = page.locator('[data-qa="media-editor-hint"]');
+    await expect(hint, "mismatch hint appears on the Desktop tab").toBeVisible();
+    await expect(hint).toContainText(/portrait/i);
+    await expect(hint).toContainText(/desktop/i);
+    await page.screenshot({ path: shot("MEDIA3-hint.png") });
+  });
 });

@@ -577,6 +577,8 @@
         "fitLabel": "Display",
         "fitFill": "Fill (crop)",
         "fitFit": "Fit (letterbox)",
+        "hintPortrait": "This video is portrait — desktop will crop heavily. Add a landscape version or switch to Fit mode.",
+        "hintLandscape": "This video is landscape — phones will crop heavily. Add a portrait version or switch to Fit mode.",
         "uploadVideo": "Upload video",
         "replaceVideo": "Replace video",
         "adjustFraming": "Adjust framing",

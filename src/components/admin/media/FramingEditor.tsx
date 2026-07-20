@@ -46,6 +46,7 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  */
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 const SURFACE_MAX_H = 360;
+const ASPECT_MISMATCH = 0.25;
 
 type Props = {
   open: boolean;
@@ -266,6 +267,15 @@ const FramingEditor = ({
     else onSave(imgFocal, imgZoom);
   };
 
+  // Aspect-mismatch hint (video only): the shown clip vs the previewed canvas.
+  const natAspect = natural && natural.h > 0 ? natural.w / natural.h : null;
+  const mismatch =
+    isVideo && natAspect !== null && Math.abs(natAspect - aspect) / aspect > ASPECT_MISMATCH;
+  const hintKey =
+    natAspect !== null && natAspect < aspect
+      ? "admin.media.video.hintPortrait"
+      : "admin.media.video.hintLandscape";
+
   const sourceLabelKey =
     activeOrientation === "portrait"
       ? "admin.media.video.framingPortrait"
@@ -378,6 +388,16 @@ const FramingEditor = ({
             </div>
           )}
         </div>
+
+        {/* Aspect-mismatch hint (non-blocking). */}
+        {mismatch && (
+          <p
+            data-qa="media-editor-hint"
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
+          >
+            {t(hintKey)}
+          </p>
+        )}
 
         {/* Fill / Fit display mode (video only). */}
         {isVideo && (

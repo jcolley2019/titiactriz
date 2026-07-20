@@ -577,6 +577,8 @@
         "fitLabel": "Ajuste",
         "fitFill": "Rellenar (recortar)",
         "fitFit": "Ajustar (barras)",
+        "hintPortrait": "Este video es vertical — en escritorio se recortará mucho. Agrega una versión horizontal o cambia a modo Ajustar.",
+        "hintLandscape": "Este video es horizontal — en teléfonos se recortará mucho. Agrega una versión vertical o cambia a modo Ajustar.",
         "uploadVideo": "Subir video",
         "replaceVideo": "Reemplazar video",
         "adjustFraming": "Ajustar encuadre",
