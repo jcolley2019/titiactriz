@@ -1406,21 +1406,6 @@ const adminSections = (t: (key: string) => string): AdminSection[] => [
     content: (
       <div className="space-y-2">
         <HomeVariantToggle />
-        {/* TA.8a-b: the cinematic hero picker moved into the Media section (its
-            Hero slot chooses AND frames the image, reading the legacy
-            cinematic_hero_photo through the resolver). A bilingual pointer is
-            left here so the old location still guides admins to the new home. */}
-        <div
-          data-qa="settings-media-note"
-          className="rounded-lg border border-border bg-card px-6 py-4"
-        >
-          <h2 className="font-serif text-base text-foreground leading-tight">
-            {t("admin.settings.heroMovedTitle")}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("admin.settings.heroMovedBody")}
-          </p>
-        </div>
       </div>
     ),
   },

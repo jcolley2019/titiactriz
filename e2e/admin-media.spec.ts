@@ -309,7 +309,7 @@ test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)"
 
 /* ---------- (c3) TA.8a-b: hero controls consolidated into Media ---------- */
 test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () => {
-  test("Settings drops the legacy hero picker (note only); Media hosts the hero slot", async ({ page }) => {
+  test("Settings drops the legacy hero picker and pointer note; Media hosts the hero slot", async ({ page }) => {
     await injectAdminSession(page);
     await forceLanguage(page, "en");
     await routeSupabase(page, { media: null, photos: MOCK_PHOTOS });
@@ -317,14 +317,17 @@ test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () =>
     await page.goto("/admin", { waitUntil: "domcontentloaded" });
     await settle(page, 700);
 
-    // Settings: legacy hero picker gone; bilingual pointer note present; variant stays.
+    // Settings: legacy hero picker gone; pointer note gone (POLISH.2); variant stays.
     await page.locator('[data-qa="admin-nav-settings"]').click();
     await expect(page.locator('[data-qa="admin-section-settings"]')).toBeVisible();
     await expect(
       page.locator('[data-qa="admin-cinematic-hero"]'),
       "legacy hero picker removed from Settings",
     ).toHaveCount(0);
-    await expect(page.locator('[data-qa="settings-media-note"]')).toBeVisible();
+    await expect(
+      page.locator('[data-qa="settings-media-note"]'),
+      "pointer card removed from Settings (POLISH.2)",
+    ).toHaveCount(0);
     await expect(page.getByText(/home page variant/i)).toBeVisible();
 
     // Media: the Hero slot is the single place to choose AND frame the hero.
