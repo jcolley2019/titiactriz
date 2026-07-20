@@ -129,19 +129,26 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
     await page.waitForTimeout(500); // image decode + surface measure
     await page.screenshot({ path: shot("ADMIN.MEDIA-editor.png") });
 
-    // Drag horizontally → the preview's framing changes.
-    const previewImg = surface.locator("img").first();
-    const before = await previewImg.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    // MEDIA.4: the react-easy-crop frame overlay is VISIBLE — a target-canvas
+    // outline with everything outside it dimmed (a huge box-shadow).
+    const frame = surface.locator(".media-frame-overlay");
+    await expect(frame, "crop frame overlay is visible").toBeVisible();
+    const dim = await frame.evaluate((el) => getComputedStyle(el as HTMLElement).boxShadow);
+    expect(dim, "area outside the frame is dimmed").not.toBe("none");
+
+    // Drag → react-easy-crop repositions the media (its transform changes).
+    const cropImg = surface.locator("img").first();
+    const before = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
     const box = (await surface.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 - 55, box.y + box.height / 2, { steps: 10 });
+    await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2 - 20, { steps: 12 });
     await page.mouse.up();
-    await page.waitForTimeout(200);
-    const after = await previewImg.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
-    expect(after, "drag repositions the preview").not.toBe(before);
+    await page.waitForTimeout(250);
+    const after = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
+    expect(after, "drag repositions the crop").not.toBe(before);
 
-    // Zoom slider → readout + preview update.
+    // Zoom slider → readout + zoom-in.
     await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
       const input = el as HTMLInputElement;
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
@@ -154,10 +161,10 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
     // Device tabs switch → surface aspect changes.
     const aspectBefore = await surface.boundingBox().then((b) => b!.width / b!.height);
     await page.locator('[data-qa="media-device-desktop"]').click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     const aspectAfter = await surface.boundingBox().then((b) => b!.width / b!.height);
     expect(Math.abs(aspectAfter - aspectBefore), "device tab re-aspects the surface").toBeGreaterThan(0.3);
-    await page.screenshot({ path: shot("ADMIN.MEDIA-device-tabs.png") });
+    await page.screenshot({ path: shot("MEDIA4-editor-image.png") });
 
     // Save → upsert cinematic_media with the expected shape.
     await page.locator('[data-qa="media-editor-save"]').click();
@@ -169,7 +176,7 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
     const row = Array.isArray(payload) ? payload[0] : payload;
     expect(row.key).toBe("cinematic_media");
     expect(row.value.hero.photo_id).toBe("p1");
-    expect(row.value.hero.zoom).toBeCloseTo(2, 1);
+    expect(row.value.hero.zoom, "slider zoom → cover-relative zoom").toBeCloseTo(2, 0);
     expect(typeof row.value.hero.focal.x).toBe("number");
     expect(Array.isArray(row.value.reel)).toBe(true);
     await expect(
@@ -228,17 +235,23 @@ test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)"
     expect(writes.length, "selection alone never persists").toBe(writesBefore);
     await page.screenshot({ path: shot("TA.8a-editor-open.png") });
 
-    // Drag → focal changes.
-    const previewImg = surface.locator("img").first();
-    const before = await previewImg.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    // The frame overlay + outside-dim is present (react-easy-crop crop area).
+    const frame = surface.locator(".media-frame-overlay");
+    await expect(frame, "frame overlay visible").toBeVisible();
+    expect(await frame.evaluate((el) => getComputedStyle(el as HTMLElement).boxShadow)).not.toBe("none");
+    await page.screenshot({ path: shot("MEDIA4-frame-overlay.png") });
+
+    // Drag → react-easy-crop repositions the media (transform changes).
+    const cropImg = surface.locator("img").first();
+    const before = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
     const box = (await surface.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 - 55, box.y + box.height / 2 - 30, { steps: 10 });
+    await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2 - 20, { steps: 12 });
     await page.mouse.up();
-    await page.waitForTimeout(200);
-    const after = await previewImg.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
-    expect(after, "drag repositions the preview").not.toBe(before);
+    await page.waitForTimeout(250);
+    const after = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
+    expect(after, "drag repositions the crop").not.toBe(before);
 
     // Zoom slider → readout + scale.
     await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
@@ -254,7 +267,7 @@ test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)"
     const deviceTabs = page.locator('[data-qa="media-editor-devices"] > button');
     expect(await deviceTabs.count(), "device preview tabs render").toBeGreaterThanOrEqual(3);
     await page.locator('[data-qa="media-device-desktop"]').click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     await page.screenshot({ path: shot("TA.8a-editor-devicetabs.png") });
 
     // Save → upsert carries the chosen photo + framing.
@@ -267,21 +280,28 @@ test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)"
     const row = Array.isArray(payload) ? payload[0] : payload;
     expect(row.key).toBe("cinematic_media");
     expect(row.value.hero.photo_id).toBe("p1");
-    expect(row.value.hero.zoom).toBeCloseTo(1.5, 1);
+    expect(row.value.hero.zoom, "slider zoom → cover-relative zoom").toBeCloseTo(1.5, 0);
     await expect(
       page.locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-badge"]'),
     ).toHaveText(/custom/i);
 
-    // Pencil re-opens the editor for the current photo WITH the saved values.
+    // Pencil re-opens the editor seeded from the saved framing; a round-trip
+    // save preserves the zoom (the crop re-hydrates from focal/zoom).
     await page
       .locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-edit"]')
       .click();
-    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
-    await page.waitForTimeout(300);
-    await expect(
-      page.locator('[data-qa="media-editor-zoom-value"]'),
-      "pencil re-opens with the saved zoom",
-    ).toHaveText(/1\.50/);
+    const surface2 = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surface2).toBeVisible();
+    await expect(surface2.locator(".media-frame-overlay")).toBeVisible();
+    await page.waitForTimeout(600);
+    await page.locator('[data-qa="media-editor-save"]').click();
+    await page.waitForTimeout(400);
+    const upserts2 = writes.filter((w) => w.method === "POST" && /site_settings/.test(w.url));
+    const row2 = (() => {
+      const p = JSON.parse(upserts2[upserts2.length - 1].body || "{}");
+      return Array.isArray(p) ? p[0] : p;
+    })();
+    expect(row2.value.hero.zoom, "re-opened framing round-trips").toBeCloseTo(1.5, 0);
 
     expect(pageErrors, "no uncaught errors during pick→frame→save").toEqual([]);
   });
@@ -443,6 +463,7 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
       .toBeGreaterThan(0);
     await page.waitForTimeout(400);
     await page.screenshot({ path: shot("MEDIA2-editor-videomode.png") });
+    await page.screenshot({ path: shot("MEDIA4-editor-video.png") });
 
     // Drag repositions the video framing.
     const previewVideo = surface.locator("video").first();

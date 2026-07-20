@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import Cropper, { type Area } from "react-easy-crop";
+import "react-easy-crop/react-easy-crop.css";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import SectionPreview from "./SectionPreview";
+import { areaToFocalZoom, focalZoomToAreaPct } from "./cropMath";
 import { decodeImage, cropErrorCauseKey } from "@/lib/crop";
 import { probeVideoSize } from "@/lib/hero-video";
 import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect } from "@/lib/device-presets";
@@ -29,20 +32,19 @@ import {
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 
 /**
- * ADMIN.MEDIA.1 → .3 — framing editor.
+ * ADMIN.MEDIA.4 — framing editor extracted from the TitiLinks profile editor.
  *
- * Non-destructive: pointer drag + a zoom slider write focal x/y + zoom (+ a
- * per-source fill/fit mode for video) — never a cropped file. The drag surface
- * renders the exact SectionPreview (same FramedImage/FramedVideo as the live
- * site) at the selected device's aspect, so what you drag is what publishes.
+ * IMAGE mode (all four slots) is react-easy-crop, ported directly from
+ * EditableProfileView's manual-crop step: the same <Cropper> (drag to reposition,
+ * wheel/pinch + slider zoom, min-zoom-to-cover clamp via restrictPosition), the
+ * same VISIBLE frame overlay — the target-canvas outline with everything outside
+ * it dimmed — at the device tab's aspect. The one adaptation: instead of writing
+ * a cropped file (TitiLinks' getCroppedImage), Save lifts the crop rectangle into
+ * this site's non-destructive focal + zoom (cropMath). Device tabs re-aspect the
+ * frame and drive live thumbnails.
  *
- * VIDEO mode (ADMIN.MEDIA.3) frames TWO orientation sources. The active device
- * tab implies the source: a portrait-aspect canvas (phone) edits the portrait
- * source, a landscape-aspect canvas (desktop/tablet) edits the landscape source;
- * if that orientation has no dedicated clip the other source is shown as a stand-
- * in. Each source keeps its own focal/zoom/fit. "Fit" letterboxes at the natural
- * aspect over a blurred backdrop and unlocks sub-cover zoom. A non-blocking hint
- * warns when the shown clip's aspect fights the previewed canvas by >25%.
+ * VIDEO mode (hero) keeps TitiLinks' hero-video object-position approach, extended
+ * to 2D focal + zoom, dual orientation sources, fill/fit, and the mismatch hint.
  */
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 const SURFACE_MAX_H = 360;
@@ -59,21 +61,24 @@ type Props = {
   initialZoom: number;
   heroVideoActive?: boolean;
   saving?: boolean;
-  /** ADMIN.MEDIA.2 — "video" frames the hero background video, not the image. */
   mode?: "image" | "video";
-  /** Video sources per orientation (video mode). */
   videoLandscapeSrc?: string | null;
   videoPortraitSrc?: string | null;
-  /** Initial per-source video framing (video mode). */
   initialVideo?: HeroVideoFraming;
-  /** Poster image for the video preview (the current hero image). */
   poster?: string;
   onSave: (focal: Focal, zoom: number) => void;
-  /** Persist per-source video framing (video mode). */
   onSaveVideo?: (framing: HeroVideoFraming) => void;
   onReset: () => void;
   onCancel: () => void;
 };
+
+/* ---- Shared gold frame overlay for react-easy-crop (visible outline + dim). ---- */
+const CROP_AREA_STYLE: React.CSSProperties = {
+  border: "2px solid hsl(var(--gold-light))",
+  boxShadow: "0 0 0 9999em rgba(11, 10, 8, 0.62)",
+  color: "transparent",
+};
+const CROP_MEDIA_STYLE: React.CSSProperties = { backgroundColor: "#0b0a08" };
 
 const FramingEditor = ({
   open,
@@ -99,26 +104,23 @@ const FramingEditor = ({
   const { t } = useTranslation();
   const isVideo = mode === "video";
 
-  // --- Framing state: single (image) vs per-orientation (video). ---
-  const [imgFocal, setImgFocal] = useState<Focal>(initialFocal);
-  const [imgZoom, setImgZoom] = useState(initialZoom);
-  const [vFraming, setVFraming] = useState<HeroVideoFraming>(initialVideo ?? defaultHeroVideo());
-
   const [deviceId, setDeviceId] = useState(MEDIA_PREVIEW_DEVICES[0].id);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [availW, setAvailW] = useState(480);
-  const dragRef = useRef<
-    | { startX: number; startY: number; startFocal: Focal; overflowX: number; overflowY: number }
-    | null
-  >(null);
-
   const aspect = devicePreviewAspect(deviceId);
 
-  // Which orientation the active tab implies, and which source is actually shown
-  // (falling back to the other orientation's clip, mirroring the render).
+  /* ---------------- IMAGE mode (react-easy-crop) ---------------- */
+  const imageSrc = !isVideo ? photo?.image_url : undefined;
+  const [rcCrop, setRcCrop] = useState({ x: 0, y: 0 });
+  const [rcZoom, setRcZoom] = useState(1);
+  const [rcArea, setRcArea] = useState<Area | null>(null);
+  // Seed react-easy-crop ONCE from the saved framing (stable across drags/tabs).
+  const [seedPct, setSeedPct] = useState<
+    { x: number; y: number; width: number; height: number } | undefined
+  >(undefined);
+
+  /* ---------------- VIDEO mode (object-position surface) ---------------- */
+  const [vFraming, setVFraming] = useState<HeroVideoFraming>(initialVideo ?? defaultHeroVideo());
   const sources: Record<VideoOrientation, string | null | undefined> = {
     landscape: videoLandscapeSrc,
     portrait: videoPortraitSrc,
@@ -127,48 +129,40 @@ const FramingEditor = ({
   const other: VideoOrientation = tabTarget === "portrait" ? "landscape" : "portrait";
   const activeOrientation: VideoOrientation = sources[tabTarget] ? tabTarget : sources[other] ? other : tabTarget;
   const displayedSrc = isVideo ? sources[activeOrientation] ?? undefined : undefined;
+  const vCur = vFraming[activeOrientation];
 
-  const mediaSrc = isVideo ? displayedSrc : photo?.image_url;
-
-  // Current framing being edited (derived), plus routed setters.
-  const cur = isVideo
-    ? vFraming[activeOrientation]
-    : { focal: imgFocal, zoom: imgZoom, fit: "fill" as FitMode };
-  const focal = cur.focal;
-  const zoom = cur.zoom;
-  const fit: FitMode = cur.fit;
-
-  const setFocal = (f: Focal) => {
-    if (isVideo) setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], focal: f } }));
-    else setImgFocal(f);
-  };
-  const setZoom = (z: number) => {
-    if (isVideo) setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], zoom: z } }));
-    else setImgZoom(z);
-  };
+  const setVFocal = (f: Focal) =>
+    setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], focal: f } }));
+  const setVZoom = (z: number) =>
+    setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], zoom: z } }));
   const setFit = (nextFit: FitMode) =>
     setVFraming((v) => {
       const src = v[activeOrientation];
-      return {
-        ...v,
-        [activeOrientation]: { ...src, fit: nextFit, zoom: clampSourceZoom(src.zoom, nextFit) },
-      };
+      return { ...v, [activeOrientation]: { ...src, fit: nextFit, zoom: clampSourceZoom(src.zoom, nextFit) } };
     });
 
-  const zoomMin = isVideo && fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [availW, setAvailW] = useState(480);
+  const dragRef = useRef<
+    | { startX: number; startY: number; startFocal: Focal; overflowX: number; overflowY: number }
+    | null
+  >(null);
 
-  // Reset framing state each time the dialog opens fresh.
+  const mediaSrc = isVideo ? displayedSrc : imageSrc;
+
+  // Reset transient state when the dialog opens.
   useEffect(() => {
     if (!open) return;
-    setImgFocal(initialFocal);
-    setImgZoom(initialZoom);
-    setVFraming(initialVideo ?? defaultHeroVideo());
     setDeviceId(MEDIA_PREVIEW_DEVICES[0].id);
+    setRcCrop({ x: 0, y: 0 });
+    setRcZoom(1);
+    setRcArea(null);
+    setSeedPct(undefined);
+    setVFraming(initialVideo ?? defaultHeroVideo());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Measure the shown media's intrinsic size whenever it changes (tab switch in
-  // video mode swaps the source). Framing state is preserved across the switch.
+  // Measure the shown media's intrinsic size (image decode / video metadata).
   useEffect(() => {
     if (!open) return;
     setNatural(null);
@@ -180,7 +174,9 @@ const FramingEditor = ({
       : decodeImage(mediaSrc).then((img) => ({ w: img.naturalWidth, h: img.naturalHeight }));
     measure
       .then((size) => {
-        if (!cancelled) setNatural(size);
+        if (cancelled) return;
+        setNatural(size);
+        if (!isVideo) setSeedPct(focalZoomToAreaPct(initialFocal, initialZoom, size.w, size.h, aspect));
       })
       .catch((err) => {
         if (cancelled) return;
@@ -194,7 +190,6 @@ const FramingEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mediaSrc, isVideo]);
 
-  // Measure the available width so the surface stays inside the dialog on any viewport.
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -204,7 +199,6 @@ const FramingEditor = ({
     return () => ro.disconnect();
   }, [open]);
 
-  // Surface dimensions: fill the available width, capped in height (WYSIWYG frame).
   let fw = availW;
   let fh = fw / aspect;
   if (fh > SURFACE_MAX_H) {
@@ -212,6 +206,13 @@ const FramingEditor = ({
     fw = fh * aspect;
   }
 
+  // Live image focal/zoom derived from the current crop, for the thumbnails.
+  const liveImageFraming =
+    !isVideo && rcArea && natural
+      ? areaToFocalZoom(rcArea, natural.w, natural.h, aspect, MIN_ZOOM, MAX_ZOOM)
+      : { focal: initialFocal, zoom: initialZoom };
+
+  /* ---- VIDEO drag (object-position pan on the SectionPreview surface) ---- */
   const overflow = useCallback(
     (z: number) => {
       if (!natural) return { x: 0, y: 0 };
@@ -225,35 +226,31 @@ const FramingEditor = ({
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!natural || loadError) return;
-    const o = overflow(zoom);
+    const o = overflow(vCur.zoom);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      startFocal: { ...focal },
+      startFocal: { ...vCur.focal },
       overflowX: o.x,
       overflowY: o.y,
     };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
-
   const onPointerMove = (e: React.PointerEvent) => {
     const d = dragRef.current;
     if (!d) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
-    // Media follows the finger: dragging right reveals the left, i.e. focal
-    // decreases. Axes with no overflow can't pan.
     const nx = d.overflowX > 0 ? clamp01(d.startFocal.x - dx / d.overflowX) : d.startFocal.x;
     const ny = d.overflowY > 0 ? clamp01(d.startFocal.y - dy / d.overflowY) : d.startFocal.y;
-    setFocal({ x: nx, y: ny });
+    setVFocal({ x: nx, y: ny });
   };
-
   const endDrag = (e: React.PointerEvent) => {
     dragRef.current = null;
     try {
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {
-      /* pointer may already be released */
+      /* already released */
     }
   };
 
@@ -263,8 +260,14 @@ const FramingEditor = ({
   };
 
   const handleSave = () => {
-    if (isVideo) onSaveVideo?.(vFraming);
-    else onSave(imgFocal, imgZoom);
+    if (isVideo) {
+      onSaveVideo?.(vFraming);
+    } else if (rcArea && natural) {
+      const { focal, zoom } = areaToFocalZoom(rcArea, natural.w, natural.h, aspect, MIN_ZOOM, MAX_ZOOM);
+      onSave(focal, zoom);
+    } else {
+      onSave(initialFocal, initialZoom);
+    }
   };
 
   // Aspect-mismatch hint (video only): the shown clip vs the previewed canvas.
@@ -280,6 +283,9 @@ const FramingEditor = ({
     activeOrientation === "portrait"
       ? "admin.media.video.framingPortrait"
       : "admin.media.video.framingLandscape";
+
+  const zoomMin = isVideo && vCur.fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
+  const displayZoom = isVideo ? vCur.zoom : rcZoom;
 
   return (
     <Dialog
@@ -314,8 +320,12 @@ const FramingEditor = ({
             const isActive = d.id === deviceId;
             const a = d.width / d.height;
             const tabOrient: VideoOrientation = a < 1 ? "portrait" : "landscape";
-            const tabSrc = isVideo ? (sources[tabOrient] ?? sources[tabOrient === "portrait" ? "landscape" : "portrait"] ?? undefined) : undefined;
-            const tabFraming = isVideo ? vFraming[sources[tabOrient] ? tabOrient : tabOrient === "portrait" ? "landscape" : "portrait"] : cur;
+            const tabSrc = isVideo
+              ? sources[tabOrient] ?? sources[tabOrient === "portrait" ? "landscape" : "portrait"] ?? undefined
+              : undefined;
+            const tabFraming = isVideo
+              ? vFraming[sources[tabOrient] ? tabOrient : tabOrient === "portrait" ? "landscape" : "portrait"]
+              : liveImageFraming;
             return (
               <button
                 key={d.id}
@@ -339,7 +349,7 @@ const FramingEditor = ({
                     photo={photo}
                     focal={tabFraming.focal}
                     zoom={tabFraming.zoom}
-                    fit={tabFraming.fit}
+                    fit={isVideo ? (tabFraming as { fit?: FitMode }).fit : undefined}
                     reelTitle={reelTitle}
                     aspect={a}
                     videoSrc={tabSrc}
@@ -352,7 +362,7 @@ const FramingEditor = ({
           })}
         </div>
 
-        {/* Drag surface at the selected device's aspect. */}
+        {/* Editing surface. */}
         <div ref={wrapRef} className="flex w-full justify-center">
           {loadError ? (
             <div
@@ -361,7 +371,7 @@ const FramingEditor = ({
             >
               {loadError}
             </div>
-          ) : (
+          ) : isVideo ? (
             <div
               data-qa="media-editor-surface"
               onPointerDown={onPointerDown}
@@ -376,9 +386,9 @@ const FramingEditor = ({
                 kind={kind}
                 reelIndex={reelIndex}
                 photo={photo}
-                focal={focal}
-                zoom={zoom}
-                fit={fit}
+                focal={vCur.focal}
+                zoom={vCur.zoom}
+                fit={vCur.fit}
                 reelTitle={reelTitle}
                 aspect={aspect}
                 videoSrc={displayedSrc}
@@ -386,10 +396,41 @@ const FramingEditor = ({
               />
               <div className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-inset ring-[hsl(var(--gold-light))]/70" />
             </div>
+          ) : (
+            <div
+              data-qa="media-editor-surface"
+              className="relative overflow-hidden rounded-md"
+              style={{ width: fw, height: fh, backgroundColor: "#0b0a08" }}
+            >
+              {imageSrc && natural && (
+                <Cropper
+                  image={imageSrc}
+                  crop={rcCrop}
+                  zoom={rcZoom}
+                  aspect={aspect}
+                  minZoom={MIN_ZOOM}
+                  maxZoom={MAX_ZOOM}
+                  zoomSpeed={0.25}
+                  restrictPosition
+                  showGrid={false}
+                  objectFit="cover"
+                  initialCroppedAreaPercentages={seedPct}
+                  onCropChange={setRcCrop}
+                  onZoomChange={setRcZoom}
+                  onCropComplete={(_, areaPixels) => setRcArea(areaPixels)}
+                  classes={{
+                    containerClassName: "media-crop-container",
+                    cropAreaClassName: "media-frame-overlay",
+                    mediaClassName: "media-crop-media",
+                  }}
+                  style={{ cropAreaStyle: CROP_AREA_STYLE, mediaStyle: CROP_MEDIA_STYLE }}
+                />
+              )}
+            </div>
           )}
         </div>
 
-        {/* Aspect-mismatch hint (non-blocking). */}
+        {/* Aspect-mismatch hint (non-blocking, video only). */}
         {mismatch && (
           <p
             data-qa="media-editor-hint"
@@ -410,9 +451,9 @@ const FramingEditor = ({
                 type="button"
                 data-qa="media-editor-fit-fill"
                 onClick={() => setFit("fill")}
-                aria-pressed={fit === "fill"}
+                aria-pressed={vCur.fit === "fill"}
                 className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                  fit === "fill"
+                  vCur.fit === "fill"
                     ? "border-accent bg-accent/10 text-foreground"
                     : "border-border text-muted-foreground hover:border-accent/60"
                 }`}
@@ -423,9 +464,9 @@ const FramingEditor = ({
                 type="button"
                 data-qa="media-editor-fit-fit"
                 onClick={() => setFit("fit")}
-                aria-pressed={fit === "fit"}
+                aria-pressed={vCur.fit === "fit"}
                 className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                  fit === "fit"
+                  vCur.fit === "fit"
                     ? "border-accent bg-accent/10 text-foreground"
                     : "border-border text-muted-foreground hover:border-accent/60"
                 }`}
@@ -447,16 +488,16 @@ const FramingEditor = ({
             min={zoomMin}
             max={MAX_ZOOM}
             step={0.01}
-            value={zoom}
+            value={displayZoom}
             disabled={!!loadError}
-            onChange={(e) => setZoom(parseFloat(e.target.value))}
+            onChange={(e) => (isVideo ? setVZoom(parseFloat(e.target.value)) : setRcZoom(parseFloat(e.target.value)))}
             className="h-1.5 flex-1 accent-[hsl(var(--gold-light))]"
           />
           <span
             data-qa="media-editor-zoom-value"
             className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground"
           >
-            {zoom.toFixed(2)}×
+            {displayZoom.toFixed(2)}×
           </span>
         </div>
 
@@ -471,17 +512,12 @@ const FramingEditor = ({
             {t("admin.media.editor.reset")}
           </Button>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              disabled={saving}
-              data-qa="media-editor-cancel"
-            >
+            <Button variant="outline" onClick={onCancel} disabled={saving} data-qa="media-editor-cancel">
               {t("admin.media.editor.cancel")}
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || (!isVideo && !natural) || !!loadError}
+              disabled={saving || (!isVideo && (!natural || !rcArea)) || !!loadError}
               data-qa="media-editor-save"
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
