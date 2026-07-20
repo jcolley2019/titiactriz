@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import imageCompression from "browser-image-compression";
 import type { Session } from "@supabase/supabase-js";
 import {
   DndContext,
@@ -23,6 +22,16 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, MoreVertical, ChevronUp, ChevronDown, ChevronRight, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, CalendarDays, Settings2, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  BUCKET,
+  ACCEPT_ATTR,
+  isHeic,
+  isAcceptedFile,
+  formatBytes,
+  sha256Hex,
+  optimizeFile,
+  uploadBlob,
+} from "@/lib/gallery-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,28 +82,8 @@ type Photo = {
 };
 
 
-const BUCKET = "gallery";
-const ACCEPTED = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-];
-const ACCEPT_ATTR = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
-
-const isHeic = (file: File) => {
-  const type = (file.type || "").toLowerCase();
-  if (type === "image/heic" || type === "image/heif") return true;
-  const name = file.name.toLowerCase();
-  return name.endsWith(".heic") || name.endsWith(".heif");
-};
-
-const isAcceptedFile = (file: File) =>
-  ACCEPTED.includes((file.type || "").toLowerCase()) || isHeic(file);
-
-const formatBytes = (b: number) =>
-  b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
+/* Upload pipeline (BUCKET, accept lists, isHeic, optimizeFile, uploadBlob, …)
+   lives in @/lib/gallery-upload so the cinematic media picker can reuse it. */
 
 /* ---------------- Login ---------------- */
 const LoginCard = () => {
@@ -207,59 +196,6 @@ type QueueItem = {
   sortOrder: number;
   contentHash?: string;
   duplicateOfId?: string;
-};
-
-const sha256Hex = async (file: File): Promise<string> => {
-  const buf = await file.arrayBuffer();
-  const digest = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-};
-
-const SKIP_COMPRESS_BYTES = 600 * 1024; // images already <= 600KB are uploaded untouched
-
-const optimizeFile = async (file: File): Promise<{ blob: Blob; converted: boolean }> => {
-  let working: File | Blob = file;
-  let converted = false;
-  if (isHeic(file)) {
-    const mod = await import("heic2any");
-    const heic2any = mod.default;
-    const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
-    const jpegBlob = Array.isArray(out) ? out[0] : out;
-    working = new File([jpegBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
-      type: "image/jpeg",
-    });
-    converted = true;
-  }
-  // Already small enough -> keep the original as-is, no re-compression.
-  if (!converted && file.size <= SKIP_COMPRESS_BYTES) {
-    return { blob: file, converted: false };
-  }
-  const blob = await imageCompression(working as File, {
-    maxWidthOrHeight: 3200,
-    fileType: "image/webp",
-    initialQuality: 0.92,
-    maxSizeMB: 4,
-    useWebWorker: true,
-    preserveExif: false,
-  });
-  return { blob, converted };
-};
-
-const uploadBlob = async (blob: Blob): Promise<string> => {
-  const type = blob.type || "image/webp";
-  const ext =
-    type === "image/jpeg" ? "jpg" :
-    type === "image/png" ? "png" :
-    "webp";
-  const path = `photos/${crypto.randomUUID()}.${ext}`;
-  const { error: upErr } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, blob, { upsert: false, contentType: type });
-  if (upErr) throw upErr;
-  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return pub.publicUrl;
 };
 
 /* ---------------- Sortable photo row ---------------- */
