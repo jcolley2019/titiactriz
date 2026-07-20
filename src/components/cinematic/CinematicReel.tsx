@@ -1,29 +1,34 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import FramedImage from "./FramedImage";
 import type { CinematicPhoto } from "./useCinematicData";
+import { REEL_DEFAULT_FOCAL, DEFAULT_ZOOM, type Focal } from "@/hooks/useCinematicMedia";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export type ReelSlide = { photo?: CinematicPhoto; title: string };
+export type ReelSlide = {
+  photo?: CinematicPhoto;
+  title: string;
+  /** Admin framing (ADMIN.MEDIA.1). Absent → centered/1×, i.e. today's render. */
+  focal?: Focal;
+  zoom?: number;
+};
 
 type Props = { slides: ReelSlide[]; reduced: boolean };
 
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
-const SlideBg = ({ photo }: { photo?: CinematicPhoto }) => (
+const SlideBg = ({ slide }: { slide: ReelSlide }) => (
   <>
-    {photo ? (
-      <img
-        src={photo.image_url}
-        alt={photo.alt_text ?? ""}
-        className="h-full w-full object-cover"
-        loading="lazy"
-        decoding="async"
-      />
-    ) : (
-      <div className="h-full w-full" style={{ backgroundColor: "#141210" }} />
-    )}
+    <FramedImage
+      src={slide.photo?.image_url}
+      alt={slide.photo?.alt_text ?? ""}
+      focal={slide.focal ?? REEL_DEFAULT_FOCAL}
+      zoom={slide.zoom ?? DEFAULT_ZOOM}
+      loading="lazy"
+      fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
+    />
     <div
       className="absolute inset-0"
       style={{ background: "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))" }}
@@ -124,7 +129,7 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             className="relative flex min-h-[70svh] items-center justify-center overflow-hidden"
           >
             <div className="absolute inset-0">
-              <SlideBg photo={s.photo} />
+              <SlideBg slide={s} />
             </div>
             <SlideContent i={i} title={s.title} />
           </div>
@@ -144,7 +149,7 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             style={{ opacity: i === 0 ? 1 : 0 }}
           >
             <div className="absolute inset-0">
-              <SlideBg photo={s.photo} />
+              <SlideBg slide={s} />
             </div>
             <SlideContent
               i={i}

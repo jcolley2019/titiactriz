@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import {
@@ -142,6 +143,37 @@ export const clearCinematicMedia = async (): Promise<void> => {
     .eq("key", CINEMATIC_MEDIA_KEY);
   if (error) throw error;
 };
+
+/**
+ * Read-only hook for the cinematic_media config. Kept separate from
+ * useCinematicData (which owns the photo pool) so the one-way import direction
+ * useCinematicMedia → useCinematicData stays acyclic. `media` is null until the
+ * fetch resolves and whenever the key is absent — the resolver treats both as
+ * "use defaults".
+ */
+export function useCinematicMediaConfig(): {
+  media: CinematicMediaConfig | null;
+  loading: boolean;
+} {
+  const [media, setMedia] = useState<CinematicMediaConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCinematicMedia()
+      .then((m) => {
+        if (!cancelled) setMedia(m);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { media, loading };
+}
 
 /** A slot resolved against the published pool, ready to render. */
 export type ResolvedSlot = {

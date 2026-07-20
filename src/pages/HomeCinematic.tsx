@@ -5,7 +5,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import SEO from "@/components/SEO";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
-import { useCinematicData, resolveHeroPhoto } from "@/components/cinematic/useCinematicData";
+import { useCinematicData } from "@/components/cinematic/useCinematicData";
+import { getCinematicMedia, useCinematicMediaConfig } from "@/hooks/useCinematicMedia";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import CinematicGreenWorld from "@/components/cinematic/CinematicGreenWorld";
@@ -41,13 +42,15 @@ const HomeCinematic = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
   const { photos, heroVideo, heroPhotoSetting } = useCinematicData();
+  const { media } = useCinematicMediaConfig();
 
-  // Hero photo: the admin-selected one (site_settings "cinematic_hero_photo")
-  // when it resolves to a published photo, otherwise the first published photo
-  // (today's default behavior). The reel draws from every OTHER published photo
-  // so it never duplicates whichever photo the hero actually uses.
-  const heroPhoto = resolveHeroPhoto(photos, heroPhotoSetting);
-  const reelPhotos = photos.filter((p) => p.id !== heroPhoto?.id);
+  // ADMIN.MEDIA.1: one resolver merges cinematic_media → legacy cinematic_hero_photo
+  // → defaults. With no admin data set this equals today's render exactly — the
+  // hero is the first published photo (or the legacy selection) at the TA.6d
+  // focal, and the reel draws the non-hero pool (photos 2–4) centered at 1×.
+  const resolved = getCinematicMedia(photos, media, heroPhotoSetting, heroVideo);
+  const hero = resolved.hero;
+  const reel = resolved.reel;
 
   // Lenis ↔ GSAP ScrollTrigger, scoped to this page only.
   useEffect(() => {
@@ -128,23 +131,25 @@ const HomeCinematic = () => {
       />
 
       <CinematicHero
-        photo={heroPhoto}
-        videoSrc={heroVideo}
+        photo={hero.photo}
+        videoSrc={hero.videoSrc}
         subtitle={t("hero.rolesLine")}
         scrollLabel={t("common.scroll")}
         reduced={prefersReduced}
+        focal={hero.focal}
+        zoom={hero.zoom}
       />
 
       {/* TA.5c: reel uses photos #2–4 so it never repeats the hero's photo #1.
-          `reelPhotos` is the non-hero pool (sort_order 2, 3, 4, …); when fewer
-          than 4 photos exist, the trailing slides simply render without an
-          image rather than reusing the hero photo. */}
+          Each slot's photo + framing comes from the resolver (non-hero pool by
+          default; an admin-set slot overrides both). When fewer than 4 photos
+          exist, the trailing slides simply render without an image. */}
       <CinematicReel
         reduced={prefersReduced}
         slides={[
-          { photo: reelPhotos[0], title: t("hero.roles.actress") },
-          { photo: reelPhotos[1], title: t("hero.roles.streamer") },
-          { photo: reelPhotos[2], title: t("hero.roles.entrepreneur") },
+          { photo: reel[0].photo, title: t("hero.roles.actress"), focal: reel[0].focal, zoom: reel[0].zoom },
+          { photo: reel[1].photo, title: t("hero.roles.streamer"), focal: reel[1].focal, zoom: reel[1].zoom },
+          { photo: reel[2].photo, title: t("hero.roles.entrepreneur"), focal: reel[2].focal, zoom: reel[2].zoom },
         ]}
       />
 

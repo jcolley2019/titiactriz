@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CinematicHeroMedia from "./CinematicHeroMedia";
 import type { CinematicPhoto } from "./useCinematicData";
+import type { Focal } from "@/hooks/useCinematicMedia";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,6 +26,8 @@ type Props = {
   subtitle: string;
   scrollLabel: string;
   reduced: boolean;
+  focal?: Focal;
+  zoom?: number;
 };
 
 /**
@@ -32,7 +35,7 @@ type Props = {
  * background, subtitle fade-up, scroll cue, and a slight title parallax on
  * scroll. Under reduced motion nothing animates: the layout renders static.
  */
-const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced }: Props) => {
+const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced, focal, zoom }: Props) => {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const restRef = useRef<HTMLDivElement>(null);
@@ -73,7 +76,7 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced }: Prop
       data-qa="cinematic-section"
       className="cine-vh-full relative flex items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
     >
-      <CinematicHeroMedia photo={photo} videoSrc={videoSrc} reduced={reduced} />
+      <CinematicHeroMedia photo={photo} videoSrc={videoSrc} reduced={reduced} focal={focal} zoom={zoom} />
 
       {/* TA.6d: nudge the whole lockup down ~8vh (to ~58% of the viewport) so
           the name overlaps her chest/torso and her head sits clearly above the
