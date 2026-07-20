@@ -1,24 +1,34 @@
 import FramedImage from "./FramedImage";
+import FramedVideo from "./FramedVideo";
 import type { CinematicPhoto } from "./useCinematicData";
-import { HERO_DEFAULT_FOCAL, DEFAULT_ZOOM, type Focal } from "@/hooks/useCinematicMedia";
+import {
+  HERO_DEFAULT_FOCAL,
+  VIDEO_DEFAULT_FOCAL,
+  DEFAULT_ZOOM,
+  type Focal,
+} from "@/hooks/useCinematicMedia";
 
 type Props = {
   photo?: CinematicPhoto;
   videoSrc?: string | null;
   reduced: boolean;
-  /** Admin framing (ADMIN.MEDIA.1). Absent → TA.6d defaults, i.e. today's render. */
+  /** Admin image framing (ADMIN.MEDIA.1). Absent → TA.6d defaults, i.e. today's render. */
   focal?: Focal;
   zoom?: number;
+  /** Admin video framing (ADMIN.MEDIA.2). Decoupled from the image's framing. */
+  videoFocal?: Focal;
+  videoZoom?: number;
 };
 
 /**
  * Hero background layer. Renders a muted looping <video> when a
  * `cinematic_hero_video` URL is configured, otherwise the resolved hero photo
- * with a slow Ken Burns drift. Framing (focal → object-position, zoom → scale)
- * comes from cinematic_media; with no admin data set, focal defaults to the
- * TA.6d anchor (center 8%) and zoom to 1, so the render is byte-for-byte today's.
- * A dark gradient scrim sits on top so the foreground type stays legible. The
- * video path is future-ready — the site_settings key is only ever read here.
+ * with a slow Ken Burns drift. Image framing (focal → object-position, zoom →
+ * scale) comes from cinematic_media; video framing is a separate, decoupled
+ * config (ADMIN.MEDIA.2). With no admin data set, both default to today's render.
+ * The hero photo is the video's poster (instant paint) and its reduced-motion
+ * still — under reduced motion the poster image renders instead of autoplaying.
+ * A dark gradient scrim sits on top so the foreground type stays legible.
  */
 const CinematicHeroMedia = ({
   photo,
@@ -26,17 +36,21 @@ const CinematicHeroMedia = ({
   reduced,
   focal = HERO_DEFAULT_FOCAL,
   zoom = DEFAULT_ZOOM,
+  videoFocal = VIDEO_DEFAULT_FOCAL,
+  videoZoom = DEFAULT_ZOOM,
 }: Props) => {
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
       {videoSrc ? (
-        <video
+        <FramedVideo
           src={videoSrc}
-          muted
-          loop
-          playsInline
-          autoPlay
-          className="h-full w-full object-cover"
+          poster={photo?.image_url}
+          focal={videoFocal}
+          zoom={videoZoom}
+          reduced={reduced}
+          videoDataQa="cinematic-hero-video"
+          posterDataQa="cinematic-hero-video-poster"
+          fallback={<div className="h-full w-full" style={{ backgroundColor: "#0b0a08" }} />}
         />
       ) : (
         // TA.6d framing preserved via the focal default (center 8%); paired with

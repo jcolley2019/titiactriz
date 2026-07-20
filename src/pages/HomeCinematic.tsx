@@ -139,6 +139,8 @@ const HomeCinematic = () => {
         reduced={prefersReduced}
         focal={hero.focal}
         zoom={hero.zoom}
+        videoFocal={hero.videoFocal}
+        videoZoom={hero.videoZoom}
       />
 
       {/* TA.5c: reel uses photos #2–4 so it never repeats the hero's photo #1.

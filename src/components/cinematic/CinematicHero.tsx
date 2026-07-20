@@ -28,6 +28,8 @@ type Props = {
   reduced: boolean;
   focal?: Focal;
   zoom?: number;
+  videoFocal?: Focal;
+  videoZoom?: number;
 };
 
 /**
@@ -35,7 +37,7 @@ type Props = {
  * background, subtitle fade-up, scroll cue, and a slight title parallax on
  * scroll. Under reduced motion nothing animates: the layout renders static.
  */
-const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced, focal, zoom }: Props) => {
+const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced, focal, zoom, videoFocal, videoZoom }: Props) => {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const restRef = useRef<HTMLDivElement>(null);
@@ -76,7 +78,15 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced, focal,
       data-qa="cinematic-section"
       className="cine-vh-full relative flex items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
     >
-      <CinematicHeroMedia photo={photo} videoSrc={videoSrc} reduced={reduced} focal={focal} zoom={zoom} />
+      <CinematicHeroMedia
+        photo={photo}
+        videoSrc={videoSrc}
+        reduced={reduced}
+        focal={focal}
+        zoom={zoom}
+        videoFocal={videoFocal}
+        videoZoom={videoZoom}
+      />
 
       {/* TA.6d: nudge the whole lockup down ~8vh (to ~58% of the viewport) so
           the name overlaps her chest/torso and her head sits clearly above the

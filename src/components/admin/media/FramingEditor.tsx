@@ -12,19 +12,22 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import SectionPreview from "./SectionPreview";
 import { decodeImage, cropErrorCauseKey } from "@/lib/crop";
+import { probeVideoSize } from "@/lib/hero-video";
 import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect } from "@/lib/device-presets";
 import { MIN_ZOOM, MAX_ZOOM, type Focal } from "@/hooks/useCinematicMedia";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 
 /**
- * ADMIN.MEDIA.1 (ITEM 3) — framing editor.
+ * ADMIN.MEDIA.1 (ITEM 3) + ADMIN.MEDIA.2 (ITEM 3) — framing editor.
  *
  * Non-destructive: pointer/touch drag + a zoom slider write focal x/y + zoom
  * only — never a cropped file. The drag surface renders the exact SectionPreview
- * (same FramedImage as the live site) at the selected device's aspect, so what
- * you drag is what publishes. object-cover + zoom >= 1 make gaps structurally
- * impossible (the ported min-zoom-to-cover guarantee), so the only clamp needed
- * is focal ∈ [0,1]. Device tabs re-aspect the surface + show live thumbnails.
+ * (same FramedImage/FramedVideo as the live site) at the selected device's
+ * aspect, so what you drag is what publishes. object-cover + zoom >= 1 make gaps
+ * structurally impossible (the ported min-zoom-to-cover guarantee), so the only
+ * clamp needed is focal ∈ [0,1]. Device tabs re-aspect the surface + show live
+ * thumbnails. In VIDEO mode the same shell drives a muted looping <video> and
+ * the intrinsic size comes from the video's metadata instead of an image decode.
  */
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -34,11 +37,17 @@ type Props = {
   kind: "hero" | "reel";
   reelIndex?: number;
   reelTitle?: string;
-  photo: CinematicPhoto;
+  photo?: CinematicPhoto;
   initialFocal: Focal;
   initialZoom: number;
   heroVideoActive?: boolean;
   saving?: boolean;
+  /** ADMIN.MEDIA.2 — "video" frames the hero background video, not the image. */
+  mode?: "image" | "video";
+  /** The video source to frame (video mode). */
+  videoSrc?: string;
+  /** Poster image for the video preview (the current hero image). */
+  poster?: string;
   onSave: (focal: Focal, zoom: number) => void;
   onReset: () => void;
   onCancel: () => void;
@@ -57,11 +66,16 @@ const FramingEditor = ({
   initialZoom,
   heroVideoActive,
   saving,
+  mode = "image",
+  videoSrc,
+  poster,
   onSave,
   onReset,
   onCancel,
 }: Props) => {
   const { t } = useTranslation();
+  const isVideo = mode === "video";
+  const mediaSrc = isVideo ? videoSrc : photo?.image_url;
   const [focal, setFocal] = useState<Focal>(initialFocal);
   const [zoom, setZoom] = useState(initialZoom);
   const [deviceId, setDeviceId] = useState(MEDIA_PREVIEW_DEVICES[0].id);
@@ -77,7 +91,8 @@ const FramingEditor = ({
 
   const aspect = devicePreviewAspect(deviceId);
 
-  // Reset all editor state whenever a fresh slot/photo opens.
+  // Reset all editor state whenever a fresh slot/media opens, then measure the
+  // intrinsic size (image decode, or the video's metadata) for the clamp math.
   useEffect(() => {
     if (!open) return;
     setFocal(initialFocal);
@@ -85,10 +100,14 @@ const FramingEditor = ({
     setDeviceId(MEDIA_PREVIEW_DEVICES[0].id);
     setNatural(null);
     setLoadError(null);
+    if (!mediaSrc) return;
     let cancelled = false;
-    decodeImage(photo.image_url)
-      .then((img) => {
-        if (!cancelled) setNatural({ w: img.naturalWidth, h: img.naturalHeight });
+    const measure = isVideo
+      ? probeVideoSize(mediaSrc).then((s) => ({ w: s.w, h: s.h }))
+      : decodeImage(mediaSrc).then((img) => ({ w: img.naturalWidth, h: img.naturalHeight }));
+    measure
+      .then((size) => {
+        if (!cancelled) setNatural(size);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -100,7 +119,7 @@ const FramingEditor = ({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, photo.image_url]);
+  }, [open, mediaSrc, isVideo]);
 
   // Measure the available width so the surface stays inside the dialog on any viewport.
   useEffect(() => {
@@ -175,7 +194,9 @@ const FramingEditor = ({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t("admin.media.editor.title", { slot: slotLabel })}</DialogTitle>
-          <DialogDescription>{t("admin.media.editor.dragHint")}</DialogDescription>
+          <DialogDescription>
+            {isVideo ? t("admin.media.video.dragHint") : t("admin.media.editor.dragHint")}
+          </DialogDescription>
         </DialogHeader>
 
         {heroVideoActive && (
@@ -214,6 +235,8 @@ const FramingEditor = ({
                     zoom={zoom}
                     reelTitle={reelTitle}
                     aspect={a}
+                    videoSrc={isVideo ? videoSrc : undefined}
+                    poster={poster}
                   />
                 </span>
                 {d.label}
@@ -250,6 +273,8 @@ const FramingEditor = ({
                 zoom={zoom}
                 reelTitle={reelTitle}
                 aspect={aspect}
+                videoSrc={isVideo ? videoSrc : undefined}
+                poster={poster}
               />
               <div className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-inset ring-[hsl(var(--gold-light))]/70" />
             </div>

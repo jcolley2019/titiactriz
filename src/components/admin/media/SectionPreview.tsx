@@ -1,4 +1,5 @@
 import FramedImage from "@/components/cinematic/FramedImage";
+import FramedVideo from "@/components/cinematic/FramedVideo";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import type { Focal } from "@/hooks/useCinematicMedia";
 
@@ -24,24 +25,49 @@ type Props = {
   reelTitle?: string;
   /** Frame aspect (width / height) of the device being previewed. */
   aspect: number;
+  /** ADMIN.MEDIA.2 — when set, the framed media is this video (hero only). */
+  videoSrc?: string;
+  /** Poster for the video preview (the current hero image). */
+  poster?: string;
 };
 
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
-const SectionPreview = ({ kind, reelIndex = 0, photo, focal, zoom, reelTitle, aspect }: Props) => {
+const SectionPreview = ({
+  kind,
+  reelIndex = 0,
+  photo,
+  focal,
+  zoom,
+  reelTitle,
+  aspect,
+  videoSrc,
+  poster,
+}: Props) => {
   return (
     <div
       data-qa="media-preview"
-      className="relative h-full w-full overflow-hidden bg-[#0b0a08] [&_img]:select-none [&_img]:pointer-events-none"
+      className="relative h-full w-full overflow-hidden bg-[#0b0a08] [&_img]:select-none [&_img]:pointer-events-none [&_video]:select-none [&_video]:pointer-events-none"
       style={{ containerType: "size", aspectRatio: aspect }}
     >
       <div className="absolute inset-0">
-        <FramedImage
-          src={photo?.image_url}
-          focal={focal}
-          zoom={zoom}
-          fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
-        />
+        {videoSrc ? (
+          <FramedVideo
+            src={videoSrc}
+            poster={poster ?? photo?.image_url}
+            focal={focal}
+            zoom={zoom}
+            videoDataQa="media-preview-video"
+            fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
+          />
+        ) : (
+          <FramedImage
+            src={photo?.image_url}
+            focal={focal}
+            zoom={zoom}
+            fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
+          />
+        )}
       </div>
 
       {kind === "hero" ? (
