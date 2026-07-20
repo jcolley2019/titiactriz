@@ -21,6 +21,7 @@ export type CinematicPhoto = {
 export function useCinematicData() {
   const [photos, setPhotos] = useState<CinematicPhoto[]>([]);
   const [heroVideo, setHeroVideo] = useState<string | null>(null);
+  const [heroVideoPortrait, setHeroVideoPortrait] = useState<string | null>(null);
   const [heroPhotoSetting, setHeroPhotoSetting] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,6 +52,17 @@ export function useCinematicData() {
         setHeroVideo(videoRow.value);
       }
 
+      // Optional portrait (phone) hero video — absent key means "no portrait source".
+      const { data: videoPortraitRow } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "cinematic_hero_video_portrait")
+        .maybeSingle();
+
+      if (!cancelled && typeof videoPortraitRow?.value === "string" && videoPortraitRow.value.length > 0) {
+        setHeroVideoPortrait(videoPortraitRow.value);
+      }
+
       // Optional admin-selected hero photo — absent key means default behavior.
       const { data: heroRow } = await supabase
         .from("site_settings")
@@ -70,7 +82,7 @@ export function useCinematicData() {
     };
   }, []);
 
-  return { photos, heroVideo, heroPhotoSetting, loading };
+  return { photos, heroVideo, heroVideoPortrait, heroPhotoSetting, loading };
 }
 
 /**

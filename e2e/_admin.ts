@@ -78,7 +78,8 @@ type RouteOpts = {
   media?: unknown; // cinematic_media value, or null for absent
   photos?: unknown[];
   homeVariant?: string;
-  heroVideo?: string | null; // cinematic_hero_video value, or null/absent
+  heroVideo?: string | null; // cinematic_hero_video (landscape) value, or null/absent
+  heroVideoPortrait?: string | null; // cinematic_hero_video_portrait value, or null/absent
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -93,6 +94,7 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
   const photos = opts.photos ?? MOCK_PHOTOS;
   const homeVariant = opts.homeVariant ?? "cinematic";
   const heroVideo = opts.heroVideo ?? null;
+  const heroVideoPortrait = opts.heroVideoPortrait ?? null;
 
   await page.route("**/auth/v1/**", (route: Route) => {
     const url = route.request().url();
@@ -134,6 +136,8 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
     if (url.includes("site_settings")) {
       if (url.includes("cinematic_media")) return media === null ? asNull() : asJson({ value: media });
       if (url.includes("home_variant")) return asJson({ value: homeVariant });
+      if (url.includes("cinematic_hero_video_portrait"))
+        return heroVideoPortrait ? asJson({ value: heroVideoPortrait }) : asNull();
       if (url.includes("cinematic_hero_video"))
         return heroVideo ? asJson({ value: heroVideo }) : asNull();
       return asNull(); // cinematic_hero_photo / events keys → absent
@@ -185,23 +189,29 @@ export async function stubHeroVideoMedia(page: Page) {
         return typeof w.__TEST_VIDEO_H === "number" ? w.__TEST_VIDEO_H : 1080;
       },
     });
-    // Swallow src via BOTH the property and setAttribute so React and the probes
-    // never trigger a native media load, then synthesize loadedmetadata.
+    // Swallow the real src via BOTH the property and setAttribute so React and the
+    // probes never trigger a native media load, then synthesize loadedmetadata.
+    // The URL is mirrored to a readable `data-src` attribute so tests can assert
+    // which source is active without a network request.
+    const origSetAttr = window.Element.prototype.setAttribute;
     const store = new WeakMap<object, string>();
+    const stash = (el: object, val: string) => {
+      store.set(el, val);
+      origSetAttr.call(el as Element, "data-src", val);
+    };
     Object.defineProperty(media, "src", {
       configurable: true,
       get() {
         return store.get(this) ?? "";
       },
       set(v: unknown) {
-        store.set(this, v == null ? "" : String(v));
+        stash(this, v == null ? "" : String(v));
         fireMeta(this as HTMLElement);
       },
     });
-    const origSetAttr = window.Element.prototype.setAttribute;
     window.HTMLMediaElement.prototype.setAttribute = function (name: string, value: string) {
       if (name === "src") {
-        store.set(this, value);
+        stash(this, value);
         fireMeta(this as HTMLElement);
         return;
       }
@@ -210,14 +220,24 @@ export async function stubHeroVideoMedia(page: Page) {
   });
 }
 
-/** Programmatically select a hero-video file on the hidden input (mocked file). */
+/**
+ * Programmatically select a hero-video file on the hidden input (mocked file).
+ * Uses the last-triggered upload orientation (defaults to landscape). For a
+ * specific orientation, use uploadHeroVideoVia which clicks its upload button.
+ */
 export async function selectHeroVideoFile(
   page: Page,
-  opts: { type: string; name: string; sizeBytes?: number; durationSec?: number },
+  opts: { type: string; name: string; sizeBytes?: number; durationSec?: number; width?: number; height?: number },
 ) {
   await page.evaluate((o) => {
-    const w = window as unknown as { __TEST_VIDEO_DURATION?: number };
+    const w = window as unknown as {
+      __TEST_VIDEO_DURATION?: number;
+      __TEST_VIDEO_W?: number;
+      __TEST_VIDEO_H?: number;
+    };
     if (typeof o.durationSec === "number") w.__TEST_VIDEO_DURATION = o.durationSec;
+    if (typeof o.width === "number") w.__TEST_VIDEO_W = o.width;
+    if (typeof o.height === "number") w.__TEST_VIDEO_H = o.height;
     const input = document.querySelector('[data-qa="media-hero-video-input"]') as HTMLInputElement | null;
     if (!input) throw new Error("hero video input not found");
     const size = Math.max(1, o.sizeBytes ?? 1024);
@@ -227,4 +247,38 @@ export async function selectHeroVideoFile(
     input.files = dt.files;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }, opts);
+}
+
+/**
+ * ADMIN.MEDIA.3 — upload a mocked hero video through a specific orientation's
+ * button. Clicking the button sets the component's upload target and opens the
+ * file chooser, which we fulfill with a mocked file. `width`/`height` set the
+ * probed video dimensions so aspect-dependent behavior (source selection, the
+ * mismatch hint) is deterministic.
+ */
+export async function uploadHeroVideoVia(
+  page: Page,
+  triggerQa: string,
+  opts: { type?: string; name?: string; sizeBytes?: number; durationSec?: number; width?: number; height?: number } = {},
+) {
+  await page.evaluate((o) => {
+    const w = window as unknown as {
+      __TEST_VIDEO_DURATION?: number;
+      __TEST_VIDEO_W?: number;
+      __TEST_VIDEO_H?: number;
+    };
+    w.__TEST_VIDEO_DURATION = typeof o.durationSec === "number" ? o.durationSec : 8;
+    if (typeof o.width === "number") w.__TEST_VIDEO_W = o.width;
+    if (typeof o.height === "number") w.__TEST_VIDEO_H = o.height;
+  }, opts);
+
+  const [chooser] = await Promise.all([
+    page.waitForEvent("filechooser"),
+    page.locator(`[data-qa="${triggerQa}"]`).click(),
+  ]);
+  await chooser.setFiles({
+    name: opts.name ?? "hero.mp4",
+    mimeType: opts.type ?? "video/mp4",
+    buffer: Buffer.alloc(Math.max(1, opts.sizeBytes ?? 4096)),
+  });
 }

@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CinematicHeroMedia from "./CinematicHeroMedia";
 import type { CinematicPhoto } from "./useCinematicData";
-import type { Focal } from "@/hooks/useCinematicMedia";
+import type { Focal, VideoSourceFraming } from "@/hooks/useCinematicMedia";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -23,13 +23,14 @@ const HeroWord = ({ text }: { text: string }) => (
 type Props = {
   photo?: CinematicPhoto;
   videoSrc?: string | null;
+  videoPortraitSrc?: string | null;
   subtitle: string;
   scrollLabel: string;
   reduced: boolean;
   focal?: Focal;
   zoom?: number;
-  videoFocal?: Focal;
-  videoZoom?: number;
+  videoLandscape?: VideoSourceFraming;
+  videoPortrait?: VideoSourceFraming;
 };
 
 /**
@@ -37,7 +38,18 @@ type Props = {
  * background, subtitle fade-up, scroll cue, and a slight title parallax on
  * scroll. Under reduced motion nothing animates: the layout renders static.
  */
-const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced, focal, zoom, videoFocal, videoZoom }: Props) => {
+const CinematicHero = ({
+  photo,
+  videoSrc,
+  videoPortraitSrc,
+  subtitle,
+  scrollLabel,
+  reduced,
+  focal,
+  zoom,
+  videoLandscape,
+  videoPortrait,
+}: Props) => {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const restRef = useRef<HTMLDivElement>(null);
@@ -81,11 +93,12 @@ const CinematicHero = ({ photo, videoSrc, subtitle, scrollLabel, reduced, focal,
       <CinematicHeroMedia
         photo={photo}
         videoSrc={videoSrc}
+        videoPortraitSrc={videoPortraitSrc}
         reduced={reduced}
         focal={focal}
         zoom={zoom}
-        videoFocal={videoFocal}
-        videoZoom={videoZoom}
+        videoLandscape={videoLandscape}
+        videoPortrait={videoPortrait}
       />
 
       {/* TA.6d: nudge the whole lockup down ~8vh (to ~58% of the viewport) so

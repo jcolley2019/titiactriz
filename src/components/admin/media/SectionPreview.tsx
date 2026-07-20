@@ -1,7 +1,7 @@
 import FramedImage from "@/components/cinematic/FramedImage";
 import FramedVideo from "@/components/cinematic/FramedVideo";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
-import type { Focal } from "@/hooks/useCinematicMedia";
+import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
 
 /**
  * ADMIN.MEDIA.1 (ITEM 3) — a scaled, live composition of the actual cinematic
@@ -29,6 +29,8 @@ type Props = {
   videoSrc?: string;
   /** Poster for the video preview (the current hero image). */
   poster?: string;
+  /** ADMIN.MEDIA.3 — fill (crop) or fit (letterbox over blurred backdrop). */
+  fit?: FitMode;
 };
 
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
@@ -43,6 +45,7 @@ const SectionPreview = ({
   aspect,
   videoSrc,
   poster,
+  fit = "fill",
 }: Props) => {
   return (
     <div
@@ -57,7 +60,9 @@ const SectionPreview = ({
             poster={poster ?? photo?.image_url}
             focal={focal}
             zoom={zoom}
+            fit={fit}
             videoDataQa="media-preview-video"
+            backdropDataQa="media-preview-backdrop"
             fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
           />
         ) : (

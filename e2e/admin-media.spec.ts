@@ -6,6 +6,7 @@ import {
   routeSupabase,
   stubHeroVideoMedia,
   selectHeroVideoFile,
+  uploadHeroVideoVia,
   MOCK_PHOTOS,
   type Write,
 } from "./_admin";
@@ -474,10 +475,13 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
     const payload = JSON.parse(upserts[upserts.length - 1].body || "{}");
     const row = Array.isArray(payload) ? payload[0] : payload;
     expect(row.key).toBe("cinematic_media");
-    expect(row.value.hero.video, "decoupled video framing block written").toBeTruthy();
-    expect(row.value.hero.video.zoom).toBeCloseTo(1.5, 1);
-    expect(typeof row.value.hero.video.focal.x).toBe("number");
-    expect(typeof row.value.hero.video.focal.y).toBe("number");
+    // ADMIN.MEDIA.3: per-source shape. A default (landscape) upload edits the
+    // landscape source (the phone tab falls back to it when no portrait exists).
+    expect(row.value.hero.video.landscape, "decoupled per-source framing written").toBeTruthy();
+    expect(row.value.hero.video.landscape.zoom).toBeCloseTo(1.5, 1);
+    expect(typeof row.value.hero.video.landscape.focal.x).toBe("number");
+    expect(typeof row.value.hero.video.landscape.focal.y).toBe("number");
+    expect(row.value.hero.video.landscape.fit).toBe("fill");
 
     // The hero slot now shows the video with a VIDEO badge.
     const heroSlot = page.locator('[data-qa="media-slot"][data-slot="hero"]');
@@ -517,11 +521,11 @@ test.describe("ADMIN.MEDIA.2 — remove video reverts to image", () => {
     await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toBeVisible();
     await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toBeVisible();
 
-    // Remove → the cinematic_hero_video setting is deleted.
-    await page.locator('[data-qa="media-hero-remove-video"]').click();
+    // Remove the landscape source → the cinematic_hero_video setting is deleted.
+    await page.locator('[data-qa="media-hero-remove-landscape"]').click();
     await page.waitForTimeout(500);
     expect(
-      writes.filter((w) => w.method === "DELETE" && /cinematic_hero_video/.test(w.url)).length,
+      writes.filter((w) => w.method === "DELETE" && /cinematic_hero_video(?!_portrait)/.test(w.url)).length,
       "cinematic_hero_video deleted",
     ).toBeGreaterThan(0);
 
@@ -529,6 +533,50 @@ test.describe("ADMIN.MEDIA.2 — remove video reverts to image", () => {
     await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toHaveCount(0);
     await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toHaveCount(0);
     await expect(heroSlot.locator("img")).toBeVisible();
-    await expect(page.locator('[data-qa="media-hero-upload-video"]')).toContainText(/Upload video/i);
+    await expect(page.locator('[data-qa="media-hero-upload-landscape"]')).toContainText(/Upload video/i);
+  });
+});
+
+/* ---------- (g) ADMIN.MEDIA.3 — dual sources, fit mode, mismatch hint ---------- */
+test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
+  test("upload a landscape AND a portrait clip; both rows report Set; both settings written", async ({
+    page,
+  }) => {
+    const writes: Write[] = [];
+    await stubHeroVideoMedia(page);
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS, writes });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    await expect(page.locator('[data-qa="media-hero-source-landscape"]')).toContainText(/Not set/i);
+    await expect(page.locator('[data-qa="media-hero-source-portrait"]')).toContainText(/Not set/i);
+
+    // Upload the landscape clip → editor opens → cancel back to the panel.
+    await uploadHeroVideoVia(page, "media-hero-upload-landscape", { name: "land.mp4", width: 1920, height: 1080 });
+    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+    await page.locator('[data-qa="media-editor-cancel"]').click();
+    // The per-source Remove button only renders once that source is set.
+    await expect(page.locator('[data-qa="media-hero-remove-landscape"]')).toBeVisible();
+
+    // Upload the portrait clip → editor opens → cancel.
+    await uploadHeroVideoVia(page, "media-hero-upload-portrait", { name: "port.mp4", width: 1080, height: 1920 });
+    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+    await page.locator('[data-qa="media-editor-cancel"]').click();
+    await expect(page.locator('[data-qa="media-hero-remove-portrait"]')).toBeVisible();
+
+    await page.screenshot({ path: shot("MEDIA3-dual-upload.png") });
+
+    const landscapeUpsert = writes.some(
+      (w) => w.method === "POST" && (w.body || "").includes('"cinematic_hero_video"'),
+    );
+    const portraitUpsert = writes.some(
+      (w) => w.method === "POST" && (w.body || "").includes('"cinematic_hero_video_portrait"'),
+    );
+    expect(landscapeUpsert, "landscape source setting written").toBe(true);
+    expect(portraitUpsert, "portrait source setting written").toBe(true);
   });
 });

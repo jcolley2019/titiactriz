@@ -15,6 +15,8 @@ import { BUCKET } from "./gallery-upload";
  * feature's upload guardrails — no code is shared with that product.
  */
 export const HERO_VIDEO_KEY = "cinematic_hero_video";
+/** ADMIN.MEDIA.3 — the optional portrait (phone) source. Landscape stays the legacy key. */
+export const HERO_VIDEO_PORTRAIT_KEY = "cinematic_hero_video_portrait";
 
 export const HERO_VIDEO_ACCEPTED = ["video/mp4", "video/webm"];
 export const HERO_VIDEO_ACCEPT_ATTR = "video/mp4,video/webm,.mp4,.webm";
@@ -122,28 +124,46 @@ export const uploadHeroVideo = async (
   return pub.publicUrl;
 };
 
-/** Read the stored hero video URL, or null when the key is absent/empty. */
-export const fetchCinematicHeroVideo = async (): Promise<string | null> => {
-  const { data } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", HERO_VIDEO_KEY)
-    .maybeSingle();
+/** ADMIN.MEDIA.3 — the two hero-video orientation sources and their setting keys. */
+export const HERO_VIDEO_KEYS: Record<"landscape" | "portrait", string> = {
+  landscape: HERO_VIDEO_KEY,
+  portrait: HERO_VIDEO_PORTRAIT_KEY,
+};
+
+/** Read a hero-video setting by key, or null when absent/empty. */
+const fetchSetting = async (key: string): Promise<string | null> => {
+  const { data } = await supabase.from("site_settings").select("value").eq("key", key).maybeSingle();
   return typeof data?.value === "string" && data.value.length > 0 ? data.value : null;
 };
 
-/** Persist the hero video public URL. */
-export const setCinematicHeroVideo = async (url: string): Promise<void> => {
+const setSetting = async (key: string, url: string): Promise<void> => {
   const { error } = await supabase.from("site_settings").upsert({
-    key: HERO_VIDEO_KEY,
+    key,
     value: url,
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;
 };
 
-/** Remove the hero video setting — the hero falls back to the image + Ken Burns. */
-export const clearCinematicHeroVideo = async (): Promise<void> => {
-  const { error } = await supabase.from("site_settings").delete().eq("key", HERO_VIDEO_KEY);
+const clearSetting = async (key: string): Promise<void> => {
+  const { error } = await supabase.from("site_settings").delete().eq("key", key);
   if (error) throw error;
 };
+
+/** Read the landscape (legacy/back-compat) hero video URL, or null when absent. */
+export const fetchCinematicHeroVideo = (): Promise<string | null> => fetchSetting(HERO_VIDEO_KEY);
+/** Read the portrait hero video URL, or null when absent. */
+export const fetchCinematicHeroVideoPortrait = (): Promise<string | null> =>
+  fetchSetting(HERO_VIDEO_PORTRAIT_KEY);
+
+/** Persist the landscape hero video public URL. */
+export const setCinematicHeroVideo = (url: string): Promise<void> => setSetting(HERO_VIDEO_KEY, url);
+/** Persist the portrait hero video public URL. */
+export const setCinematicHeroVideoPortrait = (url: string): Promise<void> =>
+  setSetting(HERO_VIDEO_PORTRAIT_KEY, url);
+
+/** Remove the landscape hero video setting. */
+export const clearCinematicHeroVideo = (): Promise<void> => clearSetting(HERO_VIDEO_KEY);
+/** Remove the portrait hero video setting. */
+export const clearCinematicHeroVideoPortrait = (): Promise<void> =>
+  clearSetting(HERO_VIDEO_PORTRAIT_KEY);

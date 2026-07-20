@@ -105,3 +105,86 @@ test.describe("MEDIA2 — hero video render (framing + poster)", () => {
     expect(diag.failedResponses, "failed requests — reduced motion").toEqual([]);
   });
 });
+
+/* ---------- ADMIN.MEDIA.3 — dual-aspect selection, back-compat, fit ---------- */
+const LAND_URL = "https://cdn.example.com/hero-landscape.mp4";
+const PORT_URL = "https://cdn.example.com/hero-portrait.mp4";
+const dataSrc = (page: Page, sel: string) =>
+  page.locator(sel).first().evaluate((el) => (el as HTMLElement).getAttribute("data-src"));
+
+test.describe("MEDIA3 — viewport selects the orientation source", () => {
+  const media = {
+    hero: {
+      photo_id: null,
+      focal: { x: 0.5, y: 0.08 },
+      zoom: 1,
+      video: {
+        landscape: { focal: { x: 0.2, y: 0.3 }, zoom: 1, fit: "fill" },
+        portrait: { focal: { x: 0.8, y: 0.9 }, zoom: 1, fit: "fill" },
+      },
+    },
+    reel: [
+      { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+      { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+      { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+    ],
+  };
+
+  test("desktop → landscape URL+framing; phone → portrait URL+framing", async ({ page }) => {
+    const diag = attachDiagnostics(page);
+    await stubHeroVideoMedia(page);
+    await routeSupabase(page, {
+      media,
+      photos: MOCK_PHOTOS,
+      heroVideo: LAND_URL,
+      heroVideoPortrait: PORT_URL,
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(CINE, { waitUntil: "domcontentloaded" });
+    await settle(page, 700);
+
+    await expect(page.locator(VIDEO)).toHaveCount(1);
+    expect(await dataSrc(page, VIDEO), "desktop → landscape URL").toBe(LAND_URL);
+    expect(await objectPositionOf(page, VIDEO), "desktop → landscape framing").toBe("20% 30%");
+    await page.screenshot({ path: shot("MEDIA3-render-desktop.png") });
+
+    // Resize to a portrait phone viewport → the portrait source takes over.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(500);
+    expect(await dataSrc(page, VIDEO), "phone → portrait URL").toBe(PORT_URL);
+    expect(await objectPositionOf(page, VIDEO), "phone → portrait framing").toBe("80% 90%");
+    await page.screenshot({ path: shot("MEDIA3-render-mobile.png") });
+
+    expect(diag.consoleErrors, "console errors — dual source").toEqual([]);
+    expect(diag.failedResponses, "failed requests — dual source").toEqual([]);
+  });
+
+  test("back-compat: only the legacy single value → used at every viewport", async ({ page }) => {
+    const legacyMedia = {
+      hero: {
+        photo_id: null,
+        focal: { x: 0.5, y: 0.08 },
+        zoom: 1,
+        video: { focal: { x: 0.4, y: 0.6 }, zoom: 1.2 }, // legacy single shape
+      },
+      reel: media.reel,
+    };
+    await stubHeroVideoMedia(page);
+    await routeSupabase(page, { media: legacyMedia, photos: MOCK_PHOTOS, heroVideo: LAND_URL });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(CINE, { waitUntil: "domcontentloaded" });
+    await settle(page, 600);
+
+    // Desktop uses the (migrated) landscape source + its framing.
+    expect(await dataSrc(page, VIDEO)).toBe(LAND_URL);
+    expect(await objectPositionOf(page, VIDEO), "legacy → landscape framing").toBe("40% 60%");
+    expect(scaleOf(await parentTransform(page, VIDEO))).toBeCloseTo(1.2, 1);
+
+    // Phone with no portrait source falls back to the same landscape clip.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(500);
+    expect(await dataSrc(page, VIDEO), "phone falls back to landscape").toBe(LAND_URL);
+    expect(await objectPositionOf(page, VIDEO)).toBe("40% 60%");
+  });
+});
+

@@ -3,52 +3,70 @@ import FramedVideo from "./FramedVideo";
 import type { CinematicPhoto } from "./useCinematicData";
 import {
   HERO_DEFAULT_FOCAL,
-  VIDEO_DEFAULT_FOCAL,
   DEFAULT_ZOOM,
+  defaultVideoSource,
   type Focal,
+  type VideoSourceFraming,
 } from "@/hooks/useCinematicMedia";
+import { useViewportOrientation } from "@/hooks/useViewportOrientation";
 
 type Props = {
   photo?: CinematicPhoto;
+  /** Landscape (desktop/tablet) hero video source. */
   videoSrc?: string | null;
+  /** Portrait (phone) hero video source. */
+  videoPortraitSrc?: string | null;
   reduced: boolean;
   /** Admin image framing (ADMIN.MEDIA.1). Absent → TA.6d defaults, i.e. today's render. */
   focal?: Focal;
   zoom?: number;
-  /** Admin video framing (ADMIN.MEDIA.2). Decoupled from the image's framing. */
-  videoFocal?: Focal;
-  videoZoom?: number;
+  /** Per-orientation video framing (ADMIN.MEDIA.2 → .3), decoupled from the image. */
+  videoLandscape?: VideoSourceFraming;
+  videoPortrait?: VideoSourceFraming;
 };
 
 /**
- * Hero background layer. Renders a muted looping <video> when a
- * `cinematic_hero_video` URL is configured, otherwise the resolved hero photo
- * with a slow Ken Burns drift. Image framing (focal → object-position, zoom →
- * scale) comes from cinematic_media; video framing is a separate, decoupled
- * config (ADMIN.MEDIA.2). With no admin data set, both default to today's render.
- * The hero photo is the video's poster (instant paint) and its reduced-motion
- * still — under reduced motion the poster image renders instead of autoplaying.
- * A dark gradient scrim sits on top so the foreground type stays legible.
+ * Hero background layer. Renders a muted looping <video> when a hero video is
+ * configured, otherwise the resolved hero photo with a slow Ken Burns drift.
+ *
+ * ADMIN.MEDIA.3: two orientation sources. The viewport's aspect (re-evaluated on
+ * resize) picks the source — a portrait viewport prefers the portrait clip (else
+ * landscape), a landscape viewport prefers landscape (else portrait) — and each
+ * source carries its own framing + fill/fit display mode. The hero photo is the
+ * video's poster (instant paint) and its reduced-motion still; under reduced
+ * motion the poster image renders instead of autoplaying. A dark gradient scrim
+ * sits on top so the foreground type stays legible.
  */
 const CinematicHeroMedia = ({
   photo,
   videoSrc,
+  videoPortraitSrc,
   reduced,
   focal = HERO_DEFAULT_FOCAL,
   zoom = DEFAULT_ZOOM,
-  videoFocal = VIDEO_DEFAULT_FOCAL,
-  videoZoom = DEFAULT_ZOOM,
+  videoLandscape = defaultVideoSource(),
+  videoPortrait = defaultVideoSource(),
 }: Props) => {
+  const orientation = useViewportOrientation();
+
+  // Pick the source by viewport aspect, with the cross-orientation fallback.
+  const useLandscape =
+    orientation === "portrait" ? !videoPortraitSrc : !!videoSrc;
+  const activeSrc = useLandscape ? videoSrc : videoPortraitSrc;
+  const activeFraming = useLandscape ? videoLandscape : videoPortrait;
+
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
-      {videoSrc ? (
+      {activeSrc ? (
         <FramedVideo
-          src={videoSrc}
+          src={activeSrc}
           poster={photo?.image_url}
-          focal={videoFocal}
-          zoom={videoZoom}
+          focal={activeFraming.focal}
+          zoom={activeFraming.zoom}
+          fit={activeFraming.fit}
           reduced={reduced}
           videoDataQa="cinematic-hero-video"
+          backdropDataQa="cinematic-hero-video-backdrop"
           posterDataQa="cinematic-hero-video-poster"
           fallback={<div className="h-full w-full" style={{ backgroundColor: "#0b0a08" }} />}
         />

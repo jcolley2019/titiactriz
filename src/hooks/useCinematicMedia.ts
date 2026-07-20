@@ -24,23 +24,41 @@ export const CINEMATIC_MEDIA_KEY = "cinematic_media";
 
 export type Focal = { x: number; y: number };
 
+/** Display mode for a hero video whose aspect fights the viewport (ADMIN.MEDIA.3). */
+export type FitMode = "fill" | "fit";
+
 /**
- * Optional, hero-only video framing (ADMIN.MEDIA.2). Decoupled from the image's
- * framing — the TitiLinks pattern — so a hero can keep a portrait-tight photo
- * crop and an independently-panned video. Absent = centered, zoom 1.
+ * One hero-video SOURCE's framing + display mode (ADMIN.MEDIA.2 → .3). Decoupled
+ * from the image's framing — the TitiLinks pattern. `fit` "fill" = object-cover
+ * crop (default, zoom >= 1); "fit" = letterboxed at natural aspect over a blurred
+ * backdrop, where zoom may drop below cover. Absent = centered, zoom 1, fill.
  */
-export type VideoFraming = {
+export type VideoSourceFraming = {
   focal: Focal;
   zoom: number;
+  fit: FitMode;
 };
+
+/**
+ * Hero video framing, one entry per orientation source (ADMIN.MEDIA.3). Each of
+ * the landscape (desktop/tablet) and portrait (phone) sources keeps its own
+ * framing. The legacy single {focal,zoom} shape is migrated in as `landscape`.
+ */
+export type HeroVideoFraming = {
+  landscape: VideoSourceFraming;
+  portrait: VideoSourceFraming;
+};
+
+/** Which orientation source a render/edit targets. */
+export type VideoOrientation = "landscape" | "portrait";
 
 /** One slot's stored framing. photo_id null = "use the resolver's default photo". */
 export type SlotFraming = {
   photo_id: string | null;
   focal: Focal;
   zoom: number;
-  /** Hero slot only: framing for the hero background video, if any. */
-  video?: VideoFraming;
+  /** Hero slot only: per-orientation framing for the hero background video(s). */
+  video?: HeroVideoFraming;
 };
 
 /** The full cinematic_media value — one hero slot plus exactly three reel slots. */
@@ -51,6 +69,8 @@ export type CinematicMediaConfig = {
 
 export const REEL_SLOT_COUNT = 3;
 export const MIN_ZOOM = 1;
+/** Fit mode may zoom BELOW cover (down toward letterbox) — a sub-1 floor. */
+export const FIT_MIN_ZOOM = 0.5;
 export const MAX_ZOOM = 3;
 export const DEFAULT_ZOOM = 1;
 
@@ -61,18 +81,36 @@ export const REEL_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
 /** Hero video defaults to a plain centered, unzoomed cover. */
 export const VIDEO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
 
-/** Default (untouched) hero-video framing. */
-export const defaultVideoFraming = (): VideoFraming => ({
+/** Default (untouched) framing for one video source. */
+export const defaultVideoSource = (): VideoSourceFraming => ({
   focal: { ...VIDEO_DEFAULT_FOCAL },
   zoom: DEFAULT_ZOOM,
+  fit: "fill",
 });
 
-/** True when a video framing equals the centered/unzoomed default. */
-export const videoFramingIsDefault = (v: VideoFraming | undefined): boolean =>
-  !v || (v.focal.x === VIDEO_DEFAULT_FOCAL.x && v.focal.y === VIDEO_DEFAULT_FOCAL.y && v.zoom === DEFAULT_ZOOM);
+/** Default (untouched) hero-video framing — both orientation sources default. */
+export const defaultHeroVideo = (): HeroVideoFraming => ({
+  landscape: defaultVideoSource(),
+  portrait: defaultVideoSource(),
+});
+
+/** True when a single source equals the centered / unzoomed / fill default. */
+export const videoSourceIsDefault = (s: VideoSourceFraming | undefined): boolean =>
+  !s ||
+  (s.focal.x === VIDEO_DEFAULT_FOCAL.x &&
+    s.focal.y === VIDEO_DEFAULT_FOCAL.y &&
+    s.zoom === DEFAULT_ZOOM &&
+    s.fit === "fill");
+
+/** True when both hero-video sources are at their defaults. */
+export const heroVideoIsDefault = (v: HeroVideoFraming | undefined): boolean =>
+  !v || (videoSourceIsDefault(v.landscape) && videoSourceIsDefault(v.portrait));
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 export const clampZoom = (n: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, n));
+/** Zoom clamp for a video source — fit mode allows sub-cover values. */
+export const clampSourceZoom = (n: number, fit: FitMode) =>
+  Math.min(MAX_ZOOM, Math.max(fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM, n));
 
 const isNum = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
 
@@ -85,12 +123,41 @@ const normFocal = (raw: unknown, fallback: Focal): Focal => {
   };
 };
 
-const normVideo = (raw: unknown): VideoFraming | undefined => {
-  if (!raw || typeof raw !== "object") return undefined;
-  const r = raw as { focal?: unknown; zoom?: unknown };
+const normFit = (raw: unknown): FitMode => (raw === "fit" ? "fit" : "fill");
+
+const normVideoSource = (raw: unknown): VideoSourceFraming => {
+  const r = (raw && typeof raw === "object" ? raw : {}) as {
+    focal?: unknown;
+    zoom?: unknown;
+    fit?: unknown;
+  };
+  const fit = normFit(r.fit);
   return {
     focal: normFocal(r.focal, VIDEO_DEFAULT_FOCAL),
-    zoom: isNum(r.zoom) ? clampZoom(r.zoom) : DEFAULT_ZOOM,
+    zoom: isNum(r.zoom) ? clampSourceZoom(r.zoom, fit) : DEFAULT_ZOOM,
+    fit,
+  };
+};
+
+/**
+ * Normalize the hero.video block. Back-compat: a legacy single {focal,zoom(,fit)}
+ * shape (ADMIN.MEDIA.2) is read as the LANDSCAPE source, with portrait defaulting.
+ */
+const normHeroVideo = (raw: unknown): HeroVideoFraming | undefined => {
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as {
+    landscape?: unknown;
+    portrait?: unknown;
+    focal?: unknown;
+    zoom?: unknown;
+    fit?: unknown;
+  };
+  if (r.landscape === undefined && r.portrait === undefined && (r.focal !== undefined || r.zoom !== undefined)) {
+    return { landscape: normVideoSource(r), portrait: defaultVideoSource() };
+  }
+  return {
+    landscape: normVideoSource(r.landscape),
+    portrait: normVideoSource(r.portrait),
   };
 };
 
@@ -101,7 +168,7 @@ const normSlot = (raw: unknown, defaultFocal: Focal): SlotFraming => {
     zoom?: unknown;
     video?: unknown;
   };
-  const video = normVideo(r.video);
+  const video = normHeroVideo(r.video);
   return {
     photo_id:
       typeof r.photo_id === "string" && r.photo_id.length > 0 ? r.photo_id : null,
@@ -218,11 +285,18 @@ export type ResolvedSlot = {
   zoom: number;
 };
 
-/** The hero's resolved framing carries the video source + its own decoupled framing. */
+/**
+ * The hero's resolved framing carries BOTH orientation video sources plus each
+ * source's own decoupled framing. The render picks by viewport aspect; the admin
+ * edits whichever source a device-preview tab implies.
+ */
 export type ResolvedHeroSlot = ResolvedSlot & {
+  /** Landscape (desktop/tablet) source — back-compatible with the single value. */
   videoSrc: string | null;
-  videoFocal: Focal;
-  videoZoom: number;
+  /** Portrait (phone) source, if uploaded. */
+  videoPortraitSrc: string | null;
+  videoLandscape: VideoSourceFraming;
+  videoPortrait: VideoSourceFraming;
 };
 
 export type ResolvedCinematicMedia = {
@@ -253,12 +327,13 @@ export function getCinematicMedia(
   media: CinematicMediaConfig | null,
   legacyHeroSetting: string | null,
   heroVideo: string | null,
+  heroVideoPortrait: string | null = null,
 ): ResolvedCinematicMedia {
   const heroExplicit = findPhoto(photos, media?.hero.photo_id ?? null);
   const heroPhoto = heroExplicit ?? resolveHeroPhoto(photos, legacyHeroSetting);
 
-  // Video framing is decoupled from the image's framing: it applies whenever a
-  // video exists, independent of whether an explicit hero photo is set.
+  // Video framing is decoupled from the image's framing; each orientation source
+  // keeps its own. Applies whenever a video exists, regardless of the hero photo.
   const videoFraming = media?.hero.video;
 
   const hero: ResolvedHeroSlot = {
@@ -266,8 +341,9 @@ export function getCinematicMedia(
     focal: heroExplicit ? media!.hero.focal : { ...HERO_DEFAULT_FOCAL },
     zoom: heroExplicit ? media!.hero.zoom : DEFAULT_ZOOM,
     videoSrc: heroVideo,
-    videoFocal: videoFraming ? videoFraming.focal : { ...VIDEO_DEFAULT_FOCAL },
-    videoZoom: videoFraming ? videoFraming.zoom : DEFAULT_ZOOM,
+    videoPortraitSrc: heroVideoPortrait,
+    videoLandscape: videoFraming ? videoFraming.landscape : defaultVideoSource(),
+    videoPortrait: videoFraming ? videoFraming.portrait : defaultVideoSource(),
   };
 
   // Non-hero pool preserves the existing dedupe (reel never repeats the hero).
