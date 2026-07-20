@@ -600,6 +600,10 @@
       "updateFailed": "Update failed",
       "failedFallback": "Failed to update"
     },
+    "settings": {
+      "heroMovedTitle": "Hero photo moved to Media",
+      "heroMovedBody": "Choose and frame the cinematic hero image in the Media section — it now handles both selecting the photo and framing it."
+    },
     "cinematicHero": {
       "title": "Cinematic hero photo",
       "subtitle": "Which published photo leads the cinematic home page.",

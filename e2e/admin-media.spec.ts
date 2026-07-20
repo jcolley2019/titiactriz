@@ -193,6 +193,35 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
   });
 });
 
+/* ---------- (c3) TA.8a-b: hero controls consolidated into Media ---------- */
+test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () => {
+  test("Settings drops the legacy hero picker (note only); Media hosts the hero slot", async ({ page }) => {
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 700);
+
+    // Settings: legacy hero picker gone; bilingual pointer note present; variant stays.
+    await page.locator('[data-qa="admin-nav-settings"]').click();
+    await expect(page.locator('[data-qa="admin-section-settings"]')).toBeVisible();
+    await expect(
+      page.locator('[data-qa="admin-cinematic-hero"]'),
+      "legacy hero picker removed from Settings",
+    ).toHaveCount(0);
+    await expect(page.locator('[data-qa="settings-media-note"]')).toBeVisible();
+    await expect(page.getByText(/home page variant/i)).toBeVisible();
+
+    // Media: the Hero slot is the single place to choose AND frame the hero.
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    const heroSlot = page.locator('[data-qa="media-slot"][data-slot="hero"]');
+    await expect(heroSlot).toBeVisible();
+    await expect(heroSlot.locator('[data-qa="media-slot-pick"]')).toBeVisible();
+    await expect(heroSlot.locator('[data-qa="media-slot-edit"]')).toBeVisible();
+  });
+});
+
 /* ---------- (d) shell navigation reaches legacy sections ---------- */
 test.describe("ADMIN.MEDIA — shell navigation", () => {
   test("reaches gallery, events, settings, submissions", async ({ page }) => {

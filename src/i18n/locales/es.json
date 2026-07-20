@@ -600,6 +600,10 @@
       "updateFailed": "Error al actualizar",
       "failedFallback": "No se pudo actualizar"
     },
+    "settings": {
+      "heroMovedTitle": "La foto principal se movió a Medios",
+      "heroMovedBody": "Elige y encuadra la imagen principal del inicio cinematográfico en la sección Medios, que ahora gestiona tanto la selección de la foto como su encuadre."
+    },
     "cinematicHero": {
       "title": "Foto principal cinemática",
       "subtitle": "Qué foto publicada encabeza la página de inicio cinemática.",
