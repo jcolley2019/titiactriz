@@ -26,6 +26,7 @@ const SlideBg = ({ slide }: { slide: ReelSlide }) => (
       alt={slide.photo?.alt_text ?? ""}
       focal={slide.focal ?? REEL_DEFAULT_FOCAL}
       zoom={slide.zoom ?? DEFAULT_ZOOM}
+      imgDataQa="cinematic-reel-img"
       loading="lazy"
       fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
     />

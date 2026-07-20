@@ -272,7 +272,10 @@ const FramingEditor = ({
             onChange={(e) => setZoom(parseFloat(e.target.value))}
             className="h-1.5 flex-1 accent-[hsl(var(--gold-light))]"
           />
-          <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+          <span
+            data-qa="media-editor-zoom-value"
+            className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground"
+          >
             {zoom.toFixed(2)}×
           </span>
         </div>
