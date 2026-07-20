@@ -490,6 +490,67 @@
     "more": "Más eventos próximamente."
   },
   "admin": {
+    "shell": {
+      "title": "Administración",
+      "subtitle": "Gestiona todo lo que aparece en el sitio.",
+      "sections": {
+        "gallery": "Galería",
+        "media": "Medios",
+        "events": "Eventos",
+        "settings": "Ajustes",
+        "submissions": "Mensajes"
+      },
+      "submissionsEmptyTitle": "Aún no hay mensajes",
+      "submissionsEmptyBody": "Los mensajes del formulario de contacto aparecerán aquí en una próxima actualización."
+    },
+    "media": {
+      "title": "Medios cinematográficos",
+      "subtitle": "Elige y encuadra las imágenes del hero y del reel de la portada cinematográfica.",
+      "scaffoldNote": "Las herramientas de encuadre se cargan aquí.",
+      "heroVideoNote": "Hay un video de fondo configurado para el hero, así que ese tiene prioridad sobre esta foto en el sitio. El encuadre de abajo se aplicará si algún día se quita el video.",
+      "usesDefault": "Por defecto",
+      "customized": "Personalizado",
+      "changePhoto": "Cambiar foto",
+      "editFraming": "Editar encuadre",
+      "slotEmpty": "Sin foto aún",
+      "slots": {
+        "hero": "Hero",
+        "heroDesc": "La imagen de apertura a pantalla completa.",
+        "reelDesc": "Diapositiva destacada {{n}} del reel."
+      },
+      "reelLabel": "Reel {{n}}",
+      "picker": {
+        "title": "Elige una foto",
+        "subtitle": "Elige de tu galería publicada o sube una nueva.",
+        "uploadNew": "Subir nueva",
+        "uploading": "Subiendo…",
+        "empty": "Aún no hay fotos publicadas. Sube una para empezar.",
+        "cancel": "Cancelar",
+        "uploadFailed": "Error al subir"
+      },
+      "editor": {
+        "title": "Encuadrar · {{slot}}",
+        "dragHint": "Arrastra la foto para reposicionarla. Usa el control para acercar.",
+        "zoom": "Zoom",
+        "device": "Vista previa",
+        "approxNote": "Aproximado — los tamaños de Android varían según la escala de pantalla.",
+        "save": "Guardar encuadre",
+        "saving": "Guardando…",
+        "reset": "Restablecer",
+        "cancel": "Cancelar",
+        "saved": "Encuadre guardado",
+        "savedDesc": "La portada cinematográfica ahora usa tu nuevo encuadre.",
+        "resetDone": "Encuadre restablecido",
+        "saveFailed": "No se pudo guardar el encuadre",
+        "noPhoto": "Elige una foto antes de encuadrar."
+      },
+      "crop": {
+        "causeTainted": "Esta imagen no se puede leer para el encuadre (restricción de origen cruzado).",
+        "causeModel": "Un recurso necesario no terminó de cargar. Inténtalo de nuevo.",
+        "causeDecode": "No se pudo decodificar la imagen. Prueba con otro archivo.",
+        "causeUnknown": "Algo salió mal al preparar la imagen."
+      }
+    },
     "login": {
       "title": "Admin",
       "subtitle": "Inicia sesión para gestionar la galería.",

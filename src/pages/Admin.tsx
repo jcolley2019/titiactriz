@@ -21,7 +21,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreVertical, ChevronUp, ChevronDown, ChevronRight, Sparkles, Loader2, Eye, EyeOff } from "lucide-react";
+import { GripVertical, MoreVertical, ChevronUp, ChevronDown, ChevronRight, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, CalendarDays, Settings2, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,9 @@ import LivePreviewDock from "@/components/admin/LivePreviewDock";
 import HomeVariantToggle from "@/components/admin/HomeVariantToggle";
 import CinematicHeroPicker from "@/components/admin/CinematicHeroPicker";
 import EventsBoardManager from "@/components/admin/EventsBoardManager";
+import AdminShell, { type AdminSection } from "@/components/admin/AdminShell";
+import AdminSubmissionsSection from "@/components/admin/AdminSubmissionsSection";
+import CinematicMediaManager from "@/components/admin/media/CinematicMediaManager";
 
 type Photo = {
   id: string;
@@ -432,7 +435,7 @@ const SortableRow = memo(({
 SortableRow.displayName = "SortableRow";
 
 /* ---------------- Management Panel ---------------- */
-const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
+const ManagePanel = () => {
   const { t } = useTranslation();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1021,23 +1024,7 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
 
 
   return (
-    <div className={`max-w-5xl mx-auto px-4 pt-32 ${galleryOpen ? "pb-[340px]" : "pb-12"}`}>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-serif text-3xl text-foreground">{t("admin.header.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("admin.header.subtitle")}</p>
-        </div>
-        <Button variant="outline" onClick={onSignOut}>
-          {t("admin.header.logOut")}
-        </Button>
-      </div>
-
-      <HomeVariantToggle />
-
-      <CinematicHeroPicker />
-
-      <EventsBoardManager />
-
+    <div className={galleryOpen ? "pb-[340px]" : "pb-12"}>
       {/* Gallery (collapsible) */}
       <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
         <button
@@ -1451,6 +1438,51 @@ const ManagePanel = ({ onSignOut }: { onSignOut: () => void }) => {
   );
 };
 
+/* ---------------- Sections ---------------- */
+/**
+ * Build the admin shell's sections. Existing panels are re-parented here as-is
+ * (ITEM 0: wrap, don't rewrite) — Gallery hosts the untouched gallery monolith,
+ * Settings groups the site-config cards, Events hosts the board manager, Media
+ * is the new native manager, and Submissions is a reserved placeholder.
+ */
+const adminSections = (t: (key: string) => string): AdminSection[] => [
+  {
+    id: "gallery",
+    label: t("admin.shell.sections.gallery"),
+    icon: <Images />,
+    content: <ManagePanel />,
+  },
+  {
+    id: "media",
+    label: t("admin.shell.sections.media"),
+    icon: <Clapperboard />,
+    content: <CinematicMediaManager />,
+  },
+  {
+    id: "events",
+    label: t("admin.shell.sections.events"),
+    icon: <CalendarDays />,
+    content: <EventsBoardManager />,
+  },
+  {
+    id: "settings",
+    label: t("admin.shell.sections.settings"),
+    icon: <Settings2 />,
+    content: (
+      <div className="space-y-2">
+        <HomeVariantToggle />
+        <CinematicHeroPicker />
+      </div>
+    ),
+  },
+  {
+    id: "submissions",
+    label: t("admin.shell.sections.submissions"),
+    icon: <Inbox />,
+    content: <AdminSubmissionsSection />,
+  },
+];
+
 /* ---------------- Page ---------------- */
 const Admin = () => {
   const { t } = useTranslation();
@@ -1517,7 +1549,13 @@ const Admin = () => {
             <div className="h-8 w-8 rounded-full border-2 border-accent/30 border-t-accent animate-spin" />
           </div>
         ) : session ? (
-          <ManagePanel onSignOut={signOut} />
+          <AdminShell
+            title={t("admin.shell.title")}
+            subtitle={t("admin.shell.subtitle")}
+            logOutLabel={t("admin.header.logOut")}
+            onSignOut={signOut}
+            sections={adminSections(t)}
+          />
         ) : (
           <LoginCard />
         )}

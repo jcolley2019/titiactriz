@@ -490,6 +490,67 @@
     "more": "More events coming soon."
   },
   "admin": {
+    "shell": {
+      "title": "Studio admin",
+      "subtitle": "Manage everything that appears on the site.",
+      "sections": {
+        "gallery": "Gallery",
+        "media": "Media",
+        "events": "Events",
+        "settings": "Settings",
+        "submissions": "Submissions"
+      },
+      "submissionsEmptyTitle": "No submissions yet",
+      "submissionsEmptyBody": "Contact-form messages will show up here in a future update."
+    },
+    "media": {
+      "title": "Cinematic media",
+      "subtitle": "Choose and frame the hero and reel imagery for the cinematic home.",
+      "scaffoldNote": "Framing tools load here.",
+      "heroVideoNote": "A hero background video is set, so it leads the live hero and takes precedence over this photo. The framing below still applies if the video is ever removed.",
+      "usesDefault": "Default",
+      "customized": "Custom",
+      "changePhoto": "Change photo",
+      "editFraming": "Edit framing",
+      "slotEmpty": "No photo yet",
+      "slots": {
+        "hero": "Hero",
+        "heroDesc": "The full-screen opening image.",
+        "reelDesc": "Featured reel slide {{n}}."
+      },
+      "reelLabel": "Reel {{n}}",
+      "picker": {
+        "title": "Choose a photo",
+        "subtitle": "Pick from your published gallery, or upload a new one.",
+        "uploadNew": "Upload new",
+        "uploading": "Uploading…",
+        "empty": "No published photos yet. Upload one to get started.",
+        "cancel": "Cancel",
+        "uploadFailed": "Upload failed"
+      },
+      "editor": {
+        "title": "Frame · {{slot}}",
+        "dragHint": "Drag the photo to reposition. Use the slider to zoom.",
+        "zoom": "Zoom",
+        "device": "Preview",
+        "approxNote": "Approximate — Android sizes vary with display scaling.",
+        "save": "Save framing",
+        "saving": "Saving…",
+        "reset": "Reset to default",
+        "cancel": "Cancel",
+        "saved": "Framing saved",
+        "savedDesc": "The cinematic home now uses your new framing.",
+        "resetDone": "Framing reset to default",
+        "saveFailed": "Could not save framing",
+        "noPhoto": "Choose a photo before framing."
+      },
+      "crop": {
+        "causeTainted": "This image can't be read for framing (cross-origin restriction).",
+        "causeModel": "A required resource hasn't finished loading. Try again.",
+        "causeDecode": "The image couldn't be decoded. Try a different file.",
+        "causeUnknown": "Something went wrong while preparing the image."
+      }
+    },
     "login": {
       "title": "Admin",
       "subtitle": "Sign in to manage the gallery.",
