@@ -36,6 +36,7 @@ const CinematicAbout = ({ reduced }: Props) => {
   return (
     <section
       ref={sectionRef}
+      id="cinematic-about"
       data-qa="cinematic-section"
       className="relative px-6 py-24 md:py-32"
     >

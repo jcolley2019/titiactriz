@@ -178,6 +178,24 @@
       "headline": "FORJA TU LEYENDA.",
       "sub": "Crecimiento, monetización y marcas para creadores de LATAM.",
       "cta": "ÚNETE A TITANS →"
+    },
+    "titilinks": {
+      "brand": "TitiLinks",
+      "domain": "titilinks.com",
+      "eyebrow": "El Emprendimiento Link-in-Bio",
+      "headline": "Un link. Todo tú.",
+      "sub": "El link in bio que parece hecho por un diseñador.",
+      "callouts": {
+        "fullscreen": "Páginas a pantalla completa",
+        "video": "Video en tu hero",
+        "creators": "Para creadores",
+        "celebs": "Celebridades y atletas",
+        "ecommerce": "Lista para e-commerce",
+        "luxury": "Diseño de lujo"
+      },
+      "comingSoon": "¡MUY PRONTO!",
+      "announce": "El lanzamiento completo está muy cerca.",
+      "cta": "Conoce TitiLinks →"
     }
   },
   "titans": {

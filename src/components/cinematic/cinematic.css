@@ -16,6 +16,17 @@
   will-change: transform;
 }
 
+/* TA.8 — TitiLinks exit mask: one gold shimmer sweep across the link glyph as
+   the overlay mounts (a single pulse of the gold outline's glow, then steady). */
+@keyframes tl-exit-shimmer {
+  0%   { opacity: 0.35; filter: drop-shadow(0 0 0 rgba(201,165,92,0)); }
+  45%  { opacity: 1;    filter: drop-shadow(0 0 6px rgba(201,165,92,0.85)); }
+  100% { opacity: 0.7;  filter: drop-shadow(0 0 2px rgba(201,165,92,0.35)); }
+}
+.tl-exit-glyph {
+  animation: tl-exit-shimmer 0.8s ease-out both;
+}
+
 /* Bottom scroll cue — gentle pulse. */
 @keyframes cine-scrollcue {
   0%, 100% { opacity: 0.35; transform: translateY(0); }

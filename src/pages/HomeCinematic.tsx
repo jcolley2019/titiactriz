@@ -11,6 +11,7 @@ import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import CinematicGreenWorld from "@/components/cinematic/CinematicGreenWorld";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
+import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
 import CinematicContact from "@/components/cinematic/CinematicContact";
@@ -160,6 +161,9 @@ const HomeCinematic = () => {
           over living wave art), then Titans (play-once badge reveal). */}
       <CinematicGreenWorld reduced={prefersReduced} />
       <CinematicTitans reduced={prefersReduced} />
+
+      {/* TA.8: TitiLinks act — pinned product tour → coming-soon → logo-mask exit. */}
+      <CinematicTitiLinks reduced={prefersReduced} />
 
       <CinematicAbout reduced={prefersReduced} />
 
