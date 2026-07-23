@@ -1,24 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
+import { framingFromFocalZoom, type Focal, type FitMode } from "@/hooks/useCinematicMedia";
+import {
+  heroFramingAttr,
+  resolveHeroMediaStyle,
+  useElementAspect,
+  videoAspect,
+} from "@/lib/hero-framing";
 
 /**
- * ADMIN.MEDIA.2 → .3 — the framed-video render primitive, the video sibling of
- * FramedImage. `focal` drives object-position and `zoom` drives a scale from that
- * same focal point (transform on the wrapper, never the media).
+ * PORT.3 — the framed-video render primitive, resolved through hero-framing.
+ * The video sibling of FramedImage: ALL foreground geometry comes from
+ * `resolveHeroMediaStyle`. Stored focal/zoom bridge via `framingFromFocalZoom`
+ * and the container/media aspects are MEASURED (container box + video
+ * metadata), so every surface that renders this component paints the exact
+ * same source rectangle — the preview is the contract. Nothing here may set
+ * object-fit/object-position on the FOREGROUND outside what the resolver
+ * returns.
  *
- * Two display modes (ADMIN.MEDIA.3):
- *   - "fill" (default): object-cover crop, zoom >= 1 — gaps are structurally
- *     impossible, exactly the MEDIA.2 behavior.
- *   - "fit": the video is letterboxed/pillarboxed at its natural aspect over a
- *     blurred, oversized copy of ITSELF (a single extra aria-hidden video with
- *     the same muted/loop playback). zoom may drop below cover, so a portrait
- *     clip on a landscape canvas is shown whole instead of a cropped slice.
+ * Display modes (ADMIN.MEDIA.3):
+ *   - "fill" (default): the resolver's cover math — gaps only at scale < 1,
+ *     held by the brand-dark base.
+ *   - "fit": letterboxed at natural aspect (the resolver's contain math) over
+ *     a blurred, oversized cover copy of ITSELF — a single extra aria-hidden
+ *     video with the same muted/loop playback. The backdrop keeps its shipped
+ *     cover/blur/scale look; only the foreground rides the resolver.
  *
- * The video is always muted / loop / playsInline (autoplay gated by `autoPlay`).
- * Under reduced motion — or before paint — the `poster` still renders instead
- * (poster logic is identical across fit modes). This same component powers the
- * live hero, the editor drag surface, and the device-tab previews.
+ * FIX.MEDIA.B: NO poster attribute on the <video>s — a video surface never
+ * paints the hero photo. It holds on the site's dark base and fades the video
+ * in once its first frame is decodable; `ready` re-arms whenever the src
+ * changes (Replace video) so a stale frame never lingers. Under reduced
+ * motion — or before a decodable src exists — the `poster` still renders
+ * instead (identical across fit modes).
+ *
+ * The video is always muted / loop / playsInline (autoplay gated by
+ * `autoPlay`). This same component powers the live hero, the editor drag
+ * surface, and the device-tab previews.
  */
 type FramedVideoProps = {
   src?: string;
@@ -52,6 +69,23 @@ const FramedVideo = ({
   posterDataQa,
   fallback,
 }: FramedVideoProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerAspect = useElementAspect(containerRef);
+  const [mediaAspect, setMediaAspect] = useState<number | null>(null);
+
+  // FIX.MEDIA.B: fade gate. `ready` re-arms on src change.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setReady(false);
+  }, [src]);
+
+  // Natural aspect arrives on loadedmetadata; re-check on mount/src change in
+  // case metadata is already present (a cached clip fires no event we'd need).
+  useEffect(() => {
+    setMediaAspect(src ? videoAspect(videoRef.current) : null);
+  }, [src]);
+
   const objectPosition = `${focal.x * 100}% ${focal.y * 100}%`;
 
   // Reduced motion (or no decodable src) → the poster still, framed identically.
@@ -83,43 +117,28 @@ const FramedVideo = ({
     preload: "auto",
   } as const;
 
-  // ONE persistent foreground <video> across BOTH modes — switching fill↔fit
-  // must never remount it (a fresh element repaints on remount). The backdrop
-  // is conditionally rendered FIRST so the foreground's child index never
-  // shifts and React keeps the same node.
-  //
-  // FIX.MEDIA.B: no poster on the <video> — a video surface NEVER paints the
-  // hero photo. It holds on the site's dark base and fades the video in once
-  // its first frame is decodable. `ready` re-arms whenever the src changes
-  // (Replace video) so a stale frame never lingers.
   const fitMode = fit === "fit";
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    setReady(false);
-  }, [src]);
   const fadeStyle: CSSProperties = {
     opacity: ready ? 1 : 0,
     transition: "opacity 400ms ease",
   };
 
-  const containerStyle: CSSProperties | undefined =
-    !fitMode && zoom > 1
-      ? { transform: `scale(${zoom})`, transformOrigin: objectPosition, willChange: "transform" }
-      : undefined;
+  const styleInput = {
+    mediaAspect,
+    containerAspect,
+    framing: framingFromFocalZoom(focal, zoom, fit),
+  };
 
-  const foregroundStyle: CSSProperties = fitMode
-    ? {
-        transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-        transformOrigin: objectPosition,
-        willChange: zoom !== 1 ? "transform" : undefined,
-      }
-    : { objectPosition };
-
+  // ONE persistent foreground <video> across BOTH modes — switching fill↔fit
+  // must never remount it (a fresh element repaints on remount). The backdrop
+  // is conditionally rendered FIRST so the foreground's child index never
+  // shifts and React keeps the same node.
   return (
     <div
+      ref={containerRef}
       data-qa={fitMode ? "framed-video-fit" : undefined}
       className="relative h-full w-full overflow-hidden"
-      style={{ backgroundColor: "#0b0a08", ...containerStyle }}
+      style={{ backgroundColor: "#0b0a08" }}
     >
       {fitMode ? (
         <video
@@ -138,10 +157,13 @@ const FramedVideo = ({
       ) : null}
       <video
         {...videoBase}
+        ref={videoRef}
         data-qa={videoDataQa}
+        data-hero-framing={heroFramingAttr(styleInput)}
+        onLoadedMetadata={(e) => setMediaAspect(videoAspect(e.currentTarget))}
         onLoadedData={() => setReady(true)}
-        className={`absolute inset-0 h-full w-full ${fitMode ? "object-contain" : "object-cover"} ${videoClassName}`.trim()}
-        style={{ ...foregroundStyle, ...fadeStyle }}
+        className={videoClassName}
+        style={{ ...resolveHeroMediaStyle(styleInput), ...fadeStyle }}
       />
     </div>
   );
