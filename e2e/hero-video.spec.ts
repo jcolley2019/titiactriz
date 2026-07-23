@@ -47,12 +47,12 @@ const scaleOf = (transform: string): number => {
   return m ? parseFloat(m[1]) : NaN;
 };
 
-test.describe("MEDIA2 — hero video render (framing + poster)", () => {
+test.describe("MEDIA2 — hero video render (framing + dark hold)", () => {
   for (const vp of [
     { name: "desktop", width: 1440, height: 900 },
     { name: "mobile", width: 390, height: 844 },
   ]) {
-    test(`renders video with decoupled framing + poster — ${vp.name}`, async ({ page }) => {
+    test(`renders video with decoupled framing + dark hold — ${vp.name}`, async ({ page }) => {
       const diag = attachDiagnostics(page);
       await stubHeroVideoMedia(page);
       await routeSupabase(page, {
@@ -72,8 +72,9 @@ test.describe("MEDIA2 — hero video render (framing + poster)", () => {
       expect(await objectPositionOf(page, VIDEO), "video focal → object-position").toBe("30% 70%");
       expect(scaleOf(await parentTransform(page, VIDEO)), "video zoom → scale").toBeCloseTo(1.5, 1);
 
-      // Poster present for instant paint; no reduced-motion still while motion is on.
-      expect(await page.locator(VIDEO).getAttribute("poster"), "poster for instant paint").toBeTruthy();
+      // FIX.MEDIA.B: a video surface never carries the hero photo as a poster —
+      // it holds dark and fades the video in. No reduced-motion still while motion is on.
+      expect(await page.locator(VIDEO).getAttribute("poster"), "no poster on the video surface").toBeNull();
       await expect(page.locator(POSTER)).toHaveCount(0);
 
       await page.screenshot({ path: shot(`MEDIA2-hero-video-${vp.name}.png`) });
