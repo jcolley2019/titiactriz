@@ -168,7 +168,15 @@ const HomeCinematic = () => {
       {/* TA.8: TitiLinks act — pinned product tour → coming-soon → clean fade release. */}
       <CinematicTitiLinks reduced={prefersReduced} />
 
-      <CinematicAbout reduced={prefersReduced} />
+      {/* ABOUT.MEDIA.1 — the About portrait panel is opt-in: resolved.about is
+          null unless an admin picked a photo, in which case the section renders
+          the bordered 3:4 panel beside the copy (see CinematicAbout). */}
+      <CinematicAbout
+        reduced={prefersReduced}
+        photo={resolved.about?.photo}
+        focal={resolved.about?.focal}
+        zoom={resolved.about?.zoom}
+      />
 
       <CinematicContact />
     </div>

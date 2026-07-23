@@ -58,6 +58,53 @@
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }
 
+/* ===== About portrait panel (ABOUT.MEDIA.1) =====
+   An OPT-IN 3:4 photo panel beside the About copy. When no About photo is
+   configured these rules never attach (the container isn't `.cine-about-grid`
+   and the panel node isn't rendered), so the section stays single-column —
+   byte-identical to its text-only original.
+
+   Mobile: normal block flow, so source order places the panel BETWEEN the
+   blockquote and the paragraphs. md+: a two-column editorial split via named
+   grid areas — ONE panel node reflows from mid-column (mobile) to a full-height
+   right rail (desktop), with no duplicate DOM and no gap left in column 1. */
+.cine-about-panel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  /* Gold hairline as an INSET OUTLINE, not a border: an outline sits outside
+     the box model, so FramedImage still measures a clean 3:4 container box and
+     the editor-canvas ≡ live-panel data-hero-framing strings stay byte-identical
+     (a real border would shrink the measured child by 1px on each axis). */
+  outline: 1px solid rgba(201, 165, 92, 0.4);
+  outline-offset: -1px;
+}
+
+@media (min-width: 768px) {
+  .cine-about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 32vw, 400px);
+    column-gap: 3rem;
+    grid-template-areas:
+      "eyebrow panel"
+      "quote   panel"
+      "paras   panel"
+      "chips   panel"
+      "cta     panel";
+    align-items: start;
+  }
+  .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; }
+  .cine-about-grid > .cine-a-quote   { grid-area: quote; }
+  .cine-about-grid > .cine-a-paras   { grid-area: paras; }
+  .cine-about-grid > .cine-a-chips   { grid-area: chips; }
+  .cine-about-grid > .cine-a-cta     { grid-area: cta; }
+  .cine-about-grid > .cine-about-panel {
+    grid-area: panel;
+    align-self: center;
+    max-width: 400px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cine-kenburns { animation: none !important; transform: none !important; }
   .cine-scrollcue-line { animation: none !important; }
