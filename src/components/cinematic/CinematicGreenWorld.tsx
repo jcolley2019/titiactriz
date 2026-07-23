@@ -103,7 +103,7 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
 
       {/* Type layer — right-aligned on desktop, centred on mobile. */}
       <div className="cine-act-vh relative z-20 flex items-end md:items-center">
-        <div className="ml-auto w-full max-w-xl px-6 pb-16 pt-10 text-center md:py-16 md:pr-14 md:text-right lg:pr-24">
+        <div className="ml-auto w-full max-w-xl px-6 pb-16 pt-10 text-center md:py-16 md:pr-24 md:text-center lg:pr-40">
           <div className="cine-gw-type">
             <p
               className="text-xs font-semibold uppercase tracking-[0.32em]"
@@ -123,7 +123,7 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
               {t("cinematic.gw.headline")}
             </h2>
             <p
-              className="mx-auto mt-6 max-w-md text-base leading-relaxed md:ml-auto md:mr-0 md:text-lg"
+              className="mx-auto mt-6 max-w-md text-base leading-relaxed md:text-lg"
               style={{ color: FOREST_SOFT }}
             >
               {t("cinematic.gw.sub")}
@@ -131,7 +131,7 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
             <p className="mt-4 text-lg font-semibold md:text-xl" style={{ color: FOREST }}>
               {t("cinematic.gw.leadin")}
             </p>
-            <div className="mt-9 flex justify-center md:justify-end">
+            <div className="mt-9 flex justify-center">
               <a
                 href={GREEN_WORLD_SHOP_URL}
                 target="_blank"
