@@ -12,14 +12,12 @@ import {
   type SlotFraming,
   type Focal,
   type HeroVideoFraming,
-  type VideoOrientation,
   HERO_DEFAULT_FOCAL,
   REEL_DEFAULT_FOCAL,
   VIDEO_DEFAULT_FOCAL,
   DEFAULT_ZOOM,
   defaultSlot,
   defaultHeroVideo,
-  defaultVideoSource,
   heroVideoIsDefault,
   defaultCinematicMedia,
   fetchCinematicMedia,
@@ -31,12 +29,9 @@ import {
   HERO_VIDEO_ACCEPT_ATTR,
   validateHeroVideo,
   uploadHeroVideo,
-  fetchCinematicHeroVideo,
-  fetchCinematicHeroVideoPortrait,
+  fetchHeroVideoResolved,
   setCinematicHeroVideo,
-  setCinematicHeroVideoPortrait,
-  clearCinematicHeroVideo,
-  clearCinematicHeroVideoPortrait,
+  clearCinematicHeroVideoAll,
 } from "@/lib/hero-video";
 import ImagePicker from "./ImagePicker";
 import FramingEditor from "./FramingEditor";
@@ -49,15 +44,15 @@ import FramingEditor from "./FramingEditor";
  * a photo NEVER saves on its own — it opens the editor at default framing, so the
  * mandatory flow is pick → frame → save.
  *
- * ADMIN.MEDIA.3 hero video: TWO optional orientation sources — landscape
- * (cinematic_hero_video, back-compatible) and portrait
- * (cinematic_hero_video_portrait) — uploaded through the same validated path
- * (hero/ prefix). The render picks by viewport aspect; each source keeps its own
- * focal/zoom/fill-or-fit framing in cinematic_media.hero.video
- * {landscape,portrait}. The editor frames whichever source the active device tab
- * implies. Removing a source reverts that orientation; removing both falls back
- * to the image + Ken Burns. When every slot (incl. hero.video) is default the
- * cinematic_media key is removed so the absent-is-default contract holds.
+ * VID.MODEL.1 hero video: ONE optional video (cinematic_hero_video, resolved
+ * with a fallback to the legacy cinematic_hero_video_portrait key), uploaded
+ * through the validated path (hero/ prefix). The SAME clip plays on every
+ * screen; each viewport orientation keeps its own focal/zoom/fill-or-fit
+ * framing record in cinematic_media.hero.video {landscape,portrait}. The editor
+ * frames whichever viewport orientation the active device tab implies. Removing
+ * the video clears both keys and falls back to the image + Ken Burns. When
+ * every slot (incl. hero.video) is default the cinematic_media key is removed so
+ * the absent-is-default contract holds.
  */
 type SlotKind = "hero" | "reel";
 type SlotDesc = { key: string; kind: SlotKind; reelIndex: number; titleKey?: string };
@@ -67,8 +62,7 @@ type EditorState =
   | {
       mode: "video";
       slot: SlotDesc;
-      landscapeSrc: string | null;
-      portraitSrc: string | null;
+      videoSrc: string | null;
       initialVideo: HeroVideoFraming;
       poster?: string;
     };
@@ -83,7 +77,6 @@ const SLOTS: SlotDesc[] = [
 ];
 
 const HERO_SLOT = SLOTS[0];
-const ORIENTATIONS: VideoOrientation[] = ["landscape", "portrait"];
 
 const focalEq = (a: Focal, b: Focal) => a.x === b.x && a.y === b.y;
 
@@ -131,14 +124,12 @@ const CinematicMediaManager = () => {
   const [config, setConfig] = useState<CinematicMediaConfig>(defaultCinematicMedia());
   const [legacyHero, setLegacyHero] = useState<string | null>(null);
   const [heroVideo, setHeroVideo] = useState<string | null>(null);
-  const [heroVideoPortrait, setHeroVideoPortrait] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const uploadOrientation = useRef<VideoOrientation>("landscape");
 
   const [pickerSlot, setPickerSlot] = useState<SlotDesc | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
@@ -146,7 +137,7 @@ const CinematicMediaManager = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [photosRes, media, legacy, video, videoPortrait] = await Promise.all([
+      const [photosRes, media, legacy, video] = await Promise.all([
         supabase
           .from("gallery_photos")
           .select("id, image_url, alt_text")
@@ -156,15 +147,14 @@ const CinematicMediaManager = () => {
           .order("created_at", { ascending: true }),
         fetchCinematicMedia(),
         fetchCinematicHeroPhotoId(),
-        fetchCinematicHeroVideo(),
-        fetchCinematicHeroVideoPortrait(),
+        // VID.MODEL.1: resolve canonical → legacy portrait key (today's prod row).
+        fetchHeroVideoResolved(),
       ]);
       if (cancelled) return;
       if (photosRes.data) setPhotos(photosRes.data as CinematicPhoto[]);
       if (media) setConfig(media);
       setLegacyHero(legacy);
       setHeroVideo(video);
-      setHeroVideoPortrait(videoPortrait);
       setLoading(false);
     })();
     return () => {
@@ -173,14 +163,13 @@ const CinematicMediaManager = () => {
   }, []);
 
   const resolved = useMemo(
-    () => getCinematicMedia(photos, config, legacyHero, heroVideo, heroVideoPortrait),
-    [photos, config, legacyHero, heroVideo, heroVideoPortrait],
+    () => getCinematicMedia(photos, config, legacyHero, heroVideo),
+    [photos, config, legacyHero, heroVideo],
   );
 
   const resolvedFor = (d: SlotDesc) => (d.kind === "hero" ? resolved.hero : resolved.reel[d.reelIndex]);
   const heroPosterUrl = resolved.hero.photo?.image_url;
-  const anyHeroVideo = !!heroVideo || !!heroVideoPortrait;
-  const srcFor = (o: VideoOrientation) => (o === "landscape" ? heroVideo : heroVideoPortrait);
+  const anyHeroVideo = !!heroVideo;
 
   const persist = async (next: CinematicMediaConfig, slotKey: string, kind: "saved" | "reset") => {
     setSavingKey(slotKey);
@@ -218,8 +207,7 @@ const CinematicMediaManager = () => {
     setEditor({
       mode: "video",
       slot: HERO_SLOT,
-      landscapeSrc: heroVideo,
-      portraitSrc: heroVideoPortrait,
+      videoSrc: heroVideo,
       initialVideo: config.hero.video ?? defaultHeroVideo(),
       poster: heroPosterUrl,
     });
@@ -260,9 +248,8 @@ const CinematicMediaManager = () => {
     void persist(next, slot.key, "reset");
   };
 
-  /* ---------------- Hero video: upload / remove (per orientation) ---------------- */
-  const triggerUpload = (orientation: VideoOrientation) => {
-    uploadOrientation.current = orientation;
+  /* ---------------- Hero video: upload / remove (VID.MODEL.1 — one video) ---------------- */
+  const triggerUpload = () => {
     videoInputRef.current?.click();
   };
 
@@ -270,7 +257,6 @@ const CinematicMediaManager = () => {
     const file = e.target.files?.[0];
     if (videoInputRef.current) videoInputRef.current.value = "";
     if (!file) return;
-    const orientation = uploadOrientation.current;
 
     const check = await validateHeroVideo(file);
     if (!check.ok) {
@@ -286,20 +272,15 @@ const CinematicMediaManager = () => {
     setUploadPct(0);
     try {
       const url = await uploadHeroVideo(file, setUploadPct);
-      if (orientation === "landscape") {
-        await setCinematicHeroVideo(url);
-        setHeroVideo(url);
-      } else {
-        await setCinematicHeroVideoPortrait(url);
-        setHeroVideoPortrait(url);
-      }
+      // setCinematicHeroVideo writes canonical AND clears the legacy portrait key.
+      await setCinematicHeroVideo(url);
+      setHeroVideo(url);
       toast({ title: t("admin.media.video.uploaded"), description: t("admin.media.video.uploadedDesc") });
-      // Straight into framing, video mode, with both current sources.
+      // Straight into framing, video mode, on the single video.
       setEditor({
         mode: "video",
         slot: HERO_SLOT,
-        landscapeSrc: orientation === "landscape" ? url : heroVideo,
-        portraitSrc: orientation === "portrait" ? url : heroVideoPortrait,
+        videoSrc: url,
         initialVideo: config.hero.video ?? defaultHeroVideo(),
         poster: heroPosterUrl,
       });
@@ -311,24 +292,17 @@ const CinematicMediaManager = () => {
     }
   };
 
-  const removeVideo = async (orientation: VideoOrientation) => {
+  const removeVideo = async () => {
     setSavingKey("hero");
     try {
-      if (orientation === "landscape") await clearCinematicHeroVideo();
-      else await clearCinematicHeroVideoPortrait();
-
-      const otherStillSet = orientation === "landscape" ? !!heroVideoPortrait : !!heroVideo;
+      await clearCinematicHeroVideoAll();
       if (config.hero.video) {
-        // Both gone → strip the whole block; else reset just this source's framing.
-        const next = otherStillSet
-          ? withHeroVideo(config, { ...config.hero.video, [orientation]: defaultVideoSource() })
-          : stripHeroVideo(config);
+        const next = stripHeroVideo(config);
         if (isAllDefault(next)) await clearCinematicMedia();
         else await setCinematicMedia(next);
         setConfig(next);
       }
-      if (orientation === "landscape") setHeroVideo(null);
-      else setHeroVideoPortrait(null);
+      setHeroVideo(null);
       toast({ title: t("admin.media.video.removed"), description: t("admin.media.video.removedDesc") });
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("admin.media.video.removeFailed");
@@ -344,9 +318,10 @@ const CinematicMediaManager = () => {
   const editorSlotLabel = (e: EditorState) =>
     e.mode === "video" ? `${slotLabel(e.slot)} · ${t("admin.media.video.badge")}` : slotLabel(e.slot);
 
-  // Hero-slot thumbnail: prefer the landscape source (admin is a desktop canvas).
-  const thumbSrc = heroVideo ?? heroVideoPortrait;
-  const thumbFraming = heroVideo ? resolved.hero.videoLandscape : resolved.hero.videoPortrait;
+  // VID.MODEL.1: one video. The 3/4 slot tile is a portrait box, so preview it
+  // with the portrait viewport framing record.
+  const thumbSrc = heroVideo;
+  const thumbFraming = resolved.hero.videoPortrait;
 
   return (
     <div data-qa="admin-media" className="space-y-6">
@@ -355,7 +330,7 @@ const CinematicMediaManager = () => {
         <p className="text-sm text-muted-foreground">{t("admin.media.subtitle")}</p>
       </div>
 
-      {/* Hero video management (ADMIN.MEDIA.3 — two orientation sources). */}
+      {/* Hero video management (VID.MODEL.1 — one video, framed per screen type). */}
       {!loading && (
         <div data-qa="media-hero-video" className="space-y-4 rounded-lg border border-border bg-card p-4">
           <div className="flex items-start gap-2">
@@ -366,57 +341,47 @@ const CinematicMediaManager = () => {
             </div>
           </div>
 
-          {ORIENTATIONS.map((orientation) => {
-            const src = srcFor(orientation);
-            const labelKey =
-              orientation === "landscape"
-                ? "admin.media.video.landscapeLabel"
-                : "admin.media.video.portraitLabel";
-            return (
-              <div
-                key={orientation}
-                data-qa={`media-hero-source-${orientation}`}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border/60 bg-background/40 px-3 py-2"
+          <div
+            data-qa="media-hero-source"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border/60 bg-background/40 px-3 py-2"
+          >
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-medium ${heroVideo ? "text-accent" : "text-foreground"}`}>
+                {t("admin.media.video.rowLabel")}
+              </span>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                {heroVideo ? t("admin.media.video.sourceSet") : t("admin.media.video.sourceEmpty")}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                data-qa="media-hero-upload"
+                onClick={triggerUpload}
+                disabled={uploadingVideo}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent/60 hover:bg-accent/5 disabled:opacity-60"
               >
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-medium ${src ? "text-accent" : "text-foreground"}`}>
-                    {t(labelKey)}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {src ? t("admin.media.video.sourceSet") : t("admin.media.video.sourceEmpty")}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    data-qa={`media-hero-upload-${orientation}`}
-                    onClick={() => triggerUpload(orientation)}
-                    disabled={uploadingVideo}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent/60 hover:bg-accent/5 disabled:opacity-60"
-                  >
-                    {uploadingVideo && uploadOrientation.current === orientation ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="h-3.5 w-3.5" />
-                    )}
-                    {src ? t("admin.media.video.replaceVideo") : t("admin.media.video.uploadVideo")}
-                  </button>
-                  {src && (
-                    <button
-                      type="button"
-                      data-qa={`media-hero-remove-${orientation}`}
-                      onClick={() => removeVideo(orientation)}
-                      disabled={uploadingVideo || savingKey === "hero"}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      {t("admin.media.video.removeSource")}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                {uploadingVideo ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                {heroVideo ? t("admin.media.video.replaceVideo") : t("admin.media.video.uploadVideo")}
+              </button>
+              {heroVideo && (
+                <button
+                  type="button"
+                  data-qa="media-hero-remove"
+                  onClick={removeVideo}
+                  disabled={uploadingVideo || savingKey === "hero"}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t("admin.media.video.removeSource")}
+                </button>
+              )}
+            </div>
+          </div>
 
           {anyHeroVideo && (
             <button
@@ -594,8 +559,7 @@ const CinematicMediaManager = () => {
           initialFocal={editor.mode === "image" ? editor.focal : VIDEO_DEFAULT_FOCAL}
           initialZoom={editor.mode === "image" ? editor.zoom : DEFAULT_ZOOM}
           mode={editor.mode}
-          videoLandscapeSrc={editor.mode === "video" ? editor.landscapeSrc : undefined}
-          videoPortraitSrc={editor.mode === "video" ? editor.portraitSrc : undefined}
+          videoSrc={editor.mode === "video" ? editor.videoSrc : undefined}
           initialVideo={editor.mode === "video" ? editor.initialVideo : undefined}
           poster={editor.mode === "video" ? editor.poster : undefined}
           saving={savingKey === editor.slot.key}

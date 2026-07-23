@@ -15,7 +15,9 @@ import { BUCKET } from "./gallery-upload";
  * feature's upload guardrails — no code is shared with that product.
  */
 export const HERO_VIDEO_KEY = "cinematic_hero_video";
-/** ADMIN.MEDIA.3 — the optional portrait (phone) source. Landscape stays the legacy key. */
+/** VID.MODEL.1 — legacy key retained ONLY as a back-compat read fallback:
+ *  pre-refactor uploads live here (today's prod video). New uploads write the
+ *  canonical key and clear this one. */
 export const HERO_VIDEO_PORTRAIT_KEY = "cinematic_hero_video_portrait";
 
 export const HERO_VIDEO_ACCEPTED = ["video/mp4", "video/webm"];
@@ -124,12 +126,6 @@ export const uploadHeroVideo = async (
   return pub.publicUrl;
 };
 
-/** ADMIN.MEDIA.3 — the two hero-video orientation sources and their setting keys. */
-export const HERO_VIDEO_KEYS: Record<"landscape" | "portrait", string> = {
-  landscape: HERO_VIDEO_KEY,
-  portrait: HERO_VIDEO_PORTRAIT_KEY,
-};
-
 /** Read a hero-video setting by key, or null when absent/empty. */
 const fetchSetting = async (key: string): Promise<string | null> => {
   const { data } = await supabase.from("site_settings").select("value").eq("key", key).maybeSingle();
@@ -150,33 +146,18 @@ const clearSetting = async (key: string): Promise<void> => {
   if (error) throw error;
 };
 
-/** Read the landscape (legacy/back-compat) hero video URL, or null when absent. */
-export const fetchCinematicHeroVideo = (): Promise<string | null> => fetchSetting(HERO_VIDEO_KEY);
-/** Read the portrait hero video URL, or null when absent. */
-export const fetchCinematicHeroVideoPortrait = (): Promise<string | null> =>
-  fetchSetting(HERO_VIDEO_PORTRAIT_KEY);
-
 /** VID.MODEL.1 — THE hero video: canonical key, falling back to the legacy
  *  portrait key (pre-refactor uploads live there). */
 export const fetchHeroVideoResolved = async (): Promise<string | null> =>
   (await fetchSetting(HERO_VIDEO_KEY)) ?? (await fetchSetting(HERO_VIDEO_PORTRAIT_KEY));
 
-/** Persist the landscape hero video public URL. */
+/** Persist THE hero video's public URL under the canonical key. */
 export const setCinematicHeroVideo = async (url: string): Promise<void> => {
   await setSetting(HERO_VIDEO_KEY, url);
   // VID.MODEL.1: single-video model — a fresh upload supersedes any legacy
   // portrait-key entry so exactly one key remains populated.
   await clearSetting(HERO_VIDEO_PORTRAIT_KEY);
 };
-/** Persist the portrait hero video public URL. */
-export const setCinematicHeroVideoPortrait = (url: string): Promise<void> =>
-  setSetting(HERO_VIDEO_PORTRAIT_KEY, url);
-
-/** Remove the landscape hero video setting. */
-export const clearCinematicHeroVideo = (): Promise<void> => clearSetting(HERO_VIDEO_KEY);
-/** Remove the portrait hero video setting. */
-export const clearCinematicHeroVideoPortrait = (): Promise<void> =>
-  clearSetting(HERO_VIDEO_PORTRAIT_KEY);
 
 /** VID.MODEL.1 — remove the hero video under BOTH keys (canonical + legacy
  *  portrait), so "remove hero video" leaves nothing behind. */

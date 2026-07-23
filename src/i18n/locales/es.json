@@ -568,11 +568,10 @@
       },
       "video": {
         "title": "Video de fondo del hero",
-        "subtitle": "Sube un MP4 o WebM horizontal y/o vertical (máx. 60 MB, ~15 s cada uno). El adecuado se reproduce según la pantalla y encabeza el hero sobre la foto.",
+        "subtitle": "Sube un MP4 o WebM (máx. 60 MB, ~15 s). Se reproduce detrás del hero en todas las pantallas — usa Ajustar encuadre para posicionarlo según el tipo de pantalla.",
         "badge": "Video",
-        "slotDesc": "Video de fondo del hero — la foto es su póster.",
-        "landscapeLabel": "Video horizontal (escritorio y tablet)",
-        "portraitLabel": "Video vertical (teléfonos)",
+        "slotDesc": "Video de fondo del hero — se reproduce detrás del hero.",
+        "rowLabel": "Video del hero",
         "sourceSet": "Configurado",
         "sourceEmpty": "Sin configurar",
         "removeSource": "Quitar",
@@ -595,7 +594,7 @@
         "removeFailed": "No se pudo quitar el video",
         "uploadFailed": "No se pudo subir el video",
         "dragHint": "Arrastra el video para reposicionarlo. Usa el control para acercar.",
-        "precedenceNote": "Hay un video del hero activo — encabeza el hero y tiene prioridad sobre la foto. La foto se usa como póster y como alternativa con movimiento reducido.",
+        "precedenceNote": "Hay un video del hero activo — encabeza el hero y tiene prioridad sobre la foto. La foto es la alternativa con movimiento reducido.",
         "reject": {
           "type": "Usa un archivo de video MP4 o WebM.",
           "size": "Ese video es muy grande — que no supere los 60 MB.",

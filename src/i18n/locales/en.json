@@ -568,11 +568,10 @@
       },
       "video": {
         "title": "Hero background video",
-        "subtitle": "Upload a landscape and/or portrait MP4 or WebM (max 60 MB, ~15 s each). The right one plays per screen and leads the hero over the photo.",
+        "subtitle": "Upload one MP4 or WebM (max 60 MB, ~15 s). It plays behind the hero on every screen — use Adjust framing to position it per screen type.",
         "badge": "Video",
-        "slotDesc": "Hero background video — the photo is its poster.",
-        "landscapeLabel": "Landscape video (desktop & tablet)",
-        "portraitLabel": "Portrait video (phones)",
+        "slotDesc": "Hero background video — plays behind the hero.",
+        "rowLabel": "Hero video",
         "sourceSet": "Set",
         "sourceEmpty": "Not set",
         "removeSource": "Remove",
@@ -595,7 +594,7 @@
         "removeFailed": "Could not remove the video",
         "uploadFailed": "Could not upload the video",
         "dragHint": "Drag the video to reposition. Use the slider to zoom.",
-        "precedenceNote": "A hero video is active — it leads the hero and takes precedence over the photo. The photo is used as the poster and the reduced-motion fallback.",
+        "precedenceNote": "A hero video is active — it leads the hero and takes precedence over the photo. The photo is the reduced-motion fallback.",
         "reject": {
           "type": "Use an MP4 or WebM video file.",
           "size": "That video is too large — keep it under 60 MB.",
