@@ -54,6 +54,10 @@ const MEDIA = {
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
   ],
+  // ABOUT.MEDIA.1 — the opt-in 3:4 portrait panel. The portrait source at zoom
+  // 1.15 in a 0.75 container overflows on BOTH axes, so posY=35 pans vertically
+  // (making the posY mutation visible) while posX=50 stays centred-with-overflow.
+  about: { photo_id: "port", focal: { x: 0.5, y: 0.35 }, zoom: 1.15 },
 };
 
 type Framing = { scale: number; posX: number; posY: number; fit: "fill" | "fit" };
@@ -62,6 +66,7 @@ type Framing = { scale: number; posX: number; posY: number; fit: "fill" | "fit" 
 const HERO_FRAMING: Framing = { scale: 1.3, posX: 35, posY: 70, fit: "fill" };
 const REEL0_FRAMING: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fit" };
 const REEL_DEFAULT_FRAMING: Framing = { scale: 1, posX: 50, posY: 50, fit: "fit" };
+const ABOUT_FRAMING: Framing = { scale: 1.15, posX: 50, posY: 35, fit: "fill" };
 
 const attrPrefix = (f: Framing) =>
   `${f.scale.toFixed(2)};${f.posX.toFixed(0)};${f.posY.toFixed(0)};${f.fit};`;
@@ -172,6 +177,7 @@ async function forceDocumentSize(page: Page, w: number, h: number) {
 
 const REEL_IMG = '[data-qa="cinematic-reel-img"]';
 const HERO_IMG = '[data-qa="cinematic-hero-img"]';
+const ABOUT_IMG = '[data-qa="cinematic-about-img"]';
 const EDITOR_CANVAS_IMG = '[data-qa="media-editor-surface"] [data-qa="media-preview"] img';
 
 const DEVICE_TABS = ["iphone-17-pro", "ipad-air", "desktop"] as const;
@@ -323,5 +329,87 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
         }
       }
     }
+  });
+});
+
+/**
+ * ABOUT.MEDIA.1 (ITEM 4) — the same rendered-pixel parity law, extended to the
+ * opt-in About portrait panel. The panel is fixed 3:4 EVERYWHERE (card thumbnail
+ * ≡ editor canvas ≡ live panel), so it needs no device tabs and the editor
+ * canvas and live panel — both 3:4, same photo, same focal/zoom — expose a
+ * BYTE-IDENTICAL data-hero-framing string, the strongest form of part (c).
+ *
+ * Mutation verification (manual, results in the sprint report): forcing posY=50
+ * into CinematicAbout's FramedImage focal must fail the live (a)/(b) parity and
+ * the byte-identical editor==live equality; reverting restores green.
+ */
+test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
+  test("a+b — live About panel paints at natural aspect (desktop + mobile)", async ({ page }) => {
+    // Reduced motion keeps the panel static (no Lenis/pins) so the bottom-of-page
+    // section is measurable at both widths; the parity maths are motion-agnostic.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const vp of [
+      { name: "1440x900", width: 1440, height: 900 },
+      { name: "390x844", width: 390, height: 844 },
+    ]) {
+      await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(CINE, { waitUntil: "domcontentloaded" });
+      await settle(page, 500);
+      const panel = page.locator(ABOUT_IMG).first();
+      await panel.scrollIntoViewIfNeeded().catch(() => {});
+      await framingReady(panel);
+      await assertParity(await measure(panel), ABOUT_FRAMING, `about @${vp.name}`);
+    }
+  });
+
+  test("a+b — About slot card + editor canvas (3:4 fill, no device tabs)", async ({ page }) => {
+    await openAdminMedia(page);
+
+    // Slot card thumbnail — the About card renders the framed 3:4 panel.
+    const card = page.locator('[data-qa="media-slot"][data-slot="about"] img').first();
+    await framingReady(card);
+    await assertParity(await measure(card), ABOUT_FRAMING, "slot card about");
+
+    // Editor canvas — one fixed 3:4 canvas, the device-tab row is hidden.
+    await page
+      .locator('[data-qa="media-slot"][data-slot="about"] [data-qa="media-slot-edit"]')
+      .click();
+    const canvas = page.locator(EDITOR_CANVAS_IMG).first();
+    await expect(canvas).toBeVisible();
+    await expect(
+      page.locator('[data-qa="media-editor-devices"]'),
+      "About editor hides the device tabs (one 3:4 canvas is the contract)",
+    ).toHaveCount(0);
+    await framingReady(canvas);
+    await assertParity(await measure(canvas), ABOUT_FRAMING, "editor about canvas");
+  });
+
+  test("c — About editor canvas == live panel (byte-identical 3:4 framing)", async ({ page }) => {
+    // LIVE panel at 1440x900 — the desktop grid resolves the panel column to a
+    // clean 400px 3:4 box.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(CINE, { waitUntil: "domcontentloaded" });
+    await settle(page, 500);
+    const panel = page.locator(ABOUT_IMG).first();
+    await panel.scrollIntoViewIfNeeded().catch(() => {});
+    await framingReady(panel);
+    const liveAttr = await panel.getAttribute("data-hero-framing");
+    expect(liveAttr, "live About framing attr").toContain(attrPrefix(ABOUT_FRAMING));
+
+    // EDITOR canvas — same media + same 3:4 container + same focal/zoom ⇒ a
+    // byte-identical data-hero-framing string (the PORT.2 part-c law, strongest
+    // form: both surfaces are literally 3:4).
+    await openAdminMedia(page);
+    await page
+      .locator('[data-qa="media-slot"][data-slot="about"] [data-qa="media-slot-edit"]')
+      .click();
+    const canvas = page.locator(EDITOR_CANVAS_IMG).first();
+    await expect(canvas).toBeVisible();
+    await framingReady(canvas);
+    const canvasAttr = await canvas.getAttribute("data-hero-framing");
+    expect(canvasAttr, "editor About canvas == live About panel (both 3:4)").toBe(liveAttr);
   });
 });
