@@ -194,7 +194,12 @@ const FramingEditor = ({
     return () => ro.disconnect();
   }, [open]);
 
-  let fw = availW;
+  // ADMIN.MOBILE.1: never trust availW beyond the real viewport — the 480
+  // default could force the dialog wider than a phone screen, and the
+  // measurer would then read the overflowed container back (stuck loop).
+  const viewportCap =
+    typeof window !== "undefined" ? Math.max(240, window.innerWidth - 80) : 480;
+  let fw = Math.min(availW, viewportCap);
   let fh = fw / aspect;
   if (fh > SURFACE_MAX_H) {
     fh = SURFACE_MAX_H;
@@ -296,7 +301,7 @@ const FramingEditor = ({
         if (!o && !saving) onCancel();
       }}
     >
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-h-[92dvh] w-[calc(100vw-2rem)] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("admin.media.editor.title", { slot: slotLabel })}</DialogTitle>
           <DialogDescription>
@@ -368,7 +373,7 @@ const FramingEditor = ({
         )}
 
         {/* Editing surface. */}
-        <div ref={wrapRef} className="flex w-full justify-center">
+        <div ref={wrapRef} className="flex w-full min-w-0 justify-center">
           {loadError ? (
             <div
               className="flex items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 px-4 text-center text-sm text-destructive"
