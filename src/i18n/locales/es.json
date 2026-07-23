@@ -535,10 +535,16 @@
       "changePhoto": "Cambiar foto",
       "editFraming": "Editar encuadre",
       "slotEmpty": "Sin foto aún",
+      "about": {
+        "empty": "Sin foto seleccionada",
+        "none": "Ninguna"
+      },
       "slots": {
         "hero": "Hero",
         "heroDesc": "La imagen de apertura a pantalla completa.",
-        "reelDesc": "Diapositiva destacada {{n}} del reel."
+        "reelDesc": "Diapositiva destacada {{n}} del reel.",
+        "about": "Sobre mí",
+        "aboutDesc": "Retrato 3:4 opcional junto al texto de Sobre mí."
       },
       "reelLabel": "Reel {{n}}",
       "picker": {

@@ -16,7 +16,7 @@ import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
 const DISPLAY = "'Cinzel', 'Cormorant Garamond', Georgia, serif";
 
 type Props = {
-  kind: "hero" | "reel";
+  kind: "hero" | "reel" | "about";
   /** 0-based slot index — drives the reel numeral (01/02/03). */
   reelIndex?: number;
   photo?: CinematicPhoto;
@@ -76,7 +76,11 @@ const SectionPreview = ({
         )}
       </div>
 
-      {kind === "hero" ? (
+      {kind === "about" ? (
+        // ABOUT.MEDIA.1 — the live About panel is the bare framed photo (no
+        // scrim, no lockup), so the preview is too: card ≡ canvas ≡ live panel.
+        null
+      ) : kind === "hero" ? (
         <>
           {/* Scrim mirrors the live hero (heavier top/bottom). */}
           <div

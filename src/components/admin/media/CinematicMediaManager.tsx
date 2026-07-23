@@ -14,6 +14,7 @@ import {
   type HeroVideoFraming,
   HERO_DEFAULT_FOCAL,
   REEL_DEFAULT_FOCAL,
+  ABOUT_DEFAULT_FOCAL,
   VIDEO_DEFAULT_FOCAL,
   DEFAULT_ZOOM,
   defaultSlot,
@@ -54,7 +55,7 @@ import FramingEditor from "./FramingEditor";
  * every slot (incl. hero.video) is default the cinematic_media key is removed so
  * the absent-is-default contract holds.
  */
-type SlotKind = "hero" | "reel";
+type SlotKind = "hero" | "reel" | "about";
 type SlotDesc = { key: string; kind: SlotKind; reelIndex: number; titleKey?: string };
 
 type EditorState =
@@ -74,23 +75,37 @@ const SLOTS: SlotDesc[] = [
   { key: "reel-0", kind: "reel", reelIndex: 0, titleKey: REEL_TITLE_KEYS[0] },
   { key: "reel-1", kind: "reel", reelIndex: 1, titleKey: REEL_TITLE_KEYS[1] },
   { key: "reel-2", kind: "reel", reelIndex: 2, titleKey: REEL_TITLE_KEYS[2] },
+  // ABOUT.MEDIA.1 — fifth card: the opt-in 3:4 About portrait panel.
+  { key: "about", kind: "about", reelIndex: 0 },
 ];
 
 const HERO_SLOT = SLOTS[0];
 
 const focalEq = (a: Focal, b: Focal) => a.x === b.x && a.y === b.y;
 
+const defaultFocalFor = (kind: SlotKind): Focal =>
+  kind === "hero" ? HERO_DEFAULT_FOCAL : kind === "about" ? ABOUT_DEFAULT_FOCAL : REEL_DEFAULT_FOCAL;
+
 const slotIsDefault = (kind: SlotKind, s: SlotFraming) =>
   s.photo_id === null &&
   s.zoom === DEFAULT_ZOOM &&
-  focalEq(s.focal, kind === "hero" ? HERO_DEFAULT_FOCAL : REEL_DEFAULT_FOCAL) &&
+  focalEq(s.focal, defaultFocalFor(kind)) &&
   (kind !== "hero" || heroVideoIsDefault(s.video));
 
+// ABOUT.MEDIA.1 — About is opt-in: an absent key OR a default (photo_id null)
+// slot both count as "unconfigured", so the key is dropped for the absent-is-
+// default contract exactly like hero/reel.
 const isAllDefault = (cfg: CinematicMediaConfig) =>
-  slotIsDefault("hero", cfg.hero) && cfg.reel.every((s) => slotIsDefault("reel", s));
+  slotIsDefault("hero", cfg.hero) &&
+  cfg.reel.every((s) => slotIsDefault("reel", s)) &&
+  (cfg.about === undefined || slotIsDefault("about", cfg.about));
 
 const readSlot = (cfg: CinematicMediaConfig, d: SlotDesc): SlotFraming =>
-  d.kind === "hero" ? cfg.hero : cfg.reel[d.reelIndex];
+  d.kind === "hero"
+    ? cfg.hero
+    : d.kind === "about"
+      ? cfg.about ?? defaultSlot("about")
+      : cfg.reel[d.reelIndex];
 
 const writeSlot = (
   cfg: CinematicMediaConfig,
@@ -99,14 +114,22 @@ const writeSlot = (
 ): CinematicMediaConfig =>
   d.kind === "hero"
     ? { ...cfg, hero: slot }
-    : {
-        ...cfg,
-        reel: cfg.reel.map((s, i) => (i === d.reelIndex ? slot : s)) as [
-          SlotFraming,
-          SlotFraming,
-          SlotFraming,
-        ],
-      };
+    : d.kind === "about"
+      ? { ...cfg, about: slot }
+      : {
+          ...cfg,
+          reel: cfg.reel.map((s, i) => (i === d.reelIndex ? slot : s)) as [
+            SlotFraming,
+            SlotFraming,
+            SlotFraming,
+          ],
+        };
+
+/** ABOUT.MEDIA.1 — drop the About key entirely (Reset → unconfigured, no panel). */
+const stripAbout = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
+  const { about: _about, ...rest } = cfg;
+  return rest;
+};
 
 /** Drop the hero's video framing block (used when both sources are removed). */
 const stripHeroVideo = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
@@ -167,7 +190,16 @@ const CinematicMediaManager = () => {
     [photos, config, legacyHero, heroVideo],
   );
 
-  const resolvedFor = (d: SlotDesc) => (d.kind === "hero" ? resolved.hero : resolved.reel[d.reelIndex]);
+  // ABOUT.MEDIA.1 — the About slot resolves to null when unconfigured; surface a
+  // photo-less shape so the card falls to its empty state (never a pool photo).
+  const resolvedFor = (
+    d: SlotDesc,
+  ): { photo?: CinematicPhoto; focal: Focal; zoom: number } =>
+    d.kind === "hero"
+      ? resolved.hero
+      : d.kind === "about"
+        ? resolved.about ?? { focal: ABOUT_DEFAULT_FOCAL, zoom: DEFAULT_ZOOM }
+        : resolved.reel[d.reelIndex];
   const heroPosterUrl = resolved.hero.photo?.image_url;
   const anyHeroVideo = !!heroVideo;
 
@@ -239,6 +271,13 @@ const CinematicMediaManager = () => {
   const resetSlot = () => {
     if (!editor || editor.mode !== "image") return;
     const { slot } = editor;
+    // ABOUT.MEDIA.1 — Reset on the opt-in About slot removes it outright, so the
+    // live section returns to text-only (no photo, no reserved panel).
+    if (slot.kind === "about") {
+      setEditor(null);
+      void persist(stripAbout(config), slot.key, "reset");
+      return;
+    }
     const base = defaultSlot(slot.kind);
     const next =
       slot.kind === "hero" && config.hero.video
@@ -313,7 +352,11 @@ const CinematicMediaManager = () => {
   };
 
   const slotLabel = (d: SlotDesc) =>
-    d.kind === "hero" ? t("admin.media.slots.hero") : t("admin.media.reelLabel", { n: d.reelIndex + 1 });
+    d.kind === "hero"
+      ? t("admin.media.slots.hero")
+      : d.kind === "about"
+        ? t("admin.media.slots.about")
+        : t("admin.media.reelLabel", { n: d.reelIndex + 1 });
 
   const editorSlotLabel = (e: EditorState) =>
     e.mode === "video" ? `${slotLabel(e.slot)} · ${t("admin.media.video.badge")}` : slotLabel(e.slot);
@@ -465,7 +508,7 @@ const CinematicMediaManager = () => {
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center px-2 text-center text-[11px] text-muted-foreground">
-                      {t("admin.media.slotEmpty")}
+                      {d.kind === "about" ? t("admin.media.about.empty") : t("admin.media.slotEmpty")}
                     </div>
                   )}
 
@@ -520,7 +563,11 @@ const CinematicMediaManager = () => {
                         custom ? "text-accent" : "text-muted-foreground"
                       }`}
                     >
-                      {custom ? t("admin.media.customized") : t("admin.media.usesDefault")}
+                      {custom
+                        ? t("admin.media.customized")
+                        : d.kind === "about"
+                          ? t("admin.media.about.none")
+                          : t("admin.media.usesDefault")}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -528,7 +575,9 @@ const CinematicMediaManager = () => {
                       ? t("admin.media.video.slotDesc")
                       : d.kind === "hero"
                         ? t("admin.media.slots.heroDesc")
-                        : t("admin.media.slots.reelDesc", { n: d.reelIndex + 1 })}
+                        : d.kind === "about"
+                          ? t("admin.media.slots.aboutDesc")
+                          : t("admin.media.slots.reelDesc", { n: d.reelIndex + 1 })}
                   </p>
                 </div>
               </div>

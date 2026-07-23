@@ -19,6 +19,7 @@ import {
   MIN_ZOOM,
   MAX_ZOOM,
   FIT_MIN_ZOOM,
+  ABOUT_PANEL_ASPECT,
   clampSourceZoom,
   defaultHeroVideo,
   defaultVideoSource,
@@ -46,6 +47,10 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  * and the mismatch hint. An axis without overflow (letterbox bars) is
  * self-centred by the resolver's geometry, so no snap logic exists here — a
  * saved focal on a bar axis is simply ignored by the render.
+ *
+ * ABOUT.MEDIA.1 — the "about" kind is fixed 3:4 EVERYWHERE, so it edits on a
+ * single canvas at ABOUT_PANEL_ASPECT with no device tabs (one aspect IS the
+ * contract). Fill mode, same resolver drag + zoom; Save writes focal/zoom.
  */
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -55,7 +60,7 @@ const ASPECT_MISMATCH = 0.25;
 type Props = {
   open: boolean;
   slotLabel: string;
-  kind: "hero" | "reel";
+  kind: "hero" | "reel" | "about";
   reelIndex?: number;
   reelTitle?: string;
   photo?: CinematicPhoto;
@@ -99,7 +104,10 @@ const FramingEditor = ({
   const [deviceId, setDeviceId] = useState(MEDIA_PREVIEW_DEVICES[0].id);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const aspect = devicePreviewAspect(deviceId);
+  // ABOUT.MEDIA.1 — the About panel is a fixed 3:4 frame with no device tabs, so
+  // its canvas aspect is the constant, never the active device preset.
+  const isAbout = kind === "about";
+  const aspect = isAbout ? ABOUT_PANEL_ASPECT : devicePreviewAspect(deviceId);
 
   /* ---------------- IMAGE mode (resolver drag surface) ---------------- */
   const imageSrc = !isVideo ? photo?.image_url : undefined;
@@ -308,7 +316,9 @@ const FramingEditor = ({
           </span>
         )}
 
-        {/* Device tabs — each a scaled live preview of the actual section. */}
+        {/* Device tabs — each a scaled live preview of the actual section. Hidden
+            for the About panel, which is one fixed 3:4 canvas (no per-device aspect). */}
+        {!isAbout && (
         <div data-qa="media-editor-devices" className="flex flex-wrap gap-2">
           {MEDIA_PREVIEW_DEVICES.map((d) => {
             const isActive = d.id === deviceId;
@@ -355,6 +365,7 @@ const FramingEditor = ({
             );
           })}
         </div>
+        )}
 
         {/* Editing surface. */}
         <div ref={wrapRef} className="flex w-full justify-center">

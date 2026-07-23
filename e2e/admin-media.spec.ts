@@ -107,10 +107,10 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
     await expect(page.locator('[data-qa="admin-nav"] button')).toHaveCount(5);
     await page.screenshot({ path: shot("ADMIN.MEDIA-shell.png"), fullPage: true });
 
-    // Media section → four slots.
+    // Media section → five slots (Hero, Reel 1–3, About — ABOUT.MEDIA.1).
     await page.locator('[data-qa="admin-nav-media"]').click();
     await expect(page.locator('[data-qa="admin-media"]')).toBeVisible();
-    await expect(page.locator('[data-qa="media-slot"]')).toHaveCount(4);
+    await expect(page.locator('[data-qa="media-slot"]')).toHaveCount(5);
 
     // Open the hero framing editor.
     await page

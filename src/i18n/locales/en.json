@@ -535,10 +535,16 @@
       "changePhoto": "Change photo",
       "editFraming": "Edit framing",
       "slotEmpty": "No photo yet",
+      "about": {
+        "empty": "No photo selected",
+        "none": "None"
+      },
       "slots": {
         "hero": "Hero",
         "heroDesc": "The full-screen opening image.",
-        "reelDesc": "Featured reel slide {{n}}."
+        "reelDesc": "Featured reel slide {{n}}.",
+        "about": "About",
+        "aboutDesc": "Optional 3:4 portrait beside the About copy."
       },
       "reelLabel": "Reel {{n}}",
       "picker": {
