@@ -332,6 +332,71 @@ test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () =>
   });
 });
 
+/* ---------- (c4) ADMIN.MOBILE.1: About card has a labeled Remove ---------- */
+test.describe("ADMIN.MEDIA — About card labeled Remove", () => {
+  test("configured About card shows Remove; it clears the slot back to text-only", async ({ page }) => {
+    const writes: Write[] = [];
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, {
+      // Only the About slot is configured — hero/reel stay default so removing
+      // About takes the whole config back to all-default (key deleted).
+      media: {
+        hero: { photo_id: null, focal: { x: 0.5, y: 0.08 }, zoom: 1 },
+        reel: [
+          { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+          { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+          { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+        ],
+        about: { photo_id: "p1", focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+      },
+      photos: MOCK_PHOTOS,
+      writes,
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    const aboutCard = page.locator('[data-qa="media-slot"][data-slot="about"]');
+    await expect(aboutCard).toBeVisible();
+
+    // Configured → the card renders the photo, a Custom badge, and a Remove action.
+    await expect(aboutCard.locator("img")).toBeVisible();
+    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/custom/i);
+    const remove = aboutCard.locator('[data-qa="media-about-remove"]');
+    await expect(remove).toBeVisible();
+    await expect(remove).toHaveText(/remove/i);
+
+    // Remove → the sole configured slot clears → the cinematic_media key is deleted.
+    await remove.click();
+    await page.waitForTimeout(400);
+    expect(
+      writes.filter((w) => w.method === "DELETE" && /cinematic_media/.test(w.url)).length,
+      "removing the sole configured slot deletes the key",
+    ).toBeGreaterThan(0);
+
+    // Card returns to the unconfigured (text-only) state: None badge, no photo, no Remove.
+    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/none/i);
+    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
+  });
+
+  test("an unconfigured About card has no Remove", async ({ page }) => {
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    const aboutCard = page.locator('[data-qa="media-slot"][data-slot="about"]');
+    await expect(aboutCard).toBeVisible();
+    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/none/i);
+    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
+  });
+});
+
 /* ---------- (d) shell navigation reaches legacy sections ---------- */
 test.describe("ADMIN.MEDIA — shell navigation", () => {
   test("reaches gallery, events, settings, submissions", async ({ page }) => {

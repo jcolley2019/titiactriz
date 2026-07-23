@@ -287,6 +287,13 @@ const CinematicMediaManager = () => {
     void persist(next, slot.key, "reset");
   };
 
+  // ADMIN.MOBILE.1 — a labeled Remove on the configured About card. Same
+  // unconfigure path as the editor's Reset (stripAbout), so the live About act
+  // returns to text-only without opening the framing editor first.
+  const removeAbout = () => {
+    void persist(stripAbout(config), "about", "reset");
+  };
+
   /* ---------------- Hero video: upload / remove (VID.MODEL.1 — one video) ---------------- */
   const triggerUpload = () => {
     videoInputRef.current?.click();
@@ -579,6 +586,22 @@ const CinematicMediaManager = () => {
                           ? t("admin.media.slots.aboutDesc")
                           : t("admin.media.slots.reelDesc", { n: d.reelIndex + 1 })}
                   </p>
+
+                  {/* ADMIN.MOBILE.1 — a labeled Remove on the CONFIGURED About
+                      card (the editor's Reset was the only way to clear it).
+                      Clears the opt-in slot → the live About act goes text-only. */}
+                  {d.kind === "about" && custom && (
+                    <button
+                      type="button"
+                      data-qa="media-about-remove"
+                      onClick={removeAbout}
+                      disabled={savingKey === d.key}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {t("admin.media.about.remove")}
+                    </button>
+                  )}
                 </div>
               </div>
             );

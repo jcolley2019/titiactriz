@@ -537,7 +537,8 @@
       "slotEmpty": "No photo yet",
       "about": {
         "empty": "No photo selected",
-        "none": "None"
+        "none": "None",
+        "remove": "Remove"
       },
       "slots": {
         "hero": "Hero",
