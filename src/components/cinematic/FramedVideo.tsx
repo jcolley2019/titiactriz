@@ -82,11 +82,32 @@ const FramedVideo = ({
     autoPlay,
   } as const;
 
-  // Fit mode: full-frame video over a blurred, oversized copy of itself.
-  if (fit === "fit") {
-    return (
-      <div data-qa="framed-video-fit" className="relative h-full w-full overflow-hidden">
-        {/* Blurred backdrop — same playback, aria-hidden, fills the whole box. */}
+  // ONE persistent foreground <video> across BOTH modes — switching fill↔fit
+  // must never remount it (a fresh element repaints the poster: the visible
+  // "old hero photo" flash). The backdrop is conditionally rendered FIRST so
+  // the foreground's child index never shifts and React keeps the same node.
+  const fitMode = fit === "fit";
+
+  const containerStyle: CSSProperties | undefined =
+    !fitMode && zoom > 1
+      ? { transform: `scale(${zoom})`, transformOrigin: objectPosition, willChange: "transform" }
+      : undefined;
+
+  const foregroundStyle: CSSProperties = fitMode
+    ? {
+        transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+        transformOrigin: objectPosition,
+        willChange: zoom !== 1 ? "transform" : undefined,
+      }
+    : { objectPosition };
+
+  return (
+    <div
+      data-qa={fitMode ? "framed-video-fit" : undefined}
+      className="relative h-full w-full overflow-hidden"
+      style={containerStyle}
+    >
+      {fitMode ? (
         <video
           {...videoBase}
           data-qa={backdropDataQa}
@@ -99,34 +120,12 @@ const FramedVideo = ({
             willChange: "transform",
           }}
         />
-        {/* Foreground — the whole frame, letterboxed at its natural aspect. */}
-        <video
-          {...videoBase}
-          data-qa={videoDataQa}
-          className={`absolute inset-0 h-full w-full object-contain ${videoClassName}`.trim()}
-          style={{
-            transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-            transformOrigin: objectPosition,
-            willChange: zoom !== 1 ? "transform" : undefined,
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Fill mode (default): object-cover + a wrapper scale from the focal point.
-  const wrapperStyle: CSSProperties | undefined =
-    zoom > 1
-      ? { transform: `scale(${zoom})`, transformOrigin: objectPosition, willChange: "transform" }
-      : undefined;
-
-  return (
-    <div className="h-full w-full" style={wrapperStyle}>
+      ) : null}
       <video
         {...videoBase}
         data-qa={videoDataQa}
-        className={`h-full w-full object-cover ${videoClassName}`.trim()}
-        style={{ objectPosition }}
+        className={`absolute inset-0 h-full w-full ${fitMode ? "object-contain" : "object-cover"} ${videoClassName}`.trim()}
+        style={foregroundStyle}
       />
     </div>
   );
