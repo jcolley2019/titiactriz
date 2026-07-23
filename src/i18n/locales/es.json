@@ -508,6 +508,10 @@
     "more": "Más eventos próximamente."
   },
   "admin": {
+    "gallery": {
+      "sectionTitle": "Galería",
+      "sectionSubtitle": "Sube, gestiona y reordena tus fotos."
+    },
     "shell": {
       "title": "Administración",
       "subtitle": "Gestiona todo lo que aparece en el sitio.",

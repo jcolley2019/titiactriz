@@ -508,6 +508,10 @@
     "more": "More events coming soon."
   },
   "admin": {
+    "gallery": {
+      "sectionTitle": "Gallery",
+      "sectionSubtitle": "Upload, manage, and reorder your photos."
+    },
     "shell": {
       "title": "Studio admin",
       "subtitle": "Manage everything that appears on the site.",

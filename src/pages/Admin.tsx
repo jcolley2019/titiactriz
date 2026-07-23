@@ -975,8 +975,8 @@ const ManagePanel = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             )}
             <div>
-              <h2 className="font-serif text-base text-foreground leading-tight">Gallery</h2>
-              <p className="text-xs text-muted-foreground">Upload, manage, and reorder your photos.</p>
+              <h2 className="font-serif text-base text-foreground leading-tight">{t("admin.gallery.sectionTitle")}</h2>
+              <p className="text-xs text-muted-foreground">{t("admin.gallery.sectionSubtitle")}</p>
             </div>
           </div>
         </button>
