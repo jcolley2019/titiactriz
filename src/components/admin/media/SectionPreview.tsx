@@ -70,6 +70,7 @@ const SectionPreview = ({
             src={photo?.image_url}
             focal={focal}
             zoom={zoom}
+            fit={kind === "reel" ? "fit" : "fill"}
             fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
           />
         )}

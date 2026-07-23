@@ -456,7 +456,13 @@ const CinematicMediaManager = () => {
                       fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
                     />
                   ) : r.photo ? (
-                    <FramedImage src={r.photo.image_url} focal={r.focal} zoom={r.zoom} loading="lazy" />
+                    <FramedImage
+                      src={r.photo.image_url}
+                      focal={r.focal}
+                      zoom={r.zoom}
+                      fit={d.kind === "reel" ? "fit" : "fill"}
+                      loading="lazy"
+                    />
                   ) : (
                     <div className="flex h-full items-center justify-center px-2 text-center text-[11px] text-muted-foreground">
                       {t("admin.media.slotEmpty")}
