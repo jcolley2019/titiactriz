@@ -10,8 +10,12 @@ import {
  * ADMIN.MEDIA.1 (ITEM 1) — cinematic media model + resolver.
  *
  * site_settings key "cinematic_media" (jsonb):
- *   { hero: SlotFraming, reel: [SlotFraming, SlotFraming, SlotFraming] }
+ *   { hero: SlotFraming, reel: [SlotFraming, SlotFraming, SlotFraming], about?: SlotFraming }
  * where SlotFraming = { photo_id: string|null, focal: {x,y} in 0..1, zoom >= 1 }.
+ *
+ * ABOUT.MEDIA.1: `about` is an OPT-IN 3:4 portrait panel. Unlike the reel it has
+ * NO pool fallback — an absent key or unresolvable photo_id resolves to null,
+ * meaning "render no panel". It stores no `fit` (the panel is always fill).
  *
  * The absent-key-is-default contract is total: a missing key, a missing slot, or
  * a missing field all resolve to *exactly* today's behavior — the legacy
@@ -77,6 +81,8 @@ export type SlotFraming = {
 export type CinematicMediaConfig = {
   hero: SlotFraming;
   reel: [SlotFraming, SlotFraming, SlotFraming];
+  /** ABOUT.MEDIA.1 — opt-in 3:4 portrait panel; absent = no panel (no fallback). */
+  about?: SlotFraming;
 };
 
 export const REEL_SLOT_COUNT = 3;
@@ -92,6 +98,14 @@ export const HERO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.08 };
 export const REEL_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
 /** Hero video defaults to a plain centered, unzoomed cover. */
 export const VIDEO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
+/** ABOUT.MEDIA.1 — the About portrait panel fills a centered 3:4 frame. */
+export const ABOUT_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
+/**
+ * ABOUT.MEDIA.1 — the About panel is a fixed 3:4 frame EVERYWHERE (card
+ * thumbnail ≡ editor canvas ≡ live panel). One aspect IS the contract, so the
+ * framing editor needs no device tabs for this slot.
+ */
+export const ABOUT_PANEL_ASPECT = 3 / 4;
 
 /** Default (untouched) framing for one video source. */
 export const defaultVideoSource = (): VideoSourceFraming => ({
@@ -193,9 +207,15 @@ const normSlot = (raw: unknown, defaultFocal: Focal, fit: FitMode): SlotFraming 
 };
 
 /** Default (untouched) slot config for a given slot kind. */
-export const defaultSlot = (kind: "hero" | "reel"): SlotFraming => ({
+export const defaultSlot = (kind: "hero" | "reel" | "about"): SlotFraming => ({
   photo_id: null,
-  focal: { ...(kind === "hero" ? HERO_DEFAULT_FOCAL : REEL_DEFAULT_FOCAL) },
+  focal: {
+    ...(kind === "hero"
+      ? HERO_DEFAULT_FOCAL
+      : kind === "about"
+        ? ABOUT_DEFAULT_FOCAL
+        : REEL_DEFAULT_FOCAL),
+  },
   zoom: DEFAULT_ZOOM,
 });
 
@@ -220,8 +240,14 @@ export const parseCinematicMedia = (raw: unknown): CinematicMediaConfig | null =
     }
   }
   if (val === null || val === undefined || typeof val !== "object") return null;
-  const v = val as { hero?: unknown; reel?: unknown };
+  const v = val as { hero?: unknown; reel?: unknown; about?: unknown };
   const reelRaw = Array.isArray(v.reel) ? v.reel : [];
+  // ABOUT.MEDIA.1 — the About panel is opt-in and stored fill (no fit); carry
+  // the key only when the raw actually holds an about object.
+  const about =
+    v.about && typeof v.about === "object"
+      ? normSlot(v.about, ABOUT_DEFAULT_FOCAL, "fill")
+      : undefined;
   return {
     hero: normSlot(v.hero, HERO_DEFAULT_FOCAL, "fill"),
     reel: [
@@ -229,6 +255,7 @@ export const parseCinematicMedia = (raw: unknown): CinematicMediaConfig | null =
       normSlot(reelRaw[1], REEL_DEFAULT_FOCAL, "fit"),
       normSlot(reelRaw[2], REEL_DEFAULT_FOCAL, "fit"),
     ],
+    ...(about ? { about } : {}),
   };
 };
 
@@ -315,9 +342,22 @@ export type ResolvedHeroSlot = ResolvedSlot & {
   videoPortrait: VideoSourceFraming;
 };
 
+/**
+ * ABOUT.MEDIA.1 — the resolved About panel. Null whenever the About slot is
+ * unconfigured or its photo can't be resolved (opt-in; no pool fallback). When
+ * non-null the photo is guaranteed present, ready to render in the 3:4 frame.
+ */
+export type ResolvedAboutSlot = {
+  photo: CinematicPhoto;
+  focal: Focal;
+  zoom: number;
+} | null;
+
 export type ResolvedCinematicMedia = {
   hero: ResolvedHeroSlot;
   reel: [ResolvedSlot, ResolvedSlot, ResolvedSlot];
+  /** ABOUT.MEDIA.1 — the 3:4 portrait panel, or null when unconfigured. */
+  about: ResolvedAboutSlot;
 };
 
 const findPhoto = (
@@ -335,6 +375,9 @@ const findPhoto = (
  * - reel slot i: explicit reel[i].photo_id → else the i-th photo of the
  *   non-hero pool (today's photos-2..4 dedupe). Framing applies only for an
  *   explicit, resolvable photo.
+ * - about panel: explicit about.photo_id ONLY (opt-in; no pool fallback). An
+ *   absent slot or unresolvable id resolves to null → the section renders no
+ *   panel, byte-identical to today.
  *
  * With `media` null (or every slot untouched) the output equals today's render.
  */
@@ -372,5 +415,14 @@ export function getCinematicMedia(
     return { photo: pool[i], focal: { ...REEL_DEFAULT_FOCAL }, zoom: DEFAULT_ZOOM };
   }) as [ResolvedSlot, ResolvedSlot, ResolvedSlot];
 
-  return { hero, reel };
+  // ABOUT.MEDIA.1 — opt-in panel: resolve ONLY an explicit, resolvable photo.
+  // No pool fallback — an absent slot or dangling photo_id means "no panel".
+  const aboutSlot = media?.about;
+  const aboutExplicit = findPhoto(photos, aboutSlot?.photo_id ?? null);
+  const about: ResolvedAboutSlot =
+    aboutExplicit && aboutSlot
+      ? { photo: aboutExplicit, focal: aboutSlot.focal, zoom: aboutSlot.zoom }
+      : null;
+
+  return { hero, reel, about };
 }
