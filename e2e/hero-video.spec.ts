@@ -3,22 +3,28 @@ import { attachDiagnostics, shot } from "./_helpers";
 import { routeSupabase, stubHeroVideoMedia, MOCK_PHOTOS } from "./_admin";
 
 /**
- * ADMIN.MEDIA.2 (ITEM 3) — the live cinematic hero renders the background video
- * with its own (decoupled) framing applied, a poster for instant paint, and —
- * under reduced motion — the poster still instead of an autoplaying video.
+ * VID.MODEL.1 — the live cinematic hero renders ONE background video. The same
+ * clip plays on every screen; the VIEWPORT orientation picks which framing
+ * record applies to it (portrait viewports read `portrait`, landscape viewports
+ * read `landscape`). FIX.MEDIA.B: a video surface never paints the photo — it
+ * dark-holds then fades in; the photo is only the reduced-motion still.
  */
 const CINE = "/cinematic";
 const VIDEO = '[data-qa="cinematic-hero-video"]';
 const POSTER = '[data-qa="cinematic-hero-video-poster"]';
 const HERO_VIDEO_URL = "https://cdn.example.com/hero-loop.mp4";
+const PORT_URL = "https://cdn.example.com/hero-portrait.mp4";
 
-// Decoupled video framing: focal (0.3, 0.7), zoom 1.5 — distinct from the image.
-const MEDIA_WITH_VIDEO = {
+// One video, two DISTINCT per-viewport framing records.
+const MEDIA_TWO_RECORDS = {
   hero: {
     photo_id: null,
     focal: { x: 0.5, y: 0.08 },
     zoom: 1,
-    video: { focal: { x: 0.3, y: 0.7 }, zoom: 1.5 },
+    video: {
+      landscape: { focal: { x: 0.2, y: 0.3 }, zoom: 1.5, fit: "fill" },
+      portrait: { focal: { x: 0.8, y: 0.9 }, zoom: 1, fit: "fill" },
+    },
   },
   reel: [
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
@@ -47,16 +53,31 @@ const scaleOf = (transform: string): number => {
   return m ? parseFloat(m[1]) : NaN;
 };
 
-test.describe("MEDIA2 — hero video render (framing + dark hold)", () => {
+const dataSrc = (page: Page, sel: string) =>
+  page.locator(sel).first().evaluate((el) => (el as HTMLElement).getAttribute("data-src"));
+
+test.describe("VID.MODEL.1 — one video, framing by viewport orientation", () => {
   for (const vp of [
-    { name: "desktop", width: 1440, height: 900 },
-    { name: "mobile", width: 390, height: 844 },
+    {
+      name: "desktop",
+      width: 1440,
+      height: 900,
+      objectPosition: "20% 30%", // landscape record
+      scale: 1.5,
+    },
+    {
+      name: "mobile",
+      width: 390,
+      height: 844,
+      objectPosition: "80% 90%", // portrait record
+      scale: 1,
+    },
   ]) {
-    test(`renders video with decoupled framing + dark hold — ${vp.name}`, async ({ page }) => {
+    test(`same clip, ${vp.name} viewport applies its own framing + dark hold`, async ({ page }) => {
       const diag = attachDiagnostics(page);
       await stubHeroVideoMedia(page);
       await routeSupabase(page, {
-        media: MEDIA_WITH_VIDEO,
+        media: MEDIA_TWO_RECORDS,
         photos: MOCK_PHOTOS,
         heroVideo: HERO_VIDEO_URL,
       });
@@ -68,26 +89,56 @@ test.describe("MEDIA2 — hero video render (framing + dark hold)", () => {
       await expect(page.locator(VIDEO)).toHaveCount(1);
       await expect(page.locator('[data-qa="cinematic-hero-img"]')).toHaveCount(0);
 
-      // Decoupled video framing applied: object-position + a scale from focal.
-      expect(await objectPositionOf(page, VIDEO), "video focal → object-position").toBe("30% 70%");
-      expect(scaleOf(await parentTransform(page, VIDEO)), "video zoom → scale").toBeCloseTo(1.5, 1);
+      // ONE video: the same clip regardless of viewport.
+      expect(await dataSrc(page, VIDEO), "the single video plays on every screen").toBe(HERO_VIDEO_URL);
+
+      // The viewport's orientation picks the framing record.
+      expect(await objectPositionOf(page, VIDEO), "viewport → framing record").toBe(vp.objectPosition);
+      expect(scaleOf(await parentTransform(page, VIDEO)), "record zoom → scale").toBeCloseTo(vp.scale, 1);
 
       // FIX.MEDIA.B: a video surface never carries the hero photo as a poster —
       // it holds dark and fades the video in. No reduced-motion still while motion is on.
       expect(await page.locator(VIDEO).getAttribute("poster"), "no poster on the video surface").toBeNull();
       await expect(page.locator(POSTER)).toHaveCount(0);
 
-      await page.screenshot({ path: shot(`MEDIA2-hero-video-${vp.name}.png`) });
+      await page.screenshot({ path: shot(`VIDMODEL-hero-${vp.name}.png`) });
       expect(diag.consoleErrors, "console errors — hero video").toEqual([]);
       expect(diag.failedResponses, "failed requests — hero video").toEqual([]);
     });
   }
 
-  test("reduced motion renders the poster image, not the video", async ({ page }) => {
+  test("resizing across the orientation boundary re-keys the framing (same clip)", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await stubHeroVideoMedia(page);
     await routeSupabase(page, {
-      media: MEDIA_WITH_VIDEO,
+      media: MEDIA_TWO_RECORDS,
+      photos: MOCK_PHOTOS,
+      heroVideo: HERO_VIDEO_URL,
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(CINE, { waitUntil: "domcontentloaded" });
+    await settle(page, 700);
+
+    expect(await dataSrc(page, VIDEO)).toBe(HERO_VIDEO_URL);
+    expect(await objectPositionOf(page, VIDEO), "landscape viewport → landscape framing").toBe("20% 30%");
+
+    // Resize to a portrait phone → the SAME clip, but the portrait framing record.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(500);
+    expect(await dataSrc(page, VIDEO), "still the same single clip").toBe(HERO_VIDEO_URL);
+    expect(await objectPositionOf(page, VIDEO), "portrait viewport → portrait framing").toBe("80% 90%");
+
+    expect(diag.consoleErrors, "console errors — re-key").toEqual([]);
+    expect(diag.failedResponses, "failed requests — re-key").toEqual([]);
+  });
+
+  test("reduced motion renders the poster image (framed by the viewport record), not the video", async ({
+    page,
+  }) => {
+    const diag = attachDiagnostics(page);
+    await stubHeroVideoMedia(page);
+    await routeSupabase(page, {
+      media: MEDIA_TWO_RECORDS,
       photos: MOCK_PHOTOS,
       heroVideo: HERO_VIDEO_URL,
     });
@@ -98,99 +149,56 @@ test.describe("MEDIA2 — hero video render (framing + dark hold)", () => {
 
     await expect(page.locator(POSTER), "reduced motion shows the poster still").toHaveCount(1);
     await expect(page.locator(VIDEO), "no autoplaying video under reduced motion").toHaveCount(0);
-    // The still is framed with the SAME decoupled video focal.
-    expect(await objectPositionOf(page, POSTER)).toBe("30% 70%");
+    // The still is framed with the landscape (desktop viewport) record.
+    expect(await objectPositionOf(page, POSTER)).toBe("20% 30%");
 
-    await page.screenshot({ path: shot("MEDIA2-hero-reduced-poster.png"), fullPage: true });
+    await page.screenshot({ path: shot("VIDMODEL-hero-reduced-poster.png"), fullPage: true });
     expect(diag.consoleErrors, "console errors — reduced motion").toEqual([]);
     expect(diag.failedResponses, "failed requests — reduced motion").toEqual([]);
   });
 });
 
-/* ---------- ADMIN.MEDIA.3 — dual-aspect selection, back-compat, fit ---------- */
-const LAND_URL = "https://cdn.example.com/hero-landscape.mp4";
-const PORT_URL = "https://cdn.example.com/hero-portrait.mp4";
-const dataSrc = (page: Page, sel: string) =>
-  page.locator(sel).first().evaluate((el) => (el as HTMLElement).getAttribute("data-src"));
-
-test.describe("MEDIA3 — viewport selects the orientation source", () => {
-  const media = {
-    hero: {
-      photo_id: null,
-      focal: { x: 0.5, y: 0.08 },
-      zoom: 1,
-      video: {
-        landscape: { focal: { x: 0.2, y: 0.3 }, zoom: 1, fit: "fill" },
-        portrait: { focal: { x: 0.8, y: 0.9 }, zoom: 1, fit: "fill" },
-      },
-    },
-    reel: [
-      { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
-      { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
-      { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
-    ],
-  };
-
-  test("desktop → landscape URL+framing; phone → portrait URL+framing", async ({ page }) => {
+/* ---------- back-compat: today's prod video lives under the legacy portrait key ---------- */
+test.describe("VID.MODEL.1 — legacy portrait-key back-compat", () => {
+  test("only cinematic_hero_video_portrait present → the clip renders on both viewport sizes", async ({
+    page,
+  }) => {
     const diag = attachDiagnostics(page);
-    await stubHeroVideoMedia(page);
-    await routeSupabase(page, {
-      media,
-      photos: MOCK_PHOTOS,
-      heroVideo: LAND_URL,
-      heroVideoPortrait: PORT_URL,
-    });
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(CINE, { waitUntil: "domcontentloaded" });
-    await settle(page, 700);
-
-    await expect(page.locator(VIDEO)).toHaveCount(1);
-    expect(await dataSrc(page, VIDEO), "desktop → landscape URL").toBe(LAND_URL);
-    expect(await objectPositionOf(page, VIDEO), "desktop → landscape framing").toBe("20% 30%");
-    await page.screenshot({ path: shot("MEDIA3-render-desktop.png") });
-
-    // Resize to a portrait phone viewport → the portrait source takes over.
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.waitForTimeout(500);
-    expect(await dataSrc(page, VIDEO), "phone → portrait URL").toBe(PORT_URL);
-    expect(await objectPositionOf(page, VIDEO), "phone → portrait framing").toBe("80% 90%");
-    await page.screenshot({ path: shot("MEDIA3-render-mobile.png") });
-
-    expect(diag.consoleErrors, "console errors — dual source").toEqual([]);
-    expect(diag.failedResponses, "failed requests — dual source").toEqual([]);
-  });
-
-  test("back-compat: only the legacy single value → used at every viewport", async ({ page }) => {
+    // Legacy single-shape framing (pre-refactor), read as the landscape record.
     const legacyMedia = {
       hero: {
         photo_id: null,
         focal: { x: 0.5, y: 0.08 },
         zoom: 1,
-        video: { focal: { x: 0.4, y: 0.6 }, zoom: 1.2 }, // legacy single shape
+        video: { focal: { x: 0.4, y: 0.6 }, zoom: 1.2 },
       },
-      reel: media.reel,
+      reel: MEDIA_TWO_RECORDS.reel,
     };
     await stubHeroVideoMedia(page);
-    await routeSupabase(page, { media: legacyMedia, photos: MOCK_PHOTOS, heroVideo: LAND_URL });
+    // NOTE: no `heroVideo` (canonical) — ONLY the legacy portrait key is set.
+    await routeSupabase(page, { media: legacyMedia, photos: MOCK_PHOTOS, heroVideoPortrait: PORT_URL });
+
+    // Desktop viewport: the legacy clip still leads the hero.
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(CINE, { waitUntil: "domcontentloaded" });
-    await settle(page, 600);
+    await settle(page, 700);
+    await expect(page.locator(VIDEO), "legacy clip renders on desktop").toHaveCount(1);
+    expect(await dataSrc(page, VIDEO), "resolved from the legacy portrait key").toBe(PORT_URL);
 
-    // Desktop uses the (migrated) landscape source + its framing.
-    expect(await dataSrc(page, VIDEO)).toBe(LAND_URL);
-    expect(await objectPositionOf(page, VIDEO), "legacy → landscape framing").toBe("40% 60%");
-    expect(scaleOf(await parentTransform(page, VIDEO))).toBeCloseTo(1.2, 1);
-
-    // Phone with no portrait source falls back to the same landscape clip.
+    // Phone viewport: the same legacy clip keeps playing.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(500);
-    expect(await dataSrc(page, VIDEO), "phone falls back to landscape").toBe(LAND_URL);
-    expect(await objectPositionOf(page, VIDEO)).toBe("40% 60%");
+    await expect(page.locator(VIDEO), "legacy clip renders on phone").toHaveCount(1);
+    expect(await dataSrc(page, VIDEO), "same legacy clip on phone").toBe(PORT_URL);
+
+    expect(diag.consoleErrors, "console errors — back-compat").toEqual([]);
+    expect(diag.failedResponses, "failed requests — back-compat").toEqual([]);
   });
 });
 
-test.describe("MEDIA3 — fit mode renders a blurred backdrop over an uncropped video", () => {
-  test("desktop fit source shows contain foreground + blurred backdrop", async ({ page }) => {
+/* ---------- fit mode renders a blurred backdrop over an uncropped video ---------- */
+test.describe("VID.MODEL.1 — fit mode (blurred backdrop + contain foreground)", () => {
+  test("a landscape-viewport fit record shows contain foreground + blurred backdrop", async ({ page }) => {
     const diag = attachDiagnostics(page);
     const media = {
       hero: {
@@ -202,14 +210,10 @@ test.describe("MEDIA3 — fit mode renders a blurred backdrop over an uncropped 
           portrait: { focal: { x: 0.5, y: 0.5 }, zoom: 1, fit: "fill" },
         },
       },
-      reel: [
-        { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
-        { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
-        { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
-      ],
+      reel: MEDIA_TWO_RECORDS.reel,
     };
     await stubHeroVideoMedia(page);
-    await routeSupabase(page, { media, photos: MOCK_PHOTOS, heroVideo: LAND_URL });
+    await routeSupabase(page, { media, photos: MOCK_PHOTOS, heroVideo: HERO_VIDEO_URL });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(CINE, { waitUntil: "domcontentloaded" });
     await settle(page, 600);
@@ -224,10 +228,9 @@ test.describe("MEDIA3 — fit mode renders a blurred backdrop over an uncropped 
       .first()
       .evaluate((el) => getComputedStyle(el as HTMLElement).objectFit);
     expect(objectFit, "foreground video is uncropped (contain)").toBe("contain");
-    await page.screenshot({ path: shot("MEDIA3-fit-render.png") });
+    await page.screenshot({ path: shot("VIDMODEL-fit-render.png") });
 
     expect(diag.consoleErrors, "console errors — fit render").toEqual([]);
     expect(diag.failedResponses, "failed requests — fit render").toEqual([]);
   });
 });
-

@@ -499,13 +499,13 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
     const payload = JSON.parse(upserts[upserts.length - 1].body || "{}");
     const row = Array.isArray(payload) ? payload[0] : payload;
     expect(row.key).toBe("cinematic_media");
-    // ADMIN.MEDIA.3: per-source shape. A default (landscape) upload edits the
-    // landscape source (the phone tab falls back to it when no portrait exists).
-    expect(row.value.hero.video.landscape, "decoupled per-source framing written").toBeTruthy();
-    expect(row.value.hero.video.landscape.zoom).toBeCloseTo(1.5, 1);
-    expect(typeof row.value.hero.video.landscape.focal.x).toBe("number");
-    expect(typeof row.value.hero.video.landscape.focal.y).toBe("number");
-    expect(row.value.hero.video.landscape.fit).toBe("fill");
+    // VID.MODEL.1: per-viewport framing record. The editor opens on the iPhone
+    // tab (aspect < 1), so an untouched-tab save edits the PORTRAIT record.
+    expect(row.value.hero.video.portrait, "per-viewport framing record written").toBeTruthy();
+    expect(row.value.hero.video.portrait.zoom).toBeCloseTo(1.5, 1);
+    expect(typeof row.value.hero.video.portrait.focal.x).toBe("number");
+    expect(typeof row.value.hero.video.portrait.focal.y).toBe("number");
+    expect(row.value.hero.video.portrait.fit).toBe("fill");
 
     // The hero slot now shows the video with a VIDEO badge.
     const heroSlot = page.locator('[data-qa="media-slot"][data-slot="hero"]');
@@ -545,25 +545,29 @@ test.describe("ADMIN.MEDIA.2 — remove video reverts to image", () => {
     await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toBeVisible();
     await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toBeVisible();
 
-    // Remove the landscape source → the cinematic_hero_video setting is deleted.
-    await page.locator('[data-qa="media-hero-remove-landscape"]').click();
+    // Remove the video → BOTH the canonical and legacy portrait keys are deleted.
+    await page.locator('[data-qa="media-hero-remove"]').click();
     await page.waitForTimeout(500);
     expect(
       writes.filter((w) => w.method === "DELETE" && /cinematic_hero_video(?!_portrait)/.test(w.url)).length,
-      "cinematic_hero_video deleted",
+      "canonical cinematic_hero_video deleted",
+    ).toBeGreaterThan(0);
+    expect(
+      writes.filter((w) => w.method === "DELETE" && /cinematic_hero_video_portrait/.test(w.url)).length,
+      "legacy portrait key also cleared",
     ).toBeGreaterThan(0);
 
     // Hero slot reverts to the photo (image + Ken Burns), video gone.
     await expect(heroSlot.locator('[data-qa="media-slot-video"]')).toHaveCount(0);
     await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toHaveCount(0);
     await expect(heroSlot.locator("img")).toBeVisible();
-    await expect(page.locator('[data-qa="media-hero-upload-landscape"]')).toContainText(/Upload video/i);
+    await expect(page.locator('[data-qa="media-hero-upload"]')).toContainText(/Upload video/i);
   });
 });
 
-/* ---------- (g) ADMIN.MEDIA.3 — dual sources, fit mode, mismatch hint ---------- */
-test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
-  test("upload a landscape AND a portrait clip; both rows report Set; both settings written", async ({
+/* ---------- (g) VID.MODEL.1 — one video, per-viewport framing, fit, hint ---------- */
+test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", () => {
+  test("one upload row; device tabs write distinct per-viewport records for the single video", async ({
     page,
   }) => {
     const writes: Write[] = [];
@@ -576,32 +580,67 @@ test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
     await settle(page, 800);
 
     await page.locator('[data-qa="admin-nav-media"]').click();
-    await expect(page.locator('[data-qa="media-hero-source-landscape"]')).toContainText(/Not set/i);
-    await expect(page.locator('[data-qa="media-hero-source-portrait"]')).toContainText(/Not set/i);
+    // Exactly ONE hero-video row, initially unset.
+    await expect(page.locator('[data-qa="media-hero-source"]')).toHaveCount(1);
+    await expect(page.locator('[data-qa="media-hero-source"]')).toContainText(/Not set/i);
 
-    // Upload the landscape clip → editor opens → cancel back to the panel.
-    await uploadHeroVideoVia(page, "media-hero-upload-landscape", { name: "land.mp4", width: 1920, height: 1080 });
-    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
-    await page.locator('[data-qa="media-editor-cancel"]').click();
-    // The per-source Remove button only renders once that source is set.
-    await expect(page.locator('[data-qa="media-hero-remove-landscape"]')).toBeVisible();
+    // Upload the single clip → editor opens.
+    await uploadHeroVideoVia(page, "media-hero-upload", { name: "hero.mp4", width: 1920, height: 1080 });
+    const surface = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surface).toBeVisible();
+    await expect(page.locator('[data-qa="media-hero-remove"]')).toBeVisible();
 
-    // Upload the portrait clip → editor opens → cancel.
-    await uploadHeroVideoVia(page, "media-hero-upload-portrait", { name: "port.mp4", width: 1080, height: 1920 });
-    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
-    await page.locator('[data-qa="media-editor-cancel"]').click();
-    await expect(page.locator('[data-qa="media-hero-remove-portrait"]')).toBeVisible();
+    const previewVideo = surface.locator('[data-qa="media-preview-video"]').first();
+    const dragBy = async (dx: number, dy: number) => {
+      const box = (await surface.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(150);
+    };
 
-    await page.screenshot({ path: shot("MEDIA3-dual-upload.png") });
+    // iPhone tab edits the PORTRAIT viewport record.
+    await page.locator('[data-qa="media-device-iphone-17-pro"]').click();
+    await page.waitForTimeout(200);
+    await dragBy(-50, 0);
+    const portraitPos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
 
-    const landscapeUpsert = writes.some(
+    // Desktop tab edits the LANDSCAPE viewport record — a separate default view.
+    await page.locator('[data-qa="media-device-desktop"]').click();
+    await page.waitForTimeout(200);
+    await dragBy(70, 0);
+    const landscapePos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    expect(landscapePos, "each tab frames the same clip independently").not.toBe(portraitPos);
+
+    // Save → cinematic_media carries BOTH viewport records, and they differ.
+    await page.locator('[data-qa="media-editor-save"]').click();
+    await page.waitForTimeout(400);
+    const upserts = writes.filter(
+      (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("cinematic_media"),
+    );
+    expect(upserts.length, "framing save persists cinematic_media").toBeGreaterThan(0);
+    const value = (() => {
+      const p = JSON.parse(upserts[upserts.length - 1].body || "{}");
+      return (Array.isArray(p) ? p[0] : p).value;
+    })();
+    expect(value.hero.video.landscape, "landscape record present").toBeTruthy();
+    expect(value.hero.video.portrait, "portrait record present").toBeTruthy();
+    const lf = value.hero.video.landscape.focal;
+    const pf = value.hero.video.portrait.focal;
+    expect(lf.x !== pf.x || lf.y !== pf.y, "the two viewport records are distinct").toBe(true);
+
+    // Single-video model: only the canonical hero-video key is ever upserted.
+    const canonicalUpsert = writes.some(
       (w) => w.method === "POST" && (w.body || "").includes('"cinematic_hero_video"'),
     );
-    const portraitUpsert = writes.some(
+    const portraitKeyUpsert = writes.some(
       (w) => w.method === "POST" && (w.body || "").includes('"cinematic_hero_video_portrait"'),
     );
-    expect(landscapeUpsert, "landscape source setting written").toBe(true);
-    expect(portraitUpsert, "portrait source setting written").toBe(true);
+    expect(canonicalUpsert, "canonical hero-video setting written").toBe(true);
+    expect(portraitKeyUpsert, "legacy portrait key is never written").toBe(false);
+
+    await page.screenshot({ path: shot("VIDMODEL-per-viewport-records.png") });
   });
 
   test("Fit mode adds a blurred backdrop, unlocks sub-cover zoom, and saves the fit shape", async ({
@@ -617,11 +656,11 @@ test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
     await settle(page, 800);
 
     await page.locator('[data-qa="admin-nav-media"]').click();
-    await uploadHeroVideoVia(page, "media-hero-upload-landscape", { name: "land.mp4", width: 1920, height: 1080 });
+    await uploadHeroVideoVia(page, "media-hero-upload", { name: "land.mp4", width: 1920, height: 1080 });
     const surface = page.locator('[data-qa="media-editor-surface"]');
     await expect(surface).toBeVisible();
 
-    // Frame on the Desktop tab (landscape source, no mismatch noise).
+    // Frame on the Desktop tab (landscape viewport record, no mismatch noise).
     await page.locator('[data-qa="media-device-desktop"]').click();
     await page.waitForTimeout(200);
 
@@ -675,8 +714,8 @@ test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
     await settle(page, 800);
 
     await page.locator('[data-qa="admin-nav-media"]').click();
-    // A portrait-shaped clip uploaded as the portrait source.
-    await uploadHeroVideoVia(page, "media-hero-upload-portrait", { name: "port.mp4", width: 1080, height: 1920 });
+    // A portrait-shaped clip is the single hero video.
+    await uploadHeroVideoVia(page, "media-hero-upload", { name: "port.mp4", width: 1080, height: 1920 });
     await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
 
     // Phone tab: portrait clip on a portrait canvas → no heavy crop, no hint.
@@ -684,7 +723,7 @@ test.describe("ADMIN.MEDIA.3 — two orientation sources", () => {
     await page.waitForTimeout(250);
     await expect(page.locator('[data-qa="media-editor-hint"]'), "no hint on a matching canvas").toHaveCount(0);
 
-    // Desktop tab: the portrait clip (no landscape source) fights the wide canvas.
+    // Desktop tab: the portrait clip fights the wide canvas → mismatch hint.
     await page.locator('[data-qa="media-device-desktop"]').click();
     await page.waitForTimeout(250);
     const hint = page.locator('[data-qa="media-editor-hint"]');
