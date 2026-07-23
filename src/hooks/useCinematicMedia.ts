@@ -27,6 +27,18 @@ export type Focal = { x: number; y: number };
 /** Display mode for a hero video whose aspect fights the viewport (ADMIN.MEDIA.3). */
 export type FitMode = "fill" | "fit";
 
+/** PORT.2 — bridge titiactriz's stored focal/zoom to the resolver's framing. */
+export const framingFromFocalZoom = (
+  focal: Focal,
+  zoom: number,
+  fit: FitMode = "fill",
+): import("@/lib/hero-framing").HeroFraming => ({
+  scale: zoom,
+  posX: focal.x * 100,
+  posY: focal.y * 100,
+  fit,
+});
+
 /**
  * One hero-video SOURCE's framing + display mode (ADMIN.MEDIA.2 → .3). Decoupled
  * from the image's framing — the TitiLinks pattern. `fit` "fill" = object-cover
