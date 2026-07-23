@@ -28,20 +28,13 @@ async function settle(page: Page, ms = 700) {
   await page.waitForTimeout(ms);
 }
 
-const objectPosition = (page: Page, sel: string) =>
-  page.locator(sel).first().evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
-
-const wrapperTransform = (page: Page, sel: string) =>
-  page
-    .locator(sel)
-    .first()
-    .evaluate((el) => getComputedStyle((el as HTMLElement).parentElement as HTMLElement).transform);
-
-const scaleOf = (transform: string): number => {
-  if (transform === "none") return 1;
-  const m = transform.match(/matrix\(([-\d.]+)/);
-  return m ? parseFloat(m[1]) : NaN;
-};
+/**
+ * PORT.2: image surfaces resolve their geometry through hero-framing and expose
+ * the RESOLVED framing as data-hero-framing = "scale;posX;posY;fit;box". Render
+ * assertions read that contract instead of object-position/wrapper transforms.
+ */
+const heroFraming = (page: Page, sel: string) =>
+  page.locator(sel).first().getAttribute("data-hero-framing");
 
 /* ---------- (a) regression: absent = today's framing ---------- */
 test.describe("ADMIN.MEDIA — render regression (absent = default)", () => {
@@ -57,12 +50,14 @@ test.describe("ADMIN.MEDIA — render regression (absent = default)", () => {
       await settle(page, 800);
 
       await expect(page.locator(HERO)).toHaveCount(1);
-      expect(await objectPosition(page, HERO), "hero keeps TA.6d anchor").toBe("50% 8%");
-      expect(await wrapperTransform(page, HERO), "hero unzoomed").toBe("none");
+      expect(await heroFraming(page, HERO), "hero keeps TA.6d anchor, unzoomed").toContain(
+        "1.00;50;8;fill;",
+      );
 
       await expect(page.locator(REEL).first()).toBeAttached();
-      expect(await objectPosition(page, REEL), "reel centered").toBe("50% 50%");
-      expect(await wrapperTransform(page, REEL), "reel unzoomed").toBe("none");
+      expect(await heroFraming(page, REEL), "reel centered, unzoomed, whole photo").toContain(
+        "1.00;50;50;fit;",
+      );
 
       expect(diag.consoleErrors, "console errors").toEqual([]);
       expect(diag.failedResponses, "failed requests").toEqual([]);
@@ -86,11 +81,8 @@ test.describe("ADMIN.MEDIA — render reflects cinematic_media", () => {
     await page.goto(CINE, { waitUntil: "domcontentloaded" });
     await settle(page, 800);
 
-    expect(await objectPosition(page, HERO)).toBe("20% 85%");
-    expect(scaleOf(await wrapperTransform(page, HERO))).toBeCloseTo(1.4, 1);
-
-    expect(await objectPosition(page, REEL)).toBe("80% 10%");
-    expect(scaleOf(await wrapperTransform(page, REEL))).toBeCloseTo(1.25, 1);
+    expect(await heroFraming(page, HERO)).toContain("1.40;20;85;fill;");
+    expect(await heroFraming(page, REEL)).toContain("1.25;80;10;fit;");
 
     await page.screenshot({ path: shot("ADMIN.MEDIA-hero-reframed.png") });
   });
@@ -129,24 +121,24 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
     await page.waitForTimeout(500); // image decode + surface measure
     await page.screenshot({ path: shot("ADMIN.MEDIA-editor.png") });
 
-    // MEDIA.4: the react-easy-crop frame overlay is VISIBLE — a target-canvas
-    // outline with everything outside it dimmed (a huge box-shadow).
-    const frame = surface.locator(".media-frame-overlay");
-    await expect(frame, "crop frame overlay is visible").toBeVisible();
-    const dim = await frame.evaluate((el) => getComputedStyle(el as HTMLElement).boxShadow);
-    expect(dim, "area outside the frame is dimmed").not.toBe("none");
+    // PORT.2: the image canvas is the live SectionPreview composition rendered
+    // through the resolver — the framed img reports its geometry contract.
+    const canvasImg = surface.locator('[data-qa="media-preview"] img').first();
+    await expect(canvasImg, "resolver canvas renders the photo").toBeVisible();
+    await expect
+      .poll(async () => (await canvasImg.getAttribute("data-hero-framing")) ?? "")
+      .not.toContain("pending");
 
-    // Drag → react-easy-crop repositions the media (its transform changes).
-    const cropImg = surface.locator("img").first();
-    const before = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
+    // Drag → the resolver repositions the media (its framing rectangle changes).
+    const before = await canvasImg.getAttribute("data-hero-framing");
     const box = (await surface.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2 - 20, { steps: 12 });
     await page.mouse.up();
     await page.waitForTimeout(250);
-    const after = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
-    expect(after, "drag repositions the crop").not.toBe(before);
+    const after = await canvasImg.getAttribute("data-hero-framing");
+    expect(after, "drag repositions the framing").not.toBe(before);
 
     // Zoom slider → readout + zoom-in.
     await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
@@ -235,23 +227,24 @@ test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)"
     expect(writes.length, "selection alone never persists").toBe(writesBefore);
     await page.screenshot({ path: shot("TA.8a-editor-open.png") });
 
-    // The frame overlay + outside-dim is present (react-easy-crop crop area).
-    const frame = surface.locator(".media-frame-overlay");
-    await expect(frame, "frame overlay visible").toBeVisible();
-    expect(await frame.evaluate((el) => getComputedStyle(el as HTMLElement).boxShadow)).not.toBe("none");
+    // PORT.2: the resolver canvas renders the chosen photo live (no crop overlay).
+    const canvasImg = surface.locator('[data-qa="media-preview"] img').first();
+    await expect(canvasImg, "resolver canvas renders the chosen photo").toBeVisible();
+    await expect
+      .poll(async () => (await canvasImg.getAttribute("data-hero-framing")) ?? "")
+      .not.toContain("pending");
     await page.screenshot({ path: shot("MEDIA4-frame-overlay.png") });
 
-    // Drag → react-easy-crop repositions the media (transform changes).
-    const cropImg = surface.locator("img").first();
-    const before = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
+    // Drag → the resolver repositions the media (framing rectangle changes).
+    const before = await canvasImg.getAttribute("data-hero-framing");
     const box = (await surface.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2 - 20, { steps: 12 });
     await page.mouse.up();
     await page.waitForTimeout(250);
-    const after = await cropImg.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
-    expect(after, "drag repositions the crop").not.toBe(before);
+    const after = await canvasImg.getAttribute("data-hero-framing");
+    expect(after, "drag repositions the framing").not.toBe(before);
 
     // Zoom slider → readout + scale.
     await page.locator('[data-qa="media-editor-zoom"]').evaluate((el) => {
@@ -292,7 +285,7 @@ test.describe("ADMIN.MEDIA — pick opens the framing editor (never auto-saves)"
       .click();
     const surface2 = page.locator('[data-qa="media-editor-surface"]');
     await expect(surface2).toBeVisible();
-    await expect(surface2.locator(".media-frame-overlay")).toBeVisible();
+    await expect(surface2.locator('[data-qa="media-preview"] img').first()).toBeVisible();
     await page.waitForTimeout(600);
     await page.locator('[data-qa="media-editor-save"]').click();
     await page.waitForTimeout(400);
@@ -407,7 +400,7 @@ test.describe("ADMIN.MEDIA — i18n + reduced motion", () => {
     await page.goto(CINE, { waitUntil: "domcontentloaded" });
     await settle(page, 500);
 
-    expect(await objectPosition(page, HERO)).toBe("30% 70%");
+    expect(await heroFraming(page, HERO)).toContain("1.00;30;70;fill;");
     const headings = page.locator('[data-qa="section-heading"]');
     expect(await headings.count()).toBeGreaterThan(0);
     await page.screenshot({ path: shot("ADMIN.MEDIA-reduced.png"), fullPage: true });

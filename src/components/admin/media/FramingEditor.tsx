@@ -363,8 +363,10 @@ const FramingEditor = ({
                     : "border-border text-muted-foreground hover:border-accent/60"
                 }`}
               >
+                {/* box-content: the border must not shrink the preview box, or the
+                    thumbnail's aspect drifts off the device aspect (PORT.2 law). */}
                 <span
-                  className="block overflow-hidden rounded-sm border border-border"
+                  className="box-content block overflow-hidden rounded-sm border border-border"
                   style={{ height: 40, width: 40 * a }}
                 >
                   <SectionPreview

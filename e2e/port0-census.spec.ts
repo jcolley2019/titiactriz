@@ -305,13 +305,14 @@ test.describe("PORT.0 — media parity census (record-only)", () => {
     for (const tab of DEVICE_TABS) {
       await page.locator(`[data-qa="media-device-${tab.id}"]`).click();
       await page.waitForTimeout(500);
-      // react-easy-crop image windowed by the crop-area frame overlay.
+      // PORT.2: the image canvas is the resolver-driven SectionPreview surface
+      // (react-easy-crop is gone) — probe the framed img against its preview box.
       const rec = await probe(
         page,
         "EDITOR image reel-0",
         `${tab.label} tab`,
-        '[data-qa="media-editor-surface"] .media-crop-media',
-        '[data-qa="media-editor-surface"] .media-frame-overlay',
+        '[data-qa="media-editor-surface"] [data-qa="media-preview"] img',
+        '[data-qa="media-editor-surface"] [data-qa="media-preview"]',
       );
       rec.note = `${tab.orient} canvas`;
       // Non-uniform-scale probe for the iPhone tab (Joey observed visible stretch).
