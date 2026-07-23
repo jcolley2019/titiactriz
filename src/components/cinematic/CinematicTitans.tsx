@@ -127,9 +127,9 @@ const CinematicTitans = ({ reduced }: Props) => {
       />
 
       {/* Type — lower third so the landed badge stays unobstructed. */}
-      <div className="cine-act-vh relative z-20 flex items-end">
-        <div className="w-full px-6 pb-16 md:pb-24">
-          <div className="cine-titans-type mx-auto max-w-2xl text-center md:mx-0 md:max-w-xl md:pl-6 md:text-left lg:pl-16">
+      <div className="cine-act-vh relative z-20 flex items-end md:items-center">
+        <div className="w-full px-6 pb-16 md:py-16">
+          <div className="cine-titans-type mx-auto max-w-2xl text-center md:mx-0 md:max-w-xl md:pl-16 md:text-center lg:pl-32">
             <p
               className="text-xs font-semibold uppercase tracking-[0.3em]"
               style={{ color: RED_ACCENT }}
@@ -143,10 +143,10 @@ const CinematicTitans = ({ reduced }: Props) => {
             >
               {t("cinematic.titans.headline")}
             </h2>
-            <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-white/80 md:mx-0 md:text-lg">
+            <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-white/80 md:text-lg">
               {t("cinematic.titans.sub")}
             </p>
-            <div className="mt-8 flex justify-center md:justify-start">
+            <div className="mt-8 flex justify-center">
               <Link
                 to={TITANS_ROUTE}
                 data-qa="titans-cta"
