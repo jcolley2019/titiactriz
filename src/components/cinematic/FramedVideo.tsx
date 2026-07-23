@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
 
@@ -75,18 +76,31 @@ const FramedVideo = ({
 
   const videoBase = {
     src,
-    poster,
     muted: true,
     loop: true,
     playsInline: true,
     autoPlay,
+    preload: "auto",
   } as const;
 
   // ONE persistent foreground <video> across BOTH modes — switching fill↔fit
-  // must never remount it (a fresh element repaints the poster: the visible
-  // "old hero photo" flash). The backdrop is conditionally rendered FIRST so
-  // the foreground's child index never shifts and React keeps the same node.
+  // must never remount it (a fresh element repaints on remount). The backdrop
+  // is conditionally rendered FIRST so the foreground's child index never
+  // shifts and React keeps the same node.
+  //
+  // FIX.MEDIA.B: no poster on the <video> — a video surface NEVER paints the
+  // hero photo. It holds on the site's dark base and fades the video in once
+  // its first frame is decodable. `ready` re-arms whenever the src changes
+  // (Replace video) so a stale frame never lingers.
   const fitMode = fit === "fit";
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setReady(false);
+  }, [src]);
+  const fadeStyle: CSSProperties = {
+    opacity: ready ? 1 : 0,
+    transition: "opacity 400ms ease",
+  };
 
   const containerStyle: CSSProperties | undefined =
     !fitMode && zoom > 1
@@ -105,7 +119,7 @@ const FramedVideo = ({
     <div
       data-qa={fitMode ? "framed-video-fit" : undefined}
       className="relative h-full w-full overflow-hidden"
-      style={containerStyle}
+      style={{ backgroundColor: "#0b0a08", ...containerStyle }}
     >
       {fitMode ? (
         <video
@@ -118,14 +132,16 @@ const FramedVideo = ({
             transform: "scale(1.25)",
             filter: "blur(28px) brightness(0.65)",
             willChange: "transform",
+            ...fadeStyle,
           }}
         />
       ) : null}
       <video
         {...videoBase}
         data-qa={videoDataQa}
+        onLoadedData={() => setReady(true)}
         className={`absolute inset-0 h-full w-full ${fitMode ? "object-contain" : "object-cover"} ${videoClassName}`.trim()}
-        style={foregroundStyle}
+        style={{ ...foregroundStyle, ...fadeStyle }}
       />
     </div>
   );
