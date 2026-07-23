@@ -28,6 +28,7 @@ import {
   type FitMode,
   type HeroVideoFraming,
   type VideoOrientation,
+  type VideoSourceFraming,
 } from "@/hooks/useCinematicMedia";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 
@@ -47,6 +48,26 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  * to 2D focal + zoom, dual orientation sources, fill/fit, and the mismatch hint.
  */
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+/**
+ * FIX.MEDIA.C — in fit (Ajustar) mode, any axis whose scaled video does NOT
+ * overflow the frame is pure letterbox bars: the only sensible position is
+ * dead center. Snap that axis's focal to 0.5; leave overflowing axes (and
+ * fill mode) untouched. The 0.5px tolerance absorbs rounding.
+ */
+const centerBarAxes = (
+  src: VideoSourceFraming,
+  natural: { w: number; h: number } | null,
+  fw: number,
+  fh: number,
+): VideoSourceFraming => {
+  if (src.fit !== "fit" || !natural || natural.w <= 0 || natural.h <= 0) return src;
+  const s = Math.min(fw / natural.w, fh / natural.h) * src.zoom;
+  const centerX = natural.w * s <= fw + 0.5;
+  const centerY = natural.h * s <= fh + 0.5;
+  if (!centerX && !centerY) return src;
+  return { ...src, focal: { x: centerX ? 0.5 : src.focal.x, y: centerY ? 0.5 : src.focal.y } };
+};
 const SURFACE_MAX_H = 360;
 const ASPECT_MISMATCH = 0.25;
 
@@ -134,11 +155,15 @@ const FramingEditor = ({
   const setVFocal = (f: Focal) =>
     setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], focal: f } }));
   const setVZoom = (z: number) =>
-    setVFraming((v) => ({ ...v, [activeOrientation]: { ...v[activeOrientation], zoom: z } }));
+    setVFraming((v) => {
+      const src = { ...v[activeOrientation], zoom: z };
+      return { ...v, [activeOrientation]: centerBarAxes(src, natural, fw, fh) };
+    });
   const setFit = (nextFit: FitMode) =>
     setVFraming((v) => {
       const src = v[activeOrientation];
-      return { ...v, [activeOrientation]: { ...src, fit: nextFit, zoom: clampSourceZoom(src.zoom, nextFit) } };
+      const next = { ...src, fit: nextFit, zoom: clampSourceZoom(src.zoom, nextFit) };
+      return { ...v, [activeOrientation]: centerBarAxes(next, natural, fw, fh) };
     });
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -214,11 +239,14 @@ const FramingEditor = ({
 
   /* ---- VIDEO drag (object-position pan on the SectionPreview surface) ---- */
   const overflow = useCallback(
-    (z: number) => {
+    (z: number, fitMode: FitMode) => {
       if (!natural) return { x: 0, y: 0 };
-      const coverScale = Math.max(fw / natural.w, fh / natural.h);
-      const rw = natural.w * coverScale * z;
-      const rh = natural.h * coverScale * z;
+      const base =
+        fitMode === "fit"
+          ? Math.min(fw / natural.w, fh / natural.h)
+          : Math.max(fw / natural.w, fh / natural.h);
+      const rw = natural.w * base * z;
+      const rh = natural.h * base * z;
       return { x: Math.max(0, rw - fw), y: Math.max(0, rh - fh) };
     },
     [natural, fw, fh],
@@ -226,7 +254,7 @@ const FramingEditor = ({
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!natural || loadError) return;
-    const o = overflow(vCur.zoom);
+    const o = overflow(vCur.zoom, vCur.fit);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -261,7 +289,10 @@ const FramingEditor = ({
 
   const handleSave = () => {
     if (isVideo) {
-      onSaveVideo?.(vFraming);
+      onSaveVideo?.({
+        ...vFraming,
+        [activeOrientation]: centerBarAxes(vFraming[activeOrientation], natural, fw, fh),
+      });
     } else if (rcArea && natural) {
       const { focal, zoom } = areaToFocalZoom(rcArea, natural.w, natural.h, aspect, MIN_ZOOM, MAX_ZOOM);
       onSave(focal, zoom);
