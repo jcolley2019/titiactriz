@@ -114,7 +114,7 @@ const SectionPreview = ({
             style={{ background: "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))" }}
           />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span style={{ fontFamily: DISPLAY, color: "rgba(201,165,92,0.85)", fontSize: "26cqh", lineHeight: 1 }}>
+            <span style={{ fontFamily: DISPLAY, color: "rgba(201,165,92,0.85)", fontSize: "min(30cqw, 26cqh)", lineHeight: 1 }}>
               {numeral(reelIndex)}
             </span>
             {reelTitle && (
@@ -122,7 +122,7 @@ const SectionPreview = ({
                 style={{
                   fontFamily: DISPLAY,
                   color: "#f4ecdb",
-                  fontSize: "7cqh",
+                  fontSize: "min(8cqw, 7cqh)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   marginTop: "1cqh",
