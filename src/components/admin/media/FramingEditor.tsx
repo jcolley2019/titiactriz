@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Cropper, { type Area } from "react-easy-crop";
-import "react-easy-crop/react-easy-crop.css";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import SectionPreview from "./SectionPreview";
-import { areaToFocalZoom, focalZoomToAreaPct } from "./cropMath";
+import { resolveHeroGeometry } from "@/lib/hero-framing";
 import { decodeImage, cropErrorCauseKey } from "@/lib/crop";
 import { probeVideoSize } from "@/lib/hero-video";
 import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect } from "@/lib/device-presets";
@@ -24,6 +22,7 @@ import {
   clampSourceZoom,
   defaultHeroVideo,
   defaultVideoSource,
+  framingFromFocalZoom,
   type Focal,
   type FitMode,
   type HeroVideoFraming,
@@ -33,16 +32,15 @@ import {
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 
 /**
- * ADMIN.MEDIA.4 — framing editor extracted from the TitiLinks profile editor.
+ * PORT.2 — framing editor; BOTH modes edit on the resolver drag surface.
  *
- * IMAGE mode (all four slots) is react-easy-crop, ported directly from
- * EditableProfileView's manual-crop step: the same <Cropper> (drag to reposition,
- * wheel/pinch + slider zoom, min-zoom-to-cover clamp via restrictPosition), the
- * same VISIBLE frame overlay — the target-canvas outline with everything outside
- * it dimmed — at the device tab's aspect. The one adaptation: instead of writing
- * a cropped file (TitiLinks' getCroppedImage), Save lifts the crop rectangle into
- * this site's non-destructive focal + zoom (cropMath). Device tabs re-aspect the
- * frame and drive live thumbnails.
+ * IMAGE mode (all four slots) renders the CONTROLLED focal/zoom live through the
+ * same SectionPreview → FramedImage pipeline the site uses, at the active device
+ * tab's aspect — what the canvas shows IS what publishes, by construction. Drag
+ * pans the focal across the real overflow reported by `resolveHeroGeometry`;
+ * Save writes focal/zoom exactly as edited, no conversion layer. The slot kind
+ * fixes the display mode: reel slides edit in fit (whole photo, dark edges),
+ * the hero in fill.
  *
  * VIDEO mode (hero) keeps TitiLinks' hero-video object-position approach, extended
  * to 2D focal + zoom, dual orientation sources, fill/fit, and the mismatch hint.
@@ -92,14 +90,6 @@ type Props = {
   onCancel: () => void;
 };
 
-/* ---- Shared gold frame overlay for react-easy-crop (visible outline + dim). ---- */
-const CROP_AREA_STYLE: React.CSSProperties = {
-  border: "2px solid hsl(var(--gold-light))",
-  boxShadow: "0 0 0 9999em rgba(11, 10, 8, 0.62)",
-  color: "transparent",
-};
-const CROP_MEDIA_STYLE: React.CSSProperties = { backgroundColor: "#0b0a08" };
-
 const FramingEditor = ({
   open,
   slotLabel,
@@ -128,15 +118,13 @@ const FramingEditor = ({
   const [loadError, setLoadError] = useState<string | null>(null);
   const aspect = devicePreviewAspect(deviceId);
 
-  /* ---------------- IMAGE mode (react-easy-crop) ---------------- */
+  /* ---------------- IMAGE mode (resolver drag surface) ---------------- */
   const imageSrc = !isVideo ? photo?.image_url : undefined;
-  const [rcCrop, setRcCrop] = useState({ x: 0, y: 0 });
-  const [rcZoom, setRcZoom] = useState(1);
-  const [rcArea, setRcArea] = useState<Area | null>(null);
-  // Seed react-easy-crop ONCE from the saved framing (stable across drags/tabs).
-  const [seedPct, setSeedPct] = useState<
-    { x: number; y: number; width: number; height: number } | undefined
-  >(undefined);
+  // PORT.2: the slot kind fixes the image display mode — reel slides render the
+  // whole photo (fit), the hero covers (fill). No toggle.
+  const imageFit: FitMode = kind === "reel" ? "fit" : "fill";
+  const [iFocal, setIFocal] = useState<Focal>(initialFocal);
+  const [iZoom, setIZoom] = useState(initialZoom);
 
   /* ---------------- VIDEO mode (object-position surface) ---------------- */
   const [vFraming, setVFraming] = useState<HeroVideoFraming>(initialVideo ?? defaultHeroVideo());
@@ -174,10 +162,8 @@ const FramingEditor = ({
   useEffect(() => {
     if (!open) return;
     setDeviceId(MEDIA_PREVIEW_DEVICES[0].id);
-    setRcCrop({ x: 0, y: 0 });
-    setRcZoom(1);
-    setRcArea(null);
-    setSeedPct(undefined);
+    setIFocal({ ...initialFocal });
+    setIZoom(clampSourceZoom(initialZoom, imageFit));
     setVFraming(initialVideo ?? defaultHeroVideo());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -196,7 +182,6 @@ const FramingEditor = ({
       .then((size) => {
         if (cancelled) return;
         setNatural(size);
-        if (!isVideo) setSeedPct(focalZoomToAreaPct(initialFocal, initialZoom, size.w, size.h, aspect));
       })
       .catch((err) => {
         if (cancelled) return;
@@ -226,13 +211,29 @@ const FramingEditor = ({
     fw = fh * aspect;
   }
 
-  // Live image focal/zoom derived from the current crop, for the thumbnails.
-  const liveImageFraming =
-    !isVideo && rcArea && natural
-      ? areaToFocalZoom(rcArea, natural.w, natural.h, aspect, MIN_ZOOM, MAX_ZOOM)
-      : { focal: initialFocal, zoom: initialZoom };
+  // Controlled image framing — drives the drag surface AND the device thumbnails.
+  const liveImageFraming = { focal: iFocal, zoom: iZoom };
 
-  /* ---- VIDEO drag (object-position pan on the SectionPreview surface) ---- */
+  /* ---- Drag: pan the focal across the REAL overflow of the active surface ---- */
+  // IMAGE overflow comes from the resolver itself — the same geometry the canvas
+  // paints — so drag distance maps 1:1 to what the user sees.
+  const imageOverflow = useCallback(
+    (z: number) => {
+      if (!natural || natural.w <= 0 || natural.h <= 0) return { x: 0, y: 0 };
+      const geo = resolveHeroGeometry(
+        natural.w / natural.h,
+        aspect,
+        framingFromFocalZoom(iFocal, z, imageFit),
+      );
+      if (!geo) return { x: 0, y: 0 };
+      return {
+        x: (Math.max(0, geo.widthPct - 100) / 100) * fw,
+        y: (Math.max(0, geo.heightPct - 100) / 100) * fh,
+      };
+    },
+    [natural, aspect, iFocal, imageFit, fw, fh],
+  );
+
   const overflow = useCallback(
     (z: number, fitMode: FitMode) => {
       if (!natural) return { x: 0, y: 0 };
@@ -249,11 +250,11 @@ const FramingEditor = ({
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!natural || loadError) return;
-    const o = overflow(vCur.zoom, vCur.fit);
+    const o = isVideo ? overflow(vCur.zoom, vCur.fit) : imageOverflow(iZoom);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      startFocal: { ...vCur.focal },
+      startFocal: isVideo ? { ...vCur.focal } : { ...iFocal },
       overflowX: o.x,
       overflowY: o.y,
     };
@@ -266,7 +267,7 @@ const FramingEditor = ({
     const dy = e.clientY - d.startY;
     const nx = d.overflowX > 0 ? clamp01(d.startFocal.x - dx / d.overflowX) : d.startFocal.x;
     const ny = d.overflowY > 0 ? clamp01(d.startFocal.y - dy / d.overflowY) : d.startFocal.y;
-    setVFocal({ x: nx, y: ny });
+    (isVideo ? setVFocal : setIFocal)({ x: nx, y: ny });
   };
   const endDrag = (e: React.PointerEvent) => {
     dragRef.current = null;
@@ -288,11 +289,9 @@ const FramingEditor = ({
         ...vFraming,
         [activeOrientation]: centerBarAxes(vFraming[activeOrientation], natural, fw, fh),
       });
-    } else if (rcArea && natural) {
-      const { focal, zoom } = areaToFocalZoom(rcArea, natural.w, natural.h, aspect, MIN_ZOOM, MAX_ZOOM);
-      onSave(focal, zoom);
     } else {
-      onSave(initialFocal, initialZoom);
+      // PORT.2: the edited focal/zoom persist EXACTLY — no conversion layer.
+      onSave(iFocal, iZoom);
     }
   };
 
@@ -310,8 +309,9 @@ const FramingEditor = ({
       ? "admin.media.video.framingViewportPortrait"
       : "admin.media.video.framingViewportLandscape";
 
-  const zoomMin = isVideo && vCur.fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
-  const displayZoom = isVideo ? vCur.zoom : rcZoom;
+  const activeFit: FitMode = isVideo ? vCur.fit : imageFit;
+  const zoomMin = activeFit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
+  const displayZoom = isVideo ? vCur.zoom : iZoom;
 
   return (
     <Dialog
@@ -395,7 +395,9 @@ const FramingEditor = ({
             >
               {loadError}
             </div>
-          ) : isVideo ? (
+          ) : (
+            // ONE drag surface for both modes — the live SectionPreview at the
+            // active tab's aspect, rendering the controlled framing state.
             <div
               data-qa="media-editor-surface"
               onPointerDown={onPointerDown}
@@ -410,46 +412,15 @@ const FramingEditor = ({
                 kind={kind}
                 reelIndex={reelIndex}
                 photo={photo}
-                focal={vCur.focal}
-                zoom={vCur.zoom}
-                fit={vCur.fit}
+                focal={isVideo ? vCur.focal : iFocal}
+                zoom={isVideo ? vCur.zoom : iZoom}
+                fit={isVideo ? vCur.fit : undefined}
                 reelTitle={reelTitle}
                 aspect={aspect}
                 videoSrc={displayedSrc}
                 poster={poster}
               />
               <div className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-inset ring-[hsl(var(--gold-light))]/70" />
-            </div>
-          ) : (
-            <div
-              data-qa="media-editor-surface"
-              className="relative overflow-hidden rounded-md"
-              style={{ width: fw, height: fh, backgroundColor: "#0b0a08" }}
-            >
-              {imageSrc && natural && (
-                <Cropper
-                  image={imageSrc}
-                  crop={rcCrop}
-                  zoom={rcZoom}
-                  aspect={aspect}
-                  minZoom={MIN_ZOOM}
-                  maxZoom={MAX_ZOOM}
-                  zoomSpeed={0.25}
-                  restrictPosition
-                  showGrid={false}
-                  objectFit="cover"
-                  initialCroppedAreaPercentages={seedPct}
-                  onCropChange={setRcCrop}
-                  onZoomChange={setRcZoom}
-                  onCropComplete={(_, areaPixels) => setRcArea(areaPixels)}
-                  classes={{
-                    containerClassName: "media-crop-container",
-                    cropAreaClassName: "media-frame-overlay",
-                    mediaClassName: "media-crop-media",
-                  }}
-                  style={{ cropAreaStyle: CROP_AREA_STYLE, mediaStyle: CROP_MEDIA_STYLE }}
-                />
-              )}
             </div>
           )}
         </div>
@@ -514,7 +485,11 @@ const FramingEditor = ({
             step={0.01}
             value={displayZoom}
             disabled={!!loadError}
-            onChange={(e) => (isVideo ? setVZoom(parseFloat(e.target.value)) : setRcZoom(parseFloat(e.target.value)))}
+            onChange={(e) =>
+              isVideo
+                ? setVZoom(parseFloat(e.target.value))
+                : setIZoom(clampSourceZoom(parseFloat(e.target.value), imageFit))
+            }
             className="h-1.5 flex-1 accent-[hsl(var(--gold-light))]"
           />
           <span
@@ -541,7 +516,7 @@ const FramingEditor = ({
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || (!isVideo && (!natural || !rcArea)) || !!loadError}
+              disabled={saving || (!isVideo && !natural) || !!loadError}
               data-qa="media-editor-save"
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >

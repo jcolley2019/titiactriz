@@ -119,8 +119,7 @@ export const heroVideoIsDefault = (v: HeroVideoFraming | undefined): boolean =>
   !v || (videoSourceIsDefault(v.landscape) && videoSourceIsDefault(v.portrait));
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
-export const clampZoom = (n: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, n));
-/** Zoom clamp for a video source — fit mode allows sub-cover values. */
+/** Zoom clamp for a framed source — fit mode allows sub-cover values. */
 export const clampSourceZoom = (n: number, fit: FitMode) =>
   Math.min(MAX_ZOOM, Math.max(fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM, n));
 
@@ -173,7 +172,10 @@ const normHeroVideo = (raw: unknown): HeroVideoFraming | undefined => {
   };
 };
 
-const normSlot = (raw: unknown, defaultFocal: Focal): SlotFraming => {
+// PORT.2: the slot kind fixes the image display mode (reel = fit, hero = fill),
+// and fit mode legally zooms below cover — clamp with the mode's own floor so a
+// saved sub-1 reel zoom round-trips instead of snapping back to 1.
+const normSlot = (raw: unknown, defaultFocal: Focal, fit: FitMode): SlotFraming => {
   const r = (raw && typeof raw === "object" ? raw : {}) as {
     photo_id?: unknown;
     focal?: unknown;
@@ -185,7 +187,7 @@ const normSlot = (raw: unknown, defaultFocal: Focal): SlotFraming => {
     photo_id:
       typeof r.photo_id === "string" && r.photo_id.length > 0 ? r.photo_id : null,
     focal: normFocal(r.focal, defaultFocal),
-    zoom: isNum(r.zoom) ? clampZoom(r.zoom) : DEFAULT_ZOOM,
+    zoom: isNum(r.zoom) ? clampSourceZoom(r.zoom, fit) : DEFAULT_ZOOM,
     ...(video ? { video } : {}),
   };
 };
@@ -221,11 +223,11 @@ export const parseCinematicMedia = (raw: unknown): CinematicMediaConfig | null =
   const v = val as { hero?: unknown; reel?: unknown };
   const reelRaw = Array.isArray(v.reel) ? v.reel : [];
   return {
-    hero: normSlot(v.hero, HERO_DEFAULT_FOCAL),
+    hero: normSlot(v.hero, HERO_DEFAULT_FOCAL, "fill"),
     reel: [
-      normSlot(reelRaw[0], REEL_DEFAULT_FOCAL),
-      normSlot(reelRaw[1], REEL_DEFAULT_FOCAL),
-      normSlot(reelRaw[2], REEL_DEFAULT_FOCAL),
+      normSlot(reelRaw[0], REEL_DEFAULT_FOCAL, "fit"),
+      normSlot(reelRaw[1], REEL_DEFAULT_FOCAL, "fit"),
+      normSlot(reelRaw[2], REEL_DEFAULT_FOCAL, "fit"),
     ],
   };
 };
