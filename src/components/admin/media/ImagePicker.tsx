@@ -81,7 +81,11 @@ const ImagePicker = ({
             data-qa="media-picker-upload"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border p-2 text-center text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground disabled:opacity-60"
+            // ADMIN.MOBILE.1: explicit aspect-ratio (not the Tailwind utility) so
+            // the tile holds 4:5 in the scroll grid on mobile Safari, where the
+            // utility on a grid child collapses to a horizontal strip.
+            style={{ aspectRatio: "4 / 5" }}
+            className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border p-2 text-center text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground disabled:opacity-60"
           >
             {uploading ? (
               <Loader2 className="h-5 w-5 animate-spin text-accent" />
@@ -111,7 +115,14 @@ const ImagePicker = ({
                 disabled={uploading}
                 aria-pressed={selected}
                 aria-label={photo.alt_text ?? t("admin.media.picker.title")}
-                className={`relative aspect-[4/5] overflow-hidden rounded-md border transition-all ${
+                // ADMIN.MOBILE.1: an explicit aspect-ratio box + an absolutely
+                // filled image keeps the tile a true 4:5 in the scroll grid. On
+                // mobile Safari the Tailwind aspect utility on a grid child
+                // collapses to a horizontal strip once the image drives height;
+                // an absolute image removes it from the tile's content sizing so
+                // the ratio alone governs, uniform at every viewport >=320px.
+                style={{ aspectRatio: "4 / 5" }}
+                className={`relative overflow-hidden rounded-md border transition-all ${
                   selected ? "border-accent ring-2 ring-accent" : "border-border hover:border-accent/60"
                 } disabled:opacity-60`}
               >
@@ -120,7 +131,7 @@ const ImagePicker = ({
                   alt={photo.alt_text ?? ""}
                   loading="lazy"
                   decoding="async"
-                  className="h-full w-full object-cover"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
                 {selected && (
                   <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-accent-foreground">
