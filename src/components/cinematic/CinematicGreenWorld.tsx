@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ShoppingBag } from "lucide-react";
 import gsap from "gsap";
@@ -54,17 +54,52 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
     return () => ctx.revert();
   }, [reduced]);
 
-  // VENT.GW.1: portrait viewports get the dedicated 9:16 wave loop — the
+  // VENT.GW.1: portrait viewports get the dedicated 9:16 wave clip — the
   // landscape art's motion lives in regions a phone's cover-crop discards.
   const orientation = useViewportOrientation();
-  const gwSrc =
-    orientation === "portrait"
-      ? "/ventures/greenworld-panel-loop-portrait.mp4"
-      : "/ventures/greenworld-panel-loop.mp4";
-  const gwPoster =
-    orientation === "portrait"
-      ? "/ventures/greenworld-poster-portrait.jpg"
-      : "/ventures/greenworld-poster.jpg";
+  const isPortrait = orientation === "portrait";
+  const gwSrc = isPortrait
+    ? "/ventures/greenworld-panel-loop-portrait.mp4"
+    : "/ventures/greenworld-panel-loop.mp4";
+  const gwPoster = isPortrait
+    ? "/ventures/greenworld-poster-portrait.jpg"
+    : "/ventures/greenworld-poster.jpg";
+
+  // VENT.GW.2 — on portrait the wave plays exactly ONCE and holds its final
+  // frame (the Titans badge-reveal pattern): a play-once latch attaches the
+  // src the first time the section reaches ~50% visibility, the clip runs a
+  // single playthrough (no loop), and the ended element keeps displaying its
+  // last painted frame — never resets, never restarts on scroll. Desktop
+  // keeps the ambient crossfade loop.
+  const waveRef = useRef<HTMLVideoElement>(null);
+  const [waveAttached, setWaveAttached] = useState(false);
+  const wavePlayedRef = useRef(false);
+
+  useEffect(() => {
+    if (reduced || !isPortrait) return;
+    const root = sectionRef.current;
+    if (!root) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0];
+        if (e.isIntersecting && e.intersectionRatio >= 0.5 && !wavePlayedRef.current) {
+          wavePlayedRef.current = true;
+          setWaveAttached(true);
+        }
+      },
+      { threshold: [0, 0.5] },
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, [reduced, isPortrait]);
+
+  // Kick off the single playthrough once the source is attached. Re-runs on an
+  // orientation flip back to portrait (a fresh element mounts at frame 0), so
+  // rotation replays the wave once and then holds again.
+  useEffect(() => {
+    if (reduced || !isPortrait || !waveAttached) return;
+    waveRef.current?.play().catch(() => {});
+  }, [waveAttached, reduced, isPortrait]);
 
   return (
     <section
@@ -73,14 +108,39 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
       className="cine-act-vh relative w-full overflow-hidden"
       style={{ backgroundColor: IVORY }}
     >
-      {/* Living wave art (seamless crossfade loop, lazy + visibility-gated). */}
-      <CrossfadeLoopVideo
-        key={gwSrc}
-        src={gwSrc}
-        poster={gwPoster}
-        reduced={reduced}
-        data-qa="gw-video"
-      />
+      {/* Living wave art. Portrait: play-once with final-frame hold (VENT.GW.2);
+          landscape: seamless crossfade loop, lazy + visibility-gated. */}
+      {isPortrait ? (
+        reduced ? (
+          <img
+            src={gwPoster}
+            alt=""
+            aria-hidden
+            data-qa="gw-video"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <video
+            ref={waveRef}
+            data-qa="gw-video"
+            muted
+            playsInline
+            preload="none"
+            poster={gwPoster}
+            src={waveAttached ? gwSrc : undefined}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            aria-hidden
+          />
+        )
+      ) : (
+        <CrossfadeLoopVideo
+          key={gwSrc}
+          src={gwSrc}
+          poster={gwPoster}
+          reduced={reduced}
+          data-qa="gw-video"
+        />
+      )}
 
       {/* Ivory legibility scrim behind the type — right-weighted on desktop,
           centred on mobile — so deep-forest type keeps AA contrast over the art. */}

@@ -251,12 +251,19 @@ test.describe("TA.7 — mobile (both acts stack)", () => {
     await expect(page.locator(GW_CTA), "GW CTA tappable on mobile").toBeVisible();
     expect(await page.locator(GW_CTA).getAttribute("href")).toBe(GREEN_WORLD_SHOP_URL);
 
-    // VENT.GW.1 — a portrait viewport plays the dedicated 9:16 wave loop (the
+    // VENT.GW.1 — a portrait viewport plays the dedicated 9:16 wave clip (the
     // landscape clip's motion lives where a phone's cover-crop discards it).
+    // VENT.GW.2 — the clip is a play-once video (src attaches lazily at ~50%
+    // visibility, so poll) that holds its final frame: no loop attribute.
+    await expect
+      .poll(async () => (await page.locator(GW_VIDEO).getAttribute("src")) ?? "", {
+        timeout: 10_000,
+      })
+      .toContain("greenworld-panel-loop-portrait.mp4");
     expect(
-      await page.locator(GW_VIDEO).getAttribute("src"),
-      "portrait viewport uses the 9:16 wave loop",
-    ).toContain("greenworld-panel-loop-portrait.mp4");
+      await page.locator(GW_VIDEO).evaluate((el) => (el as HTMLVideoElement).loop),
+      "portrait wave plays once (no loop)",
+    ).toBe(false);
 
     await page.locator(TITANS_SECTION).scrollIntoViewIfNeeded();
     // let the badge reveal + type entrance run
