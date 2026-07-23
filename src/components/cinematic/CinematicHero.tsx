@@ -23,7 +23,6 @@ const HeroWord = ({ text }: { text: string }) => (
 type Props = {
   photo?: CinematicPhoto;
   videoSrc?: string | null;
-  videoPortraitSrc?: string | null;
   subtitle: string;
   scrollLabel: string;
   reduced: boolean;
@@ -41,7 +40,6 @@ type Props = {
 const CinematicHero = ({
   photo,
   videoSrc,
-  videoPortraitSrc,
   subtitle,
   scrollLabel,
   reduced,
@@ -93,7 +91,6 @@ const CinematicHero = ({
       <CinematicHeroMedia
         photo={photo}
         videoSrc={videoSrc}
-        videoPortraitSrc={videoPortraitSrc}
         reduced={reduced}
         focal={focal}
         zoom={zoom}

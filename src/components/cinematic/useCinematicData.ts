@@ -21,7 +21,6 @@ export type CinematicPhoto = {
 export function useCinematicData() {
   const [photos, setPhotos] = useState<CinematicPhoto[]>([]);
   const [heroVideo, setHeroVideo] = useState<string | null>(null);
-  const [heroVideoPortrait, setHeroVideoPortrait] = useState<string | null>(null);
   const [heroPhotoSetting, setHeroPhotoSetting] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,26 +40,23 @@ export function useCinematicData() {
         setPhotos(data as CinematicPhoto[]);
       }
 
-      // Optional hero video — the key may not exist; that's expected.
-      const { data: videoRow } = await supabase
-        .from("site_settings")
-        .select("value")
-        .eq("key", "cinematic_hero_video")
-        .maybeSingle();
+      // VID.MODEL.1: ONE hero video. Resolve the canonical key first, falling
+      // back to the legacy portrait key where pre-refactor uploads still live.
+      const readSetting = async (key: string): Promise<string | null> => {
+        const { data } = await supabase
+          .from("site_settings")
+          .select("value")
+          .eq("key", key)
+          .maybeSingle();
+        return typeof data?.value === "string" && data.value.length > 0 ? data.value : null;
+      };
 
-      if (!cancelled && typeof videoRow?.value === "string" && videoRow.value.length > 0) {
-        setHeroVideo(videoRow.value);
-      }
+      const resolvedVideo =
+        (await readSetting("cinematic_hero_video")) ??
+        (await readSetting("cinematic_hero_video_portrait"));
 
-      // Optional portrait (phone) hero video — absent key means "no portrait source".
-      const { data: videoPortraitRow } = await supabase
-        .from("site_settings")
-        .select("value")
-        .eq("key", "cinematic_hero_video_portrait")
-        .maybeSingle();
-
-      if (!cancelled && typeof videoPortraitRow?.value === "string" && videoPortraitRow.value.length > 0) {
-        setHeroVideoPortrait(videoPortraitRow.value);
+      if (!cancelled && resolvedVideo) {
+        setHeroVideo(resolvedVideo);
       }
 
       // Optional admin-selected hero photo — absent key means default behavior.
@@ -82,7 +78,7 @@ export function useCinematicData() {
     };
   }, []);
 
-  return { photos, heroVideo, heroVideoPortrait, heroPhotoSetting, loading };
+  return { photos, heroVideo, heroPhotoSetting, loading };
 }
 
 /**

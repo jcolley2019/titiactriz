@@ -286,16 +286,18 @@ export type ResolvedSlot = {
 };
 
 /**
- * The hero's resolved framing carries BOTH orientation video sources plus each
- * source's own decoupled framing. The render picks by viewport aspect; the admin
- * edits whichever source a device-preview tab implies.
+ * VID.MODEL.1 — the hero has ONE video. Its resolved framing carries the single
+ * source plus two framing records keyed to VIEWPORT orientation: the render
+ * applies `videoLandscape` on landscape viewports and `videoPortrait` on portrait
+ * ones (same clip, different framing); the admin edits whichever record a
+ * device-preview tab implies.
  */
 export type ResolvedHeroSlot = ResolvedSlot & {
-  /** Landscape (desktop/tablet) source — back-compatible with the single value. */
+  /** THE hero video (canonical, legacy-portrait fallback resolved upstream). */
   videoSrc: string | null;
-  /** Portrait (phone) source, if uploaded. */
-  videoPortraitSrc: string | null;
+  /** Framing applied on LANDSCAPE viewports (desktop/tablet). */
   videoLandscape: VideoSourceFraming;
+  /** Framing applied on PORTRAIT viewports (phones). */
   videoPortrait: VideoSourceFraming;
 };
 
@@ -327,13 +329,12 @@ export function getCinematicMedia(
   media: CinematicMediaConfig | null,
   legacyHeroSetting: string | null,
   heroVideo: string | null,
-  heroVideoPortrait: string | null = null,
 ): ResolvedCinematicMedia {
   const heroExplicit = findPhoto(photos, media?.hero.photo_id ?? null);
   const heroPhoto = heroExplicit ?? resolveHeroPhoto(photos, legacyHeroSetting);
 
-  // Video framing is decoupled from the image's framing; each orientation source
-  // keeps its own. Applies whenever a video exists, regardless of the hero photo.
+  // VID.MODEL.1: ONE video, framing decoupled from the image. Each viewport
+  // orientation keeps its own framing record; applied whenever a video exists.
   const videoFraming = media?.hero.video;
 
   const hero: ResolvedHeroSlot = {
@@ -341,7 +342,6 @@ export function getCinematicMedia(
     focal: heroExplicit ? media!.hero.focal : { ...HERO_DEFAULT_FOCAL },
     zoom: heroExplicit ? media!.hero.zoom : DEFAULT_ZOOM,
     videoSrc: heroVideo,
-    videoPortraitSrc: heroVideoPortrait,
     videoLandscape: videoFraming ? videoFraming.landscape : defaultVideoSource(),
     videoPortrait: videoFraming ? videoFraming.portrait : defaultVideoSource(),
   };

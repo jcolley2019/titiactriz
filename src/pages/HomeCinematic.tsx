@@ -42,15 +42,15 @@ const HomeCinematic = () => {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
-  const { photos, heroVideo, heroVideoPortrait, heroPhotoSetting } = useCinematicData();
+  const { photos, heroVideo, heroPhotoSetting } = useCinematicData();
   const { media } = useCinematicMediaConfig();
 
   // ADMIN.MEDIA.1: one resolver merges cinematic_media → legacy cinematic_hero_photo
   // → defaults. With no admin data set this equals today's render exactly — the
   // hero is the first published photo (or the legacy selection) at the TA.6d
   // focal, and the reel draws the non-hero pool (photos 2–4) centered at 1×.
-  // ADMIN.MEDIA.3: also resolves the portrait video source + per-source framing.
-  const resolved = getCinematicMedia(photos, media, heroPhotoSetting, heroVideo, heroVideoPortrait);
+  // VID.MODEL.1: resolves THE single hero video + its per-viewport framing records.
+  const resolved = getCinematicMedia(photos, media, heroPhotoSetting, heroVideo);
   const hero = resolved.hero;
   const reel = resolved.reel;
 
@@ -135,7 +135,6 @@ const HomeCinematic = () => {
       <CinematicHero
         photo={hero.photo}
         videoSrc={hero.videoSrc}
-        videoPortraitSrc={hero.videoPortraitSrc}
         subtitle={t("hero.rolesLine")}
         scrollLabel={t("common.scroll")}
         reduced={prefersReduced}

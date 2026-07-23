@@ -12,15 +12,13 @@ import { useViewportOrientation } from "@/hooks/useViewportOrientation";
 
 type Props = {
   photo?: CinematicPhoto;
-  /** Landscape (desktop/tablet) hero video source. */
+  /** THE hero video source (single video, resolved upstream). */
   videoSrc?: string | null;
-  /** Portrait (phone) hero video source. */
-  videoPortraitSrc?: string | null;
   reduced: boolean;
   /** Admin image framing (ADMIN.MEDIA.1). Absent → TA.6d defaults, i.e. today's render. */
   focal?: Focal;
   zoom?: number;
-  /** Per-orientation video framing (ADMIN.MEDIA.2 → .3), decoupled from the image. */
+  /** Per-viewport-orientation video framing (VID.MODEL.1), decoupled from the image. */
   videoLandscape?: VideoSourceFraming;
   videoPortrait?: VideoSourceFraming;
 };
@@ -29,18 +27,17 @@ type Props = {
  * Hero background layer. Renders a muted looping <video> when a hero video is
  * configured, otherwise the resolved hero photo with a slow Ken Burns drift.
  *
- * ADMIN.MEDIA.3: two orientation sources. The viewport's aspect (re-evaluated on
- * resize) picks the source — a portrait viewport prefers the portrait clip (else
- * landscape), a landscape viewport prefers landscape (else portrait) — and each
- * source carries its own framing + fill/fit display mode. The hero photo is the
- * video's poster (instant paint) and its reduced-motion still; under reduced
- * motion the poster image renders instead of autoplaying. A dark gradient scrim
- * sits on top so the foreground type stays legible.
+ * VID.MODEL.1: ONE hero video. The viewport's orientation (re-evaluated on
+ * resize) picks which FRAMING record applies to that single clip — portrait
+ * viewports read the `portrait` record, landscape viewports the `landscape`
+ * one — and each record carries its own focal/zoom + fill/fit display mode.
+ * Video surfaces never paint the photo (FIX.MEDIA.B): they dark-hold then
+ * fade in; the photo serves only as the reduced-motion still. A dark gradient
+ * scrim sits on top so the foreground type stays legible.
  */
 const CinematicHeroMedia = ({
   photo,
   videoSrc,
-  videoPortraitSrc,
   reduced,
   focal = HERO_DEFAULT_FOCAL,
   zoom = DEFAULT_ZOOM,
@@ -49,11 +46,10 @@ const CinematicHeroMedia = ({
 }: Props) => {
   const orientation = useViewportOrientation();
 
-  // Pick the source by viewport aspect, with the cross-orientation fallback.
-  const useLandscape =
-    orientation === "portrait" ? !videoPortraitSrc : !!videoSrc;
-  const activeSrc = useLandscape ? videoSrc : videoPortraitSrc;
-  const activeFraming = useLandscape ? videoLandscape : videoPortrait;
+  // VID.MODEL.1: ONE video. The viewport's orientation picks which FRAMING
+  // record applies to it — phones read `portrait`, desktop reads `landscape`.
+  const activeSrc = videoSrc;
+  const activeFraming = orientation === "portrait" ? videoPortrait : videoLandscape;
 
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
