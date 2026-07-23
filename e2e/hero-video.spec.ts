@@ -42,17 +42,11 @@ async function settle(page: Page, ms = 700) {
 const objectPositionOf = (page: Page, sel: string) =>
   page.locator(sel).first().evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
 
-const parentTransform = (page: Page, sel: string) =>
-  page
-    .locator(sel)
-    .first()
-    .evaluate((el) => getComputedStyle((el as HTMLElement).parentElement as HTMLElement).transform);
-
-const scaleOf = (transform: string): number => {
-  if (transform === "none") return 1;
-  const m = transform.match(/matrix\(([-\d.]+)/);
-  return m ? parseFloat(m[1]) : NaN;
-};
+// PORT.3: the foreground video resolves through hero-framing and exposes its
+// resolved framing as `data-hero-framing` = "scale;posX;posY;fit;box" — record
+// selection is asserted on that contract, not on CSS object-position/transform.
+const framingAttr = (page: Page, sel: string) =>
+  page.locator(sel).first().getAttribute("data-hero-framing");
 
 const dataSrc = (page: Page, sel: string) =>
   page.locator(sel).first().evaluate((el) => (el as HTMLElement).getAttribute("data-src"));
@@ -63,15 +57,13 @@ test.describe("VID.MODEL.1 — one video, framing by viewport orientation", () =
       name: "desktop",
       width: 1440,
       height: 900,
-      objectPosition: "20% 30%", // landscape record
-      scale: 1.5,
+      framing: "1.50;20;30;fill;", // landscape record (scale;posX;posY;fit)
     },
     {
       name: "mobile",
       width: 390,
       height: 844,
-      objectPosition: "80% 90%", // portrait record
-      scale: 1,
+      framing: "1.00;80;90;fill;", // portrait record
     },
   ]) {
     test(`same clip, ${vp.name} viewport applies its own framing + dark hold`, async ({ page }) => {
@@ -94,8 +86,11 @@ test.describe("VID.MODEL.1 — one video, framing by viewport orientation", () =
       expect(await dataSrc(page, VIDEO), "the single video plays on every screen").toBe(HERO_VIDEO_URL);
 
       // The viewport's orientation picks the framing record.
-      expect(await objectPositionOf(page, VIDEO), "viewport → framing record").toBe(vp.objectPosition);
-      expect(scaleOf(await parentTransform(page, VIDEO)), "record zoom → scale").toBeCloseTo(vp.scale, 1);
+      await expect
+        .poll(async () => (await framingAttr(page, VIDEO)) ?? "absent", {
+          timeout: 10_000,
+        })
+        .toContain(vp.framing);
 
       // FIX.MEDIA.B: a video surface never carries the hero photo as a poster —
       // it holds dark and fades the video in. No reduced-motion still while motion is on.
@@ -121,13 +116,17 @@ test.describe("VID.MODEL.1 — one video, framing by viewport orientation", () =
     await settle(page, 700);
 
     expect(await dataSrc(page, VIDEO)).toBe(HERO_VIDEO_URL);
-    expect(await objectPositionOf(page, VIDEO), "landscape viewport → landscape framing").toBe("20% 30%");
+    await expect
+      .poll(async () => (await framingAttr(page, VIDEO)) ?? "absent", { timeout: 10_000 })
+      .toContain("1.50;20;30;fill;");
 
     // Resize to a portrait phone → the SAME clip, but the portrait framing record.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(500);
     expect(await dataSrc(page, VIDEO), "still the same single clip").toBe(HERO_VIDEO_URL);
-    expect(await objectPositionOf(page, VIDEO), "portrait viewport → portrait framing").toBe("80% 90%");
+    await expect
+      .poll(async () => (await framingAttr(page, VIDEO)) ?? "absent", { timeout: 10_000 })
+      .toContain("1.00;80;90;fill;");
 
     expect(diag.consoleErrors, "console errors — re-key").toEqual([]);
     expect(diag.failedResponses, "failed requests — re-key").toEqual([]);
@@ -273,11 +272,12 @@ test.describe("VID.MODEL.1 — fit mode (blurred backdrop + contain foreground)"
     const blur = await backdrop.evaluate((el) => getComputedStyle(el as HTMLElement).filter);
     expect(blur, "backdrop is blurred").toMatch(/blur/);
 
-    const objectFit = await page
-      .locator(VIDEO)
-      .first()
-      .evaluate((el) => getComputedStyle(el as HTMLElement).objectFit);
-    expect(objectFit, "foreground video is uncropped (contain)").toBe("contain");
+    // PORT.3: the foreground letterboxes via the resolver's contain math (the
+    // rectangle IS the contain box, objectFit itself is "fill") — the resolved
+    // fit mode is asserted on the framing contract.
+    await expect
+      .poll(async () => (await framingAttr(page, VIDEO)) ?? "absent", { timeout: 10_000 })
+      .toContain(";fit;");
     await page.screenshot({ path: shot("VIDMODEL-fit-render.png") });
 
     expect(diag.consoleErrors, "console errors — fit render").toEqual([]);

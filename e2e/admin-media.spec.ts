@@ -461,16 +461,17 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
     await page.screenshot({ path: shot("MEDIA2-editor-videomode.png") });
     await page.screenshot({ path: shot("MEDIA4-editor-video.png") });
 
-    // Drag repositions the video framing.
-    const previewVideo = surface.locator("video").first();
-    const beforePos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    // Drag repositions the video framing (PORT.3: read the resolved framing
+    // contract — the resolver leaves CSS object-position untouched).
+    const previewVideo = surface.locator('[data-qa="media-preview-video"]').first();
+    const beforePos = await previewVideo.getAttribute("data-hero-framing");
     const box = (await surface.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 - 40, box.y + box.height / 2 - 40, { steps: 10 });
     await page.mouse.up();
     await page.waitForTimeout(200);
-    const afterPos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    const afterPos = await previewVideo.getAttribute("data-hero-framing");
     expect(afterPos, "drag repositions the video preview").not.toBe(beforePos);
 
     // Zoom the video framing.
@@ -597,13 +598,13 @@ test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", ()
     await page.locator('[data-qa="media-device-iphone-17-pro"]').click();
     await page.waitForTimeout(200);
     await dragBy(-50, 0);
-    const portraitPos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    const portraitPos = await previewVideo.getAttribute("data-hero-framing");
 
     // Desktop tab edits the LANDSCAPE viewport record — a separate default view.
     await page.locator('[data-qa="media-device-desktop"]').click();
     await page.waitForTimeout(200);
     await dragBy(70, 0);
-    const landscapePos = await previewVideo.evaluate((el) => getComputedStyle(el as HTMLElement).objectPosition);
+    const landscapePos = await previewVideo.getAttribute("data-hero-framing");
     expect(landscapePos, "each tab frames the same clip independently").not.toBe(portraitPos);
 
     // Save → cinematic_media carries BOTH viewport records, and they differ.
@@ -664,11 +665,18 @@ test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", ()
     await page.locator('[data-qa="media-editor-fit-fit"]').click();
     await page.waitForTimeout(200);
     await expect(surface.locator('[data-qa="media-preview-backdrop"]'), "fit backdrop present").toBeVisible();
-    const objectFit = await surface
-      .locator('[data-qa="media-preview-video"]')
-      .first()
-      .evaluate((el) => getComputedStyle(el as HTMLElement).objectFit);
-    expect(objectFit, "foreground uncropped (contain)").toBe("contain");
+    // PORT.3: the foreground letterboxes via the resolver's contain math — the
+    // resolved fit mode is read off the framing contract, not CSS object-fit.
+    await expect
+      .poll(
+        async () =>
+          (await surface
+            .locator('[data-qa="media-preview-video"]')
+            .first()
+            .getAttribute("data-hero-framing")) ?? "absent",
+        { timeout: 8000 },
+      )
+      .toContain(";fit;");
     const zoomMin = parseFloat((await page.locator('[data-qa="media-editor-zoom"]').getAttribute("min")) || "1");
     expect(zoomMin, "fit unlocks sub-cover zoom").toBeLessThan(1);
     await page.screenshot({ path: shot("MEDIA3-fit-mode.png") });
