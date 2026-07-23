@@ -83,8 +83,7 @@ type Props = {
   heroVideoActive?: boolean;
   saving?: boolean;
   mode?: "image" | "video";
-  videoLandscapeSrc?: string | null;
-  videoPortraitSrc?: string | null;
+  videoSrc?: string | null;
   initialVideo?: HeroVideoFraming;
   poster?: string;
   onSave: (focal: Focal, zoom: number) => void;
@@ -113,8 +112,7 @@ const FramingEditor = ({
   heroVideoActive,
   saving,
   mode = "image",
-  videoLandscapeSrc,
-  videoPortraitSrc,
+  videoSrc,
   initialVideo,
   poster,
   onSave,
@@ -142,14 +140,11 @@ const FramingEditor = ({
 
   /* ---------------- VIDEO mode (object-position surface) ---------------- */
   const [vFraming, setVFraming] = useState<HeroVideoFraming>(initialVideo ?? defaultHeroVideo());
-  const sources: Record<VideoOrientation, string | null | undefined> = {
-    landscape: videoLandscapeSrc,
-    portrait: videoPortraitSrc,
-  };
-  const tabTarget: VideoOrientation = aspect < 1 ? "portrait" : "landscape";
-  const other: VideoOrientation = tabTarget === "portrait" ? "landscape" : "portrait";
-  const activeOrientation: VideoOrientation = sources[tabTarget] ? tabTarget : sources[other] ? other : tabTarget;
-  const displayedSrc = isVideo ? sources[activeOrientation] ?? undefined : undefined;
+  // VID.MODEL.1: one video; each device tab edits the framing record for the
+  // VIEWPORT ORIENTATION its aspect represents (aspect < 1 → portrait record).
+  // No cross-source fallback — the record follows the tab, always.
+  const activeOrientation: VideoOrientation = aspect < 1 ? "portrait" : "landscape";
+  const displayedSrc = isVideo ? videoSrc ?? undefined : undefined;
   const vCur = vFraming[activeOrientation];
 
   const setVFocal = (f: Focal) =>
@@ -312,8 +307,8 @@ const FramingEditor = ({
 
   const sourceLabelKey =
     activeOrientation === "portrait"
-      ? "admin.media.video.framingPortrait"
-      : "admin.media.video.framingLandscape";
+      ? "admin.media.video.framingViewportPortrait"
+      : "admin.media.video.framingViewportLandscape";
 
   const zoomMin = isVideo && vCur.fit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
   const displayZoom = isVideo ? vCur.zoom : rcZoom;
@@ -350,13 +345,11 @@ const FramingEditor = ({
           {MEDIA_PREVIEW_DEVICES.map((d) => {
             const isActive = d.id === deviceId;
             const a = d.width / d.height;
+            // VID.MODEL.1: one video across all tabs; each tab previews its own
+            // viewport-orientation framing record of that single clip.
             const tabOrient: VideoOrientation = a < 1 ? "portrait" : "landscape";
-            const tabSrc = isVideo
-              ? sources[tabOrient] ?? sources[tabOrient === "portrait" ? "landscape" : "portrait"] ?? undefined
-              : undefined;
-            const tabFraming = isVideo
-              ? vFraming[sources[tabOrient] ? tabOrient : tabOrient === "portrait" ? "landscape" : "portrait"]
-              : liveImageFraming;
+            const tabSrc = isVideo ? videoSrc ?? undefined : undefined;
+            const tabFraming = isVideo ? vFraming[tabOrient] : liveImageFraming;
             return (
               <button
                 key={d.id}
