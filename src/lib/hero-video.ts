@@ -156,8 +156,18 @@ export const fetchCinematicHeroVideo = (): Promise<string | null> => fetchSettin
 export const fetchCinematicHeroVideoPortrait = (): Promise<string | null> =>
   fetchSetting(HERO_VIDEO_PORTRAIT_KEY);
 
+/** VID.MODEL.1 — THE hero video: canonical key, falling back to the legacy
+ *  portrait key (pre-refactor uploads live there). */
+export const fetchHeroVideoResolved = async (): Promise<string | null> =>
+  (await fetchSetting(HERO_VIDEO_KEY)) ?? (await fetchSetting(HERO_VIDEO_PORTRAIT_KEY));
+
 /** Persist the landscape hero video public URL. */
-export const setCinematicHeroVideo = (url: string): Promise<void> => setSetting(HERO_VIDEO_KEY, url);
+export const setCinematicHeroVideo = async (url: string): Promise<void> => {
+  await setSetting(HERO_VIDEO_KEY, url);
+  // VID.MODEL.1: single-video model — a fresh upload supersedes any legacy
+  // portrait-key entry so exactly one key remains populated.
+  await clearSetting(HERO_VIDEO_PORTRAIT_KEY);
+};
 /** Persist the portrait hero video public URL. */
 export const setCinematicHeroVideoPortrait = (url: string): Promise<void> =>
   setSetting(HERO_VIDEO_PORTRAIT_KEY, url);
@@ -167,3 +177,10 @@ export const clearCinematicHeroVideo = (): Promise<void> => clearSetting(HERO_VI
 /** Remove the portrait hero video setting. */
 export const clearCinematicHeroVideoPortrait = (): Promise<void> =>
   clearSetting(HERO_VIDEO_PORTRAIT_KEY);
+
+/** VID.MODEL.1 — remove the hero video under BOTH keys (canonical + legacy
+ *  portrait), so "remove hero video" leaves nothing behind. */
+export const clearCinematicHeroVideoAll = async (): Promise<void> => {
+  await clearSetting(HERO_VIDEO_KEY);
+  await clearSetting(HERO_VIDEO_PORTRAIT_KEY);
+};
