@@ -97,8 +97,8 @@ const SectionPreview = ({
                 textTransform: "uppercase",
               }}
             >
-              <div style={{ color: "#f4ecdb", fontSize: "12cqh" }}>CRISTYNA</div>
-              <div style={{ color: "#C9A55C", fontSize: "12cqh" }}>POLENTINO</div>
+              <div style={{ color: "#f4ecdb", fontSize: "min(11cqw, 12cqh)" }}>CRISTYNA</div>
+              <div style={{ color: "#C9A55C", fontSize: "min(11cqw, 12cqh)" }}>POLENTINO</div>
             </div>
           </div>
         </>
