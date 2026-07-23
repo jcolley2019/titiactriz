@@ -28,20 +28,6 @@ export function useCinematicData() {
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase
-        .from("gallery_photos")
-        .select("id, image_url, alt_text")
-        .eq("is_published", true)
-        .eq("is_archived", false)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
-
-      if (!cancelled && !error && data) {
-        setPhotos(data as CinematicPhoto[]);
-      }
-
-      // VID.MODEL.1: ONE hero video. Resolve the canonical key first, falling
-      // back to the legacy portrait key where pre-refactor uploads still live.
       const readSetting = async (key: string): Promise<string | null> => {
         const { data } = await supabase
           .from("site_settings")
@@ -51,26 +37,35 @@ export function useCinematicData() {
         return typeof data?.value === "string" && data.value.length > 0 ? data.value : null;
       };
 
-      const resolvedVideo =
-        (await readSetting("cinematic_hero_video")) ??
-        (await readSetting("cinematic_hero_video_portrait"));
+      // FIX.MEDIA.D: fetch everything in PARALLEL and commit in one batch
+      // below. Committing photos before the video setting resolves gives the
+      // photo-hero branch a frame to paint (the "old hero photo flash") —
+      // the page must learn photos + video as a single fact.
+      const [photosRes, resolvedVideo, heroSetting] = await Promise.all([
+        supabase
+          .from("gallery_photos")
+          .select("id, image_url, alt_text")
+          .eq("is_published", true)
+          .eq("is_archived", false)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
+        // VID.MODEL.1: ONE hero video — canonical key first, then the legacy
+        // portrait key where pre-refactor uploads still live.
+        (async () =>
+          (await readSetting("cinematic_hero_video")) ??
+          (await readSetting("cinematic_hero_video_portrait")))(),
+        // Optional admin-selected hero photo — absent key means default.
+        readSetting("cinematic_hero_photo"),
+      ]);
 
-      if (!cancelled && resolvedVideo) {
-        setHeroVideo(resolvedVideo);
+      if (cancelled) return;
+      // Single batched commit (React 18 auto-batches these into one render).
+      if (!photosRes.error && photosRes.data) {
+        setPhotos(photosRes.data as CinematicPhoto[]);
       }
-
-      // Optional admin-selected hero photo — absent key means default behavior.
-      const { data: heroRow } = await supabase
-        .from("site_settings")
-        .select("value")
-        .eq("key", "cinematic_hero_photo")
-        .maybeSingle();
-
-      if (!cancelled && typeof heroRow?.value === "string" && heroRow.value.length > 0) {
-        setHeroPhotoSetting(heroRow.value);
-      }
-
-      if (!cancelled) setLoading(false);
+      if (resolvedVideo) setHeroVideo(resolvedVideo);
+      if (heroSetting) setHeroPhotoSetting(heroSetting);
+      setLoading(false);
     })();
 
     return () => {
