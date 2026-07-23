@@ -251,6 +251,13 @@ test.describe("TA.7 — mobile (both acts stack)", () => {
     await expect(page.locator(GW_CTA), "GW CTA tappable on mobile").toBeVisible();
     expect(await page.locator(GW_CTA).getAttribute("href")).toBe(GREEN_WORLD_SHOP_URL);
 
+    // VENT.GW.1 — a portrait viewport plays the dedicated 9:16 wave loop (the
+    // landscape clip's motion lives where a phone's cover-crop discards it).
+    expect(
+      await page.locator(GW_VIDEO).getAttribute("src"),
+      "portrait viewport uses the 9:16 wave loop",
+    ).toContain("greenworld-panel-loop-portrait.mp4");
+
     await page.locator(TITANS_SECTION).scrollIntoViewIfNeeded();
     // let the badge reveal + type entrance run
     await expect

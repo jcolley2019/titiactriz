@@ -4,6 +4,7 @@ import { ShoppingBag } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CrossfadeLoopVideo from "./CrossfadeLoopVideo";
+import { useViewportOrientation } from "@/hooks/useViewportOrientation";
 import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -53,6 +54,18 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
     return () => ctx.revert();
   }, [reduced]);
 
+  // VENT.GW.1: portrait viewports get the dedicated 9:16 wave loop — the
+  // landscape art's motion lives in regions a phone's cover-crop discards.
+  const orientation = useViewportOrientation();
+  const gwSrc =
+    orientation === "portrait"
+      ? "/ventures/greenworld-panel-loop-portrait.mp4"
+      : "/ventures/greenworld-panel-loop.mp4";
+  const gwPoster =
+    orientation === "portrait"
+      ? "/ventures/greenworld-poster-portrait.jpg"
+      : "/ventures/greenworld-poster.jpg";
+
   return (
     <section
       ref={sectionRef}
@@ -62,8 +75,9 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
     >
       {/* Living wave art (seamless crossfade loop, lazy + visibility-gated). */}
       <CrossfadeLoopVideo
-        src="/ventures/greenworld-panel-loop.mp4"
-        poster="/ventures/greenworld-poster.jpg"
+        key={gwSrc}
+        src={gwSrc}
+        poster={gwPoster}
         reduced={reduced}
         data-qa="gw-video"
       />
@@ -82,14 +96,14 @@ const CinematicGreenWorld = ({ reduced }: Props) => {
         className="pointer-events-none absolute inset-0 md:hidden"
         style={{
           background:
-            "radial-gradient(130% 78% at 50% 54%, rgba(244,242,234,0.92) 0%, rgba(244,242,234,0.55) 46%, rgba(244,242,234,0) 78%)",
+            "linear-gradient(to top, rgba(244,242,234,0.94) 0%, rgba(244,242,234,0.78) 30%, rgba(244,242,234,0.28) 55%, rgba(244,242,234,0) 75%)",
         }}
         aria-hidden
       />
 
       {/* Type layer — right-aligned on desktop, centred on mobile. */}
-      <div className="cine-act-vh relative z-20 flex items-center">
-        <div className="ml-auto w-full max-w-xl px-6 py-16 text-center md:pr-14 md:text-right lg:pr-24">
+      <div className="cine-act-vh relative z-20 flex items-end md:items-center">
+        <div className="ml-auto w-full max-w-xl px-6 pb-16 pt-10 text-center md:py-16 md:pr-14 md:text-right lg:pr-24">
           <div className="cine-gw-type">
             <p
               className="text-xs font-semibold uppercase tracking-[0.32em]"
