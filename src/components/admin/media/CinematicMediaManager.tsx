@@ -554,6 +554,24 @@ const CinematicMediaManager = () => {
                     </button>
                   </div>
 
+                  {/* ADMIN.MOBILE.2 — destructive Remove is a round trash icon
+                      anchored at the BOTTOM-right of the thumbnail, at the
+                      opposite corner from the camera/pencil cluster (top-right)
+                      so it can't be mis-tapped. Same clear behavior as before. */}
+                  {d.kind === "about" && custom && (
+                    <button
+                      type="button"
+                      data-qa="media-about-remove"
+                      aria-label={t("admin.media.about.removeLabel")}
+                      title={t("admin.media.about.removeLabel")}
+                      onClick={removeAbout}
+                      disabled={savingKey === d.key}
+                      className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-destructive backdrop-blur transition-colors hover:bg-destructive hover:text-destructive-foreground disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+
                   {savingKey === d.key && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/40">
                       <Loader2 className="h-5 w-5 animate-spin text-accent" />
@@ -586,22 +604,6 @@ const CinematicMediaManager = () => {
                           ? t("admin.media.slots.aboutDesc")
                           : t("admin.media.slots.reelDesc", { n: d.reelIndex + 1 })}
                   </p>
-
-                  {/* ADMIN.MOBILE.1 — a labeled Remove on the CONFIGURED About
-                      card (the editor's Reset was the only way to clear it).
-                      Clears the opt-in slot → the live About act goes text-only. */}
-                  {d.kind === "about" && custom && (
-                    <button
-                      type="button"
-                      data-qa="media-about-remove"
-                      onClick={removeAbout}
-                      disabled={savingKey === d.key}
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      {t("admin.media.about.remove")}
-                    </button>
-                  )}
                 </div>
               </div>
             );

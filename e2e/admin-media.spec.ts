@@ -332,9 +332,9 @@ test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () =>
   });
 });
 
-/* ---------- (c4) ADMIN.MOBILE.1: About card has a labeled Remove ---------- */
-test.describe("ADMIN.MEDIA — About card labeled Remove", () => {
-  test("configured About card shows Remove; it clears the slot back to text-only", async ({ page }) => {
+/* ---------- (c4) ADMIN.MOBILE.2: About card has a bottom trash-icon Remove ---------- */
+test.describe("ADMIN.MEDIA — About card trash-icon Remove", () => {
+  test("configured About card shows a bottom trash icon; it clears the slot back to text-only", async ({ page }) => {
     const writes: Write[] = [];
     await injectAdminSession(page);
     await forceLanguage(page, "en");
@@ -364,9 +364,20 @@ test.describe("ADMIN.MEDIA — About card labeled Remove", () => {
     // Configured → the card renders the photo, a Custom badge, and a Remove action.
     await expect(aboutCard.locator("img")).toBeVisible();
     await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/custom/i);
+
+    // ADMIN.MOBILE.2 — Remove is now an icon-only round trash button anchored at
+    // the BOTTOM of the thumbnail (accessible name via aria-label, no visible
+    // text), at the opposite corner from the top camera/pencil cluster.
     const remove = aboutCard.locator('[data-qa="media-about-remove"]');
     await expect(remove).toBeVisible();
-    await expect(remove).toHaveText(/remove/i);
+    await expect(remove).toHaveAttribute("aria-label", /remove/i);
+    await expect(remove.locator("svg"), "renders a trash icon").toBeVisible();
+    const camBox = (await aboutCard.locator('[data-qa="media-slot-pick"]').boundingBox())!;
+    const rmBox = (await remove.boundingBox())!;
+    expect(
+      rmBox.y,
+      "trash icon sits below the top camera/pencil cluster (can't be mis-tapped)",
+    ).toBeGreaterThan(camBox.y + camBox.height);
 
     // Remove → the sole configured slot clears → the cinematic_media key is deleted.
     await remove.click();

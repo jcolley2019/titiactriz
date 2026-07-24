@@ -538,7 +538,7 @@
       "about": {
         "empty": "Sin foto seleccionada",
         "none": "Ninguna",
-        "remove": "Quitar"
+        "removeLabel": "Quitar foto de About"
       },
       "slots": {
         "hero": "Hero",
