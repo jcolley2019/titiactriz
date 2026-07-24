@@ -332,14 +332,14 @@ test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () =>
   });
 });
 
-/* ---------- (c4) ADMIN.MOBILE.2: About card has a bottom trash-icon Remove ---------- */
-test.describe("ADMIN.MEDIA — About card trash-icon Remove", () => {
-  test("configured About card shows a bottom trash icon; it clears the slot back to text-only", async ({ page }) => {
+/* ---------- (c4) ADMIN.MOBILE.2: slot cards are camera+pencil only ---------- */
+test.describe("ADMIN.MEDIA — slot cards carry no destructive control", () => {
+  test("configured About card shows camera+pencil only; clearing lives on the editor's Reset", async ({ page }) => {
     const writes: Write[] = [];
     await injectAdminSession(page);
     await forceLanguage(page, "en");
     await routeSupabase(page, {
-      // Only the About slot is configured — hero/reel stay default so removing
+      // Only the About slot is configured — hero/reel stay default so clearing
       // About takes the whole config back to all-default (key deleted).
       media: {
         hero: { photo_id: null, focal: { x: 0.5, y: 0.08 }, zoom: 1 },
@@ -361,50 +361,32 @@ test.describe("ADMIN.MEDIA — About card trash-icon Remove", () => {
     const aboutCard = page.locator('[data-qa="media-slot"][data-slot="about"]');
     await expect(aboutCard).toBeVisible();
 
-    // Configured → the card renders the photo, a Custom badge, and a Remove action.
+    // Configured → the card renders the photo and a Custom badge.
     await expect(aboutCard.locator("img")).toBeVisible();
     await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/custom/i);
 
-    // ADMIN.MOBILE.2 — Remove is now an icon-only round trash button anchored at
-    // the BOTTOM of the thumbnail (accessible name via aria-label, no visible
-    // text), at the opposite corner from the top camera/pencil cluster.
-    const remove = aboutCard.locator('[data-qa="media-about-remove"]');
-    await expect(remove).toBeVisible();
-    await expect(remove).toHaveAttribute("aria-label", /remove/i);
-    await expect(remove.locator("svg"), "renders a trash icon").toBeVisible();
-    const camBox = (await aboutCard.locator('[data-qa="media-slot-pick"]').boundingBox())!;
-    const rmBox = (await remove.boundingBox())!;
-    expect(
-      rmBox.y,
-      "trash icon sits below the top camera/pencil cluster (can't be mis-tapped)",
-    ).toBeGreaterThan(camBox.y + camBox.height);
+    // ADMIN.MOBILE.2 — the card's only controls are camera (change photo) and
+    // pencil (framing). No trash / Remove: the owner's workflow is swap, never
+    // empty, and a visible remove invites accidentally blank sections.
+    await expect(aboutCard.locator('[data-qa="media-slot-pick"]')).toBeVisible();
+    await expect(aboutCard.locator('[data-qa="media-slot-edit"]')).toBeVisible();
+    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
+    await expect(aboutCard.locator("button")).toHaveCount(2);
 
-    // Remove → the sole configured slot clears → the cinematic_media key is deleted.
-    await remove.click();
+    // Clearing is still reachable — Reset inside the framing editor.
+    await aboutCard.locator('[data-qa="media-slot-edit"]').click();
+    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.locator('[data-qa="media-editor-reset"]').click();
     await page.waitForTimeout(400);
     expect(
       writes.filter((w) => w.method === "DELETE" && /cinematic_media/.test(w.url)).length,
-      "removing the sole configured slot deletes the key",
+      "editor Reset on the sole configured slot deletes the key",
     ).toBeGreaterThan(0);
 
-    // Card returns to the unconfigured (text-only) state: None badge, no photo, no Remove.
+    // Card returns to the unconfigured (text-only) state: None badge, no photo.
     await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/none/i);
-    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
-  });
-
-  test("an unconfigured About card has no Remove", async ({ page }) => {
-    await injectAdminSession(page);
-    await forceLanguage(page, "en");
-    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS });
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/admin", { waitUntil: "domcontentloaded" });
-    await settle(page, 800);
-
-    await page.locator('[data-qa="admin-nav-media"]').click();
-    const aboutCard = page.locator('[data-qa="media-slot"][data-slot="about"]');
-    await expect(aboutCard).toBeVisible();
-    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/none/i);
-    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
+    await expect(aboutCard.locator("img")).toHaveCount(0);
   });
 });
 

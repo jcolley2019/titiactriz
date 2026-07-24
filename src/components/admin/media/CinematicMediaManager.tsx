@@ -287,13 +287,6 @@ const CinematicMediaManager = () => {
     void persist(next, slot.key, "reset");
   };
 
-  // ADMIN.MOBILE.1 — a labeled Remove on the configured About card. Same
-  // unconfigure path as the editor's Reset (stripAbout), so the live About act
-  // returns to text-only without opening the framing editor first.
-  const removeAbout = () => {
-    void persist(stripAbout(config), "about", "reset");
-  };
-
   /* ---------------- Hero video: upload / remove (VID.MODEL.1 — one video) ---------------- */
   const triggerUpload = () => {
     videoInputRef.current?.click();
@@ -554,23 +547,10 @@ const CinematicMediaManager = () => {
                     </button>
                   </div>
 
-                  {/* ADMIN.MOBILE.2 — destructive Remove is a round trash icon
-                      anchored at the BOTTOM-right of the thumbnail, at the
-                      opposite corner from the camera/pencil cluster (top-right)
-                      so it can't be mis-tapped. Same clear behavior as before. */}
-                  {d.kind === "about" && custom && (
-                    <button
-                      type="button"
-                      data-qa="media-about-remove"
-                      aria-label={t("admin.media.about.removeLabel")}
-                      title={t("admin.media.about.removeLabel")}
-                      onClick={removeAbout}
-                      disabled={savingKey === d.key}
-                      className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-destructive backdrop-blur transition-colors hover:bg-destructive hover:text-destructive-foreground disabled:opacity-60"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
+                  {/* ADMIN.MOBILE.2 — slot cards carry camera + pencil only. No
+                      destructive control here: clearing the About slot lives on
+                      Reset inside its framing editor, so the swap-never-empty
+                      workflow can't blank a section by a stray tap. */}
 
                   {savingKey === d.key && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/40">
