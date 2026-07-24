@@ -46,14 +46,31 @@
 /* ===== First-paint height reservation (TA.7d) =====
    Every full-viewport cinematic section reserves its height in CSS before any
    JS or media loads, so the document is never momentarily short (which briefly
-   floated the global footer into view on first paint / refresh). `svh` keeps the
-   mobile hero fully visible under the browser's dynamic URL bar; the plain-`vh`
-   line before each `svh` line is the fallback for browsers without `svh` support
-   (both set the same property — the later `svh` declaration wins where it's
-   understood, and is ignored where it isn't). */
+   floated the global footer into view on first paint / refresh). The plain-`vh`
+   line before each `svh`/`dvh` line is the fallback for browsers without those
+   units (both set the same property — the later declaration wins where it's
+   understood, and is ignored where it isn't).
+
+   MOBILE.VH.1 — which unit goes where:
+   `svh` is the viewport with the browser chrome SHOWN, `dvh` tracks the chrome
+   live as it collapses/expands. So a `100svh` act stops ~12% short of the
+   visible viewport once the URL bar retracts, letting the adjacent act peek in.
+
+   • UNPINNED full-bleed acts (`.cine-act-vh`: hero, Green World, Titans) use
+     `dvh` on mobile so they always cover exactly the visible viewport. At first
+     paint the chrome is shown, so dvh ≡ svh and TA.7d's guarantee is unchanged.
+   • PINNED stages (`.cine-h-full` reel, `.cine-vh-full` TitiLinks) deliberately
+     stay on `svh`. ScrollTrigger measures a pinned element and writes px
+     dimensions at refresh time; a URL-bar collapse fires a resize → refresh, so
+     a `dvh` stage would be re-measured taller and JUMP mid-scrub — exactly when
+     the chrome retracts. `svh` re-measures to the same number, so the pin is
+     immune. (Filling the collapsed-chrome viewport here would need static `lvh`,
+     which instead overflows while the chrome is shown — a design trade, not a
+     silent fix.)
+   Desktop (md+) keeps `svh` throughout: there is no dynamic chrome. */
 .cine-vh-full { min-height: 100vh; min-height: 100svh; }
 .cine-h-full  { height: 100vh; height: 100svh; }
-.cine-act-vh  { min-height: 90vh; min-height: 90svh; }
+.cine-act-vh  { min-height: 100vh; min-height: 100dvh; }
 @media (min-width: 768px) {
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }

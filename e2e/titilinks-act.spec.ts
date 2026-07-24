@@ -103,8 +103,16 @@ async function assertCleanAt(page: Page, label: string) {
       const vh = window.innerHeight;
       const cx = Math.min(Math.max(r.left + r.width / 2, 1), vw - 1);
       const cy = r.top + r.height / 2;
-      if (r.height > 0 && cy > 0 && cy < vh) {
-        const el = document.elementFromPoint(cx, cy) as HTMLElement | null;
+      // The site header is `position: fixed` over the top ~63px at EVERY scroll
+      // position, so a probe landing in that band always returns the header —
+      // which says nothing about TitiLinks leaking. Clamp the probe down to the
+      // first visible pixel of the heading instead of skipping the sample: this
+      // still asserts at every step, and asserts somewhere actually on screen.
+      const header = document.querySelector("header");
+      const navBottom = header ? header.getBoundingClientRect().bottom : 0;
+      const probeY = Math.max(cy, navBottom + 1);
+      if (r.height > 0 && r.bottom > navBottom && probeY < vh) {
+        const el = document.elementFromPoint(cx, probeY) as HTMLElement | null;
         about = {
           inView: true,
           ok: !!(el && el.closest("#cinematic-about")),
