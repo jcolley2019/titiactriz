@@ -397,6 +397,98 @@ test.describe("ADMIN.MEDIA — About card labeled Remove", () => {
   });
 });
 
+/* ---------- (c5) ADMIN.MOBILE.2: picker grid uniform at production count ---------- */
+test.describe("ADMIN.MEDIA — picker tiles hold 4:5 at production photo count", () => {
+  // >=30 photos of MIXED natural aspects (portrait + landscape + square), like
+  // the real ~30-photo gallery. The tile paints the photo through object-cover,
+  // so the natural aspect must NOT leak into the tile's own box — every tile is
+  // a uniform 4:5 regardless. Data-URL SVGs keep this offline + deterministic.
+  const MIXED_ASPECTS = [
+    [400, 600], // portrait 2:3
+    [600, 400], // landscape 3:2
+    [500, 500], // square
+    [300, 700], // tall
+    [800, 450], // wide 16:9
+    [400, 500], // 4:5
+  ];
+  const MIXED_PHOTOS = Array.from({ length: 33 }, (_, i) => {
+    const [w, h] = MIXED_ASPECTS[i % MIXED_ASPECTS.length];
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='hsl(${(i * 37) % 360} 60% 50%)'/></svg>`;
+    return {
+      id: `mix${i}`,
+      image_url: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+      alt_text: `mix ${i} (${w}x${h})`,
+    };
+  });
+
+  test("30+ mixed-aspect photos → uniform 4:5 tiles, no collapse/overlap, at 390x844", async ({
+    page,
+  }) => {
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MIXED_PHOTOS });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    await page.locator('[data-qa="admin-nav-media"]').click();
+    await expect(page.locator('[data-qa="admin-media"]')).toBeVisible();
+    await page
+      .locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-pick"]')
+      .click();
+    const grid = page.locator('[data-qa="media-picker-grid"]');
+    await expect(grid).toBeVisible();
+    await page.waitForTimeout(600); // image decode + layout
+
+    // This is the PRODUCTION condition: 33 photos over 3 columns overflow 60vh,
+    // so the grid actually scrolls (the earlier "few photos" mock masked the bug).
+    const scroll = await grid.evaluate((el) => ({
+      scrollH: (el as HTMLElement).scrollHeight,
+      clientH: (el as HTMLElement).clientHeight,
+    }));
+    expect(scroll.scrollH, "grid overflows and scrolls at production count").toBeGreaterThan(
+      scroll.clientH + 50,
+    );
+
+    // Every one of the first 12 tiles is a true 4:5 box (0.8 ±0.02).
+    const ratios = await grid.evaluate((el) => {
+      const tiles = Array.from(
+        el.querySelectorAll('[data-qa="media-picker-photo"]'),
+      ).slice(0, 12) as HTMLElement[];
+      return tiles.map((t) => {
+        const r = t.getBoundingClientRect();
+        return r.height ? +(r.width / r.height).toFixed(3) : 0;
+      });
+    });
+    expect(ratios.length, "at least 12 tiles measured").toBeGreaterThanOrEqual(12);
+    for (const [i, ratio] of ratios.entries()) {
+      expect(ratio, `tile ${i} holds 4:5`).toBeGreaterThan(0.78);
+      expect(ratio, `tile ${i} holds 4:5`).toBeLessThan(0.82);
+    }
+
+    // The real regression guard: pre-fix, each tile's OWN box was still 4:5, but
+    // rows past the first collapsed so tiles overlapped (row pitch dropped from a
+    // full tile height to ~34px). Assert consecutive rows are a full tile-height
+    // apart — this is what fails on the pre-fix (grid-auto-rows:auto) code.
+    const tops = await grid.evaluate((el) => {
+      const tiles = Array.from(
+        el.querySelectorAll('[data-qa="media-picker-photo"]'),
+      ).slice(0, 12) as HTMLElement[];
+      return tiles.map((t) => Math.round(t.getBoundingClientRect().top));
+    });
+    const rowTops = [...new Set(tops)].sort((a, b) => a - b);
+    const pitches = rowTops.slice(1).map((t, i) => t - rowTops[i]);
+    expect(pitches.length, "several rows present").toBeGreaterThanOrEqual(3);
+    for (const [i, p] of pitches.entries()) {
+      expect(p, `row ${i + 1} sits a full tile below row ${i} (no collapse/overlap)`).toBeGreaterThan(
+        100,
+      );
+    }
+
+    await page.screenshot({ path: shot("ADMIN.MOBILE.2-picker-390.png") });
+  });
+});
+
 /* ---------- (d) shell navigation reaches legacy sections ---------- */
 test.describe("ADMIN.MEDIA — shell navigation", () => {
   test("reaches gallery, events, settings, submissions", async ({ page }) => {

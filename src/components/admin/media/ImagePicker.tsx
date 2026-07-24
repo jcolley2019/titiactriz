@@ -73,7 +73,15 @@ const ImagePicker = ({
 
         <div
           data-qa="media-picker-grid"
-          className="grid max-h-[60vh] grid-cols-3 gap-3 overflow-y-auto pr-1 sm:grid-cols-4"
+          // ADMIN.MOBILE.2: auto-rows-max (grid-auto-rows: max-content) is load-
+          // bearing. With the default `auto` implicit rows, Chromium sizes each
+          // row from the tiles' IN-FLOW content only and does NOT count their
+          // width-derived 4:5 height, so at production photo counts every row
+          // past the first collapsed to ~22-31px and the tiles overlapped. Each
+          // tile carries an in-flow ratio spacer; max-content sizes every row to
+          // that spacer's real height, uniform at any viewport and photo count,
+          // and the container still scrolls past 60vh.
+          className="grid max-h-[60vh] auto-rows-max grid-cols-3 gap-3 overflow-y-auto pr-1 sm:grid-cols-4"
         >
           {/* Upload new tile */}
           <button
@@ -81,19 +89,27 @@ const ImagePicker = ({
             data-qa="media-picker-upload"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            // ADMIN.MOBILE.1: explicit aspect-ratio (not the Tailwind utility) so
-            // the tile holds 4:5 in the scroll grid on mobile Safari, where the
-            // utility on a grid child collapses to a horizontal strip.
-            style={{ aspectRatio: "4 / 5" }}
-            className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border p-2 text-center text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground disabled:opacity-60"
+            className="relative block w-full overflow-hidden rounded-md border border-dashed border-border text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground disabled:opacity-60"
           >
-            {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-accent" />
-            ) : (
-              <Upload className="h-5 w-5" />
-            )}
-            <span className="text-[11px] leading-tight">
-              {uploading ? t("admin.media.picker.uploading") : t("admin.media.picker.uploadNew")}
+            {/* ADMIN.MOBILE.2: an in-flow ratio spacer, not aspect-ratio on the
+                grid item. grid-auto-rows:auto sizes each implicit row from its
+                items' IN-FLOW content; a grid item whose height comes only from
+                its own aspect-ratio feeds 0 into that track sizing past the
+                first row, so rows 2..N collapse (~22px) and tiles overlap. The
+                spacer's height is padding-top:125% — a percentage that resolves
+                against the tile's WIDTH (definite from the column track), so it
+                needs no aspect-ratio and gives every row a real, measurable 4:5
+                height at any viewport and photo count. */}
+            <span aria-hidden className="block w-full" style={{ paddingTop: "125%" }} />
+            <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-center">
+              {uploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-accent" />
+              ) : (
+                <Upload className="h-5 w-5" />
+              )}
+              <span className="text-[11px] leading-tight">
+                {uploading ? t("admin.media.picker.uploading") : t("admin.media.picker.uploadNew")}
+              </span>
             </span>
           </button>
           <input
@@ -115,17 +131,16 @@ const ImagePicker = ({
                 disabled={uploading}
                 aria-pressed={selected}
                 aria-label={photo.alt_text ?? t("admin.media.picker.title")}
-                // ADMIN.MOBILE.1: an explicit aspect-ratio box + an absolutely
-                // filled image keeps the tile a true 4:5 in the scroll grid. On
-                // mobile Safari the Tailwind aspect utility on a grid child
-                // collapses to a horizontal strip once the image drives height;
-                // an absolute image removes it from the tile's content sizing so
-                // the ratio alone governs, uniform at every viewport >=320px.
-                style={{ aspectRatio: "4 / 5" }}
-                className={`relative overflow-hidden rounded-md border transition-all ${
+                className={`relative block w-full overflow-hidden rounded-md border transition-all ${
                   selected ? "border-accent ring-2 ring-accent" : "border-border hover:border-accent/60"
                 } disabled:opacity-60`}
               >
+                {/* ADMIN.MOBILE.2: in-flow 4:5 spacer (padding-top:125% of the
+                    tile width) sizes the grid row. See the upload tile above —
+                    aspect-ratio on the grid item itself let grid-auto-rows:auto
+                    collapse every row past the first (~22px) at production photo
+                    counts, overlapping the tiles. */}
+                <span aria-hidden className="block w-full" style={{ paddingTop: "125%" }} />
                 <img
                   src={photo.image_url}
                   alt={photo.alt_text ?? ""}
