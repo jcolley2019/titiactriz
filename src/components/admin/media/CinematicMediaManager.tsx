@@ -141,6 +141,15 @@ const stripHeroVideo = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
 const withHeroVideo = (cfg: CinematicMediaConfig, video: HeroVideoFraming): CinematicMediaConfig =>
   heroVideoIsDefault(video) ? stripHeroVideo(cfg) : writeSlot(cfg, HERO_SLOT, { ...cfg.hero, video });
 
+/**
+ * ADMIN.MOBILE.2 — slot-card icon buttons are translucent glass, not solid
+ * black pucks: a dark wash + backdrop blur lets the photo read through, and a
+ * white hairline keeps the circle legible over both bright and dark frames.
+ * One const so every card's controls are identical.
+ */
+const SLOT_ICON_BUTTON =
+  "flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60";
+
 const CinematicMediaManager = () => {
   const { t } = useTranslation();
   const [photos, setPhotos] = useState<CinematicPhoto[]>([]);
@@ -530,7 +539,7 @@ const CinematicMediaManager = () => {
                       title={t("admin.media.changePhoto")}
                       onClick={() => setPickerSlot(d)}
                       disabled={savingKey === d.key}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
+                      className={`${SLOT_ICON_BUTTON} disabled:opacity-60`}
                     >
                       <Camera className="h-3.5 w-3.5" />
                     </button>
@@ -541,7 +550,7 @@ const CinematicMediaManager = () => {
                       title={t("admin.media.editFraming")}
                       onClick={() => openEditor(d)}
                       disabled={!canEdit || savingKey === d.key}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-40"
+                      className={`${SLOT_ICON_BUTTON} disabled:opacity-40`}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
