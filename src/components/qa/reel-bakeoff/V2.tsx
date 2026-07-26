@@ -5,7 +5,6 @@ import {
   GOLD,
   IVORY,
   ReelPhoto,
-  SANS,
   STAGE_CLASS,
   numeral,
   type VariantProps,
@@ -22,9 +21,16 @@ import {
  * Veil: radial, 0 through 46%, 0.20 at 72%, 0.35 at the corners — the top of
  * the mandated band, spent entirely on the corners where no photograph
  * information lives.
- * Gold: a small tracked numeral label and a short rule beside it — gold as
- * line AND letter at label scale, never as the display mass.
+ * Gold: the numeral, set at display scale between two rules — gold as line AND
+ * letter, which is the fullest legal reading of the One Filament Rule.
  * Motion: the beam opens (scale 1.06 → 1) as the type settles under it.
+ *
+ * CINE.FLOW.2-V2A — the numeral was an 11px tracked sans caption and read as
+ * incidental. At ~3x (34px) a caption face just looks like a caption that got
+ * bigger, so it moves to the display face with caption tracking removed, and the
+ * title steps back from 30px to 26px. The numeral now leads the lockup and the
+ * title answers it, rather than the two competing at the same weight. The
+ * flanking rules grow with it (28px → 40px) so the mark still sits on an axis.
  */
 const VEIL =
   "radial-gradient(ellipse 76% 56% at 50% 40%, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 46%, rgba(11,10,8,0.20) 72%, rgba(11,10,8,0.35) 100%)";
@@ -48,8 +54,8 @@ const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
         )
         .fromTo(
           labelRef.current,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power2.out" },
+          { y: 10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
           0.25,
         )
         .fromTo(
@@ -75,22 +81,25 @@ const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
       />
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-16 text-center">
-        <div ref={labelRef} className="mb-4 flex items-center gap-3">
-          <span aria-hidden className="block h-px w-7" style={{ backgroundColor: GOLD }} />
+        <div ref={labelRef} className="mb-5 flex items-center gap-4">
+          <span aria-hidden className="block h-px w-10" style={{ backgroundColor: GOLD }} />
           <span
             aria-hidden
-            className="block uppercase"
+            className="block leading-none"
             style={{
-              fontFamily: SANS,
+              fontFamily: DISPLAY,
               color: GOLD,
-              fontSize: "11px",
-              fontWeight: 500,
-              letterSpacing: "0.3em",
+              fontSize: "34px",
+              letterSpacing: "0.12em",
+              // Tracking adds trailing space after the last glyph, which drags
+              // the numeral left of true centre between the two rules. Indent
+              // by the same amount to put it back optically.
+              textIndent: "0.12em",
             }}
           >
             {numeral(index)}
           </span>
-          <span aria-hidden className="block h-px w-7" style={{ backgroundColor: GOLD }} />
+          <span aria-hidden className="block h-px w-10" style={{ backgroundColor: GOLD }} />
         </div>
         <span
           ref={titleRef}
@@ -99,9 +108,9 @@ const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
           style={{
             fontFamily: DISPLAY,
             color: IVORY,
-            fontSize: "30px",
+            fontSize: "26px",
             lineHeight: 1.1,
-            letterSpacing: "0.04em",
+            letterSpacing: "0.06em",
           }}
         >
           {slide.title}
