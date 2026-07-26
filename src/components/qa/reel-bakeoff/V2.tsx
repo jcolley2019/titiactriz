@@ -15,12 +15,31 @@ import {
  *
  * Thesis: the veil is a LENS, not a curtain. It is fully open over the subject
  * and closes radially toward the corners, so the frame reads as a beam falling
- * on her rather than as a screen laid over her. The ellipse is centred slightly
- * high (40%) because that is where a standing subject's face sits.
+ * on her rather than as a screen laid over her.
  *
  * Veil: radial, 0 through 46%, 0.20 at 72%, 0.35 at the corners — the top of
  * the mandated band, spent entirely on the corners where no photograph
- * information lives.
+ * information lives. Moving the centre never raises that ceiling: 0.35 is the
+ * darkest stop wherever the beam is aimed.
+ *
+ * CINE.FLOW.3 — the beam FOLLOWS THE SUBJECT. It used to sit at a fixed 50%/40%
+ * (a guess at where a standing subject's face lands), which lit the middle of
+ * the frame on every slide regardless of where she actually is. The centre now
+ * reads the slide's own focal point — the same admin framing that already tells
+ * the photo where to crop — so a subject panned to the right edge gets the beam
+ * at the right edge. 50%/40% survives only as the fallback for a slide that
+ * carries no focal at all.
+ *
+ * Why the focal can be used as a container percentage DIRECTLY, with no
+ * conversion: in cover mode the resolver lays the media out at cover size and
+ * pans it by posX = focal.x * 100. On an axis WITH overflow the rectangle is
+ * `left = -f * overflow`, `width = 100 + overflow`, so the focal point lands at
+ * `left + f * width = f * 100`. On an axis with none the rectangle is pinned at
+ * 100% and the focal point lands at `f * 100` again. The mapping is exact, not
+ * an approximation. (It only breaks below cover — zoom < 1 — where the media
+ * shrinks inside the frame; reel slots are stored as a fit surface so a
+ * sub-1 zoom is representable. That case letterboxes the photograph, which the
+ * cover mandate rules out of this composition anyway.)
  * Gold: the numeral, set at display scale between two rules — gold as line AND
  * letter, which is the fullest legal reading of the One Filament Rule.
  * Motion: the beam opens (scale 1.06 → 1) as the type settles under it.
@@ -34,8 +53,15 @@ import {
  * (40px → 28px), and the gap under the lockup halves (20px → 10px) so numeral,
  * rules and title bind as one object instead of three stacked lines.
  */
-const VEIL =
-  "radial-gradient(ellipse 76% 56% at 50% 40%, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 46%, rgba(11,10,8,0.20) 72%, rgba(11,10,8,0.35) 100%)";
+/** Where the beam points when a slide carries no framing at all. */
+const FALLBACK_CENTRE = { x: 50, y: 40 };
+
+/** The slide's focal as a percentage of the frame — see the derivation above. */
+const beamCentre = (slide: VariantProps["slide"]) =>
+  slide.focal ? { x: slide.focal.x * 100, y: slide.focal.y * 100 } : FALLBACK_CENTRE;
+
+const veil = (c: { x: number; y: number }) =>
+  `radial-gradient(ellipse 76% 56% at ${c.x}% ${c.y}%, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 46%, rgba(11,10,8,0.20) 72%, rgba(11,10,8,0.35) 100%)`;
 
 const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -70,16 +96,21 @@ const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
     return () => ctx.revert();
   }, [playKey, reduced]);
 
+  const centre = beamCentre(slide);
+
   return (
     <div ref={rootRef} className={STAGE_CLASS} data-qa="bakeoff-variant" data-variant="v2">
       <div className="absolute inset-0">
         <ReelPhoto slide={slide} />
       </div>
 
+      {/* The beam opens about its own centre, so the aim survives the entrance. */}
       <div
         ref={veilRef}
         className="absolute inset-0"
-        style={{ background: VEIL, transformOrigin: "50% 40%" }}
+        data-qa="bakeoff-veil"
+        data-beam={`${centre.x.toFixed(1)},${centre.y.toFixed(1)}`}
+        style={{ background: veil(centre), transformOrigin: `${centre.x}% ${centre.y}%` }}
       />
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-16 text-center">
