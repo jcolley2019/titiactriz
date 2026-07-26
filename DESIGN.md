@@ -278,11 +278,26 @@ admin-exempt layer and have no role in the cinematic world.
 **The Atmosphere-Not-Elevation Rule.** Depth is made of light and distance, never
 of a drop shadow. Nothing on a cinematic surface floats above the ground plane.
 
-**Open violation — the reel veil.** `CinematicReel.tsx:36` currently paints
-`linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))` — a flat,
-undirected wash sitting squarely in the banned 50–80% range and outside the
-mandated `0.15–0.35`. The constants above are the law; this line is a known
-violation owed to CINE.FLOW. It is recorded here, not fixed here.
+- **Reel spotlight** (phone only): `radial-gradient(ellipse 76% 56% at Fx% Fy%,
+  0 0%, 0 46%, 0.20 72%, 0.35 100%)`, where `Fx/Fy` is the slide's own focal
+  point from the admin framing. The veil is a lens rather than a curtain: fully
+  open over the subject, all suppression spent on the corners where no
+  photograph information lives. Aiming it elsewhere never raises the ceiling —
+  `0.35` is the darkest stop wherever the beam points.
+
+**Half-resolved — the reel veil.** The flat
+`linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))` wash — undirected,
+squarely in the banned 50–80% range and outside the mandated `0.15–0.35` — is
+**retired on phones** as of CINE.FLOW.3 (`62fcb19`, 2026-07-25), replaced by the
+focal-anchored spotlight above. Below 768px the act is now compliant.
+
+It **still paints at 768px and wider**, where the mandate keeps the reel's
+letterbox/gallery character and CINE.FLOW.3 was scoped not to touch it. The
+constant now lives in one place, `src/components/cinematic/reelSpotlight.ts`
+(`WIDE_VEIL`), imported by both the live act and the admin preview, so retiring
+the second half is a one-line change in a single file when a later brick takes
+the wide composition. Until then this remains an open violation on tablet and
+desktop, and it is recorded here, not fixed here.
 
 ## Shapes
 
