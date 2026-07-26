@@ -25,12 +25,14 @@ import {
  * letter, which is the fullest legal reading of the One Filament Rule.
  * Motion: the beam opens (scale 1.06 → 1) as the type settles under it.
  *
- * CINE.FLOW.2-V2A — the numeral was an 11px tracked sans caption and read as
- * incidental. At ~3x (34px) a caption face just looks like a caption that got
- * bigger, so it moves to the display face with caption tracking removed, and the
- * title steps back from 30px to 26px. The numeral now leads the lockup and the
- * title answers it, rather than the two competing at the same weight. The
- * flanking rules grow with it (28px → 40px) so the mark still sits on an axis.
+ * CINE.FLOW.2-V2A/B — the numeral began as an 11px tracked sans caption and read
+ * as incidental. It moved to the display face (caption tracking removed) and
+ * through 34px, which overshot: at that size it competed with the title for the
+ * role of subject. It settles at 22px — deliberately a step BELOW the 26px title
+ * — so the title is what the visitor reads and the numeral is what tells them
+ * where they are in the reel. Flanking rules track the mark down with it
+ * (40px → 28px), and the gap under the lockup halves (20px → 10px) so numeral,
+ * rules and title bind as one object instead of three stacked lines.
  */
 const VEIL =
   "radial-gradient(ellipse 76% 56% at 50% 40%, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 46%, rgba(11,10,8,0.20) 72%, rgba(11,10,8,0.35) 100%)";
@@ -81,15 +83,15 @@ const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
       />
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-16 text-center">
-        <div ref={labelRef} className="mb-5 flex items-center gap-4">
-          <span aria-hidden className="block h-px w-10" style={{ backgroundColor: GOLD }} />
+        <div ref={labelRef} className="mb-2.5 flex items-center gap-3">
+          <span aria-hidden className="block h-px w-7" style={{ backgroundColor: GOLD }} />
           <span
             aria-hidden
             className="block leading-none"
             style={{
               fontFamily: DISPLAY,
               color: GOLD,
-              fontSize: "34px",
+              fontSize: "22px",
               letterSpacing: "0.12em",
               // Tracking adds trailing space after the last glyph, which drags
               // the numeral left of true centre between the two rules. Indent
