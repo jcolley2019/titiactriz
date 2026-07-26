@@ -54,10 +54,14 @@ test.describe("ADMIN.MEDIA — render regression (absent = default)", () => {
         "1.00;50;8;fill;",
       );
 
+      // CINE.FLOW.3: the reel act renders cover below the 768px phone
+      // breakpoint (the Spotlight composition) and letterbox at/above it.
+      // Framing is otherwise the default either way.
       await expect(page.locator(REEL).first()).toBeAttached();
-      expect(await heroFraming(page, REEL), "reel centered, unzoomed, whole photo").toContain(
-        "1.00;50;50;fit;",
-      );
+      expect(
+        await heroFraming(page, REEL),
+        `reel centered, unzoomed — ${vp.name === "mobile" ? "cover" : "whole photo"}`,
+      ).toContain(vp.name === "mobile" ? "1.00;50;50;fill;" : "1.00;50;50;fit;");
 
       expect(diag.consoleErrors, "console errors").toEqual([]);
       expect(diag.failedResponses, "failed requests").toEqual([]);
