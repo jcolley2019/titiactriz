@@ -352,7 +352,7 @@ const BakeoffPage = () => {
                 />
               ) : (
                 <div
-                  className="flex h-full w-full items-center justify-center text-[14px]"
+                  className="flex h-full w-full items-center justify-center text-[12px]"
                   style={{ fontFamily: "var(--font-sans)", color: "rgba(240,233,218,0.4)" }}
                 >
                   No wide variants registered yet.
