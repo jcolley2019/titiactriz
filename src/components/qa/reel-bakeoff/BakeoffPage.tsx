@@ -326,8 +326,10 @@ const BakeoffPage = () => {
         </div>
       ) : (
         /* Wide frames sit below the controls, top-left anchored so the frame's
-           page position is stable for element screenshots at zoom 1. */
-        <div style={{ paddingTop: 120, paddingLeft: 32, paddingBottom: 32 }}>
+           page position is stable for element screenshots at zoom 1. 200px of
+           headroom keeps the legend/readout chrome fully clear of the frame,
+           so evidence screenshots carry no overlay ink. */
+        <div style={{ paddingTop: 200, paddingLeft: 32, paddingBottom: 32 }}>
           <div style={{ transform: scale === 1 ? undefined : `scale(${scale})`, transformOrigin: "top left" }}>
             <div
               data-qa="bakeoff-wide-frame"
