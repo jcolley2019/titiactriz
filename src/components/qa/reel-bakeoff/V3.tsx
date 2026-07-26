@@ -3,7 +3,6 @@ import gsap from "gsap";
 import {
   DISPLAY,
   GOLD,
-  GROUND,
   IVORY,
   ReelPhoto,
   SANS,
@@ -15,30 +14,28 @@ import {
 /**
  * V3 — "Split Frame".
  *
- * Thesis: don't veil the photograph — GIVE THE TYPE ITS OWN ROOM. The frame is
- * divided by a hard horizontal edge: above it the photograph is open, below it
- * is bare ground where type sits at full contrast with nothing over the image
- * at all. This is the one direction that treats "veil" as a layout problem
- * rather than an opacity problem.
+ * Thesis: the veil has an EDGE. Every other direction in the set fades; this one
+ * cuts. A hard horizontal division at 64% splits the frame into an untouched
+ * upper photograph and a suppressed lower reading zone, with no transition
+ * between them at all. The division itself is the design.
  *
- * Zone geometry is load-bearing here and was tuned against the real source. The
- * reel photos are ~0.56 aspect (tall portraits). A short photo zone is WIDER
- * than the source, so letterbox fits by height and leaves dead bands down both
- * sides — which reads as an accident, not a decision. The zone is therefore set
- * at 82% of the frame (390x692 ≈ 0.564), where the source fills the width
- * edge-to-edge and the division below it becomes a deliberate bar rather than a
- * consequence.
+ * CINE.FLOW.2-FIX — this variant previously put bare ground below the line, so
+ * the photograph stopped at 64%. Under the cover mandate the photo runs the full
+ * height of the frame and the lower zone is a VEIL over it, not a substitute for
+ * it. The abrupt onset survives — which was always the real signature — but the
+ * image is now continuous underneath, and the direction reads as an argument
+ * about veils rather than an argument about layout.
  *
- * Veil: none across the open photo. A single directional seat, 0 → 0.30, over
- * the last 14% of the photo zone, so the division reads as the image settling
- * onto the band rather than as a sticker laid on top. Peak 0.30, in band.
+ * Veil: nothing above the line. Below it, an abrupt 0.35 that eases OFF to 0.28
+ * toward the bottom edge — directional, and inverted relative to V1 on purpose:
+ * V1 is heaviest at the bottom, V3 is heaviest right under the cut. Peak 0.35.
  * Gold: the numeral only. The division is deliberately NOT gold — that is V5's
  * argument, and blending the two would make both weaker.
  * Motion: type enters laterally from the left margin it is aligned to.
  */
-const PHOTO_ZONE = "82%";
-const SEAM =
-  "linear-gradient(180deg, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 86%, rgba(11,10,8,0.30) 100%)";
+const PHOTO_ZONE = "64%";
+const BELOW_VEIL =
+  "linear-gradient(180deg, rgba(11,10,8,0.35) 0%, rgba(11,10,8,0.28) 100%)";
 
 const V3 = ({ slide, index, playKey, reduced }: VariantProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -67,23 +64,22 @@ const V3 = ({ slide, index, playKey, reduced }: VariantProps) => {
   }, [playKey, reduced]);
 
   return (
-    <div
-      ref={rootRef}
-      className={STAGE_CLASS}
-      style={{ backgroundColor: GROUND }}
-      data-qa="bakeoff-variant"
-      data-variant="v3"
-    >
-      {/* Photo zone — open, hard-edged, ends at the division. */}
-      <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: PHOTO_ZONE }}>
+    <div ref={rootRef} className={STAGE_CLASS} data-qa="bakeoff-variant" data-variant="v3">
+      {/* One continuous photograph, full frame. */}
+      <div className="absolute inset-0">
         <ReelPhoto slide={slide} />
-        <div className="absolute inset-0" style={{ background: SEAM }} />
       </div>
 
-      {/* Type band — bare ground, no veil, left-aligned. */}
+      {/* The cut: veil begins abruptly at the division and never softens into it. */}
+      <div
+        className="absolute inset-x-0 bottom-0"
+        style={{ top: PHOTO_ZONE, background: BELOW_VEIL }}
+      />
+
+      {/* Type sits inside the suppressed zone, left-aligned to its own margin. */}
       <div
         className="absolute inset-x-0 bottom-0 flex flex-col justify-center px-7"
-        style={{ top: PHOTO_ZONE, backgroundColor: GROUND }}
+        style={{ top: PHOTO_ZONE }}
       >
         <span
           ref={numRef}
@@ -102,11 +98,11 @@ const V3 = ({ slide, index, playKey, reduced }: VariantProps) => {
         <span
           ref={titleRef}
           data-qa="bakeoff-title"
-          className="mt-2 block uppercase"
+          className="mt-3 block uppercase"
           style={{
             fontFamily: DISPLAY,
             color: IVORY,
-            fontSize: "26px",
+            fontSize: "34px",
             lineHeight: 1.05,
             letterSpacing: "0.03em",
           }}

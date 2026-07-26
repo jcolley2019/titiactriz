@@ -8,10 +8,16 @@ import { REEL_DEFAULT_FOCAL, DEFAULT_ZOOM, type Focal } from "@/hooks/useCinemat
  * The five variants are five different answers to ONE question: how does the
  * veil work? So everything that is NOT the veil is defined once, here, and
  * imported by all five. In particular the photo layer is written exactly once:
- * every variant paints its photo through the real `FramedImage` primitive in
- * letterbox ("fit") mode — the same call shape the live reel uses — so geometry
- * still resolves through `resolveHeroMediaStyle` and the parity law is never
- * bypassed for a mock.
+ * every variant paints its photo through the real `FramedImage` primitive, so
+ * geometry still resolves through `resolveHeroMediaStyle` and the parity law is
+ * never bypassed for a mock.
+ *
+ * CINE.FLOW.2-FIX — the photo is COVER ("fill"), not letterbox. On a phone the
+ * act is edge-to-edge: the photograph occupies the entire frame and the veil and
+ * type layer on top of it. Letterbox ("fit", which the live reel still uses)
+ * left bare ground inside the frame and made several variants argue against
+ * dark bands rather than against the photograph. Changing it here changes it for
+ * all five at once — that is the point of this file.
  *
  * Nothing in this folder is imported by any live surface.
  */
@@ -43,9 +49,11 @@ export const SANS = "var(--font-sans)";
 export const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
 /**
- * The photo layer. Identical pipeline to `CinematicReel`'s `SlideBg`, minus the
- * veil — `loading` is "eager" rather than "lazy" only so screenshot runs are
- * deterministic; that flag does not touch geometry.
+ * The photo layer. Same pipeline as `CinematicReel`'s `SlideBg` and the same
+ * resolver, but in cover mode: the source fills whatever box it is given and
+ * overflow is cropped about the focal point, so no variant ever shows ground
+ * inside the frame. `loading` is "eager" rather than "lazy" only so screenshot
+ * runs are deterministic; that flag does not touch geometry.
  */
 export const ReelPhoto = ({ slide }: { slide: BakeoffSlide }) => (
   <FramedImage
@@ -53,7 +61,7 @@ export const ReelPhoto = ({ slide }: { slide: BakeoffSlide }) => (
     alt={slide.photo?.alt_text ?? ""}
     focal={slide.focal ?? REEL_DEFAULT_FOCAL}
     zoom={slide.zoom ?? DEFAULT_ZOOM}
-    fit="fit"
+    fit="fill"
     imgDataQa="bakeoff-reel-img"
     loading="eager"
     fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}

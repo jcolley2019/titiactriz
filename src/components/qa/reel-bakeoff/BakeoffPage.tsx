@@ -34,8 +34,8 @@ import V5 from "./V5";
  * Keys — ←/→ variant · ↑/↓ slide · L language · R replay entrance.
  */
 
-const PHONE_W = 390;
-const PHONE_H = 844;
+const PHONE_W = 440;
+const PHONE_H = 956;
 
 const cinematicFontVars: React.CSSProperties = {
   ["--font-display" as string]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",
@@ -144,10 +144,18 @@ const BakeoffPage = () => {
 
       {/* The phone frame. */}
       <div className="flex min-h-screen items-center justify-center">
+        {/* The frame is outlined, not bordered: an outline sits outside the box
+            model, so the 440x956 composition the variants measure against stays
+            exactly 440x956. */}
         <div
           data-qa="bakeoff-phone"
           className="relative overflow-hidden"
-          style={{ width: PHONE_W, height: PHONE_H, backgroundColor: "#0b0a08" }}
+          style={{
+            width: PHONE_W,
+            height: PHONE_H,
+            backgroundColor: "#0b0a08",
+            outline: "1px solid rgba(201,165,92,0.25)",
+          }}
         >
           <Variant
             key={`${meta.id}-${si}-${lang}-${play}`}
