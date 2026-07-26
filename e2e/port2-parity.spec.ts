@@ -68,6 +68,18 @@ const REEL0_FRAMING: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fit" };
 const REEL_DEFAULT_FRAMING: Framing = { scale: 1, posX: 50, posY: 50, fit: "fit" };
 const ABOUT_FRAMING: Framing = { scale: 1.15, posX: 50, posY: 35, fit: "fill" };
 
+/**
+ * CINE.FLOW.3 — the reel act has TWO true renderings, split at the 768px phone
+ * breakpoint (src/components/cinematic/reelSpotlight.ts): cover below it (the
+ * spotlight act, edge-to-edge), letterbox at and above it (the gallery act).
+ * Framing is otherwise identical, so the phone expectations are the wide ones
+ * with `fit` flipped — and the law is unchanged in substance: whatever a
+ * surface predicts, it must paint, and the editor tab for a device class must
+ * equal what that device class publishes.
+ */
+const asPhone = (f: Framing): Framing => ({ ...f, fit: "fill" });
+const PHONE_TAB = "iphone-17-pro";
+
 const attrPrefix = (f: Framing) =>
   `${f.scale.toFixed(2)};${f.posX.toFixed(0)};${f.posY.toFixed(0)};${f.fit};`;
 
@@ -194,11 +206,12 @@ async function openAdminMedia(page: Page) {
 }
 
 test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
-  test("a+b — live reel slides paint the whole photo at natural aspect", async ({ page }) => {
+  test("a+b — live reel slides: letterboxed wide, cover on a phone", async ({ page }) => {
     for (const vp of [
-      { name: "1440x900", width: 1440, height: 900 },
-      { name: "390x844", width: 390, height: 844 },
+      { name: "1440x900", width: 1440, height: 900, phone: false },
+      { name: "390x844", width: 390, height: 844, phone: true },
     ]) {
+      const expected = (f: Framing) => (vp.phone ? asPhone(f) : f);
       await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto(CINE, { waitUntil: "domcontentloaded" });
@@ -208,12 +221,12 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await framingReady(reel.first());
 
       // Slide 0 carries the panned fixture; slides 1-2 the reel default.
-      await assertParity(await measure(reel.nth(0)), REEL0_FRAMING, `reel[0] @${vp.name}`);
+      await assertParity(await measure(reel.nth(0)), expected(REEL0_FRAMING), `reel[0] @${vp.name}`);
       for (const i of [1, 2]) {
         await framingReady(reel.nth(i));
         await assertParity(
           await measure(reel.nth(i)),
-          REEL_DEFAULT_FRAMING,
+          expected(REEL_DEFAULT_FRAMING),
           `reel[${i}] @${vp.name}`,
         );
       }
@@ -231,7 +244,7 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
     await assertParity(await measure(hero), HERO_FRAMING, "hero @1440x900 (reduced)");
   });
 
-  test("a+b — editor canvas per device tab (reel fit + hero fill)", async ({ page }) => {
+  test("a+b — editor canvas per device tab (reel fit wide / cover on phone, hero fill)", async ({ page }) => {
     await openAdminMedia(page);
 
     // Reel-0 image editor across all three tabs.
@@ -244,7 +257,12 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await page.locator(`[data-qa="media-device-${tab}"]`).click();
       await page.waitForTimeout(400);
       await framingReady(canvas.first());
-      await assertParity(await measure(canvas), REEL0_FRAMING, `editor reel-0 ${tab} tab`);
+      // The phone tab must show what a phone publishes — cover, not letterbox.
+      await assertParity(
+        await measure(canvas),
+        tab === PHONE_TAB ? asPhone(REEL0_FRAMING) : REEL0_FRAMING,
+        `editor reel-0 ${tab} tab`,
+      );
     }
     await page.locator('[data-qa="media-editor-cancel"]').click();
     await expect(page.locator('[data-qa="media-editor-surface"]')).toHaveCount(0);

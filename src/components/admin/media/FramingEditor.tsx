@@ -14,7 +14,7 @@ import SectionPreview from "./SectionPreview";
 import { resolveHeroGeometry } from "@/lib/hero-framing";
 import { decodeImage, cropErrorCauseKey } from "@/lib/crop";
 import { probeVideoSize } from "@/lib/hero-video";
-import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect } from "@/lib/device-presets";
+import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect, resolveDevicePreset } from "@/lib/device-presets";
 import {
   MIN_ZOOM,
   MAX_ZOOM,
@@ -361,6 +361,7 @@ const FramingEditor = ({
                     fit={isVideo ? (tabFraming as { fit?: FitMode }).fit : undefined}
                     reelTitle={reelTitle}
                     aspect={a}
+                    deviceWidth={d.width}
                     videoSrc={tabSrc}
                     poster={poster}
                   />
@@ -403,6 +404,7 @@ const FramingEditor = ({
                 fit={isVideo ? vCur.fit : undefined}
                 reelTitle={reelTitle}
                 aspect={aspect}
+                deviceWidth={resolveDevicePreset(deviceId).width}
                 videoSrc={displayedSrc}
                 poster={poster}
               />
