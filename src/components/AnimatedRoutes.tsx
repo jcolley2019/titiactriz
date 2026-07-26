@@ -17,6 +17,11 @@ const Events = lazy(() => import("@/pages/Events"));
 const Studio = lazy(() => import("@/pages/Studio"));
 const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
 
+// CINE.FLOW.2 — QA-only bake-off harness. Registered below under
+// `import.meta.env.DEV` only, absent from the nav and public/sitemap.xml, and
+// noindex'd by the page itself. Never reachable in a production build.
+const QaReelBakeoff = lazy(() => import("@/components/qa/reel-bakeoff/BakeoffPage"));
+
 const RouteFallback = () => (
   <div
     className="min-h-[60vh] flex items-center justify-center"
@@ -119,6 +124,16 @@ const AnimatedRoutes = () => {
             </Suspense>
           }
         />
+        {import.meta.env.DEV && (
+          <Route
+            path="/qa/reel-bakeoff"
+            element={
+              <Suspense fallback={<RouteFallback />}>
+                <QaReelBakeoff />
+              </Suspense>
+            }
+          />
+        )}
         <Route
           path="/.lovable/oauth/consent"
           element={
