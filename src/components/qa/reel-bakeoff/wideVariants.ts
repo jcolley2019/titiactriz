@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { BakeoffSlide } from "./shared";
 import W1 from "./W1";
+import W2 from "./W2";
 
 /**
  * CINE.FLOW.4A — the wide bake-off contract and registry.
@@ -49,5 +50,13 @@ export const WIDE_VARIANTS: WideVariantEntry[] = [
       thesis: "The photograph as exhibited object, right of centre; the lockup owns the bare left gutter.",
     },
     component: W1,
+  },
+  {
+    meta: {
+      id: "w2",
+      name: "Center Plate & Rules",
+      thesis: "The gallery reading — a centred plate between two gold hairlines, the lockup as caption beneath.",
+    },
+    component: W2,
   },
 ];
