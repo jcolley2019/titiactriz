@@ -4,6 +4,15 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
 import type { CinematicPhoto } from "./useCinematicData";
 import { REEL_DEFAULT_FOCAL, DEFAULT_ZOOM, type Focal } from "@/hooks/useCinematicMedia";
+import {
+  GOLD,
+  IVORY,
+  WIDE_VEIL,
+  reelSlideFit,
+  spotlightCentre,
+  spotlightVeil,
+  useReelIsPhone,
+} from "./reelSpotlight";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -19,24 +28,102 @@ type Props = { slides: ReelSlide[]; reduced: boolean };
 
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
+const SlidePhoto = ({ slide, phone }: { slide: ReelSlide; phone: boolean }) => (
+  <FramedImage
+    src={slide.photo?.image_url}
+    alt={slide.photo?.alt_text ?? ""}
+    focal={slide.focal ?? REEL_DEFAULT_FOCAL}
+    zoom={slide.zoom ?? DEFAULT_ZOOM}
+    fit={reelSlideFit(phone)}
+    imgDataQa="cinematic-reel-img"
+    loading="lazy"
+    fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
+  />
+);
+
 const SlideBg = ({ slide }: { slide: ReelSlide }) => (
   <>
-    <FramedImage
-      src={slide.photo?.image_url}
-      alt={slide.photo?.alt_text ?? ""}
-      focal={slide.focal ?? REEL_DEFAULT_FOCAL}
-      zoom={slide.zoom ?? DEFAULT_ZOOM}
-      fit="fit"
-      imgDataQa="cinematic-reel-img"
-      loading="lazy"
-      fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
-    />
-    <div
-      className="absolute inset-0"
-      style={{ background: "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))" }}
-    />
+    <SlidePhoto slide={slide} phone={false} />
+    <div className="absolute inset-0" style={{ background: WIDE_VEIL }} />
   </>
 );
+
+/**
+ * CINE.FLOW.3 — the phone act. Photograph edge-to-edge, a focal-anchored
+ * spotlight over the subject, and the lockup bound as one object at the foot of
+ * the frame: a 22px gold numeral between two rules, sitting a step BELOW the
+ * 26px title so the title is what gets read and the numeral only says where you
+ * are in the reel. Geometry and type sizes are V2B (7169686) verbatim.
+ */
+const PhoneSlide = ({
+  slide,
+  i,
+  veilRef,
+  labelRef,
+  titleRef,
+}: {
+  slide: ReelSlide;
+  i: number;
+  veilRef?: (el: HTMLDivElement | null) => void;
+  labelRef?: (el: HTMLDivElement | null) => void;
+  titleRef?: (el: HTMLSpanElement | null) => void;
+}) => {
+  const centre = spotlightCentre(slide.focal);
+  return (
+    <>
+      <div className="absolute inset-0">
+        <SlidePhoto slide={slide} phone />
+      </div>
+
+      {/* The beam opens about its own centre, so the aim survives the entrance. */}
+      <div
+        ref={veilRef}
+        className="absolute inset-0"
+        style={{
+          background: spotlightVeil(centre),
+          transformOrigin: `${centre.x}% ${centre.y}%`,
+        }}
+      />
+
+      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center px-6 pb-16 text-center">
+        <div ref={labelRef} className="mb-2.5 flex items-center gap-3">
+          <span aria-hidden className="block h-px w-7" style={{ backgroundColor: GOLD }} />
+          <span
+            aria-hidden
+            className="block leading-none"
+            style={{
+              fontFamily: "var(--font-display)",
+              color: GOLD,
+              fontSize: "22px",
+              letterSpacing: "0.12em",
+              // Tracking adds trailing space after the last glyph, which drags
+              // the numeral left of true centre between the two rules. Indent
+              // by the same amount to put it back optically.
+              textIndent: "0.12em",
+            }}
+          >
+            {numeral(i)}
+          </span>
+          <span aria-hidden className="block h-px w-10" style={{ backgroundColor: GOLD }} />
+        </div>
+        <span
+          ref={titleRef}
+          data-qa="section-heading"
+          className="block uppercase"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: IVORY,
+            fontSize: "26px",
+            lineHeight: 1.1,
+            letterSpacing: "0.06em",
+          }}
+        >
+          {slide.title}
+        </span>
+      </div>
+    </>
+  );
+};
 
 const SlideContent = ({
   i,
@@ -79,14 +166,30 @@ const SlideContent = ({
  * TA.2 pinned reel — three "featured" slides (gallery photos 2–4; the hero
  * owns photo 1, so the reel never repeats it). Under motion,
  * the stage is pinned for ~300vh and scrubbed: each slide's photo crossfades in
- * while an oversized 01/02/03 numeral and its title line animate up. Under
- * reduced motion the three slides simply stack, static.
+ * while the type animates up. Under reduced motion the three slides simply
+ * stack, static.
+ *
+ * CINE.FLOW.3 — the act has two compositions, split at the phone breakpoint
+ * (see ./reelSpotlight, which owns that line and both veils):
+ *
+ *  - PHONE: the CINE.FLOW.2 "Spotlight" — cover photography under a radial veil
+ *    anchored to the slide's own focal point, with the V2B lockup at the foot.
+ *    This is what retires the flat 0.5 → 0.8 wash DESIGN.md recorded as an open
+ *    violation; the beam's darkest stop is 0.35, inside the mandated band.
+ *  - WIDE: untouched — letterboxed photo, flat wash, centred oversized numeral
+ *    over its title. The reel keeps its gallery character above the fold line.
+ *
+ * The scrub grammar is shared: whichever composition is mounted, slide N's
+ * elements enter on the same segment of the same pinned timeline.
  */
 const CinematicReel = ({ slides, reduced }: Props) => {
+  const phone = useReelIsPhone();
   const sectionRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const veilRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -108,18 +211,43 @@ const CinematicReel = ({ slides, reduced }: Props) => {
       for (let i = 1; i < els.length; i++) {
         tl.to(els[i - 1], { opacity: 0, duration: 0.5 }, i);
         tl.to(els[i], { opacity: 1, duration: 0.5 }, i);
-        tl.fromTo(
-          titleRefs.current[i],
-          { yPercent: 45 },
-          { yPercent: 0, duration: 0.5 },
-          i,
-        );
+
+        if (phone) {
+          // V2's entrance, scrubbed instead of played: the beam opens first and
+          // the type settles under it. Same properties and easing as the
+          // bake-off, mapped onto this slide's segment of the pinned timeline.
+          tl.fromTo(
+            veilRefs.current[i],
+            { scale: 1.06, opacity: 0.6 },
+            { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+            i,
+          );
+          tl.fromTo(
+            labelRefs.current[i],
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+            i + 0.12,
+          );
+          tl.fromTo(
+            titleRefs.current[i],
+            { y: 14, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+            i + 0.15,
+          );
+        } else {
+          tl.fromTo(
+            titleRefs.current[i],
+            { yPercent: 45 },
+            { yPercent: 0, duration: 0.5 },
+            i,
+          );
+        }
       }
       tl.to({}, { duration: 0.5 }); // dwell on the final slide before release
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [reduced, slides.length]);
+  }, [reduced, slides.length, phone]);
 
   // Reduced motion: static stacked slides, no pinning/scrubbing.
   if (reduced) {
@@ -130,10 +258,16 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             key={i}
             className="relative flex min-h-[70svh] items-center justify-center overflow-hidden"
           >
-            <div className="absolute inset-0">
-              <SlideBg slide={s} />
-            </div>
-            <SlideContent i={i} title={s.title} />
+            {phone ? (
+              <PhoneSlide slide={s} i={i} />
+            ) : (
+              <>
+                <div className="absolute inset-0">
+                  <SlideBg slide={s} />
+                </div>
+                <SlideContent i={i} title={s.title} />
+              </>
+            )}
           </div>
         ))}
       </section>
@@ -150,14 +284,26 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             className="absolute inset-0"
             style={{ opacity: i === 0 ? 1 : 0 }}
           >
-            <div className="absolute inset-0">
-              <SlideBg slide={s} />
-            </div>
-            <SlideContent
-              i={i}
-              title={s.title}
-              titleRef={(el) => (titleRefs.current[i] = el)}
-            />
+            {phone ? (
+              <PhoneSlide
+                slide={s}
+                i={i}
+                veilRef={(el) => (veilRefs.current[i] = el)}
+                labelRef={(el) => (labelRefs.current[i] = el)}
+                titleRef={(el) => (titleRefs.current[i] = el)}
+              />
+            ) : (
+              <>
+                <div className="absolute inset-0">
+                  <SlideBg slide={s} />
+                </div>
+                <SlideContent
+                  i={i}
+                  title={s.title}
+                  titleRef={(el) => (titleRefs.current[i] = el)}
+                />
+              </>
+            )}
           </div>
         ))}
       </div>
