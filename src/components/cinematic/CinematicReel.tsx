@@ -52,8 +52,11 @@ const SlideBg = ({ slide }: { slide: ReelSlide }) => (
  * CINE.FLOW.3 — the phone act. Photograph edge-to-edge, a focal-anchored
  * spotlight over the subject, and the lockup bound as one object at the foot of
  * the frame: a 22px gold numeral between two rules, sitting a step BELOW the
- * 26px title so the title is what gets read and the numeral only says where you
- * are in the reel. Geometry and type sizes are V2B (7169686) verbatim.
+ * title so the title is what gets read and the numeral only says where you are
+ * in the reel. Geometry is V2B (7169686) verbatim; the title is 28px — V2B's
+ * 26px snapped onto the DESIGN.md Headline floor (`clamp(1.75rem, …)`), which
+ * is the ramp step it was already sitting next to — and held there by a clamp
+ * so the narrowest phones shrink instead of wrapping.
  */
 const PhoneSlide = ({
   slide,
@@ -85,7 +88,10 @@ const PhoneSlide = ({
         }}
       />
 
-      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center px-6 pb-16 text-center">
+      <div
+        data-qa="reel-spotlight"
+        className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center px-6 pb-16 text-center"
+      >
         <div ref={labelRef} className="mb-2.5 flex items-center gap-3">
           <span aria-hidden className="block h-px w-7" style={{ backgroundColor: GOLD }} />
           <span
@@ -113,7 +119,11 @@ const PhoneSlide = ({
           style={{
             fontFamily: "var(--font-display)",
             color: IVORY,
-            fontSize: "26px",
+            // 28px — the DESIGN.md Headline floor — on every phone the editor
+            // models (375 and up). Bounded rather than flat because the longest
+            // title fills the frame exactly at 360 (Galaxy S26): a flat 28px
+            // wraps it to two lines and the lockup stops reading as one mark.
+            fontSize: "clamp(1.5rem, 7.2vw, 1.75rem)",
             lineHeight: 1.1,
             letterSpacing: "0.06em",
           }}

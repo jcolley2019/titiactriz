@@ -47,7 +47,7 @@ import {
  * CINE.FLOW.2-V2A/B — the numeral began as an 11px tracked sans caption and read
  * as incidental. It moved to the display face (caption tracking removed) and
  * through 34px, which overshot: at that size it competed with the title for the
- * role of subject. It settles at 22px — deliberately a step BELOW the 26px title
+ * role of subject. It settles at 22px — deliberately a step BELOW the title
  * — so the title is what the visitor reads and the numeral is what tells them
  * where they are in the reel. Flanking rules track the mark down with it
  * (40px → 28px), and the gap under the lockup halves (20px → 10px) so numeral,
@@ -141,7 +141,7 @@ const V2 = ({ slide, index, playKey, reduced }: VariantProps) => {
           style={{
             fontFamily: DISPLAY,
             color: IVORY,
-            fontSize: "26px",
+            fontSize: "28px",
             lineHeight: 1.1,
             letterSpacing: "0.06em",
           }}

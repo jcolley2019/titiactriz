@@ -168,6 +168,59 @@ test.describe("cinematic — mobile", () => {
   });
 });
 
+/* ---------- CINE.FLOW.3: the phone/wide reel split holds ---------- */
+test.describe("cinematic — reel composition split", () => {
+  /**
+   * The Spotlight lockup belongs to phones ONLY. This is the guard against it
+   * leaking upward: at 1440 the reel must carry the wide act — no spotlight
+   * element anywhere in the section, a letterboxed photo, and the oversized
+   * centred numeral — while 390 must carry exactly one lockup per slide over a
+   * cover photo. Both halves are asserted so a split that inverts fails too.
+   */
+  const SPOTLIGHT = '[data-qa="reel-spotlight"]';
+
+  for (const vp of [
+    { name: "desktop 1440", width: 1440, height: 900, phone: false },
+    { name: "phone 390", width: 390, height: 844, phone: true },
+  ]) {
+    test(`${vp.name} renders ${vp.phone ? "the Spotlight act" : "the wide act, no spotlight lockup"}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(PATH, { waitUntil: "domcontentloaded" });
+      await settle(page, 700);
+
+      const reel = page
+        .locator('[data-qa="cinematic-section"]')
+        .filter({ has: page.locator('[data-qa="cinematic-reel-img"]') })
+        .first();
+      await expect(reel).toBeAttached();
+
+      await expect(
+        reel.locator(SPOTLIGHT),
+        vp.phone ? "one spotlight lockup per slide" : "no spotlight lockup above the breakpoint",
+      ).toHaveCount(vp.phone ? 3 : 0);
+
+      const framing = await reel
+        .locator('[data-qa="cinematic-reel-img"]')
+        .first()
+        .getAttribute("data-hero-framing");
+      expect(framing, `${vp.name}: photo fit`).toContain(vp.phone ? ";fill;" : ";fit;");
+
+      // The wide act's oversized numeral is clamp(4.5rem, 20vw, 15rem) → 240px
+      // at 1440; the phone act has no element anywhere near that size.
+      const numeralPx = await reel.locator("span[aria-hidden]").first().evaluate(
+        (el) => parseFloat(getComputedStyle(el).fontSize),
+      );
+      if (vp.phone) {
+        expect(numeralPx, "phone numeral stays a caption-scale mark").toBeLessThan(40);
+      } else {
+        expect(numeralPx, "wide numeral stays display-scale").toBeGreaterThan(100);
+      }
+    });
+  }
+});
+
 test.describe("cinematic — reduced motion", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 

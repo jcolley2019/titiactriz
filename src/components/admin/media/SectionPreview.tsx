@@ -136,7 +136,7 @@ const SectionPreview = ({
         // CINE.FLOW.3 phone act: focal-anchored beam + the V2B lockup at the
         // foot. Sizes are the live composition's px expressed in container
         // units against a ~402cqw phone frame, so the scaled preview keeps the
-        // live proportions (22px numeral under a 26px title, bound as one mark).
+        // live proportions (22px numeral under a 28px title, bound as one mark).
         <>
           <div
             className="absolute inset-0"
@@ -170,7 +170,7 @@ const SectionPreview = ({
                 style={{
                   fontFamily: DISPLAY,
                   color: IVORY,
-                  fontSize: "6.5cqw",
+                  fontSize: "7cqw",
                   lineHeight: 1.1,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
