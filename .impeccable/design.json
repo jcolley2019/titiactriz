@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-25",
+  "title": "Design System: Titiactriz",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Warm Near-Black",
+        "canonical": "#0b0a08",
+        "tonalRamp": ["#0b0a08", "#181613", "#26221d", "#353029", "#4a4339", "#6b6154", "#9a8f7e", "#d6cec0"]
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Filament Gold",
+        "canonical": "#C9A55C",
+        "tonalRamp": ["#241b0f", "#3d2f1b", "#574327", "#725834", "#8d6e42", "#a98650", "#c9a55c", "#e6d2a3"]
+      },
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Warm Ivory",
+        "canonical": "#f4ecdb",
+        "tonalRamp": ["#2a251b", "#443c2c", "#5f543e", "#7c6e52", "#9c8c6b", "#bfae89", "#dcd0b3", "#f4ecdb"]
+      },
+      "ivory-dim": {
+        "role": "neutral",
+        "displayName": "Dimmed Ivory",
+        "canonical": "#f0e9da",
+        "tonalRamp": ["#282318", "#413a29", "#5b513a", "#786b4e", "#988966", "#bbab84", "#d9cdaf", "#f0e9da"]
+      },
+      "admin-charcoal": {
+        "role": "neutral",
+        "displayName": "Legacy Charcoal (admin-exempt, not normative)",
+        "canonical": "#121212",
+        "tonalRamp": ["#121212", "#1e1e1e", "#2b2b2b", "#3d3d3d", "#585858", "#7d7d7d", "#a8a8a8", "#d8d8d8"]
+      },
+      "admin-tan": {
+        "role": "primary",
+        "displayName": "Legacy Tan (admin-exempt, not normative)",
+        "canonical": "#C4A86C",
+        "tonalRamp": ["#231d12", "#3b311e", "#54462b", "#6f5c39", "#8b7448", "#a78e58", "#c4a86c", "#e0cfa4"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero wordmark only. Cinzel full caps at clamp(2.75rem, 11vw, 9rem), leading 0.92 so the lines lock together as a mass. Split into an ivory block over a gold block, revealed per-letter by GSAP."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Act titles such as the About heading. Display family at sentence-scale leading."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Supporting paragraphs and the hero subtitle. Jost Light, generously leaded, deliberately quiet under the serif."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "The .text-caps utility. Gold eyebrows above headings, CTA text at 0.2em tracking, and scroll cues at 0.625rem / 0.3em tracking."
+      }
+    },
+    "veils": [
+      {
+        "name": "hero-veil",
+        "value": "linear-gradient(180deg, rgba(11,10,8,0.72) 0%, rgba(11,10,8,0.42) 38%, rgba(11,10,8,0.60) 72%, rgba(11,10,8,0.92) 100%)",
+        "purpose": "Opens at the middle so her face stays lit; closes hard at the bottom edge to hand off to the next act."
+      },
+      {
+        "name": "titans-veil",
+        "value": "linear-gradient(180deg, rgba(11,10,8,0.28) 0%, rgba(11,10,8,0) 32%, rgba(11,10,8,0.35) 60%, rgba(11,10,8,0.9) 100%)",
+        "purpose": "Fully transparent through the upper third; all suppression lives in the lower third where the type sits."
+      },
+      {
+        "name": "reel-veil-CURRENT-VIOLATION",
+        "value": "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))",
+        "purpose": "KNOWN VIOLATION at CinematicReel.tsx:36. A flat undirected wash inside the banned 50-80% range and outside the mandated 0.15-0.35. Owed to CINE.FLOW; recorded, not sanctioned."
+      }
+    ],
+    "shadows": [],
+    "motion": [
+      { "name": "power3.out", "value": "gsap power3.out", "purpose": "Default entrance. Heavy deceleration into rest; the dominant curve in the cinematic layer." },
+      { "name": "power3.inOut", "value": "gsap power3.inOut", "purpose": "Symmetric reveals such as the Green World curtains parting from the centreline." },
+      { "name": "power2.out", "value": "gsap power2.out", "purpose": "Smaller lifts and secondary element entrances." },
+      { "name": "none", "value": "gsap none (linear)", "purpose": "Scroll-scrubbed parallax. Travel must map linearly to scroll position or the pin feels rubbery." },
+      { "name": "duration-standard", "value": "0.5s - 0.9s", "purpose": "The cinematic duration band. Stagger between siblings is 0.12s." },
+      { "name": "hover-lift", "value": "transform 300ms, translateY(-2px)", "purpose": "The only CTA hover treatment. No fill change, no scale, no glow." },
+      { "name": "BANNED-bounce", "value": "cubic-bezier(0.34, 1.56, 0.64, 1)", "purpose": "Prohibited on cinematic surfaces (control point exceeds 1). Exists as --transition-bounce at src/index.css:84 in the admin-exempt layer; under review pending CINE.FLOW." }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "480px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Ghost CTA",
+      "kind": "button",
+      "refersTo": "cta-ghost",
+      "description": "The only button on a cinematic surface. The gold outline is the emphasis; there is no filled variant.",
+      "html": "<a class=\"ds-cta-ghost\" href=\"#\">VER SU TRABAJO <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-cta-ghost { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #f4ecdb; border: 1px solid #C9A55C; border-radius: 0; padding: 0.75rem 1.75rem; font-family: Jost, Outfit, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; transition: transform 300ms; } .ds-cta-ghost:hover { transform: translateY(-2px); } .ds-cta-ghost:focus-visible { outline: 1px solid #C9A55C; outline-offset: 3px; }"
+    },
+    {
+      "name": "Gold Eyebrow",
+      "kind": "custom",
+      "refersTo": "eyebrow",
+      "description": "The .text-caps label in gold that precedes an act heading.",
+      "html": "<p class=\"ds-eyebrow\">SOBRE ELLA</p>",
+      "css": ".ds-eyebrow { color: #C9A55C; font-family: Jost, Outfit, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.25em; text-transform: uppercase; margin: 0 0 2rem 0; }"
+    },
+    {
+      "name": "About Panel",
+      "kind": "card",
+      "description": "The nearest thing to a card in the system: a 3:4 framed media container with a gold inset OUTLINE (never a border, which would change the measured box and break framing parity). No background of its own, no shadow, no radius.",
+      "html": "<div class=\"ds-about-panel\"><div class=\"ds-about-panel-media\"></div></div>",
+      "css": ".ds-about-panel { position: relative; width: 100%; max-width: 400px; aspect-ratio: 3 / 4; outline: 1px solid rgba(201, 165, 92, 0.4); outline-offset: -1px; } .ds-about-panel-media { position: absolute; inset: 0; background: linear-gradient(160deg, #2b2620, #0b0a08); }"
+    },
+    {
+      "name": "Scroll Cue",
+      "kind": "nav",
+      "description": "In-act navigation. A tracked label above a 40px vertical gold rule that fades to transparent and pulses on a 2s loop. Disabled under prefers-reduced-motion.",
+      "html": "<div class=\"ds-scrollcue\"><span>DESLIZA</span><span class=\"ds-scrollcue-line\"></span></div>",
+      "css": ".ds-scrollcue { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: rgba(240, 233, 218, 0.6); font-family: Jost, Outfit, system-ui, sans-serif; font-size: 0.625rem; font-weight: 500; letter-spacing: 0.3em; text-transform: uppercase; } .ds-scrollcue-line { display: block; width: 1px; height: 40px; background: linear-gradient(to bottom, rgba(201,165,92,0.8), transparent); animation: ds-scrollcue-pulse 2s ease-in-out infinite; } @keyframes ds-scrollcue-pulse { 0%, 100% { opacity: 0.35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(4px); } } @media (prefers-reduced-motion: reduce) { .ds-scrollcue-line { animation: none; } }"
+    },
+    {
+      "name": "Act (full-bleed stage)",
+      "kind": "custom",
+      "description": "The recurring unit of the system: a viewport-true stage holding one photograph at near-full brightness, a directional veil, a gold eyebrow, a display heading in warm ivory, and at most one ghost CTA. Acts advance; they do not stack.",
+      "html": "<section class=\"ds-act\"><div class=\"ds-act-media\"></div><div class=\"ds-act-veil\"></div><div class=\"ds-act-body\"><p class=\"ds-act-eyebrow\">ACTO I</p><h1 class=\"ds-act-title\">CRISTYNA</h1></div></section>",
+      "css": ".ds-act { position: relative; width: 100%; min-height: 320px; overflow: hidden; background: #0b0a08; padding: 6rem 1.5rem 4rem; display: flex; align-items: center; justify-content: center; text-align: center; } .ds-act-media { position: absolute; inset: 0; background: linear-gradient(140deg, #6b6154, #26221d 60%, #0b0a08); } .ds-act-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,10,8,0.72) 0%, rgba(11,10,8,0.42) 38%, rgba(11,10,8,0.60) 72%, rgba(11,10,8,0.92) 100%); } .ds-act-body { position: relative; } .ds-act-eyebrow { color: #C9A55C; font-family: Jost, Outfit, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.25em; text-transform: uppercase; margin: 0 0 1rem 0; } .ds-act-title { color: #f4ecdb; font-family: Cinzel, 'Cormorant Garamond', Georgia, serif; font-size: clamp(2.75rem, 11vw, 9rem); font-weight: 400; line-height: 0.92; letter-spacing: 0.05em; text-transform: uppercase; margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Luminous Veil",
+    "overview": "The photograph is the light source. The ground is not a backdrop the image sits on - it is what the image burns through. Every cinematic surface is a warm near-black room (#0b0a08) into which a single photograph of her is admitted at near-full brightness, and the veil laid over it is the thinnest film that still lets type survive. A veil is not a lid. The moment the veil is doing the work instead of the photograph, the world has failed.\n\nOne filament of metallic gold (#C9A55C) lights the room. It is a hairline, an eyebrow, a letterform, a rule - never a fill, never a glow orb, never a gradient wash. Its scarcity is what makes it read as gold rather than as yellow. Type carries its own luminosity rather than borrowing a plate to sit on: warm ivory (#f4ecdb) against the dark, glowing slightly, unboxed.\n\nThe format is theatrical. Surfaces advance as acts - full-bleed, viewport-true stages that occupy the whole screen and hand off to the next. Nothing is a card in a scroll; everything is a frame in a reel. Motion is heavy and decelerating (power3.out), never springy, never bouncing: real mass coming to rest. The interface recedes so the artifact leads.",
+    "keyCharacteristics": [
+      "Warm near-black ground; never pure #000, never a cool OLED black",
+      "A single gold filament, used as line and letter rather than as surface",
+      "Serif display in full caps, tight leading, at genuinely architectural scale",
+      "Photography at near-full brightness under a 0.15-0.35 veil",
+      "Full-bleed viewport-true acts, not a card scroll",
+      "Square corners on cinematic surfaces; no pills, no bezels, no glass",
+      "Decelerating GSAP motion; scrubbed parallax is linear, never eased",
+      "Spanish and English at exact parity on every surface"
+    ],
+    "rules": [
+      { "name": "The One Filament Rule", "body": "Exactly one accent lights the room. Gold appears as line, letter, or rule - never as a filled surface, never as a second accent alongside it, and never blended into another hue. If a screen reads as 'gold themed' rather than as dark with a gold detail, there is too much of it.", "section": "colors" },
+      { "name": "The Warm Dark Rule", "body": "The ground is #0b0a08 and its veils are rgba(11,10,8,a). Pure #000 and cool blue-blacks are both regressions: the warmth is what lets her skin tones sit in the frame without going waxy.", "section": "colors" },
+      { "name": "The Two Systems Rule", "body": "The cinematic palette is normative for everything a visitor sees. /admin and the shadcn internals are explicitly exempt and may keep the legacy :root tokens. Any appearance of #121212 or #C4A86C on a public surface is drift, not a choice.", "section": "colors" },
+      { "name": "The Unboxed Type Rule", "body": "Type earns legibility from its own weight, color, and the veil beneath it - never from a plate, chip, or panel drawn behind it. If text needs a box to be readable, the veil is wrong, not the type.", "section": "typography" },
+      { "name": "The Parity Rule", "body": "Every string ships in Spanish and English. ES and EN locale files are held at exact key parity (622 / 622 today). Spanish is primary; English is parity, not a follow-up.", "section": "typography" },
+      { "name": "The Full-Bleed Rule", "body": "Cinematic acts are edge-to-edge and viewport-true. A max-width container, a visible gutter, or a card boundary on an act is a regression - the frame is the viewport.", "section": "layout" },
+      { "name": "The Atmosphere-Not-Elevation Rule", "body": "Depth is made of light and distance, never of a drop shadow. Nothing on a cinematic surface floats above the ground plane.", "section": "elevation" },
+      { "name": "The Hard-Corner Rule", "body": "Radius on a cinematic surface is zero. Pills, squircles, rounded-[2rem] shells, and nested bezels are all foreign bodies here.", "section": "shapes" },
+      { "name": "The Dead-Stop Rule", "body": "Motion decelerates into place and stops. Nothing overshoots, springs back, or bounces. If a curve's control points exceed 1, it does not belong on a cinematic surface.", "section": "motion" }
+    ],
+    "dos": [
+      "Do paint #0b0a08 behind every media container, so a sub-cover scale reveals brand-dark edges instead of transparency.",
+      "Do route every hero-media surface through resolveHeroMediaStyle. Test: an editor preview and the published page must produce identical data-hero-framing strings.",
+      "Do use outline with a negative outline-offset for hairlines on framed media, never border - a border changes the measured box and breaks framing parity.",
+      "Do keep dvh on unpinned acts and svh on pinned stages. Test: collapse the mobile URL bar mid-scrub; a pinned stage must not jump.",
+      "Do let the veil be directional - open where the photograph carries the frame, heavier only where type actually lands.",
+      "Do ship every string in ES and EN at the same time. Test: locale key counts stay equal.",
+      "Do decelerate into rest with power3.out, and use ease: 'none' for scroll-scrubbed travel so motion tracks the scrollbar exactly.",
+      "Do keep gold to lines, letters, and rules. Test: if you can point at a gold area, reduce it."
+    ],
+    "donts": [
+      "No remote placeholder images of any kind (picsum.photos explicitly banned)",
+      "No copy rewrites: names, numbers, venture claims, and titles are owner-provided",
+      "No cream/light ground, no purple/emerald glow orbs, no glassmorphism bezels or nested hardware chrome on cinematic surfaces",
+      "No font swaps outside an explicit brick",
+      "No flat heavy scrims (the 50-80% murk) over reel photography",
+      "Variance/dice-roll behavior banned outside designated bake-off generation prompts"
+    ]
+  }
+}
