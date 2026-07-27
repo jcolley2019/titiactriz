@@ -7,9 +7,9 @@ import type { FitMode, Focal } from "@/hooks/useCinematicMedia";
  * The reel now has TWO true renderings, and this module is what keeps them from
  * drifting apart:
  *
- *  - PHONE: the photograph covers the frame and a radial "spotlight" veil opens
- *    over the subject and closes to 0.35 at the corners. This is the CINE.FLOW.2
- *    bake-off's V2, confirmed as the direction.
+ *  - PHONE: the photograph covers the frame and carries NO veil at all. Type
+ *    legibility is bought locally instead, by a soft scrim confined to the
+ *    lockup's own zone at the foot of the frame (CINE.FLOW.4C).
  *  - WIDE (tablet and desktop): unchanged — the whole photo letterboxed on brand
  *    dark under the legacy flat wash, i.e. the reel's gallery character.
  *
@@ -82,13 +82,87 @@ export const spotlightCentre = (focal?: Focal) =>
   focal ? { x: focal.x * 100, y: focal.y * 100 } : SPOTLIGHT_FALLBACK_CENTRE;
 
 /**
- * The phone veil: a LENS, not a curtain — fully open over the subject, closing
- * radially to `0.35` at the corners where no photograph information lives.
- * Aiming it elsewhere never raises that ceiling, so it sits inside DESIGN.md's
- * mandated `0.15–0.35` band wherever the subject is.
+ * CINE.FLOW.4C — the phone act has NO veil over its photograph.
+ *
+ * The focal radial veil that used to sit here darkened the whole picture to buy
+ * legibility for four lines of type at the foot of the frame. The photograph now
+ * reads at full brightness — as bright as the unveiled regions of the wide W2
+ * plate — and the type buys its own contrast LOCALLY, from the three constants
+ * below.
+ *
+ * The scrim is a soft vertical gradient bound to the lockup's zone: transparent
+ * at its top edge, deepening to `rgba(0,0,0,0.55)` at the lockup's baseline,
+ * full frame width, and no hard stop anywhere. Its total height is the lockup's
+ * own box plus the feather and nothing more, so the photograph above it is
+ * untouched. This is NOT the wide act's full-frame wash.
  */
-export const spotlightVeil = (centre: { x: number; y: number }) =>
-  `radial-gradient(ellipse 76% 56% at ${centre.x}% ${centre.y}%, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 46%, rgba(11,10,8,0.20) 72%, rgba(11,10,8,0.35) 100%)`;
+
+/**
+ * The lockup's bottom-anchored box on a phone, in CSS px: `pb-16` (64) + the
+ * 22px numeral row + its 10px gap + the 28px title at line-height 1.1 (≈31).
+ */
+export const LOCKUP_BOX_PX = 128;
+
+/**
+ * The lockup's BASELINE, measured up from the foot of the frame: the `pb-16`
+ * gutter under the title. This is where the ramp arrives at its floor — below
+ * it the scrim simply holds, so the type never sits on a rising gradient.
+ */
+export const LOCKUP_BASELINE_PX = 64;
+
+/**
+ * The feather — the run over which the scrim rises out of nothing. The law is
+ * "at least 8vh"; 10 buys margin on the shortest phone the editor models.
+ */
+export const LOCKUP_SCRIM_FEATHER_VH = 10;
+
+/** The scrim's floor: how dark it ever gets, at and below the baseline. */
+export const LOCKUP_SCRIM_FLOOR = 0.55;
+
+/**
+ * The scrim ramp, in lengths measured down from the scrim's own top edge, so it
+ * stays anchored to the lockup rather than stretching with the frame:
+ *
+ *   0 → 8vh    the feather: still essentially clear at 8vh (0.09)
+ *   → baseline the ramp proper, arriving at 0.55 exactly at the lockup baseline
+ *   → 100%     held flat under the type's gutter
+ *
+ * Every step is under 0.13, so there is no edge to see anywhere along it.
+ *
+ * `unit` is the vertical unit the surface measures the feather in — `vh` on the
+ * live act, `cqh` inside the admin preview's sized container — and `px` is how
+ * that surface writes one of the live act's CSS pixels (itself, or the
+ * container-unit restatement the preview scales by).
+ */
+export const lockupScrim = (
+  unit: "vh" | "cqh" = "vh",
+  px: (n: number) => string = (n) => `${n}px`,
+) => {
+  const f = LOCKUP_SCRIM_FEATHER_VH;
+  const b = LOCKUP_BASELINE_PX;
+  return [
+    "linear-gradient(180deg",
+    "rgba(0,0,0,0) 0px",
+    `rgba(0,0,0,0.04) ${f * 0.4}${unit}`,
+    `rgba(0,0,0,0.09) ${f * 0.8}${unit}`,
+    `rgba(0,0,0,0.20) ${f}${unit}`,
+    `rgba(0,0,0,0.33) calc(${f}${unit} + ${px(b * 0.375)})`,
+    `rgba(0,0,0,0.45) calc(${f}${unit} + ${px(b * 0.6875)})`,
+    `rgba(0,0,0,${LOCKUP_SCRIM_FLOOR}) calc(${f}${unit} + ${px(b)})`,
+    `rgba(0,0,0,${LOCKUP_SCRIM_FLOOR}) 100%)`,
+  ].join(", ");
+};
+
+/**
+ * The phone frame the admin preview's container units are calibrated against
+ * (see SectionPreview). Lets the preview restate the px constants above as
+ * container units instead of re-deriving them by hand.
+ */
+export const PREVIEW_PHONE_REF_W = 402;
+
+/** A px constant from the live phone lockup, as the preview's container unit. */
+export const asPreviewCqw = (px: number) =>
+  `${((px / PREVIEW_PHONE_REF_W) * 100).toFixed(2)}cqw`;
 
 /**
  * The wide veil — the flat 0.5 → 0.8 wash the act has always carried above the

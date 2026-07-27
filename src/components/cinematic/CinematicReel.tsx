@@ -7,10 +7,11 @@ import { REEL_DEFAULT_FOCAL, DEFAULT_ZOOM, type Focal } from "@/hooks/useCinemat
 import {
   GOLD,
   IVORY,
+  LOCKUP_BOX_PX,
+  LOCKUP_SCRIM_FEATHER_VH,
   WIDE_VEIL,
+  lockupScrim,
   reelSlideFit,
-  spotlightCentre,
-  spotlightVeil,
   useReelIsPhone,
 } from "./reelSpotlight";
 
@@ -49,42 +50,43 @@ const SlideBg = ({ slide }: { slide: ReelSlide }) => (
 );
 
 /**
- * CINE.FLOW.3 — the phone act. Photograph edge-to-edge, a focal-anchored
- * spotlight over the subject, and the lockup bound as one object at the foot of
- * the frame: a 22px gold numeral between two rules, sitting a step BELOW the
- * title so the title is what gets read and the numeral only says where you are
- * in the reel. Geometry is V2B (7169686) verbatim; the title is 28px — V2B's
- * 26px snapped onto the DESIGN.md Headline floor (`clamp(1.75rem, …)`), which
- * is the ramp step it was already sitting next to — and held there by a clamp
- * so the narrowest phones shrink instead of wrapping.
+ * CINE.FLOW.3 — the phone act. Photograph edge-to-edge and the lockup bound as
+ * one object at the foot of the frame: a 22px gold numeral between two rules,
+ * sitting a step BELOW the title so the title is what gets read and the numeral
+ * only says where you are in the reel. Geometry is V2B (7169686) verbatim; the
+ * title is 28px — V2B's 26px snapped onto the DESIGN.md Headline floor
+ * (`clamp(1.75rem, …)`), which is the ramp step it was already sitting next to —
+ * and held there by a clamp so the narrowest phones shrink instead of wrapping.
+ *
+ * CINE.FLOW.4C — the photograph is UNVEILED. What used to be a focal radial
+ * beam over the whole picture is now a scrim confined to the lockup's own zone
+ * (see ./reelSpotlight): everything above it renders at full brightness.
  */
 const PhoneSlide = ({
   slide,
   i,
-  veilRef,
   labelRef,
   titleRef,
 }: {
   slide: ReelSlide;
   i: number;
-  veilRef?: (el: HTMLDivElement | null) => void;
   labelRef?: (el: HTMLDivElement | null) => void;
   titleRef?: (el: HTMLSpanElement | null) => void;
 }) => {
-  const centre = spotlightCentre(slide.focal);
   return (
     <>
       <div className="absolute inset-0">
         <SlidePhoto slide={slide} phone />
       </div>
 
-      {/* The beam opens about its own centre, so the aim survives the entrance. */}
+      {/* Local type scrim: above the photo, below the lockup, bound to its box. */}
       <div
-        ref={veilRef}
-        className="absolute inset-0"
+        data-qa="reel-lockup-scrim"
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0"
         style={{
-          background: spotlightVeil(centre),
-          transformOrigin: `${centre.x}% ${centre.y}%`,
+          height: `calc(${LOCKUP_BOX_PX}px + ${LOCKUP_SCRIM_FEATHER_VH}vh)`,
+          background: lockupScrim("vh"),
         }}
       />
 
@@ -182,10 +184,10 @@ const SlideContent = ({
  * CINE.FLOW.3 — the act has two compositions, split at the phone breakpoint
  * (see ./reelSpotlight, which owns that line and both veils):
  *
- *  - PHONE: the CINE.FLOW.2 "Spotlight" — cover photography under a radial veil
- *    anchored to the slide's own focal point, with the V2B lockup at the foot.
- *    This is what retires the flat 0.5 → 0.8 wash DESIGN.md recorded as an open
- *    violation; the beam's darkest stop is 0.35, inside the mandated band.
+ *  - PHONE: cover photography, UNVEILED, with the V2B lockup at the foot over a
+ *    scrim bound to the lockup's own zone (CINE.FLOW.4C). This is what retires
+ *    the flat 0.5 → 0.8 wash DESIGN.md recorded as an open violation; nothing
+ *    now darkens the photograph at all.
  *  - WIDE: untouched — letterboxed photo, flat wash, centred oversized numeral
  *    over its title. The reel keeps its gallery character above the fold line.
  *
@@ -198,7 +200,6 @@ const CinematicReel = ({ slides, reduced }: Props) => {
   const pinRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const veilRefs = useRef<(HTMLDivElement | null)[]>([]);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useLayoutEffect(() => {
@@ -223,15 +224,11 @@ const CinematicReel = ({ slides, reduced }: Props) => {
         tl.to(els[i], { opacity: 1, duration: 0.5 }, i);
 
         if (phone) {
-          // V2's entrance, scrubbed instead of played: the beam opens first and
-          // the type settles under it. Same properties and easing as the
-          // bake-off, mapped onto this slide's segment of the pinned timeline.
-          tl.fromTo(
-            veilRefs.current[i],
-            { scale: 1.06, opacity: 0.6 },
-            { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
-            i,
-          );
+          // V2's entrance, scrubbed instead of played, minus the beam it no
+          // longer has (CINE.FLOW.4C): the type settles in over the slide's own
+          // crossfade, which is what now carries the scrim on with it. Same
+          // properties, easing and marks as before for the two type tweens, so
+          // the segment's dead-stops and total duration are unchanged.
           tl.fromTo(
             labelRefs.current[i],
             { y: 10, opacity: 0 },
@@ -298,7 +295,6 @@ const CinematicReel = ({ slides, reduced }: Props) => {
               <PhoneSlide
                 slide={s}
                 i={i}
-                veilRef={(el) => (veilRefs.current[i] = el)}
                 labelRef={(el) => (labelRefs.current[i] = el)}
                 titleRef={(el) => (titleRefs.current[i] = el)}
               />
