@@ -3,21 +3,25 @@ import { forceLanguage } from "./_admin";
 import { shot } from "./_helpers";
 
 /**
- * CINE.FLOW.4C STEP 4 — evidence for the unveiled phone act.
+ * CINE.FLOW.5 STEP 5 — evidence for the promoted reel, on the SHIPPED page.
  *
- * Captures the SHIPPED phone rendering (the live cinematic route, not the
- * bake-off harness) at both phone frames the editor models, in both languages,
- * at the reel's first and third dead-stops: the photograph unveiled, and the
- * lockup reading off its own local scrim.
+ * This supersedes cineflow4c-phone.spec.ts, whose subject (the unveiled
+ * photograph under a lockup-bound scrim) no longer exists: V1's edge veil
+ * replaced it. The 4A/4B harness evidence specs are untouched — they photograph
+ * /qa/reel-bakeoff, which is frozen as a museum piece.
+ *
+ * Captures the live cinematic route across both promoted acts — V1 "Edge Veil"
+ * below 768 and W2 "Center Plate & Rules" at and above it — in both languages,
+ * at the reel's first and last dead-stops.
  *
  * A dead-stop is a scrub position where nothing is mid-tween. The reel's pinned
  * timeline runs 0..3 over 300vh — crossfades at marks 1 and 2, then a 0.5 dwell
  * — so slide 1 rests anywhere in [0, 1) and slide 3 from 2.53 (its title tween
  * ends) to 3.0. We drive to those positions by SCROLL rather than by touching
- * GSAP, so what is photographed is what a visitor's thumb produces, and we
- * confirm the stop by reading the slide opacities back before shooting.
+ * GSAP, so what is photographed is what a visitor's thumb or wheel produces, and
+ * we confirm the stop by reading the slide opacities back before shooting.
  *
- * Files: _qa/cineflow4c-<width>-<lang>-s<slide>.png (8 of them).
+ * Files: _qa/cineflow5-<width>-<lang>-s<slide>.png (24 of them).
  */
 
 const PATH = "/cinematic";
@@ -25,9 +29,16 @@ const PATH = "/cinematic";
 const FRAMES = [
   { w: 390, h: 844 },
   { w: 440, h: 956 },
+  { w: 834, h: 1112 },
+  { w: 1440, h: 900 },
+  { w: 1600, h: 900 },
+  { w: 2560, h: 1080 },
 ] as const;
 
 const LANGS = ["es", "en"] as const;
+
+/** The phone/wide line, mirroring src/components/cinematic/reelSpotlight.ts. */
+const PHONE_BREAKPOINT = 768;
 
 /** Timeline positions (of 3.0) where slide 1 and slide 3 are each at rest. */
 const DEAD_STOPS = { 1: 0.5 / 3, 3: 2.8 / 3 } as const;
@@ -69,10 +80,13 @@ const opacities = (page: Page) =>
     .locator('[data-qa="reel-slide"]')
     .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).opacity)));
 
-test.describe("CINE.FLOW.4C — shipped phone act: evidence", () => {
+test.describe("CINE.FLOW.5 — shipped reel: evidence", () => {
   for (const frame of FRAMES) {
     for (const lang of LANGS) {
-      test(`phone ${frame.w}x${frame.h} ${lang.toUpperCase()}`, async ({ page }) => {
+      const phone = frame.w < PHONE_BREAKPOINT;
+      test(`${phone ? "phone" : "wide"} ${frame.w}x${frame.h} ${lang.toUpperCase()}`, async ({
+        page,
+      }) => {
         test.setTimeout(180_000);
         await forceLanguage(page, lang);
         await page.setViewportSize({ width: frame.w, height: frame.h });
@@ -80,9 +94,14 @@ test.describe("CINE.FLOW.4C — shipped phone act: evidence", () => {
         await settle(page, 900);
         await page.evaluate(() => document.fonts.ready.then(() => undefined));
 
-        // The phone act must actually be mounted, or the evidence is worthless.
-        await expect(page.locator('[data-qa="reel-spotlight"]')).toHaveCount(3);
-        await expect(page.locator('[data-qa="reel-lockup-scrim"]')).toHaveCount(3);
+        // The right act must actually be mounted, or the evidence is worthless.
+        if (phone) {
+          await expect(page.locator('[data-qa="reel-lockup"]')).toHaveCount(3);
+          await expect(page.locator('[data-qa="reel-veil"]')).toHaveCount(3);
+        } else {
+          await expect(page.locator('[data-qa="wide-plate"]')).toHaveCount(3);
+          await expect(page.locator('[data-qa="wide-lockup"]')).toHaveCount(3);
+        }
 
         // Scroll far enough for the pin to be measurable, then to each stop.
         const y0 = await pinStartY(page);
@@ -99,6 +118,19 @@ test.describe("CINE.FLOW.4C — shipped phone act: evidence", () => {
               ),
             { timeout: 30_000 },
           );
+          // The wide act's ambient backdrops are plain <img>; they carry no
+          // framing attribute, so they are waited on separately.
+          if (!phone) {
+            await page.waitForFunction(
+              () =>
+                [...document.querySelectorAll('[data-qa="wide-backdrop"]')].every(
+                  (i) =>
+                    (i as HTMLImageElement).complete &&
+                    (i as HTMLImageElement).naturalWidth > 0,
+                ),
+              { timeout: 30_000 },
+            );
+          }
 
           // Confirm the dead-stop before shooting: the named slide is fully
           // opaque and every other slide is fully out.
@@ -112,7 +144,7 @@ test.describe("CINE.FLOW.4C — shipped phone act: evidence", () => {
           });
 
           await page.screenshot({
-            path: shot(`cineflow4c-${frame.w}-${lang}-s${slide}.png`),
+            path: shot(`cineflow5-${frame.w}-${lang}-s${slide}.png`),
           });
         }
       });

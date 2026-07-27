@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { FitMode, Focal } from "@/hooks/useCinematicMedia";
+import type { Focal } from "@/hooks/useCinematicMedia";
 
 /**
  * CINE.FLOW.5 — the reel act's veil law, in one place.
@@ -132,46 +132,3 @@ export const asPreviewCqw = (px: number) =>
 /** Brand constants the reel lockup is built from (DESIGN.md normative tokens). */
 export const GOLD = "#C9A55C";
 export const IVORY = "#f4ecdb";
-
-/* ------------------------------------------------------------------------- *
- * RETIRED, PENDING THE WIDE PROMOTION.
- *
- * The live phone act no longer reads anything below this line. The admin
- * preview still mirrors the OLD compositions, so these stay exported until the
- * mirror is rewritten and they can be deleted outright.
- * ------------------------------------------------------------------------- */
-
-/** How a reel slide paints its photo: cover on phones, letterbox above. */
-export const reelSlideFit = (isPhone: boolean): FitMode => (isPhone ? "fill" : "fit");
-
-/** The 4C lockup scrim's box, baseline, feather and floor. */
-export const LOCKUP_BOX_PX = 128;
-export const LOCKUP_BASELINE_PX = 64;
-export const LOCKUP_SCRIM_FEATHER_VH = 10;
-export const LOCKUP_SCRIM_FLOOR = 0.55;
-
-/** The 4C numeral's two flanking rules, equal at the longer value. */
-export const LOCKUP_RULE_W_PX = 40;
-
-/** The 4C scrim ramp, in lengths measured down from the scrim's own top edge. */
-export const lockupScrim = (
-  unit: "vh" | "cqh" = "vh",
-  px: (n: number) => string = (n) => `${n}px`,
-) => {
-  const f = LOCKUP_SCRIM_FEATHER_VH;
-  const b = LOCKUP_BASELINE_PX;
-  return [
-    "linear-gradient(180deg",
-    "rgba(0,0,0,0) 0px",
-    `rgba(0,0,0,0.04) ${f * 0.4}${unit}`,
-    `rgba(0,0,0,0.09) ${f * 0.8}${unit}`,
-    `rgba(0,0,0,0.20) ${f}${unit}`,
-    `rgba(0,0,0,0.33) calc(${f}${unit} + ${px(b * 0.375)})`,
-    `rgba(0,0,0,0.45) calc(${f}${unit} + ${px(b * 0.6875)})`,
-    `rgba(0,0,0,${LOCKUP_SCRIM_FLOOR}) calc(${f}${unit} + ${px(b)})`,
-    `rgba(0,0,0,${LOCKUP_SCRIM_FLOOR}) 100%)`,
-  ].join(", ");
-};
-
-/** The flat 0.5 → 0.8 wash the act carries above the phone breakpoint. */
-export const WIDE_VEIL = "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))";

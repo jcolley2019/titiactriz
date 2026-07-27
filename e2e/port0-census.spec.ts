@@ -311,7 +311,7 @@ test.describe("PORT.0 — media parity census (record-only)", () => {
         page,
         "EDITOR image reel-0",
         `${tab.label} tab`,
-        '[data-qa="media-editor-surface"] [data-qa="media-preview"] img',
+        '[data-qa="media-editor-surface"] [data-qa="media-preview-img"]',
         '[data-qa="media-editor-surface"] [data-qa="media-preview"]',
       );
       rec.note = `${tab.orient} canvas`;
@@ -376,7 +376,7 @@ test.describe("PORT.0 — media parity census (record-only)", () => {
         page,
         "THUMB reel-0",
         `${tab.label} tab`,
-        `[data-qa="media-device-${tab.id}"] [data-qa="media-preview"] img`,
+        `[data-qa="media-device-${tab.id}"] [data-qa="media-preview-img"]`,
         `[data-qa="media-device-${tab.id}"] [data-qa="media-preview"]`,
       );
       rec.note = `${tab.orient} thumb`;

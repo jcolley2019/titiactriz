@@ -64,20 +64,25 @@ type Framing = { scale: number; posX: number; posY: number; fit: "fill" | "fit" 
 
 /* Expected resolved framing per surface — straight from the fixture. */
 const HERO_FRAMING: Framing = { scale: 1.3, posX: 35, posY: 70, fit: "fill" };
-const REEL0_FRAMING: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fit" };
-const REEL_DEFAULT_FRAMING: Framing = { scale: 1, posX: 50, posY: 50, fit: "fit" };
+const REEL0_FRAMING: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fill" };
+const REEL_DEFAULT_FRAMING: Framing = { scale: 1, posX: 50, posY: 50, fit: "fill" };
 const ABOUT_FRAMING: Framing = { scale: 1.15, posX: 50, posY: 35, fit: "fill" };
 
 /**
- * CINE.FLOW.3 — the reel act has TWO true renderings, split at the 768px phone
- * breakpoint (src/components/cinematic/reelSpotlight.ts): cover below it (the
- * spotlight act, edge-to-edge), letterbox at and above it (the gallery act).
- * Framing is otherwise identical, so the phone expectations are the wide ones
- * with `fit` flipped — and the law is unchanged in substance: whatever a
- * surface predicts, it must paint, and the editor tab for a device class must
- * equal what that device class publishes.
+ * CINE.FLOW.5 — the reel act still has TWO true renderings, split at the 768px
+ * phone breakpoint (src/components/cinematic/reelSpotlight.ts), but they no
+ * longer differ in FIT. Both promoted compositions crop to their subject:
+ * the phone act (V1 "Edge Veil") is edge-to-edge cover, and the wide act
+ * (W2 "Center Plate & Rules") covers a bounded portrait plate. The letterbox
+ * mode — and the `reelSlideFit` selector that used to choose it — is retired,
+ * so the reel's expectations are one record for every surface.
+ *
+ * What DID move is the reel's container above the breakpoint: the wide photo is
+ * now framed by the plate box, not by the viewport, so the parity law is
+ * measured against the plate. The law itself is unchanged in substance —
+ * whatever a surface predicts, it must paint, and the editor tab for a device
+ * class must equal what that device class publishes.
  */
-const asPhone = (f: Framing): Framing => ({ ...f, fit: "fill" });
 const PHONE_TAB = "iphone-17-pro";
 
 const attrPrefix = (f: Framing) =>
@@ -190,7 +195,11 @@ async function forceDocumentSize(page: Page, w: number, h: number) {
 const REEL_IMG = '[data-qa="cinematic-reel-img"]';
 const HERO_IMG = '[data-qa="cinematic-hero-img"]';
 const ABOUT_IMG = '[data-qa="cinematic-about-img"]';
-const EDITOR_CANVAS_IMG = '[data-qa="media-editor-surface"] [data-qa="media-preview"] img';
+/**
+ * The FRAMED photo on the editor canvas — named explicitly because the wide
+ * reel composition also paints an ambient backdrop <img>, first in DOM order.
+ */
+const EDITOR_CANVAS_IMG = '[data-qa="media-editor-surface"] [data-qa="media-preview-img"]';
 
 const DEVICE_TABS = ["iphone-17-pro", "ipad-air", "desktop"] as const;
 
@@ -206,12 +215,14 @@ async function openAdminMedia(page: Page) {
 }
 
 test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
-  test("a+b — live reel slides: letterboxed wide, cover on a phone", async ({ page }) => {
+  test("a+b — live reel slides: cover on a phone, cover inside the wide plate", async ({ page }) => {
+    // One record per slide now, on both device classes: `measure()` reads the
+    // img against ITS OWN container, which is the viewport on a phone and the
+    // plate box above the breakpoint, so the same expectation holds on both.
     for (const vp of [
-      { name: "1440x900", width: 1440, height: 900, phone: false },
-      { name: "390x844", width: 390, height: 844, phone: true },
+      { name: "1440x900", width: 1440, height: 900 },
+      { name: "390x844", width: 390, height: 844 },
     ]) {
-      const expected = (f: Framing) => (vp.phone ? asPhone(f) : f);
       await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto(CINE, { waitUntil: "domcontentloaded" });
@@ -221,12 +232,12 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await framingReady(reel.first());
 
       // Slide 0 carries the panned fixture; slides 1-2 the reel default.
-      await assertParity(await measure(reel.nth(0)), expected(REEL0_FRAMING), `reel[0] @${vp.name}`);
+      await assertParity(await measure(reel.nth(0)), REEL0_FRAMING, `reel[0] @${vp.name}`);
       for (const i of [1, 2]) {
         await framingReady(reel.nth(i));
         await assertParity(
           await measure(reel.nth(i)),
-          expected(REEL_DEFAULT_FRAMING),
+          REEL_DEFAULT_FRAMING,
           `reel[${i}] @${vp.name}`,
         );
       }
@@ -244,7 +255,7 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
     await assertParity(await measure(hero), HERO_FRAMING, "hero @1440x900 (reduced)");
   });
 
-  test("a+b — editor canvas per device tab (reel fit wide / cover on phone, hero fill)", async ({ page }) => {
+  test("a+b — editor canvas per device tab (reel cover on every tab, hero fill)", async ({ page }) => {
     await openAdminMedia(page);
 
     // Reel-0 image editor across all three tabs.
@@ -257,12 +268,10 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await page.locator(`[data-qa="media-device-${tab}"]`).click();
       await page.waitForTimeout(400);
       await framingReady(canvas.first());
-      // The phone tab must show what a phone publishes — cover, not letterbox.
-      await assertParity(
-        await measure(canvas),
-        tab === PHONE_TAB ? asPhone(REEL0_FRAMING) : REEL0_FRAMING,
-        `editor reel-0 ${tab} tab`,
-      );
+      // Every tab shows what its device class publishes. Post-CINE.FLOW.5 that
+      // is the same framing record on all three — the wide tabs measure it
+      // inside the plate, the phone tab against the full frame.
+      await assertParity(await measure(canvas), REEL0_FRAMING, `editor reel-0 ${tab} tab`);
     }
     await page.locator('[data-qa="media-editor-cancel"]').click();
     await expect(page.locator('[data-qa="media-editor-surface"]')).toHaveCount(0);
@@ -278,7 +287,7 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
     await assertParity(await measure(canvas), HERO_FRAMING, "editor hero iPhone tab");
   });
 
-  test("a+b — manager slot cards (hero fill, reel fit)", async ({ page }) => {
+  test("a+b — manager slot cards (hero fill, reel cover per the wide act)", async ({ page }) => {
     await openAdminMedia(page);
     const cardImg = (slot: string) =>
       page.locator(`[data-qa="media-slot"][data-slot="${slot}"] img`).first();
@@ -319,7 +328,7 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await page.waitForTimeout(400);
       await framingReady(canvas);
       const thumb = page
-        .locator(`[data-qa="media-device-${tab}"] [data-qa="media-preview"] img`)
+        .locator(`[data-qa="media-device-${tab}"] [data-qa="media-preview-img"]`)
         .first();
       await framingReady(thumb);
       const canvasAttr = await canvas.getAttribute("data-hero-framing");
@@ -351,29 +360,45 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
 });
 
 /**
- * CINE.FLOW.4C — the phone act's COMPOSITION parity, alongside its geometry.
+ * CINE.FLOW.5 — the reel's COMPOSITION parity, alongside its geometry.
  *
- * PORT.2 above proves the editor paints the rectangle a phone publishes. This
- * proves it paints the same LIGHT: unveiled photograph, one local scrim bound to
- * the lockup's box, and two equal flanking rules. The editor phone tab is the
- * only surface that mirrors the phone act, so if it keeps the retired beam — or
- * keeps the 28/40 asymmetry — the editor starts lying about what publishes,
- * which is the parity law's whole point.
+ * PORT.2 above proves the editor paints the rectangle each device class
+ * publishes. This proves it paints the same LIGHT, on BOTH device classes:
  *
- * Scrim contract restated from src/components/cinematic/reelSpotlight.ts (NOT
- * imported, same rule as `predict` above): box 128px of a 402px-wide phone
- * (31.84cqw) plus a 10cqh feather.
+ *  - the phone tab mirrors V1 "Edge Veil" — one directional veil weighted to
+ *    the foot of the frame, open through the top half, and a bare numeral over
+ *    its title. The 4C scrim and the numeral's flanking rules are gone, so
+ *    either one reappearing on this surface fails.
+ *  - the wide tabs mirror W2 "Center Plate & Rules" — ambient backdrop, two
+ *    vertical hairlines, a bounded plate carrying the framed photo, and the
+ *    lockup captioned beneath it with two EQUAL rules. Nothing paints over the
+ *    plate: a restored `WIDE_VEIL`, or any veil at all inside the plate box,
+ *    fails.
+ *
+ * The veil contract is restated here from src/components/cinematic/
+ * reelSpotlight.ts (NOT imported, same rule as `predict` above): transparent to
+ * 54%, 0.16 at 70%, 0.32 at the bottom edge — a peak inside DESIGN.md's
+ * mandated 0.15-0.35 band.
  */
-test.describe("CINE.FLOW.4C — phone composition parity (editor phone tab)", () => {
+test.describe("CINE.FLOW.5 — reel composition parity (editor device tabs)", () => {
   const PREVIEW = '[data-qa="media-editor-surface"] [data-qa="media-preview"]';
-  const SCRIM = '[data-qa="reel-lockup-scrim"]';
-  const RULE = '[data-qa="reel-rule"]';
-  const BOX_CQW = 0.3184;
-  const FEATHER_CQH = 0.1;
+  const VEIL = '[data-qa="reel-veil"]';
+  const LOCKUP = '[data-qa="reel-lockup"]';
+  const RETIRED_SCRIM = '[data-qa="reel-lockup-scrim"]';
+  const RETIRED_RULE = '[data-qa="reel-rule"]';
+  const PLATE = '[data-qa="wide-plate"]';
+  const WIDE_RULE = '[data-qa="wide-rule"]';
+  const WIDE_LOCKUP_RULE = '[data-qa="wide-lockup-rule"]';
+  const VEIL_PEAK = 0.32;
 
-  test("phone tab: unveiled, locally scrimmed, symmetric rules — wide tab: none of it", async ({
-    page,
-  }) => {
+  /** Alpha stops of a linear-gradient, in source order. */
+  const alphaStops = (bg: string) =>
+    Array.from(bg.matchAll(/rgba?\(([^)]*)\)/g)).map((m) => {
+      const parts = m[1].split(",").map((p) => parseFloat(p.trim()));
+      return parts.length > 3 ? parts[3] : 1;
+    });
+
+  test("phone tab: V1 edge veil, no scrim, no rules", async ({ page }) => {
     await openAdminMedia(page);
     await page
       .locator('[data-qa="media-slot"][data-slot="reel-0"] [data-qa="media-slot-edit"]')
@@ -381,7 +406,6 @@ test.describe("CINE.FLOW.4C — phone composition parity (editor phone tab)", ()
     const preview = page.locator(PREVIEW).first();
     await expect(preview).toBeVisible();
 
-    // --- PHONE TAB ---------------------------------------------------------
     await page.locator(`[data-qa="media-device-${PHONE_TAB}"]`).click();
     await page.waitForTimeout(400);
     await framingReady(page.locator(EDITOR_CANVAS_IMG).first());
@@ -391,34 +415,84 @@ test.describe("CINE.FLOW.4C — phone composition parity (editor phone tab)", ()
         .map((n) => getComputedStyle(n as HTMLElement).backgroundImage)
         .filter((bg) => bg.includes("radial-gradient")),
     );
-    expect(radials, "editor phone tab shows no veil over the photograph").toEqual([]);
+    expect(radials, "the retired focal beam is not back").toEqual([]);
+    await expect(preview.locator(RETIRED_SCRIM), "the 4C scrim is retired").toHaveCount(0);
+    await expect(preview.locator(RETIRED_RULE), "the phone numeral has no rules").toHaveCount(0);
 
-    await expect(preview.locator(SCRIM), "editor phone tab draws the lockup scrim").toHaveCount(1);
+    // The edge veil: full frame, transparent at the top, peaking at 0.32.
+    await expect(preview.locator(VEIL), "the phone tab draws the edge veil").toHaveCount(1);
     const pbox = (await preview.boundingBox())!;
-    const sbox = (await preview.locator(SCRIM).boundingBox())!;
-    expect(sbox.width, "scrim spans the preview's full width").toBeGreaterThanOrEqual(
-      pbox.width - 1,
-    );
-    const cap = BOX_CQW * pbox.width + FEATHER_CQH * pbox.height;
-    expect(
-      sbox.height,
-      `scrim height ${sbox.height.toFixed(1)} <= box + feather (${cap.toFixed(1)})`,
-    ).toBeLessThanOrEqual(cap + 1);
+    const vbox = (await preview.locator(VEIL).boundingBox())!;
+    expect(vbox.width, "veil spans the full width").toBeGreaterThanOrEqual(pbox.width - 1);
+    expect(vbox.height, "veil spans the full height").toBeGreaterThanOrEqual(pbox.height - 1);
 
-    const widths = await preview
-      .locator(RULE)
-      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-    expect(widths.length, "two flanking rules").toBe(2);
-    expect(widths[1], "the numeral's rules are equal").toBeCloseTo(widths[0], 1);
+    const bg = await preview
+      .locator(VEIL)
+      .evaluate((el) => getComputedStyle(el as HTMLElement).backgroundImage);
+    const stops = alphaStops(bg);
+    expect(stops.length, "veil ramp has stops").toBeGreaterThan(3);
+    expect(stops[0], "veil is transparent at the top edge").toBe(0);
+    expect(stops[stops.length - 1], "veil peaks at the bottom edge").toBeCloseTo(VEIL_PEAK, 3);
+    expect(Math.max(...stops), "veil never exceeds the mandated band").toBeLessThanOrEqual(0.35);
+    for (let i = 1; i < stops.length; i++) {
+      expect(stops[i], `stop ${i} never lightens`).toBeGreaterThanOrEqual(stops[i - 1]);
+    }
 
-    // --- DESKTOP TAB -------------------------------------------------------
-    await page.locator('[data-qa="media-device-desktop"]').click();
-    await page.waitForTimeout(400);
-    await expect(
-      preview.locator(SCRIM),
-      "the wide composition grows no lockup scrim",
-    ).toHaveCount(0);
-    await expect(preview.locator(RULE), "the wide composition has no rules").toHaveCount(0);
+    await expect(preview.locator(LOCKUP), "the phone lockup is drawn").toHaveCount(1);
+  });
+
+  test("wide tabs: W2 plate, unveiled, equal lockup rules — and none of the phone act", async ({
+    page,
+  }) => {
+    await openAdminMedia(page);
+    await page
+      .locator('[data-qa="media-slot"][data-slot="reel-0"] [data-qa="media-slot-edit"]')
+      .click();
+    const preview = page.locator(PREVIEW).first();
+    await expect(preview).toBeVisible();
+
+    for (const tab of ["ipad-air", "desktop"] as const) {
+      await page.locator(`[data-qa="media-device-${tab}"]`).click();
+      await page.waitForTimeout(400);
+      await framingReady(page.locator(EDITOR_CANVAS_IMG).first());
+
+      // The phone act does not leak upward.
+      await expect(preview.locator(VEIL), `${tab}: no phone edge veil`).toHaveCount(0);
+      await expect(preview.locator(LOCKUP), `${tab}: no phone lockup`).toHaveCount(0);
+      await expect(preview.locator(RETIRED_SCRIM), `${tab}: no scrim`).toHaveCount(0);
+
+      // The plate composition is drawn.
+      await expect(preview.locator('[data-qa="wide-backdrop"]'), `${tab}: ambient backdrop`)
+        .toHaveCount(1);
+      await expect(preview.locator(WIDE_RULE), `${tab}: two vertical hairlines`).toHaveCount(2);
+      await expect(preview.locator(PLATE), `${tab}: one plate`).toHaveCount(1);
+
+      // UNVEILED — nothing with a gradient paints inside the plate box.
+      const veilsInPlate = await preview.locator(PLATE).evaluate((el) =>
+        Array.from(el.querySelectorAll("*"))
+          .map((n) => getComputedStyle(n as HTMLElement).backgroundImage)
+          .filter((bg) => bg.includes("gradient")),
+      );
+      expect(veilsInPlate, `${tab}: the plate photograph is unveiled`).toEqual([]);
+
+      // The plate holds the framed photo, and honours the portrait aspect.
+      await expect(
+        preview.locator(`${PLATE} img`),
+        `${tab}: the framed photo lives inside the plate`,
+      ).toHaveCount(1);
+      const plateBox = (await preview.locator(PLATE).boundingBox())!;
+      expect(
+        plateBox.width / plateBox.height,
+        `${tab}: plate aspect ${(plateBox.width / plateBox.height).toFixed(4)}`,
+      ).toBeCloseTo(0.563, 2);
+
+      // The lockup's two rules are equal.
+      const rules = await preview
+        .locator(WIDE_LOCKUP_RULE)
+        .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+      expect(rules.length, `${tab}: two flanking rules`).toBe(2);
+      expect(rules[1], `${tab}: the numeral's rules are equal`).toBeCloseTo(rules[0], 1);
+    }
   });
 });
 

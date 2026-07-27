@@ -168,22 +168,26 @@ test.describe("cinematic — mobile", () => {
   });
 });
 
-/* ---------- CINE.FLOW.3: the phone/wide reel split holds ---------- */
+/* ---------- CINE.FLOW.5: the phone/wide reel split holds ---------- */
 test.describe("cinematic — reel composition split", () => {
   /**
-   * The Spotlight lockup belongs to phones ONLY. This is the guard against it
-   * leaking upward: at 1440 the reel must carry the wide act — no spotlight
-   * element anywhere in the section, a letterboxed photo, and the oversized
-   * centred numeral — while 390 must carry exactly one lockup per slide over a
-   * cover photo. Both halves are asserted so a split that inverts fails too.
+   * The two promoted acts belong to their own device classes ONLY. This is the
+   * guard against either leaking across the 768px line: at 1440 the reel must
+   * carry W2 "Center Plate & Rules" — a bounded plate, two vertical hairlines,
+   * and no phone lockup or edge veil anywhere in the section — while 390 must
+   * carry V1 "Edge Veil", exactly one lockup and one veil per slide over a cover
+   * photo, and no plate. Both halves are asserted so a split that inverts fails
+   * too.
    */
-  const SPOTLIGHT = '[data-qa="reel-spotlight"]';
+  const LOCKUP = '[data-qa="reel-lockup"]';
+  const VEIL = '[data-qa="reel-veil"]';
+  const PLATE = '[data-qa="wide-plate"]';
 
   for (const vp of [
     { name: "desktop 1440", width: 1440, height: 900, phone: false },
     { name: "phone 390", width: 390, height: 844, phone: true },
   ]) {
-    test(`${vp.name} renders ${vp.phone ? "the Spotlight act" : "the wide act, no spotlight lockup"}`, async ({
+    test(`${vp.name} renders ${vp.phone ? "the V1 edge-veil act" : "the W2 plate act, no phone lockup"}`, async ({
       page,
     }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
@@ -197,54 +201,72 @@ test.describe("cinematic — reel composition split", () => {
       await expect(reel).toBeAttached();
 
       await expect(
-        reel.locator(SPOTLIGHT),
-        vp.phone ? "one spotlight lockup per slide" : "no spotlight lockup above the breakpoint",
+        reel.locator(LOCKUP),
+        vp.phone ? "one phone lockup per slide" : "no phone lockup above the breakpoint",
       ).toHaveCount(vp.phone ? 3 : 0);
+      await expect(
+        reel.locator(VEIL),
+        vp.phone ? "one edge veil per slide" : "no edge veil above the breakpoint",
+      ).toHaveCount(vp.phone ? 3 : 0);
+      await expect(
+        reel.locator(PLATE),
+        vp.phone ? "no plate below the breakpoint" : "one plate per slide",
+      ).toHaveCount(vp.phone ? 0 : 3);
 
+      // CINE.FLOW.5 retired the letterbox: every reel surface covers now, the
+      // phone act against the viewport and the wide act against its plate.
       const framing = await reel
         .locator('[data-qa="cinematic-reel-img"]')
         .first()
         .getAttribute("data-hero-framing");
-      expect(framing, `${vp.name}: photo fit`).toContain(vp.phone ? ";fill;" : ";fit;");
+      expect(framing, `${vp.name}: photo fit`).toContain(";fill;");
 
-      // The wide act's oversized numeral is clamp(4.5rem, 20vw, 15rem) → 240px
-      // at 1440; the phone act has no element anywhere near that size.
-      const numeralPx = await reel.locator("span[aria-hidden]").first().evaluate(
-        (el) => parseFloat(getComputedStyle(el).fontSize),
-      );
+      // Type is CONTINUOUS across the breakpoint and caption-scale on both
+      // sides: the phone numeral is a flat 66px, the wide numeral
+      // clamp(22, 2.5vw, 38) → 36px at 1440. The old 240px display numeral is
+      // gone, so neither act carries anything near that size.
+      const numeralPx = await reel
+        .locator(vp.phone ? '[data-qa="reel-numeral"]' : '[data-qa="wide-numeral"]')
+        .first()
+        .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
       if (vp.phone) {
-        expect(numeralPx, "phone numeral stays a caption-scale mark").toBeLessThan(40);
+        expect(numeralPx, "phone numeral is V1's 82px reduced 20%").toBeCloseTo(66, 0);
       } else {
-        expect(numeralPx, "wide numeral stays display-scale").toBeGreaterThan(100);
+        expect(numeralPx, "wide numeral is clamp(22, 2.5vw, 38) at 1440").toBeCloseTo(36, 0);
       }
     });
   }
 });
 
-/* ---------- CINE.FLOW.4C: the phone act is unveiled, and locally scrimmed ---------- */
-test.describe("cinematic — phone reel: unveiled photograph, local type scrim", () => {
+/* ---------- CINE.FLOW.5: both acts are inside the veil band ---------- */
+test.describe("cinematic — reel veil law: V1 on phones, no veil at all on wide", () => {
   /**
-   * The three laws of the 4C phone act, each falsifiable on the LIVE render:
+   * The promoted acts' veil laws, each falsifiable on the LIVE render.
    *
-   *  1. UNVEILED — nothing radial paints over the photograph. Restoring the old
-   *     focal beam (any radial-gradient layer inside the reel section) fails.
-   *  2. LOCAL — the scrim exists, spans the full frame width, and is bounded to
-   *     the lockup's box plus its feather. Growing it into the wide act's
-   *     full-frame wash fails on height; a hard-edged band fails on the sampled
-   *     alpha ramp, which must rise monotonically from 0 with no jump.
-   *  3. SYMMETRIC — the numeral's two flanking rules are the same length.
-   *     Restoring the 28/40 asymmetry fails.
+   * PHONE (V1 "Edge Veil"):
+   *  1. ONE VEIL, DIRECTIONAL — a single full-frame linear gradient, fully
+   *     transparent at the top edge, rising monotonically to 0.32 at the bottom.
+   *     A flat wash fails on the first stop; an inverted ramp fails on
+   *     monotonicity.
+   *  2. INSIDE THE BAND — the peak never exceeds DESIGN.md's 0.35 ceiling. The
+   *     retired 0.5 → 0.8 wash fails here, and so would any re-darkening.
+   *  3. NOTHING ELSE — no radial beam (4C's retired spotlight), no
+   *     lockup-bound scrim, and no rules flanking the numeral. The promoted
+   *     lockup is a bare numeral over its title.
    *
-   * The wide act keeps none of this: no scrim element above the breakpoint.
+   * WIDE (W2 "Center Plate & Rules"):
+   *  4. UNVEILED — nothing with a gradient paints inside the plate box, and the
+   *     retired WIDE_VEIL does not paint anywhere in the section. The lockup
+   *     never crosses the photograph, so there is no type to protect there.
    */
-  const SCRIM = '[data-qa="reel-lockup-scrim"]';
-  const RULE = '[data-qa="reel-rule"]';
+  const VEIL = '[data-qa="reel-veil"]';
+  const PLATE = '[data-qa="wide-plate"]';
+  const RETIRED_SCRIM = '[data-qa="reel-lockup-scrim"]';
+  const RETIRED_RULE = '[data-qa="reel-rule"]';
 
-  /** The scrim's own contract, from src/components/cinematic/reelSpotlight.ts. */
-  const LOCKUP_BOX_PX = 128;
-  const BASELINE_PX = 64;
-  const FEATHER_VH = 10;
-  const SCRIM_FLOOR = 0.55;
+  /** The veil's own contract, from src/components/cinematic/reelSpotlight.ts. */
+  const VEIL_PEAK = 0.32;
+  const BAND_CEILING = 0.35;
 
   const reelOf = (page: import("@playwright/test").Page) =>
     page
@@ -252,7 +274,7 @@ test.describe("cinematic — phone reel: unveiled photograph, local type scrim",
       .filter({ has: page.locator('[data-qa="cinematic-reel-img"]') })
       .first();
 
-  test("phone 390 — no veil on the photo, scrim bound to the lockup", async ({ page }) => {
+  test("phone 390 — one directional edge veil, inside the band, nothing else", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 700);
@@ -260,85 +282,85 @@ test.describe("cinematic — phone reel: unveiled photograph, local type scrim",
     const reel = reelOf(page);
     await expect(reel).toBeAttached();
 
-    // 1. UNVEILED — no radial gradient paints anywhere in the reel section.
+    // 3. NOTHING ELSE — no radial beam, no scrim, no rules.
     const radials = await reel.evaluate((sec) =>
       Array.from(sec.querySelectorAll("*"))
         .map((el) => getComputedStyle(el as HTMLElement).backgroundImage)
         .filter((bg) => bg.includes("radial-gradient")),
     );
-    expect(radials, "no radial veil over the phone photograph").toEqual([]);
+    expect(radials, "the retired 4C focal beam is not back").toEqual([]);
+    await expect(reel.locator(RETIRED_SCRIM), "the 4C scrim is retired").toHaveCount(0);
+    await expect(reel.locator(RETIRED_RULE), "the phone numeral has no rules").toHaveCount(0);
 
-    // 2. LOCAL — one scrim per slide, full width, height <= box + feather.
-    await expect(reel.locator(SCRIM), "one scrim per slide").toHaveCount(3);
+    // 1. ONE VEIL per slide, covering the whole frame.
+    await expect(reel.locator(VEIL), "one edge veil per slide").toHaveCount(3);
     const frame = await reel.locator('[data-qa="cinematic-reel-img"]').first().evaluate(
       () => ({ w: window.innerWidth, h: window.innerHeight }),
     );
-    const box = await reel.locator(SCRIM).first().boundingBox();
-    expect(box, "scrim measurable").not.toBeNull();
-    expect(box!.width, "scrim spans the full frame width").toBeGreaterThanOrEqual(frame.w - 1);
-    const cap = LOCKUP_BOX_PX + (FEATHER_VH / 100) * frame.h;
-    expect(
-      box!.height,
-      `scrim height ${box!.height.toFixed(1)} <= lockup box + feather (${cap.toFixed(1)})`,
-    ).toBeLessThanOrEqual(cap + 1);
+    const box = await reel.locator(VEIL).first().boundingBox();
+    expect(box, "veil measurable").not.toBeNull();
+    expect(box!.width, "veil spans the full frame width").toBeGreaterThanOrEqual(frame.w - 1);
+    expect(box!.height, "veil spans the full frame height").toBeGreaterThanOrEqual(frame.h - 1);
 
-    // ...and the ramp itself: transparent at the top edge, at least 8vh spent
-    // getting off zero, no jump anywhere, and the floor reached exactly at the
-    // lockup's baseline so the type never sits on a rising gradient.
-    const probe = await reel.locator(SCRIM).first().evaluate((el) => ({
+    // ...and the ramp itself: transparent at the top edge, opening nothing until
+    // past the half-way line, then rising monotonically to its peak at the foot.
+    const probe = await reel.locator(VEIL).first().evaluate((el) => ({
       bg: getComputedStyle(el as HTMLElement).backgroundImage,
       h: el.getBoundingClientRect().height,
-      vh: window.innerHeight / 100,
     }));
-    const ramp = Array.from(probe.bg.matchAll(/rgba?\(([^)]*)\)\s+([\d.]+)(px|vh|%)/g)).map((m) => {
+    const ramp = Array.from(probe.bg.matchAll(/rgba?\(([^)]*)\)\s+([\d.]+)(px|%)/g)).map((m) => {
       const parts = m[1].split(",").map((p) => parseFloat(p.trim()));
       const n = parseFloat(m[2]);
       return {
-        y: m[3] === "px" ? n : m[3] === "vh" ? n * probe.vh : (n / 100) * probe.h,
+        y: m[3] === "px" ? n : (n / 100) * probe.h,
         alpha: parts.length > 3 ? parts[3] : 1,
       };
     });
-    expect(ramp.length, "scrim ramp has stops").toBeGreaterThan(3);
-    expect(ramp[0].alpha, "scrim is transparent at its top edge").toBe(0);
-    expect(ramp[ramp.length - 1].alpha, "scrim holds its floor to the foot").toBeCloseTo(
-      SCRIM_FLOOR,
-      2,
-    );
+    expect(ramp.length, "veil ramp has stops").toBeGreaterThan(3);
+    expect(ramp[0].alpha, "veil is transparent at its top edge").toBe(0);
+    expect(ramp[ramp.length - 1].alpha, "veil peaks at the bottom edge").toBeCloseTo(VEIL_PEAK, 3);
     for (let i = 1; i < ramp.length; i++) {
       expect(ramp[i].alpha, `stop ${i} never lightens`).toBeGreaterThanOrEqual(ramp[i - 1].alpha);
-      expect(
-        ramp[i].alpha - ramp[i - 1].alpha,
-        `stop ${i}: no hard line (alpha step ${ramp[i - 1].alpha} → ${ramp[i].alpha})`,
-      ).toBeLessThanOrEqual(0.15);
     }
-    expect(
-      ramp.find((s) => s.alpha >= 0.1)!.y,
-      "top edge feathered over at least 8vh",
-    ).toBeGreaterThanOrEqual(0.08 * frame.h - 1);
-    const floorAt = ramp.find((s) => s.alpha >= SCRIM_FLOOR - 1e-6)!.y;
-    expect(
-      box!.height - floorAt,
-      "the ramp arrives at its floor at the lockup baseline (64px up)",
-    ).toBeCloseTo(BASELINE_PX, 0);
 
-    // 3. SYMMETRIC — both flanking rules are the same length.
-    const widths = await reel.locator(RULE).evaluateAll((els) =>
-      els.map((el) => el.getBoundingClientRect().width),
-    );
-    expect(widths.length, "two rules per slide").toBe(6);
-    for (const w of widths) {
-      expect(w, `rule width ${w} == the first rule's ${widths[0]}`).toBeCloseTo(widths[0], 1);
-    }
+    // 2. INSIDE THE BAND — the peak is under DESIGN.md's 0.35 ceiling, and the
+    // photograph's top half is left completely open.
+    expect(
+      Math.max(...ramp.map((s) => s.alpha)),
+      "veil peak stays inside the mandated 0.15-0.35 band",
+    ).toBeLessThanOrEqual(BAND_CEILING);
+    const firstDark = ramp.find((s) => s.alpha > 0)!;
+    expect(
+      firstDark.y,
+      "suppression starts only where the type lands (past 50% of the frame)",
+    ).toBeGreaterThanOrEqual(0.5 * probe.h - 1);
   });
 
-  test("desktop 1440 — the wide act grows no scrim", async ({ page }) => {
+  test("desktop 1440 — the wide plate is unveiled and WIDE_VEIL is gone", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 700);
-    await expect(
-      reelOf(page).locator(SCRIM),
-      "no lockup scrim above the phone breakpoint",
-    ).toHaveCount(0);
+
+    const reel = reelOf(page);
+    await expect(reel).toBeAttached();
+
+    // 4. UNVEILED — nothing gradient-backed paints inside any plate.
+    await expect(reel.locator(PLATE), "one plate per slide").toHaveCount(3);
+    const inPlate = await reel.locator(PLATE).first().evaluate((el) =>
+      Array.from(el.querySelectorAll("*"))
+        .map((n) => getComputedStyle(n as HTMLElement).backgroundImage)
+        .filter((bg) => bg.includes("gradient")),
+    );
+    expect(inPlate, "the plate photograph is unveiled").toEqual([]);
+
+    // The retired flat wash does not paint anywhere in the section.
+    const washes = await reel.evaluate((sec) =>
+      Array.from(sec.querySelectorAll("*"))
+        .map((el) => getComputedStyle(el as HTMLElement).backgroundImage)
+        .filter((bg) => bg.includes("gradient")),
+    );
+    expect(washes, "WIDE_VEIL is deleted, not merely hidden").toEqual([]);
+    await expect(reel.locator(VEIL), "no phone edge veil above the breakpoint").toHaveCount(0);
   });
 });
 

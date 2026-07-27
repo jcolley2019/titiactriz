@@ -54,14 +54,14 @@ test.describe("ADMIN.MEDIA — render regression (absent = default)", () => {
         "1.00;50;8;fill;",
       );
 
-      // CINE.FLOW.3: the reel act renders cover below the 768px phone
-      // breakpoint (the Spotlight composition) and letterbox at/above it.
-      // Framing is otherwise the default either way.
+      // CINE.FLOW.5: both promoted acts crop to their subject — the phone act
+      // (V1 "Edge Veil") against the viewport, the wide act (W2 "Center Plate &
+      // Rules") against its plate box. The letterbox mode is retired, so the
+      // fit is `fill` on both device classes.
       await expect(page.locator(REEL).first()).toBeAttached();
-      expect(
-        await heroFraming(page, REEL),
-        `reel centered, unzoomed — ${vp.name === "mobile" ? "cover" : "whole photo"}`,
-      ).toContain(vp.name === "mobile" ? "1.00;50;50;fill;" : "1.00;50;50;fit;");
+      expect(await heroFraming(page, REEL), "reel centered, unzoomed — cover").toContain(
+        "1.00;50;50;fill;",
+      );
 
       expect(diag.consoleErrors, "console errors").toEqual([]);
       expect(diag.failedResponses, "failed requests").toEqual([]);
@@ -86,7 +86,8 @@ test.describe("ADMIN.MEDIA — render reflects cinematic_media", () => {
     await settle(page, 800);
 
     expect(await heroFraming(page, HERO)).toContain("1.40;20;85;fill;");
-    expect(await heroFraming(page, REEL)).toContain("1.25;80;10;fit;");
+    // CINE.FLOW.5: the wide act covers its plate; the letterbox is retired.
+    expect(await heroFraming(page, REEL)).toContain("1.25;80;10;fill;");
 
     await page.screenshot({ path: shot("ADMIN.MEDIA-hero-reframed.png") });
   });
