@@ -105,7 +105,8 @@ the identity and requires an explicit brick.
 - Ground: #0b0a08 (warm near-black; never pure #000, never cool OLED black)
 - Accent: #C9A55C metallic gold
 - Display type: serif; ES/EN parity in every surface
-- Acts are full-bleed and viewport-true (100vh+100dvh pattern per MOBILE.VH.1)
+- Acts are full-bleed and viewport-true (100vh+100dvh per MOBILE.VH.1; the hero
+  takes 100vh+100lvh so no next act leaks behind a mobile browser bar)
 - The preview is the contract: hero-framing resolver parity law is untouchable
 - Photos carry the page: near-full brightness, luminous veil ~0.15–0.35, type
   carries its own glow
@@ -257,9 +258,13 @@ is parity, not a follow-up.
 ## Layout
 
 **Acts.** The cinematic page is a sequence of full-bleed, viewport-true acts.
-Unpinned acts (hero, Green World, Titans) use `.cine-act-vh`, which declares
-`100vh` and then `100dvh` on mobile so the act covers exactly the visible
-viewport as browser chrome collapses. Pinned stages (the reel, TitiLinks)
+The hero uses `.cine-act-lvh` — `100vh` then `100lvh` — so it covers the full
+*physical* screen and nothing but the hero can ever sit behind a floating mobile
+browser bar; it overflows by the chrome's height while the chrome is shown, a
+deliberate trade the hero can absorb. Mid-page unpinned acts (Green World,
+Titans) use `.cine-act-vh`, which declares `100vh` and then `100dvh` on mobile
+so the act covers exactly the visible viewport as browser chrome collapses.
+Pinned stages (the reel, TitiLinks)
 deliberately stay on `svh`: ScrollTrigger writes pixel dimensions at refresh
 time, and a `dvh` stage would be re-measured taller and jump mid-scrub when the
 URL bar retracts. Every full-viewport section reserves its height in CSS before

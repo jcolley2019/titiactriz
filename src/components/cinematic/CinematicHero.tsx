@@ -86,7 +86,7 @@ const CinematicHero = ({
     <section
       ref={sectionRef}
       data-qa="cinematic-section"
-      className="cine-act-vh relative flex items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
+      className="cine-act-lvh relative flex items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
     >
       <CinematicHeroMedia
         photo={photo}

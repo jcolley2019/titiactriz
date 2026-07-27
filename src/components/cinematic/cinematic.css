@@ -56,9 +56,20 @@
    live as it collapses/expands. So a `100svh` act stops ~12% short of the
    visible viewport once the URL bar retracts, letting the adjacent act peek in.
 
-   • UNPINNED full-bleed acts (`.cine-act-vh`: hero, Green World, Titans) use
+   • The HERO act (`.cine-act-lvh`) uses `lvh` — the viewport with the chrome
+     RETRACTED, i.e. the full physical screen. `dvh` sized the hero to the
+     *visible* viewport, so while Safari's floating address bar is expanded the
+     hero ended above the true screen bottom and the next act leaked into the
+     strip behind the bar. `lvh` is static, so the hero always covers the whole
+     screen and only hero content can ever sit behind the browser bar. It
+     overflows by the chrome's height while the chrome is shown — that overflow
+     is the deliberate trade, and it costs nothing here: the hero is unpinned,
+     its lockup is centered, and its scroll cue sits `2rem` off the bottom.
+     At first paint lvh ≥ svh, so TA.7d's height reservation still holds.
+   • OTHER unpinned full-bleed acts (`.cine-act-vh`: Green World, Titans) keep
      `dvh` on mobile so they always cover exactly the visible viewport. At first
      paint the chrome is shown, so dvh ≡ svh and TA.7d's guarantee is unchanged.
+     They are mid-page, so no browser bar floats over them at rest.
    • PINNED stages (`.cine-h-full` reel, `.cine-vh-full` TitiLinks) deliberately
      stay on `svh`. ScrollTrigger measures a pinned element and writes px
      dimensions at refresh time; a URL-bar collapse fires a resize → refresh, so
@@ -67,10 +78,12 @@
      immune. (Filling the collapsed-chrome viewport here would need static `lvh`,
      which instead overflows while the chrome is shown — a design trade, not a
      silent fix.)
-   Desktop (md+) keeps `svh` throughout: there is no dynamic chrome. */
+   Desktop (md+) keeps `svh` throughout: there is no dynamic chrome. The hero
+   needs no md+ override — with no dynamic chrome, lvh ≡ svh ≡ vh. */
 .cine-vh-full { min-height: 100vh; min-height: 100svh; }
 .cine-h-full  { height: 100vh; height: 100svh; }
 .cine-act-vh  { min-height: 100vh; min-height: 100dvh; }
+.cine-act-lvh { min-height: 100vh; min-height: 100lvh; }
 @media (min-width: 768px) {
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }
