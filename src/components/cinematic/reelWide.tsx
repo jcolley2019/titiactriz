@@ -44,7 +44,17 @@ export const PLATE_OUTLINE = "1px solid rgba(201,165,92,0.55)";
 /** W2's declared composition, as fractions of the frame. */
 export const PLATE_HEIGHT_VH = 76;
 export const PLATE_MAX_WIDTH_VW = 60;
-export const PLATE_TOP_VH = 8;
+/**
+ * The plate's top edge. W2 declared 8, which the bake-off harness could afford
+ * because its frame was a bare div. The live act is pinned UNDER the fixed
+ * header, and at 900px-tall viewports 8vh resolves to 72px against a header
+ * whose bottom edge is 76px — so the plate's top gold hairline was occluded by
+ * 4px at 1440x900 and 1600x900, the two most common laptop frames. 10vh clears
+ * the header at every supported width (the tightest is 90px at 900px tall, a
+ * 14px margin) and costs the caption band 2vh it did not need: the band still
+ * runs 14vh against a 3vh minimum padding.
+ */
+export const PLATE_TOP_VH = 10;
 /** The two vertical gold hairlines, at these fractions of the frame width. */
 export const WIDE_RULE_X = [0.18, 0.82] as const;
 export const WIDE_RULE_OPACITY = 0.35;
