@@ -252,7 +252,7 @@ the veil beneath it — never from a plate, chip, or panel drawn behind it. If t
 needs a box to be readable, the veil is wrong, not the type.
 
 **The Parity Rule.** Every string ships in Spanish and English. ES and EN locale
-files are held at exact key parity (622 / 622 today). Spanish is primary; English
+files are held at exact key parity (625 / 625 today). Spanish is primary; English
 is parity, not a follow-up.
 
 ## Layout

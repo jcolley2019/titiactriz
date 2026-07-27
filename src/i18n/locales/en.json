@@ -550,6 +550,7 @@
       "picker": {
         "title": "Choose a photo",
         "subtitle": "Pick from your published gallery, or upload a new one.",
+        "sourceHint": "For best results, use photos at least 1600px wide — 2000px or more is ideal. Upload originals, not screenshots or downloads.",
         "uploadNew": "Upload new",
         "uploading": "Uploading…",
         "empty": "No published photos yet. Upload one to get started.",
@@ -559,6 +560,8 @@
       "editor": {
         "title": "Frame · {{slot}}",
         "dragHint": "Drag the photo to reposition. Use the slider to zoom.",
+        "sourceNote": "Photos under 1600px wide can look soft on large screens.",
+        "lowRes": "This photo is only {{w}}px wide, so it may look soft on large screens. You can still use it.",
         "zoom": "Zoom",
         "device": "Preview",
         "approxNote": "Approximate — Android sizes vary with display scaling.",

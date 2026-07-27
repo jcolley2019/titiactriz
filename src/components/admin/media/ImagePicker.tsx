@@ -71,6 +71,13 @@ const ImagePicker = ({
           </DialogDescription>
         </DialogHeader>
 
+        {/* MEDIA.RES.0 — owner-facing source guidance. Advice only: nothing here
+            validates, blocks or rejects an upload, and the wording carries the
+            numbers so the threshold reads the same in both locales. */}
+        <p data-qa="media-picker-source-hint" className="text-xs text-muted-foreground">
+          {t("admin.media.picker.sourceHint")}
+        </p>
+
         <div
           data-qa="media-picker-grid"
           // ADMIN.MOBILE.2: auto-rows-max (grid-auto-rows: max-content) is load-

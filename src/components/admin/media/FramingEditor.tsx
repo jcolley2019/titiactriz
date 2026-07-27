@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import SectionPreview from "./SectionPreview";
 import { resolveHeroGeometry } from "@/lib/hero-framing";
 import { decodeImage, cropErrorCauseKey } from "@/lib/crop";
+import { RECOMMENDED_SOURCE_WIDTH } from "@/lib/gallery-upload";
 import { probeVideoSize } from "@/lib/hero-video";
 import { MEDIA_PREVIEW_DEVICES, devicePreviewAspect, resolveDevicePreset } from "@/lib/device-presets";
 import {
@@ -330,6 +331,14 @@ const FramingEditor = ({
     }
   };
 
+  /**
+   * MEDIA.RES.0 — soft low-resolution notice. Read straight off the image the
+   * editor already decoded for its drag math, so nothing new is measured,
+   * nothing is stored, and nothing reaches Supabase. Advisory only: the photo
+   * stays selected, the editor stays usable, and Save is never disabled.
+   */
+  const lowRes = !isVideo && natural !== null && natural.w > 0 && natural.w < RECOMMENDED_SOURCE_WIDTH;
+
   // Aspect-mismatch hint (video only): the shown clip vs the previewed canvas.
   const natAspect = natural && natural.h > 0 ? natural.w / natural.h : null;
   const mismatch =
@@ -359,7 +368,12 @@ const FramingEditor = ({
         <DialogHeader>
           <DialogTitle>{t("admin.media.editor.title", { slot: slotLabel })}</DialogTitle>
           <DialogDescription>
-            {isVideo ? t("admin.media.video.dragHint") : t("admin.media.editor.dragHint")}
+            {isVideo
+              ? t("admin.media.video.dragHint")
+              : // MEDIA.RES.0 — the drag hint carries a short pointer at the same
+                // source guidance the picker states in full. Photos only: a video's
+                // hint has nothing to do with still-image resolution.
+                `${t("admin.media.editor.dragHint")} ${t("admin.media.editor.sourceNote")}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -373,6 +387,15 @@ const FramingEditor = ({
           <span data-qa="media-editor-source-label" className="text-xs font-medium text-accent">
             {t(sourceLabelKey)}
           </span>
+        )}
+
+        {lowRes && (
+          <p
+            data-qa="media-editor-lowres"
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
+          >
+            {t("admin.media.editor.lowRes", { w: natural!.w })}
+          </p>
         )}
 
         {/* Device tabs — each a scaled live preview of the actual section. Hidden

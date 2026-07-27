@@ -19,6 +19,15 @@ export const ACCEPTED = [
 export const ACCEPT_ATTR =
   "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
 
+/**
+ * MEDIA.RES.0 — the source width below which a photo may read soft once the
+ * wide reel act paints it at plate size. GUIDANCE ONLY: nothing validates,
+ * blocks, or rejects on this number, and it is never stored. It exists so the
+ * threshold the admin warns at is stated once in code; the owner-facing copy
+ * that quotes 1600 / 2000 lives in the locale files.
+ */
+export const RECOMMENDED_SOURCE_WIDTH = 1600;
+
 export const isHeic = (file: File) => {
   const type = (file.type || "").toLowerCase();
   if (type === "image/heic" || type === "image/heif") return true;
