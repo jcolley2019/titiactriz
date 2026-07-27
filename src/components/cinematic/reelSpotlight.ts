@@ -2,19 +2,22 @@ import { useEffect, useState } from "react";
 import type { FitMode, Focal } from "@/hooks/useCinematicMedia";
 
 /**
- * CINE.FLOW.3 — the reel act's veil law, in one place.
+ * CINE.FLOW.5 — the reel act's veil law, in one place.
  *
- * The reel now has TWO true renderings, and this module is what keeps them from
+ * The reel has TWO true renderings, and this module is what keeps them from
  * drifting apart:
  *
- *  - PHONE: the photograph covers the frame and carries NO veil at all. Type
- *    legibility is bought locally instead, by a soft scrim confined to the
- *    lockup's own zone at the foot of the frame (CINE.FLOW.4C).
- *  - WIDE (tablet and desktop): unchanged — the whole photo letterboxed on brand
- *    dark under the legacy flat wash, i.e. the reel's gallery character.
+ *  - PHONE (< 768px): the promoted V1 "Edge Veil" act. The photograph covers the
+ *    frame; a single directional veil weights the BOTTOM of that frame, where
+ *    the lockup lands, and leaves the top half completely open. Peak 0.32 —
+ *    inside DESIGN.md's mandated 0.15–0.35 band, and directional on the vertical
+ *    axis, which is what the flat wash it replaced never was.
+ *  - WIDE (>= 768px): the promoted W2 "Center Plate & Rules" act, which carries
+ *    NO veil at all — its lockup sits below the plate, over an ambient backdrop,
+ *    and never crosses the photograph. See ./reelWide, which owns that geometry.
  *
  * Live and preview both import from here. `SectionPreview` (the admin framing
- * editor's WYSIWYG canvas) must paint the same veil the phone paints, or the
+ * editor's WYSIWYG canvas) must paint the same light the live act paints, or the
  * editor starts lying about what publishes — which is the parity law's whole
  * point. Constants restated as strings, never re-derived per surface.
  */
@@ -38,8 +41,8 @@ const readPhone = () => {
 /**
  * Is this viewport a phone? Read SYNCHRONOUSLY on first render (unlike
  * `useIsMobile`, which starts undefined and corrects in an effect) — the two
- * reel compositions differ in fit, so a first paint at the wrong one would show
- * a phone the letterboxed act and then swap it under the visitor.
+ * reel compositions are structurally different, so a first paint at the wrong
+ * one would show a phone the plate act and then swap it under the visitor.
  */
 export function useReelIsPhone(): boolean {
   const [phone, setPhone] = useState(readPhone);
@@ -56,20 +59,11 @@ export function useReelIsPhone(): boolean {
   return phone;
 }
 
-/**
- * How a reel slide paints its photo. Cover on phones (the act is edge-to-edge
- * and the veil does the legibility work); letterbox everywhere else.
- *
- * PORT.2: this is now the ONE place the reel's fit is decided, so the live act,
- * the editor canvas and the device thumbnails cannot disagree about it.
- */
-export const reelSlideFit = (isPhone: boolean): FitMode => (isPhone ? "fill" : "fit");
-
-/** Where the beam points when a slide carries no framing at all. */
+/** Where the focal resolver points when a slide carries no framing at all. */
 export const SPOTLIGHT_FALLBACK_CENTRE = { x: 50, y: 40 };
 
 /**
- * The beam's aim, as a percentage of the frame.
+ * The slide's focal point, as a percentage of the frame.
  *
  * The slide's focal is usable as a container percentage DIRECTLY: in cover mode
  * the resolver pans by `posX = focal.x * 100`, so on an axis with overflow the
@@ -77,63 +71,89 @@ export const SPOTLIGHT_FALLBACK_CENTRE = { x: 50, y: 40 };
  * point lands at `left + f * width = f * 100`; on an axis without overflow the
  * rectangle is pinned at 100% and it lands at `f * 100` again. Exact, not an
  * approximation — see src/lib/hero-framing.ts.
+ *
+ * Named for the retired phone spotlight, but it never was a veil function: it is
+ * the reel's ONE focal resolver, and the wide plate act reads it too. The
+ * bake-off harness imports this symbol by name, so the name is load-bearing.
  */
 export const spotlightCentre = (focal?: Focal) =>
   focal ? { x: focal.x * 100, y: focal.y * 100 } : SPOTLIGHT_FALLBACK_CENTRE;
 
 /**
- * CINE.FLOW.4C — the phone act has NO veil over its photograph.
+ * CINE.FLOW.5 — the phone act's edge veil, promoted verbatim from bake-off
+ * variant V1.
  *
- * The focal radial veil that used to sit here darkened the whole picture to buy
- * legibility for four lines of type at the foot of the frame. The photograph now
- * reads at full brightness — as bright as the unveiled regions of the wide W2
- * plate — and the type buys its own contrast LOCALLY, from the three constants
- * below.
+ * The thesis is that a veil is a WEIGHT AT THE BOTTOM OF THE FRAME and nothing
+ * more: the photograph is completely unveiled for its top 54%, suppression
+ * begins only where the type is actually going to land, and it deepens to the
+ * bottom edge — which doubles as the hand-off to the next act, the same move the
+ * hero and Titans veils make.
  *
- * The scrim is a soft vertical gradient bound to the lockup's zone: transparent
- * at its top edge, deepening to `rgba(0,0,0,0.55)` at the lockup's baseline,
- * full frame width, and no hard stop anywhere. Its total height is the lockup's
- * own box plus the feather and nothing more, so the photograph above it is
- * untouched. This is NOT the wide act's full-frame wash.
+ * This SUPERSEDES the CINE.FLOW.4C treatment (an unveiled photograph plus a
+ * scrim bound to the lockup's own box). Where the two conflict, V1 wins: the
+ * scrim, its four ramp constants and its ramp function are all gone. What
+ * survives from 4C is its finding — the flat 0.5 → 0.8 wash is dead and is not
+ * coming back.
  */
+export const PHONE_VEIL =
+  "linear-gradient(180deg, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 54%, rgba(11,10,8,0.16) 70%, rgba(11,10,8,0.32) 100%)";
 
 /**
- * The lockup's bottom-anchored box on a phone, in CSS px: `pb-16` (64) + the
- * 22px numeral row + its 10px gap + the 28px title at line-height 1.1 (≈31).
+ * The phone numeral, in CSS px: V1's 82px reduced 20% (82 × 0.8 = 65.6) and
+ * rounded to a whole CSS pixel. Cinzel is a letterform cut into stone; a
+ * fractional cap height is a rasteriser artefact, not a type decision.
  */
+export const PHONE_NUMERAL_PX = 66;
+
+/**
+ * The phone title. V1 set a flat 22px; the ruling adopts the V2 lockup size
+ * instead — bounded rather than flat because the longest title fills the frame
+ * exactly at 360 (Galaxy S26), where a flat 28px wraps to two lines and the
+ * lockup stops reading as one mark. The ceiling is DESIGN.md's Headline floor.
+ */
+export const PHONE_TITLE_CLAMP = "clamp(1.5rem, 7.2vw, 1.75rem)";
+
+/** The phone lockup's box, in CSS px: V1's `px-6 pb-14` and its `mt-2` gap. */
+export const PHONE_LOCKUP_PAD_X_PX = 24;
+export const PHONE_LOCKUP_PAD_BOTTOM_PX = 56;
+export const PHONE_LOCKUP_GAP_PX = 8;
+
+/**
+ * The phone frame the admin preview's container units are calibrated against
+ * (see SectionPreview). Lets the preview restate the px constants above as
+ * container units instead of re-deriving them by hand.
+ */
+export const PREVIEW_PHONE_REF_W = 402;
+
+/** A px constant from the live phone lockup, as the preview's container unit. */
+export const asPreviewCqw = (px: number) =>
+  `${((px / PREVIEW_PHONE_REF_W) * 100).toFixed(2)}cqw`;
+
+/** Brand constants the reel lockup is built from (DESIGN.md normative tokens). */
+export const GOLD = "#C9A55C";
+export const IVORY = "#f4ecdb";
+
+/* ------------------------------------------------------------------------- *
+ * RETIRED, PENDING THE WIDE PROMOTION.
+ *
+ * The live phone act no longer reads anything below this line. The admin
+ * preview still mirrors the OLD compositions, so these stay exported until the
+ * mirror is rewritten and they can be deleted outright.
+ * ------------------------------------------------------------------------- */
+
+/** How a reel slide paints its photo: cover on phones, letterbox above. */
+export const reelSlideFit = (isPhone: boolean): FitMode => (isPhone ? "fill" : "fit");
+
+/** The 4C lockup scrim's box, baseline, feather and floor. */
 export const LOCKUP_BOX_PX = 128;
-
-/**
- * The lockup's BASELINE, measured up from the foot of the frame: the `pb-16`
- * gutter under the title. This is where the ramp arrives at its floor — below
- * it the scrim simply holds, so the type never sits on a rising gradient.
- */
 export const LOCKUP_BASELINE_PX = 64;
-
-/**
- * The feather — the run over which the scrim rises out of nothing. The law is
- * "at least 8vh"; 10 buys margin on the shortest phone the editor models.
- */
 export const LOCKUP_SCRIM_FEATHER_VH = 10;
-
-/** The scrim's floor: how dark it ever gets, at and below the baseline. */
 export const LOCKUP_SCRIM_FLOOR = 0.55;
 
-/**
- * The scrim ramp, in lengths measured down from the scrim's own top edge, so it
- * stays anchored to the lockup rather than stretching with the frame:
- *
- *   0 → 8vh    the feather: still essentially clear at 8vh (0.09)
- *   → baseline the ramp proper, arriving at 0.55 exactly at the lockup baseline
- *   → 100%     held flat under the type's gutter
- *
- * Every step is under 0.13, so there is no edge to see anywhere along it.
- *
- * `unit` is the vertical unit the surface measures the feather in — `vh` on the
- * live act, `cqh` inside the admin preview's sized container — and `px` is how
- * that surface writes one of the live act's CSS pixels (itself, or the
- * container-unit restatement the preview scales by).
- */
+/** The 4C numeral's two flanking rules, equal at the longer value. */
+export const LOCKUP_RULE_W_PX = 40;
+
+/** The 4C scrim ramp, in lengths measured down from the scrim's own top edge. */
 export const lockupScrim = (
   unit: "vh" | "cqh" = "vh",
   px: (n: number) => string = (n) => `${n}px`,
@@ -153,32 +173,5 @@ export const lockupScrim = (
   ].join(", ");
 };
 
-/**
- * CINE.FLOW.4C — the numeral's two flanking rules, EQUAL. They were 28 and 40,
- * which read as a mistake rather than a device; both now sit at the longer
- * value, from this one constant, on every surface that draws the lockup.
- */
-export const LOCKUP_RULE_W_PX = 40;
-
-/**
- * The phone frame the admin preview's container units are calibrated against
- * (see SectionPreview). Lets the preview restate the px constants above as
- * container units instead of re-deriving them by hand.
- */
-export const PREVIEW_PHONE_REF_W = 402;
-
-/** A px constant from the live phone lockup, as the preview's container unit. */
-export const asPreviewCqw = (px: number) =>
-  `${((px / PREVIEW_PHONE_REF_W) * 100).toFixed(2)}cqw`;
-
-/**
- * The wide veil — the flat 0.5 → 0.8 wash the act has always carried above the
- * phone breakpoint. Out of the mandated band and recorded in DESIGN.md as the
- * remaining half of the reel-veil violation; kept byte-identical here only so
- * the preview keeps matching the surface it previews.
- */
+/** The flat 0.5 → 0.8 wash the act carries above the phone breakpoint. */
 export const WIDE_VEIL = "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))";
-
-/** Brand constants the reel lockup is built from (DESIGN.md normative tokens). */
-export const GOLD = "#C9A55C";
-export const IVORY = "#f4ecdb";
