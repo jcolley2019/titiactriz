@@ -93,9 +93,15 @@ export function focalFractions(focal?: Focal): { fx: number; fy: number } {
  * `clamp(1.375rem, 2.5vw, 2.375rem)` for the numeral, computed in px against
  * the FRAME width (a CSS clamp() would read the real viewport, not the frame).
  *
- * The floors are the promoted phone act's own sizes, so type is CONTINUOUS
- * across the 768px boundary — a tablet a hair above the breakpoint sets the
+ * The TITLE is continuous across the 768px boundary: this floor (28px) is the
+ * phone title clamp's ceiling, so a tablet a hair above the breakpoint sets the
  * same title as a phone a hair below it.
+ *
+ * The NUMERAL is not, and deliberately so. W1-W3 were built against the 4C
+ * phone act, whose numeral was a 22px caption mark; the promoted V1 act sets it
+ * at 66px, where it carries the lockup's mass rather than labelling it. The two
+ * acts are different compositions and the numeral changes role between them —
+ * see the reel lockup steps in DESIGN.md.
  */
 export const lockupTitlePx = (frameW: number) => clampNum(28, frameW * 0.032, 48);
 export const lockupNumeralPx = (frameW: number) => clampNum(22, frameW * 0.025, 38);

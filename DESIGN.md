@@ -219,6 +219,33 @@ serif never tips into period pastiche.
   utility. Eyebrows above headings (in gold), CTA text (tracking `0.2em`), and
   scroll cues (`0.625rem`, tracking `0.3em`).
 
+**Reel lockup steps** (CINE.FLOW.5). The reel's two acts are different
+compositions, not one composition at two sizes, so each sets its own pair —
+display family, gold numeral over ivory title:
+
+- **Reel numeral, phone** (400, `66px` flat, tracking none, gold): the promoted
+  V1 mark. Fixed rather than fluid because it is a compositional element sized
+  against the frame's foot, not a text size.
+- **Reel title, phone** (400, `clamp(1.5rem, 7.2vw, 1.75rem)`, leading `1.1`,
+  tracking `0.06em`, uppercase): bounded so the longest title shrinks instead of
+  wrapping at 360 (Galaxy S26). The ceiling is the **Headline** floor.
+- **Reel numeral, wide** (400, `clamp(1.375rem, 2.5vw, 2.375rem)` → 22–38px,
+  tracking `0.12em` with a matching `text-indent` so tracking's trailing space
+  does not drag it left of true centre between its rules).
+- **Reel title, wide** (400, `clamp(1.75rem, 3.2vw, 3rem)` → 28–48px, leading
+  `1.1`, tracking `0.06em`, uppercase): the floor equals the phone title's
+  ceiling, so the **title** is continuous across the 768px line.
+
+Both wide steps are computed in px against the act's **measured frame**, not in
+CSS `vw` — the reel's frame is a pinned stage, and viewport units would describe
+the window instead of the box.
+
+The **numeral** is deliberately *not* continuous across the breakpoint: 66px
+below it, 22px just above. That is not drift. The two acts are different
+compositions — edge-to-edge cover with the numeral as the lockup's mass, versus
+a bounded plate with the numeral as an engraved caption — and the numeral
+changes role with them.
+
 **The Unboxed Type Rule.** Type earns legibility from its own weight, color, and
 the veil beneath it — never from a plate, chip, or panel drawn behind it. If text
 needs a box to be readable, the veil is wrong, not the type.
@@ -255,6 +282,43 @@ on desktop — one DOM node, no duplication, no gap left behind.
 max-width container, a visible gutter, or a card boundary on an act is a
 regression — the frame is the viewport.
 
+### Settled — the reel's two compositions (CINE.FLOW.5, 2026-07-26)
+
+Three decisions, taken on the bake-off evidence and recorded here because each
+one narrows what a later brick may do:
+
+1. **The wide reel adopts W2 "Center Plate & Rules."** Above 768px the act is a
+   bounded portrait plate (`aspect 0.563`, height `76vh` capped at `60vw` —
+   smaller box wins), centred, top edge at `8vh`, in a `1px rgba(201,165,92,0.55)`
+   gold hairline frame, hung between two vertical gold hairlines at 18% and 82%
+   of the frame at `0.35` opacity, over a full-frame ambient backdrop of the
+   slide's own photograph (`blur(64px) brightness(0.35) saturate(0.9)`, scaled
+   `1.1`, and **never animated**). The lockup is captioned in the band beneath,
+   with at least `3vh` clear above and below. The letterboxed rendering it
+   replaces is retired.
+
+   This is a deliberate exception to nothing: the plate is a *frame within the
+   act*, not a card. The act itself is still full-bleed and viewport-true — the
+   backdrop reaches every edge — so the Full-Bleed Rule holds. What the plate
+   rejects is **cover at desktop widths**, where a portrait source keeps only
+   24–42% of the photograph. Showing less of her to fill the frame was the worse
+   trade.
+
+2. **`WIDE_VEIL` is deleted, not merely unreferenced.** See the veil law under
+   Elevation & Depth. Restoring a full-frame wash above the breakpoint is a
+   regression, and the specs assert the absence rather than the value.
+
+3. **`reelSlideFit` is retired.** Both acts crop to their subject now — the
+   phone against the viewport, the plate against its own box — so the letterbox
+   fit mode has no caller anywhere in the reel, live or admin. Every reel
+   surface reports `fill`.
+
+Bake-off variants V1–V5 and w1–w3 are kept as museum pieces under
+`src/components/qa/reel-bakeoff/`. Live code does not import from `qa/`, so the
+promoted primitives were copied into `src/components/cinematic/reelWide.tsx`
+rather than shared; the harness copy is frozen and is not a second source of
+truth for anything that ships.
+
 ## Elevation & Depth
 
 This system has **no shadow vocabulary on cinematic surfaces**. Depth is
@@ -278,26 +342,51 @@ admin-exempt layer and have no role in the cinematic world.
 **The Atmosphere-Not-Elevation Rule.** Depth is made of light and distance, never
 of a drop shadow. Nothing on a cinematic surface floats above the ground plane.
 
-- **Reel spotlight** (phone only): `radial-gradient(ellipse 76% 56% at Fx% Fy%,
-  0 0%, 0 46%, 0.20 72%, 0.35 100%)`, where `Fx/Fy` is the slide's own focal
-  point from the admin framing. The veil is a lens rather than a curtain: fully
-  open over the subject, all suppression spent on the corners where no
-  photograph information lives. Aiming it elsewhere never raises the ceiling —
-  `0.35` is the darkest stop wherever the beam points.
+- **Reel edge veil** (phone only): `linear-gradient(180deg, 0 0%, 0 54%, 0.16
+  70%, 0.32 100%)`. A veil as a *weight at the foot of the frame*: the
+  photograph is completely unveiled through its top 54%, suppression begins only
+  where the lockup lands, and it deepens to `0.32` at the bottom edge, which
+  doubles as the hand-off to the next act. Same move as the hero and Titans
+  veils, and its peak sits inside the mandated band.
 
-**Half-resolved — the reel veil.** The flat
-`linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))` wash — undirected,
-squarely in the banned 50–80% range and outside the mandated `0.15–0.35` — is
-**retired on phones** as of CINE.FLOW.3 (`62fcb19`, 2026-07-25), replaced by the
-focal-anchored spotlight above. Below 768px the act is now compliant.
+**What a veil is for.** A veil exists for exactly one reason: **to protect type
+set over photography.** It is not atmosphere, not a mood wash, and not a way to
+calm a busy picture. Two consequences, and both are now load-bearing:
 
-It **still paints at 768px and wider**, where the mandate keeps the reel's
-letterbox/gallery character and CINE.FLOW.3 was scoped not to touch it. The
-constant now lives in one place, `src/components/cinematic/reelSpotlight.ts`
-(`WIDE_VEIL`), imported by both the live act and the admin preview, so retiring
-the second half is a one-line change in a single file when a later brick takes
-the wide composition. Until then this remains an open violation on tablet and
-desktop, and it is recorded here, not fixed here.
+- Where type crosses the photograph, the veil is the thinnest film that keeps it
+  legible, and it is directional — open where the photograph carries the image,
+  weighted only where the type actually lands.
+- **Where type does not cross the photograph, there is no veil at all.** A
+  composition that moves its type off the picture does not earn a lighter veil;
+  it earns none. Darkening a photograph that carries no type over it is a cost
+  with no benefit.
+
+**Resolved — the reel veil.** The flat
+`linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))` wash —
+undirected, squarely in the banned 50–80% range and outside the mandated
+`0.15–0.35` — is **gone from both device classes**, and the constant that held
+it (`WIDE_VEIL`) is deleted rather than merely unreferenced. This closes the
+violation this document has carried since TA.2.
+
+Settled by bake-off across CINE.FLOW.2 → CINE.FLOW.5
+(`62fcb19..d524529`, 2026-07-25 → 2026-07-26):
+
+- **Phone (< 768px)** carries the edge veil above, promoted from bake-off
+  variant V1. It replaces the CINE.FLOW.4C treatment (an unveiled photograph
+  under a scrim bound to the lockup's own box), which is superseded — where the
+  two conflicted, V1 won. The type still sits over the photograph here, so a
+  veil is still owed; it is just directional and inside the band now.
+- **Wide (≥ 768px)** carries **no veil**, promoted from variant W2. The
+  letterboxed rendering is retired entirely in favour of a bounded portrait
+  plate on an ambient backdrop, with the lockup captioned *below* the plate. No
+  type crosses the photograph, so by the rule above the plate renders unveiled;
+  the blurred, darkened backdrop is what carries the caption's legibility.
+
+The focal-anchored radial spotlight CINE.FLOW.3 introduced on phones is retired
+with the rest — it was a lens rather than a curtain, but it still darkened a
+whole photograph to buy four lines of type their contrast. Its resolver survives
+as `spotlightCentre`, which is now simply the reel's one focal source and is
+read by the wide plate.
 
 ## Shapes
 
