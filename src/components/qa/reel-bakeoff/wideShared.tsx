@@ -99,9 +99,11 @@ export function focalViewportPoint(
 }
 
 /**
- * The plate veil law, shared by all three variants: fully open (0) at the
- * focal point, closing radially to 0.35 at the plate edges. Plate-local — it
- * paints inside the plate box only, never on the backdrop.
+ * The plate veil law for the compositions whose lockup crosses the
+ * photograph (W1, W3): fully open (0) at the focal point, closing radially to
+ * 0.35 at the plate edges. Plate-local — it paints inside the plate box only,
+ * never on the backdrop. W2 declines it: its lockup sits below the plate over
+ * the ambient backdrop, so the veil would darken the photograph for nothing.
  */
 export const plateVeil = (fxPct: number, fyPct: number) =>
   `radial-gradient(ellipse farthest-corner at ${fxPct}% ${fyPct}%, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 40%, rgba(11,10,8,0.20) 75%, rgba(11,10,8,0.35) 100%)`;
@@ -200,7 +202,8 @@ export const WideLockup = ({
 export type WideTimelineRefs = {
   rootRef: RefObject<HTMLDivElement>;
   slideRefs: MutableRefObject<(HTMLDivElement | null)[]>;
-  veilRefs: MutableRefObject<(HTMLDivElement | null)[]>;
+  /** Omitted by veil-less compositions (W2) — no veil, no beam-open beat. */
+  veilRefs?: MutableRefObject<(HTMLDivElement | null)[]>;
   labelRefs: MutableRefObject<(HTMLDivElement | null)[]>;
   titleRefs: MutableRefObject<(HTMLSpanElement | null)[]>;
 };
@@ -208,7 +211,7 @@ export type WideTimelineRefs = {
 /**
  * Motion parity — the shipped reel beats, exactly, on a PAUSED timeline the
  * harness scrubs linearly (progress 0..1 maps linearly onto timeline time):
- * slide crossfades (0.5 at whole-number marks), beam-open
+ * slide crossfades (0.5 at whole-number marks), beam-open where a veil exists
  * (scale 1.06 → 1, power3.out), label/title settle (+0.12/+0.15, power3.out),
  * and a 0.5 dead-stop dwell at the end. Structure mirrors CinematicReel's
  * pinned timeline one-for-one so judging the bake-off judges the real motion.
@@ -236,12 +239,19 @@ export function useWideReelTimeline(
       for (let i = 1; i < els.length; i++) {
         tl.to(els[i - 1], { opacity: 0, duration: 0.5 }, i);
         tl.to(els[i], { opacity: 1, duration: 0.5 }, i);
-        tl.fromTo(
-          refs.veilRefs.current[i],
-          { scale: 1.06, opacity: 0.6 },
-          { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
-          i,
-        );
+        // Beam-open — the veil's own entrance. A veil-less composition (W2)
+        // passes no veilRefs and simply has no beam; the beat it would occupy
+        // (0.5 at mark i) is already covered by the crossfade, so the
+        // timeline's duration, dead-stops and midpoints are identical either way.
+        const veilEl = refs.veilRefs?.current[i];
+        if (veilEl) {
+          tl.fromTo(
+            veilEl,
+            { scale: 1.06, opacity: 0.6 },
+            { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+            i,
+          );
+        }
         tl.fromTo(
           refs.labelRefs.current[i],
           { y: 10, opacity: 0 },

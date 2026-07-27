@@ -7,7 +7,6 @@ import {
   WideLockup,
   focalFractions,
   plateBox,
-  plateVeil,
   useWideReelTimeline,
 } from "./wideShared";
 
@@ -20,24 +19,33 @@ import {
  * Composition: plate height 76vh capped at 60vw (smaller box wins),
  * horizontally centred, top edge at 8vh, gold hairline outline. Two vertical
  * gold hairlines at 18% and 82% of the frame width, 0.35 opacity, below the
- * plate in z. Shared veil law. Lockup bottom-CENTRE: horizontally centred in
- * the band between plate bottom and frame bottom, with at least 3vh of
- * padding above and below — a centred plate leaves no left gutter at 834px,
- * so this composition resolves the collision by construction rather than by
- * clamping.
+ * plate in z. Lockup bottom-CENTRE: horizontally centred in the band between
+ * plate bottom and frame bottom, with at least 3vh of padding above and
+ * below — a centred plate leaves no left gutter at 834px, so this composition
+ * resolves the collision by construction rather than by clamping.
  *
- * Motion is the shipped beats via useWideReelTimeline; under reduced motion
- * the act is its first frame, veil at final state, no beam, static backdrop.
+ * NO PLATE VEIL (CINE.FLOW.4B). The focal radial veil exists to keep type
+ * legible where type crosses the photograph. In W2 the lockup sits BELOW the
+ * plate, over the ambient backdrop, and never overlays the photograph — so the
+ * veil bought nothing and cost the plate its light. The photograph renders
+ * unveiled inside its gold hairline frame; the AmbientBackdrop
+ * (blur 64px / brightness 0.35) is what carries the lockup's legibility.
+ * W1 and W3 keep their veils.
+ *
+ * Motion is the shipped beats via useWideReelTimeline, minus the beam-open —
+ * the beam IS the veil's scale/opacity entrance, so a veil-less composition has
+ * none. Crossfade, label/title settle and the dead-stop dwell are unchanged.
+ * Under reduced motion the act is its first frame: no veil, static backdrop.
  */
 const W2 = ({ slides, progress, reduced, frameW, frameH }: WideVariantProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const veilRefs = useRef<(HTMLDivElement | null)[]>([]);
   const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
+  // No veilRefs: this composition has no veil, so it has no beam-open beat.
   useWideReelTimeline(
-    { rootRef, slideRefs, veilRefs, labelRefs, titleRefs },
+    { rootRef, slideRefs, labelRefs, titleRefs },
     slides.length,
     reduced,
     progress,
@@ -88,17 +96,8 @@ const W2 = ({ slides, progress, reduced, frameW, frameH }: WideVariantProps) => 
                 outline: PLATE_OUTLINE,
               }}
             >
+              {/* Unveiled: nothing paints over the photograph inside the plate. */}
               <ReelPhoto slide={s} />
-              {/* The beam opens about its own centre, so the aim survives the entrance. */}
-              <div
-                ref={(el) => (veilRefs.current[i] = el)}
-                data-qa="wide-veil"
-                className="absolute inset-0"
-                style={{
-                  background: plateVeil(fx * 100, fy * 100),
-                  transformOrigin: `${fx * 100}% ${fy * 100}%`,
-                }}
-              />
             </div>
             {/* The caption band: whatever height remains under the plate. */}
             <div
