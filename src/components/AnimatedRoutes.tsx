@@ -22,6 +22,11 @@ const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
 // noindex'd by the page itself. Never reachable in a production build.
 const QaReelBakeoff = lazy(() => import("@/components/qa/reel-bakeoff/BakeoffPage"));
 
+// SEQ.1 — QA-only frame-scrub lab. Same gating as the bake-off above: DEV-only
+// registration, no nav entry, absent from public/sitemap.xml, noindex'd by the
+// page itself.
+const QaSeqLab = lazy(() => import("@/components/qa/seq-lab/SeqLabPage"));
+
 const RouteFallback = () => (
   <div
     className="min-h-[60vh] flex items-center justify-center"
@@ -130,6 +135,16 @@ const AnimatedRoutes = () => {
             element={
               <Suspense fallback={<RouteFallback />}>
                 <QaReelBakeoff />
+              </Suspense>
+            }
+          />
+        )}
+        {import.meta.env.DEV && (
+          <Route
+            path="/qa/seq-lab"
+            element={
+              <Suspense fallback={<RouteFallback />}>
+                <QaSeqLab />
               </Suspense>
             }
           />
