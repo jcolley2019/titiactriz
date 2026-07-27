@@ -8,6 +8,7 @@ import {
   GOLD,
   IVORY,
   LOCKUP_BOX_PX,
+  LOCKUP_RULE_W_PX,
   LOCKUP_SCRIM_FEATHER_VH,
   WIDE_VEIL,
   lockupScrim,
@@ -95,7 +96,12 @@ const PhoneSlide = ({
         className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center px-6 pb-16 text-center"
       >
         <div ref={labelRef} className="mb-2.5 flex items-center gap-3">
-          <span aria-hidden className="block h-px w-7" style={{ backgroundColor: GOLD }} />
+          <span
+            aria-hidden
+            data-qa="reel-rule"
+            className="block h-px"
+            style={{ width: LOCKUP_RULE_W_PX, backgroundColor: GOLD }}
+          />
           <span
             aria-hidden
             className="block leading-none"
@@ -112,7 +118,12 @@ const PhoneSlide = ({
           >
             {numeral(i)}
           </span>
-          <span aria-hidden className="block h-px w-10" style={{ backgroundColor: GOLD }} />
+          <span
+            aria-hidden
+            data-qa="reel-rule"
+            className="block h-px"
+            style={{ width: LOCKUP_RULE_W_PX, backgroundColor: GOLD }}
+          />
         </div>
         <span
           ref={titleRef}

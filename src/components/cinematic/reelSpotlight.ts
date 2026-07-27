@@ -154,6 +154,13 @@ export const lockupScrim = (
 };
 
 /**
+ * CINE.FLOW.4C — the numeral's two flanking rules, EQUAL. They were 28 and 40,
+ * which read as a mistake rather than a device; both now sit at the longer
+ * value, from this one constant, on every surface that draws the lockup.
+ */
+export const LOCKUP_RULE_W_PX = 40;
+
+/**
  * The phone frame the admin preview's container units are calibrated against
  * (see SectionPreview). Lets the preview restate the px constants above as
  * container units instead of re-deriving them by hand.
