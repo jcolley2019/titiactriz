@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import FramedImage from "@/components/cinematic/FramedImage";
 import FramedVideo from "@/components/cinematic/FramedVideo";
-import { reelSlideFit } from "@/components/cinematic/reelSpotlight";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import { fetchCinematicHeroPhotoId } from "@/hooks/useCinematicHero";
 import {
@@ -513,11 +512,13 @@ const CinematicMediaManager = () => {
                       src={r.photo.image_url}
                       focal={r.focal}
                       zoom={r.zoom}
-                      // CINE.FLOW.3: a slot card is a 3:4 identifier belonging
+                      // CINE.FLOW.5: a slot card is a 3:4 identifier belonging
                       // to no device, so the reel shows its WIDE rendering —
-                      // the whole photo. The per-device truth (cover on a
-                      // phone) lives on the editor's device tabs.
-                      fit={d.kind === "reel" ? reelSlideFit(false) : "fill"}
+                      // which is now the W2 plate, cropped to the subject in
+                      // cover mode rather than letterboxed whole. Every reel
+                      // surface is cover now, so there is nothing left to
+                      // choose between: `reelSlideFit` is retired.
+                      fit="fill"
                       loading="lazy"
                     />
                   ) : (

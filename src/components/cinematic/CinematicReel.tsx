@@ -13,10 +13,20 @@ import {
   PHONE_NUMERAL_PX,
   PHONE_TITLE_CLAMP,
   PHONE_VEIL,
-  WIDE_VEIL,
-  reelSlideFit,
   useReelIsPhone,
 } from "./reelSpotlight";
+import {
+  AmbientBackdrop,
+  BAND_PAD_VH,
+  PLATE_OUTLINE,
+  PLATE_TOP_VH,
+  WIDE_RULE_OPACITY,
+  WIDE_RULE_X,
+  WideLockup,
+  focalFractions,
+  plateBox,
+  useFrameSize,
+} from "./reelWide";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,24 +42,23 @@ type Props = { slides: ReelSlide[]; reduced: boolean };
 
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
-const SlidePhoto = ({ slide, phone }: { slide: ReelSlide; phone: boolean }) => (
+/**
+ * The photo layer, on both acts. COVER on every surface as of CINE.FLOW.5: the
+ * phone act is edge-to-edge and the wide act crops to a portrait plate that is
+ * already the sources' own aspect, so the letterbox mode — and with it the
+ * `reelSlideFit` selector that used to choose between them — has no caller left.
+ */
+const SlidePhoto = ({ slide }: { slide: ReelSlide }) => (
   <FramedImage
     src={slide.photo?.image_url}
     alt={slide.photo?.alt_text ?? ""}
     focal={slide.focal ?? REEL_DEFAULT_FOCAL}
     zoom={slide.zoom ?? DEFAULT_ZOOM}
-    fit={reelSlideFit(phone)}
+    fit="fill"
     imgDataQa="cinematic-reel-img"
     loading="lazy"
     fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
   />
-);
-
-const SlideBg = ({ slide }: { slide: ReelSlide }) => (
-  <>
-    <SlidePhoto slide={slide} phone={false} />
-    <div className="absolute inset-0" style={{ background: WIDE_VEIL }} />
-  </>
 );
 
 /**
@@ -79,7 +88,7 @@ const PhoneSlide = ({
 }) => (
   <>
     <div className="absolute inset-0">
-      <SlidePhoto slide={slide} phone />
+      <SlidePhoto slide={slide} />
     </div>
 
     {/* The edge veil: a weight at the foot of the frame, nothing more. */}
@@ -131,42 +140,105 @@ const PhoneSlide = ({
   </>
 );
 
-const SlideContent = ({
+/**
+ * CINE.FLOW.5 — the wide act, promoted from bake-off variant W2 "Center Plate &
+ * Rules" as it stood after CINE.FLOW.4B.
+ *
+ * A centred portrait plate in a gold hairline frame, hung between two vertical
+ * gold hairlines, over an ambient backdrop built from the slide's own
+ * photograph; the lockup is an engraved caption centred in the band beneath the
+ * plate. The plate carries NO veil — the lockup never crosses the photograph,
+ * so there is no type to protect there and a veil would only cost the plate its
+ * light. This replaces the letterboxed rendering and its flat wash entirely.
+ *
+ * Geometry is measured, not declared in viewport units: `useFrameSize` reads the
+ * box this slide actually paints into, which is the pinned stage under motion
+ * and a 70svh slide under reduced motion.
+ */
+const WideSlide = ({
+  slide,
   i,
-  title,
+  labelRef,
   titleRef,
 }: {
+  slide: ReelSlide;
   i: number;
-  title: string;
+  labelRef?: (el: HTMLElement | null) => void;
   titleRef?: (el: HTMLSpanElement | null) => void;
-}) => (
-  <div className="relative z-10 flex h-full w-full flex-col items-center justify-center px-6 text-center">
-    <span
-      aria-hidden
-      className="block leading-none"
-      style={{
-        fontFamily: "var(--font-display)",
-        color: "rgba(201,165,92,0.85)",
-        fontSize: "clamp(4.5rem, 20vw, 15rem)",
-      }}
-    >
-      {numeral(i)}
-    </span>
-    <span
-      ref={titleRef}
-      data-qa="section-heading"
-      className="mt-1 block uppercase"
-      style={{
-        fontFamily: "var(--font-display)",
-        color: "#f4ecdb",
-        fontSize: "clamp(1.5rem, 5vw, 3.5rem)",
-        letterSpacing: "0.06em",
-      }}
-    >
-      {title}
-    </span>
-  </div>
-);
+}) => {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const { w: frameW, h: frameH } = useFrameSize(frameRef);
+
+  const box = plateBox(frameW, frameH);
+  const plateLeft = (frameW - box.w) / 2;
+  const plateTop = frameH * (PLATE_TOP_VH / 100);
+  const bandPad = frameH * (BAND_PAD_VH / 100);
+  const { fx, fy } = focalFractions(slide.focal);
+  const measured = frameW > 0 && frameH > 0;
+
+  return (
+    <div ref={frameRef} className="absolute inset-0 overflow-hidden">
+      <AmbientBackdrop src={slide.photo?.image_url} />
+
+      {/* The two rules — identical on every slide, so the crossfade cannot make
+          them move; DOM order keeps them below the plate. */}
+      {measured &&
+        WIDE_RULE_X.map((x) => (
+          <div
+            key={x}
+            aria-hidden
+            data-qa="wide-rule"
+            className="absolute inset-y-0"
+            style={{
+              left: frameW * x,
+              width: 1,
+              backgroundColor: GOLD,
+              opacity: WIDE_RULE_OPACITY,
+            }}
+          />
+        ))}
+
+      {measured && (
+        <>
+          <div
+            data-qa="wide-plate"
+            data-focal={`${fx.toFixed(4)},${fy.toFixed(4)}`}
+            className="absolute overflow-hidden"
+            style={{
+              left: plateLeft,
+              top: plateTop,
+              width: box.w,
+              height: box.h,
+              outline: PLATE_OUTLINE,
+            }}
+          >
+            {/* Unveiled: nothing paints over the photograph inside the plate. */}
+            <SlidePhoto slide={slide} />
+          </div>
+
+          {/* The caption band: whatever height remains under the plate. */}
+          <div
+            className="absolute inset-x-0 flex items-center justify-center"
+            style={{
+              top: plateTop + box.h,
+              bottom: 0,
+              paddingTop: bandPad,
+              paddingBottom: bandPad,
+            }}
+          >
+            <WideLockup
+              index={i}
+              title={slide.title}
+              frameW={frameW}
+              labelRef={labelRef}
+              titleRef={titleRef}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 /**
  * TA.2 pinned reel — three "featured" slides (gallery photos 2–4; the hero
@@ -175,17 +247,21 @@ const SlideContent = ({
  * type animates up. Under reduced motion the three slides simply stack, static.
  *
  * CINE.FLOW.5 — the act has two compositions, split at the phone breakpoint
- * (see ./reelSpotlight, which owns that line and the phone veil):
+ * (see ./reelSpotlight, which owns that line):
  *
  *  - PHONE: V1 "Edge Veil" — cover photography under one directional veil
  *    weighted to the foot of the frame, numeral over title.
- *  - WIDE: unchanged for one more commit — letterboxed photo, flat wash,
- *    centred oversized numeral over its title. The wide promotion to W2
- *    "Center Plate & Rules" lands next and retires all of it, along with
- *    `WIDE_VEIL` and `reelSlideFit`.
+ *  - WIDE: W2 "Center Plate & Rules" — an unveiled portrait plate on an ambient
+ *    backdrop between two gold hairlines, lockup captioned beneath (./reelWide).
  *
- * The scrub grammar is shared: whichever composition is mounted, slide N's
- * elements enter on the same segment of the same pinned timeline.
+ * Both are now inside DESIGN.md's veil band, so the reel-veil violation the
+ * document has carried since TA.2 is closed on both device classes.
+ *
+ * The scrub grammar is shared, and as of the promotion it is also LITERALLY the
+ * same code: both compositions expose a label element and a title element, so
+ * slide N's elements enter on the same segment of the same pinned timeline with
+ * no per-composition branch. Neither act has a veil the type must wait for, so
+ * neither has a beam-open beat; the crossfade covers that mark on both.
  */
 const CinematicReel = ({ slides, reduced }: Props) => {
   const phone = useReelIsPhone();
@@ -216,30 +292,21 @@ const CinematicReel = ({ slides, reduced }: Props) => {
         tl.to(els[i - 1], { opacity: 0, duration: 0.5 }, i);
         tl.to(els[i], { opacity: 1, duration: 0.5 }, i);
 
-        if (phone) {
-          // The type settles in over the slide's own crossfade, scrubbed rather
-          // than played. Same properties, easing and marks as before, so the
-          // segment's dead-stops and total duration are unchanged.
-          tl.fromTo(
-            labelRefs.current[i],
-            { y: 10, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
-            i + 0.12,
-          );
-          tl.fromTo(
-            titleRefs.current[i],
-            { y: 14, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
-            i + 0.15,
-          );
-        } else {
-          tl.fromTo(
-            titleRefs.current[i],
-            { yPercent: 45 },
-            { yPercent: 0, duration: 0.5 },
-            i,
-          );
-        }
+        // The type settles in over the slide's own crossfade, scrubbed rather
+        // than played. Same properties, easing and marks on both compositions,
+        // so the segment's dead-stops and total duration are composition-blind.
+        tl.fromTo(
+          labelRefs.current[i],
+          { y: 10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+          i + 0.12,
+        );
+        tl.fromTo(
+          titleRefs.current[i],
+          { y: 14, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+          i + 0.15,
+        );
       }
       tl.to({}, { duration: 0.5 }); // dwell on the final slide before release
     }, sectionRef);
@@ -247,7 +314,11 @@ const CinematicReel = ({ slides, reduced }: Props) => {
     return () => ctx.revert();
   }, [reduced, slides.length, phone]);
 
-  // Reduced motion: static stacked slides, no pinning/scrubbing.
+  const Composition = phone ? PhoneSlide : WideSlide;
+
+  // Reduced motion: static stacked slides, no pinning/scrubbing. Both acts are
+  // their own first frame — the wide act keeps its backdrop and plate, and
+  // neither has a veil whose entrance was carrying anything.
   if (reduced) {
     return (
       <section ref={sectionRef} data-qa="cinematic-section" className="relative">
@@ -256,16 +327,7 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             key={i}
             className="relative flex min-h-[70svh] items-center justify-center overflow-hidden"
           >
-            {phone ? (
-              <PhoneSlide slide={s} i={i} />
-            ) : (
-              <>
-                <div className="absolute inset-0">
-                  <SlideBg slide={s} />
-                </div>
-                <SlideContent i={i} title={s.title} />
-              </>
-            )}
+            <Composition slide={s} i={i} />
           </div>
         ))}
       </section>
@@ -284,25 +346,12 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             className="absolute inset-0"
             style={{ opacity: i === 0 ? 1 : 0 }}
           >
-            {phone ? (
-              <PhoneSlide
-                slide={s}
-                i={i}
-                labelRef={(el) => (labelRefs.current[i] = el)}
-                titleRef={(el) => (titleRefs.current[i] = el)}
-              />
-            ) : (
-              <>
-                <div className="absolute inset-0">
-                  <SlideBg slide={s} />
-                </div>
-                <SlideContent
-                  i={i}
-                  title={s.title}
-                  titleRef={(el) => (titleRefs.current[i] = el)}
-                />
-              </>
-            )}
+            <Composition
+              slide={s}
+              i={i}
+              labelRef={(el) => (labelRefs.current[i] = el)}
+              titleRef={(el) => (titleRefs.current[i] = el)}
+            />
           </div>
         ))}
       </div>
