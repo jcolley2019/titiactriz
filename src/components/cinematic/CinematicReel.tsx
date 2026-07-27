@@ -299,6 +299,8 @@ const CinematicReel = ({ slides, reduced }: Props) => {
           <div
             key={i}
             ref={(el) => (slideRefs.current[i] = el)}
+            data-qa="reel-slide"
+            data-slide={i}
             className="absolute inset-0"
             style={{ opacity: i === 0 ? 1 : 0 }}
           >

@@ -351,6 +351,78 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
 });
 
 /**
+ * CINE.FLOW.4C — the phone act's COMPOSITION parity, alongside its geometry.
+ *
+ * PORT.2 above proves the editor paints the rectangle a phone publishes. This
+ * proves it paints the same LIGHT: unveiled photograph, one local scrim bound to
+ * the lockup's box, and two equal flanking rules. The editor phone tab is the
+ * only surface that mirrors the phone act, so if it keeps the retired beam — or
+ * keeps the 28/40 asymmetry — the editor starts lying about what publishes,
+ * which is the parity law's whole point.
+ *
+ * Scrim contract restated from src/components/cinematic/reelSpotlight.ts (NOT
+ * imported, same rule as `predict` above): box 128px of a 402px-wide phone
+ * (31.84cqw) plus a 10cqh feather.
+ */
+test.describe("CINE.FLOW.4C — phone composition parity (editor phone tab)", () => {
+  const PREVIEW = '[data-qa="media-editor-surface"] [data-qa="media-preview"]';
+  const SCRIM = '[data-qa="reel-lockup-scrim"]';
+  const RULE = '[data-qa="reel-rule"]';
+  const BOX_CQW = 0.3184;
+  const FEATHER_CQH = 0.1;
+
+  test("phone tab: unveiled, locally scrimmed, symmetric rules — wide tab: none of it", async ({
+    page,
+  }) => {
+    await openAdminMedia(page);
+    await page
+      .locator('[data-qa="media-slot"][data-slot="reel-0"] [data-qa="media-slot-edit"]')
+      .click();
+    const preview = page.locator(PREVIEW).first();
+    await expect(preview).toBeVisible();
+
+    // --- PHONE TAB ---------------------------------------------------------
+    await page.locator(`[data-qa="media-device-${PHONE_TAB}"]`).click();
+    await page.waitForTimeout(400);
+    await framingReady(page.locator(EDITOR_CANVAS_IMG).first());
+
+    const radials = await preview.evaluate((el) =>
+      Array.from(el.querySelectorAll("*"))
+        .map((n) => getComputedStyle(n as HTMLElement).backgroundImage)
+        .filter((bg) => bg.includes("radial-gradient")),
+    );
+    expect(radials, "editor phone tab shows no veil over the photograph").toEqual([]);
+
+    await expect(preview.locator(SCRIM), "editor phone tab draws the lockup scrim").toHaveCount(1);
+    const pbox = (await preview.boundingBox())!;
+    const sbox = (await preview.locator(SCRIM).boundingBox())!;
+    expect(sbox.width, "scrim spans the preview's full width").toBeGreaterThanOrEqual(
+      pbox.width - 1,
+    );
+    const cap = BOX_CQW * pbox.width + FEATHER_CQH * pbox.height;
+    expect(
+      sbox.height,
+      `scrim height ${sbox.height.toFixed(1)} <= box + feather (${cap.toFixed(1)})`,
+    ).toBeLessThanOrEqual(cap + 1);
+
+    const widths = await preview
+      .locator(RULE)
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(widths.length, "two flanking rules").toBe(2);
+    expect(widths[1], "the numeral's rules are equal").toBeCloseTo(widths[0], 1);
+
+    // --- DESKTOP TAB -------------------------------------------------------
+    await page.locator('[data-qa="media-device-desktop"]').click();
+    await page.waitForTimeout(400);
+    await expect(
+      preview.locator(SCRIM),
+      "the wide composition grows no lockup scrim",
+    ).toHaveCount(0);
+    await expect(preview.locator(RULE), "the wide composition has no rules").toHaveCount(0);
+  });
+});
+
+/**
  * ABOUT.MEDIA.1 (ITEM 4) — the same rendered-pixel parity law, extended to the
  * opt-in About portrait panel. The panel is fixed 3:4 EVERYWHERE (card thumbnail
  * ≡ editor canvas ≡ live panel), so it needs no device tabs and the editor

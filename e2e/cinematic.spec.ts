@@ -221,6 +221,127 @@ test.describe("cinematic — reel composition split", () => {
   }
 });
 
+/* ---------- CINE.FLOW.4C: the phone act is unveiled, and locally scrimmed ---------- */
+test.describe("cinematic — phone reel: unveiled photograph, local type scrim", () => {
+  /**
+   * The three laws of the 4C phone act, each falsifiable on the LIVE render:
+   *
+   *  1. UNVEILED — nothing radial paints over the photograph. Restoring the old
+   *     focal beam (any radial-gradient layer inside the reel section) fails.
+   *  2. LOCAL — the scrim exists, spans the full frame width, and is bounded to
+   *     the lockup's box plus its feather. Growing it into the wide act's
+   *     full-frame wash fails on height; a hard-edged band fails on the sampled
+   *     alpha ramp, which must rise monotonically from 0 with no jump.
+   *  3. SYMMETRIC — the numeral's two flanking rules are the same length.
+   *     Restoring the 28/40 asymmetry fails.
+   *
+   * The wide act keeps none of this: no scrim element above the breakpoint.
+   */
+  const SCRIM = '[data-qa="reel-lockup-scrim"]';
+  const RULE = '[data-qa="reel-rule"]';
+
+  /** The scrim's own contract, from src/components/cinematic/reelSpotlight.ts. */
+  const LOCKUP_BOX_PX = 128;
+  const BASELINE_PX = 64;
+  const FEATHER_VH = 10;
+  const SCRIM_FLOOR = 0.55;
+
+  const reelOf = (page: import("@playwright/test").Page) =>
+    page
+      .locator('[data-qa="cinematic-section"]')
+      .filter({ has: page.locator('[data-qa="cinematic-reel-img"]') })
+      .first();
+
+  test("phone 390 — no veil on the photo, scrim bound to the lockup", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 700);
+
+    const reel = reelOf(page);
+    await expect(reel).toBeAttached();
+
+    // 1. UNVEILED — no radial gradient paints anywhere in the reel section.
+    const radials = await reel.evaluate((sec) =>
+      Array.from(sec.querySelectorAll("*"))
+        .map((el) => getComputedStyle(el as HTMLElement).backgroundImage)
+        .filter((bg) => bg.includes("radial-gradient")),
+    );
+    expect(radials, "no radial veil over the phone photograph").toEqual([]);
+
+    // 2. LOCAL — one scrim per slide, full width, height <= box + feather.
+    await expect(reel.locator(SCRIM), "one scrim per slide").toHaveCount(3);
+    const frame = await reel.locator('[data-qa="cinematic-reel-img"]').first().evaluate(
+      () => ({ w: window.innerWidth, h: window.innerHeight }),
+    );
+    const box = await reel.locator(SCRIM).first().boundingBox();
+    expect(box, "scrim measurable").not.toBeNull();
+    expect(box!.width, "scrim spans the full frame width").toBeGreaterThanOrEqual(frame.w - 1);
+    const cap = LOCKUP_BOX_PX + (FEATHER_VH / 100) * frame.h;
+    expect(
+      box!.height,
+      `scrim height ${box!.height.toFixed(1)} <= lockup box + feather (${cap.toFixed(1)})`,
+    ).toBeLessThanOrEqual(cap + 1);
+
+    // ...and the ramp itself: transparent at the top edge, at least 8vh spent
+    // getting off zero, no jump anywhere, and the floor reached exactly at the
+    // lockup's baseline so the type never sits on a rising gradient.
+    const probe = await reel.locator(SCRIM).first().evaluate((el) => ({
+      bg: getComputedStyle(el as HTMLElement).backgroundImage,
+      h: el.getBoundingClientRect().height,
+      vh: window.innerHeight / 100,
+    }));
+    const ramp = Array.from(probe.bg.matchAll(/rgba?\(([^)]*)\)\s+([\d.]+)(px|vh|%)/g)).map((m) => {
+      const parts = m[1].split(",").map((p) => parseFloat(p.trim()));
+      const n = parseFloat(m[2]);
+      return {
+        y: m[3] === "px" ? n : m[3] === "vh" ? n * probe.vh : (n / 100) * probe.h,
+        alpha: parts.length > 3 ? parts[3] : 1,
+      };
+    });
+    expect(ramp.length, "scrim ramp has stops").toBeGreaterThan(3);
+    expect(ramp[0].alpha, "scrim is transparent at its top edge").toBe(0);
+    expect(ramp[ramp.length - 1].alpha, "scrim holds its floor to the foot").toBeCloseTo(
+      SCRIM_FLOOR,
+      2,
+    );
+    for (let i = 1; i < ramp.length; i++) {
+      expect(ramp[i].alpha, `stop ${i} never lightens`).toBeGreaterThanOrEqual(ramp[i - 1].alpha);
+      expect(
+        ramp[i].alpha - ramp[i - 1].alpha,
+        `stop ${i}: no hard line (alpha step ${ramp[i - 1].alpha} → ${ramp[i].alpha})`,
+      ).toBeLessThanOrEqual(0.15);
+    }
+    expect(
+      ramp.find((s) => s.alpha >= 0.1)!.y,
+      "top edge feathered over at least 8vh",
+    ).toBeGreaterThanOrEqual(0.08 * frame.h - 1);
+    const floorAt = ramp.find((s) => s.alpha >= SCRIM_FLOOR - 1e-6)!.y;
+    expect(
+      box!.height - floorAt,
+      "the ramp arrives at its floor at the lockup baseline (64px up)",
+    ).toBeCloseTo(BASELINE_PX, 0);
+
+    // 3. SYMMETRIC — both flanking rules are the same length.
+    const widths = await reel.locator(RULE).evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().width),
+    );
+    expect(widths.length, "two rules per slide").toBe(6);
+    for (const w of widths) {
+      expect(w, `rule width ${w} == the first rule's ${widths[0]}`).toBeCloseTo(widths[0], 1);
+    }
+  });
+
+  test("desktop 1440 — the wide act grows no scrim", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page, 700);
+    await expect(
+      reelOf(page).locator(SCRIM),
+      "no lockup scrim above the phone breakpoint",
+    ).toHaveCount(0);
+  });
+});
+
 test.describe("cinematic — reduced motion", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 

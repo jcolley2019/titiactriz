@@ -4,11 +4,14 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import {
   GOLD,
   IVORY,
+  LOCKUP_BOX_PX,
+  LOCKUP_RULE_W_PX,
+  LOCKUP_SCRIM_FEATHER_VH,
   WIDE_VEIL,
+  asPreviewCqw,
+  lockupScrim,
   reelIsPhoneWidth,
   reelSlideFit,
-  spotlightCentre,
-  spotlightVeil,
 } from "@/components/cinematic/reelSpotlight";
 import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
 
@@ -21,6 +24,11 @@ import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
  *
  * Purely visual: pointer/drag handling lives on the FramingEditor surface that
  * wraps this, so images never intercept the drag.
+ *
+ * CINE.FLOW.4C — the phone branch is UNVEILED: the photograph carries no beam,
+ * and the lockup's contrast comes from a local scrim over its own box. Both
+ * surfaces build that scrim, and the numeral's two equal rules, from the same
+ * constants in `reelSpotlight`, so the editor cannot drift off what publishes.
  *
  * CINE.FLOW.3 — the reel act now renders differently on a phone than above the
  * breakpoint, so this preview does too: `deviceWidth` (the previewed device's
@@ -71,7 +79,6 @@ const SectionPreview = ({
   fit = "fill",
 }: Props) => {
   const phoneReel = kind === "reel" && deviceWidth != null && reelIsPhoneWidth(deviceWidth);
-  const beam = spotlightCentre(focal);
   return (
     <div
       data-qa="media-preview"
@@ -133,14 +140,23 @@ const SectionPreview = ({
           </div>
         </>
       ) : phoneReel ? (
-        // CINE.FLOW.3 phone act: focal-anchored beam + the V2B lockup at the
-        // foot. Sizes are the live composition's px expressed in container
-        // units against a ~402cqw phone frame, so the scaled preview keeps the
-        // live proportions (22px numeral under a 28px title, bound as one mark).
+        // CINE.FLOW.3 phone act: the V2B lockup at the foot. Sizes are the live
+        // composition's px expressed in container units against a ~402cqw phone
+        // frame, so the scaled preview keeps the live proportions (22px numeral
+        // under a 28px title, bound as one mark).
+        //
+        // CINE.FLOW.4C — unveiled, exactly like the live act: no beam over the
+        // photograph, and the same local scrim bound to the lockup's box. The
+        // scrim's height and ramp come from the shared constants, its feather in
+        // `cqh` where the live act reads `vh`.
         <>
           <div
-            className="absolute inset-0"
-            style={{ background: spotlightVeil(beam) }}
+            data-qa="reel-lockup-scrim"
+            className="absolute inset-x-0 bottom-0"
+            style={{
+              height: `calc(${asPreviewCqw(LOCKUP_BOX_PX)} + ${LOCKUP_SCRIM_FEATHER_VH}cqh)`,
+              background: lockupScrim("cqh", asPreviewCqw),
+            }}
           />
           <div
             className="absolute inset-x-0 bottom-0 flex flex-col items-center text-center"
@@ -150,7 +166,15 @@ const SectionPreview = ({
               className="flex items-center"
               style={{ gap: "3cqw", marginBottom: "2.5cqw" }}
             >
-              <span style={{ display: "block", height: 1, width: "7cqw", backgroundColor: GOLD }} />
+              <span
+                data-qa="reel-rule"
+                style={{
+                  display: "block",
+                  height: 1,
+                  width: asPreviewCqw(LOCKUP_RULE_W_PX),
+                  backgroundColor: GOLD,
+                }}
+              />
               <span
                 style={{
                   fontFamily: DISPLAY,
@@ -163,7 +187,15 @@ const SectionPreview = ({
               >
                 {numeral(reelIndex)}
               </span>
-              <span style={{ display: "block", height: 1, width: "10cqw", backgroundColor: GOLD }} />
+              <span
+                data-qa="reel-rule"
+                style={{
+                  display: "block",
+                  height: 1,
+                  width: asPreviewCqw(LOCKUP_RULE_W_PX),
+                  backgroundColor: GOLD,
+                }}
+              />
             </div>
             {reelTitle && (
               <span
