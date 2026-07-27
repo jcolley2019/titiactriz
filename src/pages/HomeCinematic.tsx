@@ -6,7 +6,12 @@ import Lenis from "lenis";
 import SEO from "@/components/SEO";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
 import { useCinematicData } from "@/components/cinematic/useCinematicData";
-import { getCinematicMedia, useCinematicMediaConfig } from "@/hooks/useCinematicMedia";
+import {
+  getCinematicMedia,
+  useCinematicMediaConfig,
+  type ReelClassFraming,
+  type ResolvedReelSlot,
+} from "@/hooks/useCinematicMedia";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import CinematicGreenWorld from "@/components/cinematic/CinematicGreenWorld";
@@ -32,6 +37,12 @@ gsap.registerPlugin(ScrollTrigger);
  *
  * Font system mirrors HomeEditorial: Cinzel display + Jost sans via CSS vars.
  */
+/**
+ * FRAME.SPLIT.1 — lift just the two class records off a resolved reel slot. The
+ * photo travels as its own prop, so nothing but framing rides in `framing`.
+ */
+const classesOf = (s: ResolvedReelSlot): ReelClassFraming => ({ phone: s.phone, wide: s.wide });
+
 const cinematicFontVars: React.CSSProperties = {
   ["--font-display" as string]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",
   ["--font-sans" as string]: "'Jost', 'Outfit', system-ui, sans-serif",
@@ -147,13 +158,17 @@ const HomeCinematic = () => {
       {/* TA.5c: reel uses photos #2–4 so it never repeats the hero's photo #1.
           Each slot's photo + framing comes from the resolver (non-hero pool by
           default; an admin-set slot overrides both). When fewer than 4 photos
-          exist, the trailing slides simply render without an image. */}
+          exist, the trailing slides simply render without an image.
+
+          FRAME.SPLIT.1: both device-class records are handed down whole — the
+          act picks its own at the same breakpoint it picks its composition, so
+          this page never needs to know which one paints. */}
       <CinematicReel
         reduced={prefersReduced}
         slides={[
-          { photo: reel[0].photo, title: t("hero.roles.actress"), focal: reel[0].focal, zoom: reel[0].zoom },
-          { photo: reel[1].photo, title: t("hero.roles.streamer"), focal: reel[1].focal, zoom: reel[1].zoom },
-          { photo: reel[2].photo, title: t("hero.roles.entrepreneur"), focal: reel[2].focal, zoom: reel[2].zoom },
+          { photo: reel[0].photo, title: t("hero.roles.actress"), framing: classesOf(reel[0]) },
+          { photo: reel[1].photo, title: t("hero.roles.streamer"), framing: classesOf(reel[1]) },
+          { photo: reel[2].photo, title: t("hero.roles.entrepreneur"), framing: classesOf(reel[2]) },
         ]}
       />
 

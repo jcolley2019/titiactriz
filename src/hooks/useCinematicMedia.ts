@@ -10,8 +10,15 @@ import {
  * ADMIN.MEDIA.1 (ITEM 1) — cinematic media model + resolver.
  *
  * site_settings key "cinematic_media" (jsonb):
- *   { hero: SlotFraming, reel: [SlotFraming, SlotFraming, SlotFraming], about?: SlotFraming }
+ *   { hero: SlotFraming, reel: [ReelSlotFraming x3], about?: SlotFraming }
  * where SlotFraming = { photo_id: string|null, focal: {x,y} in 0..1, zoom >= 1 }.
+ *
+ * FRAME.SPLIT.1 — a REEL slot stores one framing record PER DEVICE CLASS:
+ *   ReelSlotFraming = { photo_id, phone: {focal,zoom}, wide: {focal,zoom} }
+ * The two classes are the reel's own render split (reelSpotlight's 768px line):
+ * "phone" feeds the V1 edge-veil act, "wide" feeds the W2 plate. See
+ * `normReelSlot` for the backward-compatibility law that lets a legacy
+ * single-record slot keep rendering exactly as it does today.
  *
  * ABOUT.MEDIA.1: `about` is an OPT-IN 3:4 portrait panel. Unlike the reel it has
  * NO pool fallback — an absent key or unresolvable photo_id resolves to null,
@@ -77,10 +84,35 @@ export type SlotFraming = {
   video?: HeroVideoFraming;
 };
 
+/**
+ * FRAME.SPLIT.1 — which of the reel's two renderings a framing record serves.
+ * The line is `reelSpotlight`'s REEL_PHONE_BREAKPOINT (768), the same one the
+ * live act forks on; this type never carries a second opinion about it.
+ */
+export type DeviceClass = "phone" | "wide";
+
+/** One device class's framing for a reel slide — position and scale, nothing else. */
+export type ClassFraming = { focal: Focal; zoom: number };
+
+/** Both of a reel slide's class records. Every reel slot carries exactly two. */
+export type ReelClassFraming = Record<DeviceClass, ClassFraming>;
+
+/**
+ * FRAME.SPLIT.1 — one reel slot's stored framing: the chosen photo plus an
+ * INDEPENDENT record per device class. There is deliberately no slot-level
+ * focal/zoom: a reader must name the class it is rendering, so no surface can
+ * silently pick up the other class's crop.
+ */
+export type ReelSlotFraming = {
+  photo_id: string | null;
+  phone: ClassFraming;
+  wide: ClassFraming;
+};
+
 /** The full cinematic_media value — one hero slot plus exactly three reel slots. */
 export type CinematicMediaConfig = {
   hero: SlotFraming;
-  reel: [SlotFraming, SlotFraming, SlotFraming];
+  reel: [ReelSlotFraming, ReelSlotFraming, ReelSlotFraming];
   /** ABOUT.MEDIA.1 — opt-in 3:4 portrait panel; absent = no panel (no fallback). */
   about?: SlotFraming;
 };
@@ -119,6 +151,28 @@ export const defaultHeroVideo = (): HeroVideoFraming => ({
   landscape: defaultVideoSource(),
   portrait: defaultVideoSource(),
 });
+
+/** FRAME.SPLIT.1 — an untouched reel class record: centered, unzoomed. */
+export const defaultClassFraming = (): ClassFraming => ({
+  focal: { ...REEL_DEFAULT_FOCAL },
+  zoom: DEFAULT_ZOOM,
+});
+
+/**
+ * FRAME.SPLIT.1 — both class records at their defaults. Each call builds FRESH
+ * objects: the two classes must never share a reference, or editing one would
+ * silently move the other.
+ */
+export const defaultReelClasses = (): ReelClassFraming => ({
+  phone: defaultClassFraming(),
+  wide: defaultClassFraming(),
+});
+
+/** True when one reel class record is centered and unzoomed. */
+export const classFramingIsDefault = (c: ClassFraming): boolean =>
+  c.focal.x === REEL_DEFAULT_FOCAL.x &&
+  c.focal.y === REEL_DEFAULT_FOCAL.y &&
+  c.zoom === DEFAULT_ZOOM;
 
 /** True when a single source equals the centered / unzoomed / fill default. */
 export const videoSourceIsDefault = (s: VideoSourceFraming | undefined): boolean =>
@@ -206,23 +260,71 @@ const normSlot = (raw: unknown, defaultFocal: Focal, fit: FitMode): SlotFraming 
   };
 };
 
-/** Default (untouched) slot config for a given slot kind. */
-export const defaultSlot = (kind: "hero" | "reel" | "about"): SlotFraming => ({
+/**
+ * One reel class record. Reel slides legally zoom BELOW cover (the `fit` floor),
+ * so a saved sub-1 zoom round-trips instead of snapping back to 1.
+ */
+const normClassFraming = (raw: unknown): ClassFraming => {
+  const r = (raw && typeof raw === "object" ? raw : {}) as { focal?: unknown; zoom?: unknown };
+  return {
+    focal: normFocal(r.focal, REEL_DEFAULT_FOCAL),
+    zoom: isNum(r.zoom) ? clampSourceZoom(r.zoom, "fit") : DEFAULT_ZOOM,
+  };
+};
+
+/**
+ * FRAME.SPLIT.1 — normalize one reel slot, and THE BACKWARD-COMPATIBILITY LAW.
+ *
+ * A slot stored before the split holds a single slot-level {focal, zoom}. That
+ * record SEEDS BOTH classes at read time, so every slide renders pixel-identical
+ * to what it rendered before the split until an owner edits a class. Nothing is
+ * migrated: no SQL, no rewrite on load. The new two-record shape is written only
+ * when the editor saves, and from then on each class is read on its own.
+ *
+ * A half-written slot (one class present, the other not) falls back the same
+ * way — the missing class inherits the legacy record if there is one, else the
+ * reel default. Each class gets its own object, never a shared reference.
+ */
+const normReelSlot = (raw: unknown): ReelSlotFraming => {
+  const r = (raw && typeof raw === "object" ? raw : {}) as {
+    photo_id?: unknown;
+    focal?: unknown;
+    zoom?: unknown;
+    phone?: unknown;
+    wide?: unknown;
+  };
+  // The legacy single record — read off the slot itself. With no focal/zoom
+  // stored this normalizes to the reel default, which is the same answer.
+  const legacy = () => normClassFraming(r);
+  return {
+    photo_id:
+      typeof r.photo_id === "string" && r.photo_id.length > 0 ? r.photo_id : null,
+    phone: r.phone !== undefined && r.phone !== null ? normClassFraming(r.phone) : legacy(),
+    wide: r.wide !== undefined && r.wide !== null ? normClassFraming(r.wide) : legacy(),
+  };
+};
+
+/** FRAME.SPLIT.1 — an untouched reel slot: no photo, both classes default. */
+export const defaultReelSlot = (): ReelSlotFraming => ({
   photo_id: null,
-  focal: {
-    ...(kind === "hero"
-      ? HERO_DEFAULT_FOCAL
-      : kind === "about"
-        ? ABOUT_DEFAULT_FOCAL
-        : REEL_DEFAULT_FOCAL),
-  },
+  ...defaultReelClasses(),
+});
+
+/**
+ * Default (untouched) slot config for a single-record slot kind. FRAME.SPLIT.1:
+ * the reel is deliberately NOT a caller — its slots are two-record, so they
+ * default through `defaultReelSlot` and tsc rejects the old one-record path.
+ */
+export const defaultSlot = (kind: "hero" | "about"): SlotFraming => ({
+  photo_id: null,
+  focal: { ...(kind === "hero" ? HERO_DEFAULT_FOCAL : ABOUT_DEFAULT_FOCAL) },
   zoom: DEFAULT_ZOOM,
 });
 
 /** A fully-default config — the shape the editor starts from when the key is absent. */
 export const defaultCinematicMedia = (): CinematicMediaConfig => ({
   hero: defaultSlot("hero"),
-  reel: [defaultSlot("reel"), defaultSlot("reel"), defaultSlot("reel")],
+  reel: [defaultReelSlot(), defaultReelSlot(), defaultReelSlot()],
 });
 
 /**
@@ -250,11 +352,7 @@ export const parseCinematicMedia = (raw: unknown): CinematicMediaConfig | null =
       : undefined;
   return {
     hero: normSlot(v.hero, HERO_DEFAULT_FOCAL, "fill"),
-    reel: [
-      normSlot(reelRaw[0], REEL_DEFAULT_FOCAL, "fit"),
-      normSlot(reelRaw[1], REEL_DEFAULT_FOCAL, "fit"),
-      normSlot(reelRaw[2], REEL_DEFAULT_FOCAL, "fit"),
-    ],
+    reel: [normReelSlot(reelRaw[0]), normReelSlot(reelRaw[1]), normReelSlot(reelRaw[2])],
     ...(about ? { about } : {}),
   };
 };
@@ -353,9 +451,22 @@ export type ResolvedAboutSlot = {
   zoom: number;
 } | null;
 
+/**
+ * FRAME.SPLIT.1 — a resolved reel slide: the photo plus BOTH class records,
+ * ready for whichever act paints. The render picks its class at the same 768px
+ * line it already forks its composition on; the admin picks the class its
+ * active device tab implies. There is no slot-level focal/zoom to fall back to,
+ * so a surface cannot render one class's crop while claiming to be the other.
+ */
+export type ResolvedReelSlot = {
+  photo?: CinematicPhoto;
+  phone: ClassFraming;
+  wide: ClassFraming;
+};
+
 export type ResolvedCinematicMedia = {
   hero: ResolvedHeroSlot;
-  reel: [ResolvedSlot, ResolvedSlot, ResolvedSlot];
+  reel: [ResolvedReelSlot, ResolvedReelSlot, ResolvedReelSlot];
   /** ABOUT.MEDIA.1 — the 3:4 portrait panel, or null when unconfigured. */
   about: ResolvedAboutSlot;
 };
@@ -374,7 +485,8 @@ const findPhoto = (
  *   explicit photo resolves; otherwise the TA.6d defaults hold.
  * - reel slot i: explicit reel[i].photo_id → else the i-th photo of the
  *   non-hero pool (today's photos-2..4 dedupe). Framing applies only for an
- *   explicit, resolvable photo.
+ *   explicit, resolvable photo, and resolves as BOTH class records
+ *   (FRAME.SPLIT.1) — the caller names the class it renders.
  * - about panel: explicit about.photo_id ONLY (opt-in; no pool fallback). An
  *   absent slot or unresolvable id resolves to null → the section renders no
  *   panel, byte-identical to today.
@@ -406,14 +518,16 @@ export function getCinematicMedia(
   // Non-hero pool preserves the existing dedupe (reel never repeats the hero).
   const pool = photos.filter((p) => p.id !== heroPhoto?.id);
 
-  const reel = ([0, 1, 2] as const).map((i): ResolvedSlot => {
+  // FRAME.SPLIT.1: both class records travel together. Framing still applies
+  // only for an explicit, resolvable photo — a pool fallback renders default.
+  const reel = ([0, 1, 2] as const).map((i): ResolvedReelSlot => {
     const slot = media?.reel?.[i];
     const explicit = findPhoto(photos, slot?.photo_id ?? null);
     if (explicit && slot) {
-      return { photo: explicit, focal: slot.focal, zoom: slot.zoom };
+      return { photo: explicit, phone: slot.phone, wide: slot.wide };
     }
-    return { photo: pool[i], focal: { ...REEL_DEFAULT_FOCAL }, zoom: DEFAULT_ZOOM };
-  }) as [ResolvedSlot, ResolvedSlot, ResolvedSlot];
+    return { photo: pool[i], ...defaultReelClasses() };
+  }) as [ResolvedReelSlot, ResolvedReelSlot, ResolvedReelSlot];
 
   // ABOUT.MEDIA.1 — opt-in panel: resolve ONLY an explicit, resolvable photo.
   // No pool fallback — an absent slot or dangling photo_id means "no panel".

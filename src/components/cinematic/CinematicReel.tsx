@@ -3,7 +3,11 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
 import type { CinematicPhoto } from "./useCinematicData";
-import { REEL_DEFAULT_FOCAL, DEFAULT_ZOOM, type Focal } from "@/hooks/useCinematicMedia";
+import {
+  defaultClassFraming,
+  type ClassFraming,
+  type ReelClassFraming,
+} from "@/hooks/useCinematicMedia";
 import {
   GOLD,
   IVORY,
@@ -33,9 +37,12 @@ gsap.registerPlugin(ScrollTrigger);
 export type ReelSlide = {
   photo?: CinematicPhoto;
   title: string;
-  /** Admin framing (ADMIN.MEDIA.1). Absent → centered/1×, i.e. today's render. */
-  focal?: Focal;
-  zoom?: number;
+  /**
+   * Admin framing (ADMIN.MEDIA.1), split per device class by FRAME.SPLIT.1: the
+   * phone act reads `framing.phone`, the wide act reads `framing.wide`. Absent →
+   * centered/1× on both, i.e. today's render.
+   */
+  framing?: ReelClassFraming;
 };
 
 type Props = { slides: ReelSlide[]; reduced: boolean };
@@ -43,17 +50,28 @@ type Props = { slides: ReelSlide[]; reduced: boolean };
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
 /**
+ * FRAME.SPLIT.1 — the class record this act paints with. Each act names its own
+ * class, so an act can never inherit the other's crop; an unframed slide falls
+ * to the reel default on both.
+ */
+const framingFor = (slide: ReelSlide, cls: "phone" | "wide"): ClassFraming =>
+  slide.framing?.[cls] ?? defaultClassFraming();
+
+/**
  * The photo layer, on both acts. COVER on every surface as of CINE.FLOW.5: the
  * phone act is edge-to-edge and the wide act crops to a portrait plate that is
  * already the sources' own aspect, so the letterbox mode — and with it the
  * `reelSlideFit` selector that used to choose between them — has no caller left.
+ *
+ * The framing is passed in, never read off the slide: the caller is the act,
+ * and the act is what knows its device class.
  */
-const SlidePhoto = ({ slide }: { slide: ReelSlide }) => (
+const SlidePhoto = ({ slide, framing }: { slide: ReelSlide; framing: ClassFraming }) => (
   <FramedImage
     src={slide.photo?.image_url}
     alt={slide.photo?.alt_text ?? ""}
-    focal={slide.focal ?? REEL_DEFAULT_FOCAL}
-    zoom={slide.zoom ?? DEFAULT_ZOOM}
+    focal={framing.focal}
+    zoom={framing.zoom}
     fit="fill"
     imgDataQa="cinematic-reel-img"
     loading="lazy"
@@ -88,7 +106,7 @@ const PhoneSlide = ({
 }) => (
   <>
     <div className="absolute inset-0">
-      <SlidePhoto slide={slide} />
+      <SlidePhoto slide={slide} framing={framingFor(slide, "phone")} />
     </div>
 
     {/* The edge veil: a weight at the foot of the frame, nothing more. */}
@@ -173,7 +191,10 @@ const WideSlide = ({
   const plateLeft = (frameW - box.w) / 2;
   const plateTop = frameH * (PLATE_TOP_VH / 100);
   const bandPad = frameH * (BAND_PAD_VH / 100);
-  const { fx, fy } = focalFractions(slide.focal);
+  // FRAME.SPLIT.1: the plate's crop AND its focal read-out come from the wide
+  // record, so `data-focal` reports the class actually painted here.
+  const framing = framingFor(slide, "wide");
+  const { fx, fy } = focalFractions(framing.focal);
   const measured = frameW > 0 && frameH > 0;
 
   return (
@@ -213,7 +234,7 @@ const WideSlide = ({
             }}
           >
             {/* Unveiled: nothing paints over the photograph inside the plate. */}
-            <SlidePhoto slide={slide} />
+            <SlidePhoto slide={slide} framing={framing} />
           </div>
 
           {/* The caption band: whatever height remains under the plate. */}

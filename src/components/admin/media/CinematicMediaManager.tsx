@@ -10,14 +10,16 @@ import { fetchCinematicHeroPhotoId } from "@/hooks/useCinematicHero";
 import {
   type CinematicMediaConfig,
   type SlotFraming,
+  type ReelSlotFraming,
   type Focal,
   type HeroVideoFraming,
   HERO_DEFAULT_FOCAL,
-  REEL_DEFAULT_FOCAL,
   ABOUT_DEFAULT_FOCAL,
   VIDEO_DEFAULT_FOCAL,
   DEFAULT_ZOOM,
   defaultSlot,
+  defaultReelSlot,
+  classFramingIsDefault,
   defaultHeroVideo,
   heroVideoIsDefault,
   defaultCinematicMedia,
@@ -83,47 +85,57 @@ const HERO_SLOT = SLOTS[0];
 
 const focalEq = (a: Focal, b: Focal) => a.x === b.x && a.y === b.y;
 
-const defaultFocalFor = (kind: SlotKind): Focal =>
-  kind === "hero" ? HERO_DEFAULT_FOCAL : kind === "about" ? ABOUT_DEFAULT_FOCAL : REEL_DEFAULT_FOCAL;
+const defaultFocalFor = (kind: "hero" | "about"): Focal =>
+  kind === "hero" ? HERO_DEFAULT_FOCAL : ABOUT_DEFAULT_FOCAL;
 
-const slotIsDefault = (kind: SlotKind, s: SlotFraming) =>
+const slotIsDefault = (kind: "hero" | "about", s: SlotFraming) =>
   s.photo_id === null &&
   s.zoom === DEFAULT_ZOOM &&
   focalEq(s.focal, defaultFocalFor(kind)) &&
   (kind !== "hero" || heroVideoIsDefault(s.video));
+
+/** FRAME.SPLIT.1 — a reel slot is untouched only when BOTH classes are. */
+const reelSlotIsDefault = (s: ReelSlotFraming) =>
+  s.photo_id === null && classFramingIsDefault(s.phone) && classFramingIsDefault(s.wide);
+
+/** True when this card should read as customized (drives the slot badge). */
+const descIsDefault = (cfg: CinematicMediaConfig, d: SlotDesc): boolean =>
+  d.kind === "reel"
+    ? reelSlotIsDefault(cfg.reel[d.reelIndex])
+    : slotIsDefault(d.kind, readSlot(cfg, d));
 
 // ABOUT.MEDIA.1 — About is opt-in: an absent key OR a default (photo_id null)
 // slot both count as "unconfigured", so the key is dropped for the absent-is-
 // default contract exactly like hero/reel.
 const isAllDefault = (cfg: CinematicMediaConfig) =>
   slotIsDefault("hero", cfg.hero) &&
-  cfg.reel.every((s) => slotIsDefault("reel", s)) &&
+  cfg.reel.every(reelSlotIsDefault) &&
   (cfg.about === undefined || slotIsDefault("about", cfg.about));
 
+/** Single-record slots only — FRAME.SPLIT.1 gives the reel its own accessors. */
 const readSlot = (cfg: CinematicMediaConfig, d: SlotDesc): SlotFraming =>
-  d.kind === "hero"
-    ? cfg.hero
-    : d.kind === "about"
-      ? cfg.about ?? defaultSlot("about")
-      : cfg.reel[d.reelIndex];
+  d.kind === "hero" ? cfg.hero : cfg.about ?? defaultSlot("about");
 
 const writeSlot = (
   cfg: CinematicMediaConfig,
   d: SlotDesc,
   slot: SlotFraming,
 ): CinematicMediaConfig =>
-  d.kind === "hero"
-    ? { ...cfg, hero: slot }
-    : d.kind === "about"
-      ? { ...cfg, about: slot }
-      : {
-          ...cfg,
-          reel: cfg.reel.map((s, i) => (i === d.reelIndex ? slot : s)) as [
-            SlotFraming,
-            SlotFraming,
-            SlotFraming,
-          ],
-        };
+  d.kind === "hero" ? { ...cfg, hero: slot } : { ...cfg, about: slot };
+
+/** FRAME.SPLIT.1 — replace one reel slot, leaving the other two untouched. */
+const writeReelSlot = (
+  cfg: CinematicMediaConfig,
+  index: number,
+  slot: ReelSlotFraming,
+): CinematicMediaConfig => ({
+  ...cfg,
+  reel: cfg.reel.map((s, i) => (i === index ? slot : s)) as [
+    ReelSlotFraming,
+    ReelSlotFraming,
+    ReelSlotFraming,
+  ],
+});
 
 /** ABOUT.MEDIA.1 — drop the About key entirely (Reset → unconfigured, no panel). */
 const stripAbout = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
@@ -201,14 +213,18 @@ const CinematicMediaManager = () => {
 
   // ABOUT.MEDIA.1 — the About slot resolves to null when unconfigured; surface a
   // photo-less shape so the card falls to its empty state (never a pool photo).
+  //
+  // FRAME.SPLIT.1 — a reel card is one small 3:4 thumbnail, so it must pick a
+  // single class: it shows PHONE. That is the class the editor's first tab opens
+  // on, so card → pencil is continuous, and it is the crop Joey approves first.
   const resolvedFor = (
     d: SlotDesc,
-  ): { photo?: CinematicPhoto; focal: Focal; zoom: number } =>
-    d.kind === "hero"
-      ? resolved.hero
-      : d.kind === "about"
-        ? resolved.about ?? { focal: ABOUT_DEFAULT_FOCAL, zoom: DEFAULT_ZOOM }
-        : resolved.reel[d.reelIndex];
+  ): { photo?: CinematicPhoto; focal: Focal; zoom: number } => {
+    if (d.kind === "hero") return resolved.hero;
+    if (d.kind === "about") return resolved.about ?? { focal: ABOUT_DEFAULT_FOCAL, zoom: DEFAULT_ZOOM };
+    const r = resolved.reel[d.reelIndex];
+    return { photo: r.photo, focal: r.phone.focal, zoom: r.phone.zoom };
+  };
   const heroPosterUrl = resolved.hero.photo?.image_url;
   const anyHeroVideo = !!heroVideo;
 
@@ -232,7 +248,7 @@ const CinematicMediaManager = () => {
 
   // Choosing a photo opens the editor at the slot's default framing (never saves).
   const assignPhoto = (d: SlotDesc, photo: CinematicPhoto) => {
-    const base = defaultSlot(d.kind);
+    const base = d.kind === "reel" ? defaultReelSlot().phone : defaultSlot(d.kind);
     setPickerSlot(null);
     setEditor({ mode: "image", slot: d, photo, focal: base.focal, zoom: base.zoom });
   };
@@ -263,6 +279,19 @@ const CinematicMediaManager = () => {
   const saveImageFraming = (focal: Focal, zoom: number) => {
     if (!editor || editor.mode !== "image" || !editor.photo) return;
     const { slot } = editor;
+    // FRAME.SPLIT.1 (model commit): the reel stores two class records. The editor
+    // still edits ONE, so it writes the same values to both — byte-for-byte the
+    // behavior before the split. The per-class edit lands in the editor commit.
+    if (slot.kind === "reel") {
+      const next: ReelSlotFraming = {
+        photo_id: editor.photo.id,
+        phone: { focal, zoom },
+        wide: { focal, zoom },
+      };
+      setEditor(null);
+      void persist(writeReelSlot(config, slot.reelIndex, next), slot.key, "saved");
+      return;
+    }
     // On a hero image save, keep any existing video framing intact.
     const base: SlotFraming =
       slot.kind === "hero" && config.hero.video
@@ -285,6 +314,13 @@ const CinematicMediaManager = () => {
     if (slot.kind === "about") {
       setEditor(null);
       void persist(stripAbout(config), slot.key, "reset");
+      return;
+    }
+    // FRAME.SPLIT.1 — resetting a reel slot clears BOTH classes: "reset" means
+    // the slot is unconfigured, and a slot half-reset would never drop the key.
+    if (slot.kind === "reel") {
+      setEditor(null);
+      void persist(writeReelSlot(config, slot.reelIndex, defaultReelSlot()), slot.key, "reset");
       return;
     }
     const base = defaultSlot(slot.kind);
@@ -483,8 +519,7 @@ const CinematicMediaManager = () => {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {SLOTS.map((d) => {
             const r = resolvedFor(d);
-            const slotCfg = readSlot(config, d);
-            const custom = !slotIsDefault(d.kind, slotCfg);
+            const custom = !descIsDefault(config, d);
             const isHeroVideo = d.kind === "hero" && anyHeroVideo;
             const canEdit = isHeroVideo || !!r.photo;
             return (
