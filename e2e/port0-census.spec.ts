@@ -45,7 +45,14 @@ const PHOTOS = [PORTRAIT_PHOTO, ...MOCK_PHOTOS];
 const HERO_VIDEO_URL = "https://cdn.example.com/hero-loop.mp4";
 
 /* Fixture: reel slot 0 pinned to the known portrait photo; hero video carries a
-   distinct landscape framing record. Everything else default. */
+   distinct landscape framing record. Everything else default.
+
+   FRAME.SPLIT.1 — reel slot 0 is deliberately left in the LEGACY single-record
+   shape. This census sweeps every surface that paints reel media, so keeping it
+   pre-split means the whole sweep is a standing check on the compatibility law:
+   if any surface ever stopped seeding both classes from that one record, it
+   would show up here as a framing change on that surface alone. The per-class
+   fixture lives in port2-parity.spec.ts, and the law itself in framesplit. */
 const MEDIA = {
   hero: {
     photo_id: null,

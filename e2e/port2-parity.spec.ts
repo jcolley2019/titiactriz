@@ -46,11 +46,20 @@ const PORTRAIT_PHOTO = {
 };
 const PHOTOS = [PORTRAIT_PHOTO, ...MOCK_PHOTOS];
 
-/* Panned + zoomed fixture on BOTH kinds, so posX/posY corruption is visible. */
+/* Panned + zoomed fixture on BOTH kinds, so posX/posY corruption is visible.
+   FRAME.SPLIT.1 — reel slot 0 carries DIFFERENT records per device class, and
+   they differ on all three fields. A surface that read the wrong class would
+   have to coincidentally match a crop it was never given, so the class routing
+   is falsifiable rather than merely plausible. (The legacy single-record shape
+   is exercised separately, by framesplit.spec.ts and port0-census.spec.ts.) */
 const MEDIA = {
   hero: { photo_id: "p1", focal: { x: 0.35, y: 0.7 }, zoom: 1.3 },
   reel: [
-    { photo_id: "port", focal: { x: 0.8, y: 0.3 }, zoom: 1.25 },
+    {
+      photo_id: "port",
+      phone: { focal: { x: 0.8, y: 0.3 }, zoom: 1.25 },
+      wide: { focal: { x: 0.25, y: 0.65 }, zoom: 1.6 },
+    },
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
   ],
@@ -64,7 +73,9 @@ type Framing = { scale: number; posX: number; posY: number; fit: "fill" | "fit" 
 
 /* Expected resolved framing per surface — straight from the fixture. */
 const HERO_FRAMING: Framing = { scale: 1.3, posX: 35, posY: 70, fit: "fill" };
-const REEL0_FRAMING: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fill" };
+/** FRAME.SPLIT.1 — slot 0's two records. Every reel expectation names its class. */
+const REEL0_PHONE: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fill" };
+const REEL0_WIDE: Framing = { scale: 1.6, posX: 25, posY: 65, fit: "fill" };
 const REEL_DEFAULT_FRAMING: Framing = { scale: 1, posX: 50, posY: 50, fit: "fill" };
 const ABOUT_FRAMING: Framing = { scale: 1.15, posX: 50, posY: 35, fit: "fill" };
 
@@ -82,6 +93,12 @@ const ABOUT_FRAMING: Framing = { scale: 1.15, posX: 50, posY: 35, fit: "fill" };
  * measured against the plate. The law itself is unchanged in substance —
  * whatever a surface predicts, it must paint, and the editor tab for a device
  * class must equal what that device class publishes.
+ *
+ * FRAME.SPLIT.1 — that last clause is now load-bearing on its own. The two acts
+ * no longer read the same record: the phone act resolves reel[i].phone and the
+ * wide act resolves reel[i].wide, so "the editor tab for a device class equals
+ * what that class publishes" is the assertion that the routing is correct, not
+ * a restatement of one shared value.
  */
 const PHONE_TAB = "iphone-17-pro";
 
@@ -216,12 +233,12 @@ async function openAdminMedia(page: Page) {
 
 test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
   test("a+b — live reel slides: cover on a phone, cover inside the wide plate", async ({ page }) => {
-    // One record per slide now, on both device classes: `measure()` reads the
-    // img against ITS OWN container, which is the viewport on a phone and the
-    // plate box above the breakpoint, so the same expectation holds on both.
+    // FRAME.SPLIT.1 — one record PER CLASS: `measure()` reads the img against
+    // ITS OWN container (the viewport on a phone, the plate box above the
+    // breakpoint), and each viewport must resolve the record for its own class.
     for (const vp of [
-      { name: "1440x900", width: 1440, height: 900 },
-      { name: "390x844", width: 390, height: 844 },
+      { name: "1440x900", width: 1440, height: 900, reel0: REEL0_WIDE },
+      { name: "390x844", width: 390, height: 844, reel0: REEL0_PHONE },
     ]) {
       await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
       await page.setViewportSize({ width: vp.width, height: vp.height });
@@ -231,8 +248,8 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await reel.first().scrollIntoViewIfNeeded().catch(() => {});
       await framingReady(reel.first());
 
-      // Slide 0 carries the panned fixture; slides 1-2 the reel default.
-      await assertParity(await measure(reel.nth(0)), REEL0_FRAMING, `reel[0] @${vp.name}`);
+      // Slide 0 carries the panned fixture for THIS class; slides 1-2 default.
+      await assertParity(await measure(reel.nth(0)), vp.reel0, `reel[0] @${vp.name}`);
       for (const i of [1, 2]) {
         await framingReady(reel.nth(i));
         await assertParity(
@@ -268,10 +285,11 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
       await page.locator(`[data-qa="media-device-${tab}"]`).click();
       await page.waitForTimeout(400);
       await framingReady(canvas.first());
-      // Every tab shows what its device class publishes. Post-CINE.FLOW.5 that
-      // is the same framing record on all three — the wide tabs measure it
-      // inside the plate, the phone tab against the full frame.
-      await assertParity(await measure(canvas), REEL0_FRAMING, `editor reel-0 ${tab} tab`);
+      // FRAME.SPLIT.1 — every tab shows what ITS OWN device class publishes:
+      // the iPhone tab the phone record, iPad and Desktop the wide record. The
+      // wide tabs measure inside the plate, the phone tab against the frame.
+      const expected = tab === PHONE_TAB ? REEL0_PHONE : REEL0_WIDE;
+      await assertParity(await measure(canvas), expected, `editor reel-0 ${tab} tab`);
     }
     await page.locator('[data-qa="media-editor-cancel"]').click();
     await expect(page.locator('[data-qa="media-editor-surface"]')).toHaveCount(0);
@@ -287,12 +305,16 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
     await assertParity(await measure(canvas), HERO_FRAMING, "editor hero iPhone tab");
   });
 
-  test("a+b — manager slot cards (hero fill, reel cover per the wide act)", async ({ page }) => {
+  test("a+b — manager slot cards (hero fill, reel card shows the phone class)", async ({ page }) => {
     await openAdminMedia(page);
     const cardImg = (slot: string) =>
       page.locator(`[data-qa="media-slot"][data-slot="${slot}"] img`).first();
     await framingReady(cardImg("reel-0"));
-    await assertParity(await measure(cardImg("reel-0")), REEL0_FRAMING, "slot card reel-0");
+    // FRAME.SPLIT.1 — a reel card is one 3:4 thumbnail, so it must pick a single
+    // class: it shows PHONE, the class the editor's first tab opens on, so card
+    // → pencil is continuous. Asserted against the phone record specifically,
+    // which is now distinguishable from the wide one.
+    await assertParity(await measure(cardImg("reel-0")), REEL0_PHONE, "slot card reel-0");
     await framingReady(cardImg("hero"));
     await assertParity(await measure(cardImg("hero")), HERO_FRAMING, "slot card hero");
   });
@@ -306,7 +328,9 @@ test.describe("PORT.2 — rendered-pixel parity law (image surfaces)", () => {
     await reel0.scrollIntoViewIfNeeded().catch(() => {});
     await framingReady(reel0);
     const liveAttr = await reel0.getAttribute("data-hero-framing");
-    expect(liveAttr, "live reel-0 framing attr").toContain(attrPrefix(REEL0_FRAMING));
+    // 1440 is a wide viewport, so the live surface resolves the WIDE record —
+    // which is also what the Desktop tab it is compared against must resolve.
+    expect(liveAttr, "live reel-0 framing attr").toContain(attrPrefix(REEL0_WIDE));
 
     // EDITOR reel-0: per tab, the canvas and that tab's own thumbnail are built
     // at the same aspect → identical framing rectangles (cropMath drift == 0).
