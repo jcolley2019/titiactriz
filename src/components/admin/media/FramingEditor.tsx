@@ -28,7 +28,10 @@ import {
   type FitMode,
   type HeroVideoFraming,
   type VideoOrientation,
+  type DeviceClass,
+  type ReelClassFraming,
 } from "@/hooks/useCinematicMedia";
+import { reelIsPhoneWidth } from "@/components/cinematic/reelSpotlight";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 
 /**
@@ -66,6 +69,12 @@ type Props = {
   photo?: CinematicPhoto;
   initialFocal: Focal;
   initialZoom: number;
+  /**
+   * FRAME.SPLIT.1 — reel slots only: the two device-class records to edit. When
+   * omitted (or for a slot stored before the split) both classes seed from
+   * initialFocal/initialZoom, which is the same seeding law the resolver applies.
+   */
+  initialReelClasses?: ReelClassFraming;
   heroVideoActive?: boolean;
   saving?: boolean;
   mode?: "image" | "video";
@@ -73,6 +82,8 @@ type Props = {
   initialVideo?: HeroVideoFraming;
   poster?: string;
   onSave: (focal: Focal, zoom: number) => void;
+  /** FRAME.SPLIT.1 — reel slots save BOTH class records, edited or not. */
+  onSaveReel?: (classes: ReelClassFraming) => void;
   onSaveVideo?: (framing: HeroVideoFraming) => void;
   onReset: () => void;
   onCancel: () => void;
@@ -87,6 +98,7 @@ const FramingEditor = ({
   photo,
   initialFocal,
   initialZoom,
+  initialReelClasses,
   heroVideoActive,
   saving,
   mode = "image",
@@ -94,6 +106,7 @@ const FramingEditor = ({
   initialVideo,
   poster,
   onSave,
+  onSaveReel,
   onSaveVideo,
   onReset,
   onCancel,
@@ -116,6 +129,40 @@ const FramingEditor = ({
   const imageFit: FitMode = kind === "reel" ? "fit" : "fill";
   const [iFocal, setIFocal] = useState<Focal>(initialFocal);
   const [iZoom, setIZoom] = useState(initialZoom);
+
+  /* ---------------- FRAME.SPLIT.1 (reel: one record per device class) ---------------- */
+  const isReel = kind === "reel";
+  // The seeding law, mirrored from the resolver: with no stored class records,
+  // BOTH classes start from the slot's single record, so opening the editor on a
+  // pre-split slot shows exactly what the site is rendering today.
+  const seedReelClasses = (): ReelClassFraming =>
+    initialReelClasses
+      ? { phone: { ...initialReelClasses.phone }, wide: { ...initialReelClasses.wide } }
+      : {
+          phone: { focal: { ...initialFocal }, zoom: initialZoom },
+          wide: { focal: { ...initialFocal }, zoom: initialZoom },
+        };
+  const [rFraming, setRFraming] = useState<ReelClassFraming>(seedReelClasses);
+  // Class membership is WIDTH-derived, never tab identity: a preset under 768
+  // edits "phone", one at or above it edits "wide". Today that puts iPhone on
+  // phone and iPad + Desktop on wide — two tabs previewing ONE record, each at
+  // its own geometry — and a new tab lands in the right class by its width
+  // alone. The line is the same one the live act splits its compositions on.
+  const classOfWidth = (w: number): DeviceClass => (reelIsPhoneWidth(w) ? "phone" : "wide");
+  const activeClass = classOfWidth(resolveDevicePreset(deviceId).width);
+  const rCur = rFraming[activeClass];
+
+  const setRFocal = (f: Focal) =>
+    setRFraming((v) => ({ ...v, [activeClass]: { ...v[activeClass], focal: f } }));
+  const setRZoom = (z: number) =>
+    setRFraming((v) => ({ ...v, [activeClass]: { ...v[activeClass], zoom: z } }));
+
+  // The image record actually being shown and dragged. For the reel that is the
+  // active class's record; every other slot keeps its single record.
+  const curFocal = isReel ? rCur.focal : iFocal;
+  const curZoom = isReel ? rCur.zoom : iZoom;
+  const setCurFocal = isReel ? setRFocal : setIFocal;
+  const setCurZoom = isReel ? setRZoom : setIZoom;
 
   /* ---------------- VIDEO mode (object-position surface) ---------------- */
   const [vFraming, setVFraming] = useState<HeroVideoFraming>(initialVideo ?? defaultHeroVideo());
@@ -154,6 +201,7 @@ const FramingEditor = ({
     setDeviceId(MEDIA_PREVIEW_DEVICES[0].id);
     setIFocal({ ...initialFocal });
     setIZoom(clampSourceZoom(initialZoom, imageFit));
+    setRFraming(seedReelClasses());
     setVFraming(initialVideo ?? defaultHeroVideo());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -206,8 +254,9 @@ const FramingEditor = ({
     fw = fh * aspect;
   }
 
-  // Controlled image framing — drives the drag surface AND the device thumbnails.
-  const liveImageFraming = { focal: iFocal, zoom: iZoom };
+  // Controlled image framing — drives the drag surface. FRAME.SPLIT.1: the reel
+  // thumbnails do NOT use this, since each tab previews its own class record.
+  const liveImageFraming = { focal: curFocal, zoom: curZoom };
 
   /* ---- Drag: pan the focal across the REAL overflow of the active surface ---- */
   // Overflow comes from the resolver itself — the same geometry the canvas
@@ -234,11 +283,11 @@ const FramingEditor = ({
     if (!natural || loadError) return;
     const o = isVideo
       ? surfaceOverflow(vCur.focal, vCur.zoom, vCur.fit)
-      : surfaceOverflow(iFocal, iZoom, imageFit);
+      : surfaceOverflow(curFocal, curZoom, imageFit);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      startFocal: isVideo ? { ...vCur.focal } : { ...iFocal },
+      startFocal: isVideo ? { ...vCur.focal } : { ...curFocal },
       overflowX: o.x,
       overflowY: o.y,
     };
@@ -251,7 +300,7 @@ const FramingEditor = ({
     const dy = e.clientY - d.startY;
     const nx = d.overflowX > 0 ? clamp01(d.startFocal.x - dx / d.overflowX) : d.startFocal.x;
     const ny = d.overflowY > 0 ? clamp01(d.startFocal.y - dy / d.overflowY) : d.startFocal.y;
-    (isVideo ? setVFocal : setIFocal)({ x: nx, y: ny });
+    (isVideo ? setVFocal : setCurFocal)({ x: nx, y: ny });
   };
   const endDrag = (e: React.PointerEvent) => {
     dragRef.current = null;
@@ -270,6 +319,11 @@ const FramingEditor = ({
   const handleSave = () => {
     if (isVideo) {
       onSaveVideo?.(vFraming);
+    } else if (isReel) {
+      // FRAME.SPLIT.1: both records go up, but only the class the owner touched
+      // differs from what came in — the untouched class is handed back exactly
+      // as it was read, so saving one class cannot rewrite the other's values.
+      onSaveReel?.(rFraming);
     } else {
       // PORT.2: the edited focal/zoom persist EXACTLY — no conversion layer.
       onSave(iFocal, iZoom);
@@ -292,7 +346,7 @@ const FramingEditor = ({
 
   const activeFit: FitMode = isVideo ? vCur.fit : imageFit;
   const zoomMin = activeFit === "fit" ? FIT_MIN_ZOOM : MIN_ZOOM;
-  const displayZoom = isVideo ? vCur.zoom : iZoom;
+  const displayZoom = isVideo ? vCur.zoom : curZoom;
 
   return (
     <Dialog
@@ -332,7 +386,14 @@ const FramingEditor = ({
             // viewport-orientation framing record of that single clip.
             const tabOrient: VideoOrientation = a < 1 ? "portrait" : "landscape";
             const tabSrc = isVideo ? videoSrc ?? undefined : undefined;
-            const tabFraming = isVideo ? vFraming[tabOrient] : liveImageFraming;
+            // FRAME.SPLIT.1: a reel thumbnail previews the record for ITS OWN
+            // device class, so the phone tabs and the wide tabs visibly diverge
+            // the moment one class is edited.
+            const tabFraming = isVideo
+              ? vFraming[tabOrient]
+              : isReel
+                ? rFraming[classOfWidth(d.width)]
+                : liveImageFraming;
             return (
               <button
                 key={d.id}
@@ -399,8 +460,8 @@ const FramingEditor = ({
                 kind={kind}
                 reelIndex={reelIndex}
                 photo={photo}
-                focal={isVideo ? vCur.focal : iFocal}
-                zoom={isVideo ? vCur.zoom : iZoom}
+                focal={isVideo ? vCur.focal : curFocal}
+                zoom={isVideo ? vCur.zoom : curZoom}
                 fit={isVideo ? vCur.fit : undefined}
                 reelTitle={reelTitle}
                 aspect={aspect}
@@ -476,7 +537,7 @@ const FramingEditor = ({
             onChange={(e) =>
               isVideo
                 ? setVZoom(parseFloat(e.target.value))
-                : setIZoom(clampSourceZoom(parseFloat(e.target.value), imageFit))
+                : setCurZoom(clampSourceZoom(parseFloat(e.target.value), imageFit))
             }
             className="h-1.5 flex-1 accent-[hsl(var(--gold-light))]"
           />

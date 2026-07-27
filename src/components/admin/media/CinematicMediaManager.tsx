@@ -11,6 +11,7 @@ import {
   type CinematicMediaConfig,
   type SlotFraming,
   type ReelSlotFraming,
+  type ReelClassFraming,
   type Focal,
   type HeroVideoFraming,
   HERO_DEFAULT_FOCAL,
@@ -61,7 +62,15 @@ type SlotKind = "hero" | "reel" | "about";
 type SlotDesc = { key: string; kind: SlotKind; reelIndex: number; titleKey?: string };
 
 type EditorState =
-  | { mode: "image"; slot: SlotDesc; photo: CinematicPhoto | null; focal: Focal; zoom: number }
+  | {
+      mode: "image";
+      slot: SlotDesc;
+      photo: CinematicPhoto | null;
+      focal: Focal;
+      zoom: number;
+      /** FRAME.SPLIT.1 — reel slots only: the two class records under edit. */
+      classes?: ReelClassFraming;
+    }
   | {
       mode: "video";
       slot: SlotDesc;
@@ -225,6 +234,12 @@ const CinematicMediaManager = () => {
     const r = resolved.reel[d.reelIndex];
     return { photo: r.photo, focal: r.phone.focal, zoom: r.phone.zoom };
   };
+
+  /** FRAME.SPLIT.1 — the two resolved class records behind a reel card. */
+  const reelClassesFor = (d: SlotDesc): ReelClassFraming => {
+    const r = resolved.reel[d.reelIndex];
+    return { phone: r.phone, wide: r.wide };
+  };
   const heroPosterUrl = resolved.hero.photo?.image_url;
   const anyHeroVideo = !!heroVideo;
 
@@ -256,7 +271,10 @@ const CinematicMediaManager = () => {
   const openImageEditor = (d: SlotDesc) => {
     const r = resolvedFor(d);
     if (!r.photo) return;
-    setEditor({ mode: "image", slot: d, photo: r.photo, focal: r.focal, zoom: r.zoom });
+    // FRAME.SPLIT.1 — a reel slot opens with BOTH class records, already seeded
+    // by the resolver, so the editor never re-derives the compatibility law.
+    const classes = d.kind === "reel" ? reelClassesFor(d) : undefined;
+    setEditor({ mode: "image", slot: d, photo: r.photo, focal: r.focal, zoom: r.zoom, classes });
   };
 
   const openVideoEditor = () => {
@@ -279,19 +297,6 @@ const CinematicMediaManager = () => {
   const saveImageFraming = (focal: Focal, zoom: number) => {
     if (!editor || editor.mode !== "image" || !editor.photo) return;
     const { slot } = editor;
-    // FRAME.SPLIT.1 (model commit): the reel stores two class records. The editor
-    // still edits ONE, so it writes the same values to both — byte-for-byte the
-    // behavior before the split. The per-class edit lands in the editor commit.
-    if (slot.kind === "reel") {
-      const next: ReelSlotFraming = {
-        photo_id: editor.photo.id,
-        phone: { focal, zoom },
-        wide: { focal, zoom },
-      };
-      setEditor(null);
-      void persist(writeReelSlot(config, slot.reelIndex, next), slot.key, "saved");
-      return;
-    }
     // On a hero image save, keep any existing video framing intact.
     const base: SlotFraming =
       slot.kind === "hero" && config.hero.video
@@ -299,6 +304,26 @@ const CinematicMediaManager = () => {
         : { photo_id: editor.photo.id, focal, zoom };
     setEditor(null);
     void persist(writeSlot(config, slot, base), slot.key, "saved");
+  };
+
+  /**
+   * FRAME.SPLIT.1 — persist a reel slot's two class records. The editor hands
+   * both back; the class the owner did not touch returns byte-identical to what
+   * it read, so one class's save can never rewrite the other's crop. This is
+   * also where a legacy single-record slot is finally rewritten in the new
+   * shape — on save, never on load.
+   */
+  const saveReelFraming = (classes: ReelClassFraming) => {
+    if (!editor || editor.mode !== "image" || !editor.photo) return;
+    const { slot } = editor;
+    if (slot.kind !== "reel") return;
+    const next: ReelSlotFraming = {
+      photo_id: editor.photo.id,
+      phone: classes.phone,
+      wide: classes.wide,
+    };
+    setEditor(null);
+    void persist(writeReelSlot(config, slot.reelIndex, next), slot.key, "saved");
   };
 
   const saveVideoFraming = (video: HeroVideoFraming) => {
@@ -668,12 +693,14 @@ const CinematicMediaManager = () => {
           }
           initialFocal={editor.mode === "image" ? editor.focal : VIDEO_DEFAULT_FOCAL}
           initialZoom={editor.mode === "image" ? editor.zoom : DEFAULT_ZOOM}
+          initialReelClasses={editor.mode === "image" ? editor.classes : undefined}
           mode={editor.mode}
           videoSrc={editor.mode === "video" ? editor.videoSrc : undefined}
           initialVideo={editor.mode === "video" ? editor.initialVideo : undefined}
           poster={editor.mode === "video" ? editor.poster : undefined}
           saving={savingKey === editor.slot.key}
           onSave={saveImageFraming}
+          onSaveReel={saveReelFraming}
           onSaveVideo={saveVideoFraming}
           onReset={resetSlot}
           onCancel={() => setEditor(null)}
