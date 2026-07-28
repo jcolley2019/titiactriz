@@ -101,6 +101,36 @@ const CTA_HIDDEN_Y = 24;
 const LOGO_BAND = "top-[39%] h-[19%] md:top-[13%] md:h-[41%]";
 
 /**
+ * GW.BRIGHT.1 — the plate's grade, applied to the CANVAS only.
+ *
+ * The act read as though a gray mask sat over it. It is worth being precise
+ * about what was actually wrong, because the obvious fix was the wrong one: the
+ * plate's HIGHLIGHTS were never dim. Measured over all three dead stops, the
+ * brightest decile of the untouched canvas already sat at 245/255 at 1440 and
+ * 244/255 at 390 — 96% — so there was no headroom to "brighten" into. Pushing
+ * brightness alone past 1.04 simply clipped: 1.05 blew 2.3% of the frame to pure
+ * white at 1440 and 4.6% at 390, trading a gray wash for a blown one.
+ *
+ * The wash lived in the MIDTONES, which were both dark and — the reason it read
+ * as gray rather than merely dim — desaturated: mean HSV saturation across the
+ * midtone band was 15% at 1440. So the grade is mostly saturation, which costs
+ * no headroom at all, plus the largest brightness the clip budget actually
+ * affords. Calibrated against the measurement, worst of three dead stops:
+ *
+ *                    brightest decile      pure white      midtone saturation
+ *   1440  before          245                 0.00%              15.2%
+ *   1440  after           252                 0.00%              21.8%
+ *    390  before          244                 0.00%              18.4%
+ *    390  after           251                 0.28%              25.7%
+ *
+ * brightness(1.03) is the ceiling: 1.04 breaks the <1% clip budget at 390
+ * (1.10%). Re-measure with e2e/seq2-greenworld's wordmark-ground test if either
+ * pack is ever re-cut. The scrim is deliberately untouched — it is what protects
+ * the white type below, and grading it would undo that.
+ */
+const PLATE_GRADE = "brightness(1.03) saturate(1.35)";
+
+/**
  * Pack selection. The phone/wide line is `reelSpotlight`'s 768px — the same one
  * the reel splits on and the same one `useIsMobile` uses — so a viewport that is
  * a phone for the reel is a phone here too. It is read SYNCHRONOUSLY on first
@@ -161,6 +191,7 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
         sequence={sequence}
         reduced={reduced}
         backdrop={NEAR_BLACK}
+        canvasFilter={PLATE_GRADE}
         onProgress={reduced ? undefined : handleProgress}
       >
         {/* 1 — LOGO. Horizontally centred, vertically pinned to LOGO_BAND, and

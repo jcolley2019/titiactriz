@@ -563,6 +563,39 @@ test.describe("SEQ.2 — the black wordmark's ground", () => {
             const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
             const data = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
 
+            // GW.BRIGHT.1: the plate carries a CSS `filter`, and getImageData
+            // returns the UNGRADED backing store — so the grade has to be applied
+            // here or this test would measure ground the reader never sees. It is
+            // read off the canvas rather than restated, so it cannot drift from
+            // whatever the act actually sets.
+            const filter = getComputedStyle(canvas).filter;
+            const num = (fn: string) => {
+              const m = filter.match(new RegExp(`${fn}\\(([0-9.]+)\\)`));
+              return m ? Number(m[1]) : 1;
+            };
+            const bright = num("brightness");
+            const sat = num("saturate");
+            const cl = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : v);
+            const sr0 = 0.213 + 0.787 * sat;
+            const sr1 = 0.715 - 0.715 * sat;
+            const sr2 = 0.072 - 0.072 * sat;
+            const sg0 = 0.213 - 0.213 * sat;
+            const sg1 = 0.715 + 0.285 * sat;
+            const sg2 = 0.072 - 0.072 * sat;
+            const sb0 = 0.213 - 0.213 * sat;
+            const sb1 = 0.715 - 0.715 * sat;
+            const sb2 = 0.072 + 0.928 * sat;
+            const grade = (r: number, g: number, b: number) => {
+              const R = cl(r * bright);
+              const G = cl(g * bright);
+              const B = cl(b * bright);
+              return [
+                cl(sr0 * R + sr1 * G + sr2 * B),
+                cl(sg0 * R + sg1 * G + sg2 * B),
+                cl(sb0 * R + sb1 * G + sb2 * B),
+              ] as const;
+            };
+
             const alphaAt = (p: number) => {
               for (let i = 0; i < stops.length - 1; i += 1) {
                 const [p0, a0] = stops[i];
@@ -582,8 +615,9 @@ test.describe("SEQ.2 — the black wordmark's ground", () => {
               let sum = 0;
               for (let x = 0; x < rowW; x += 1) {
                 const i = (y * rowW + x) * 4;
-                // Rec.709 on the plate as drawn.
-                sum += 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+                // Rec.709 on the plate as GRADED — i.e. as it is actually painted.
+                const [R, G, B] = grade(data[i], data[i + 1], data[i + 2]);
+                sum += 0.2126 * R + 0.7152 * G + 0.0722 * B;
               }
               const plate = sum / rowW;
               // Composite the scrim over it at this row's height on the stage.

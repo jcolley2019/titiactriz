@@ -83,6 +83,14 @@ interface Props {
   framing?: HeroFraming | null;
   /** Painted behind the frame — matters at scale < 1 and in 'fit'. */
   backdrop?: string;
+  /**
+   * A CSS `filter` applied to the canvas alone, for acts whose plate needs a
+   * grade the packs themselves should not be re-encoded to carry. Undefined by
+   * default, so a consumer that does not ask for one is painted exactly as its
+   * frames were authored. It sits on the CANVAS rather than the host so that
+   * overlay children — type, scrims, logos — are never graded with the plate.
+   */
+  canvasFilter?: string;
   className?: string;
   style?: CSSProperties;
   onStatus?: (status: SeqScrubStatus) => void;
@@ -91,7 +99,17 @@ interface Props {
 const NEAR_BLACK = "#0b0a08";
 
 const FrameScrubber = forwardRef<FrameScrubberHandle, Props>(function FrameScrubber(
-  { sequence, progress = 0, reduced = false, framing, backdrop = NEAR_BLACK, className, style, onStatus },
+  {
+    sequence,
+    progress = 0,
+    reduced = false,
+    framing,
+    backdrop = NEAR_BLACK,
+    canvasFilter,
+    className,
+    style,
+    onStatus,
+  },
   ref,
 ) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -268,7 +286,14 @@ const FrameScrubber = forwardRef<FrameScrubberHandle, Props>(function FrameScrub
         aria-hidden
         data-qa="seq-canvas"
         data-seq-id={sequence.id}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          display: "block",
+          filter: canvasFilter,
+        }}
       />
     </div>
   );

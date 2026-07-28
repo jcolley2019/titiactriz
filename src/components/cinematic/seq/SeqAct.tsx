@@ -66,6 +66,12 @@ interface Props {
   leadOut?: number;
   pinDuration?: string;
   backdrop?: string;
+  /**
+   * Passed straight to the scrubber: a CSS `filter` for the plate alone. Left
+   * undefined by every act that does not need one, so this changes nothing for
+   * an act that does not ask.
+   */
+  canvasFilter?: string;
   /** Overlay content — type, scrims, CTAs. Painted above the canvas. */
   children?: ReactNode;
   onStatus?: (status: SeqScrubStatus) => void;
@@ -92,6 +98,7 @@ const SeqAct = ({
   leadOut = SEQ_LEAD_OUT,
   pinDuration = SEQ_PIN_DURATION,
   backdrop,
+  canvasFilter,
   children,
   onStatus,
   onProgress,
@@ -158,6 +165,7 @@ const SeqAct = ({
           reduced={reduced}
           framing={framing}
           backdrop={backdrop}
+          canvasFilter={canvasFilter}
           onStatus={onStatus}
           // Fills the stage. NOT `absolute inset-0`: the scrubber sets
           // `position: relative` inline (it is the containing block for its own
