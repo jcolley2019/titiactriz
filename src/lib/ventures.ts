@@ -34,13 +34,14 @@ export const GREEN_WORLD_ROUTE = "/green-world";
  *     cap at 512px, which cannot hold up centred over a 1920-wide plate.
  *   • No SVG exists anywhere in the repo or the source library.
  *
- * The bar is a transparent source at >=1200px (an SVG would be better still).
- * When one lands, the revive is a two-line diff: point GW_LOGO_SRC at it and
- * flip this to `true`. Nothing else in the act changes — the layer's geometry is
- * already asserted by the specs while it is empty, so the flip cannot silently
- * move it.
+ * The bar was a transparent source at >=1200px (an SVG would be better still).
+ * GW.LOGO.1 (2026-07-28) cleared it: public/ventures/green-world-logo.png,
+ * 1600x1168, 32-bit RGBA, 48 KB — the correct lockup, transparent, and wide
+ * enough to hold up centred over a 1920-wide plate. Nothing else in the act
+ * changed on the flip — the layer's geometry was already asserted by the specs
+ * while it was empty, so the flip could not silently move it.
  */
-export const GW_LOGO_READY = false;
+export const GW_LOGO_READY = true;
 
 /**
  * The logo layer's source. `null` while GW_LOGO_READY is false — the two move
@@ -48,7 +49,7 @@ export const GW_LOGO_READY = false;
  * half-finished flip degrades to the current (empty) state rather than to a
  * broken image.
  */
-export const GW_LOGO_SRC: string | null = null;
+export const GW_LOGO_SRC: string | null = "/ventures/green-world-logo.png";
 
 /**
  * TITANS.OFF.1 (2026-07-27) — Titans Agency is shut down after a TikTok policy
