@@ -19,14 +19,16 @@ import { GW_LOGO_READY, GW_LOGO_SRC } from "../src/lib/ventures";
  * scroll listener alongside it, so a programmatic instant scroll still lands,
  * and every frame assertion polls rather than sampling once.
  *
- * ## The logo layer is asserted while it is EMPTY
+ * ## The logo layer's geometry was asserted BEFORE it had anything to paint
  *
- * GW_LOGO_READY is false: the act paints no mark. The layer is asserted anyway —
- * present, centred, carrying `data-gw-logo="off"` and holding zero images — and
- * the spec reads the flag from the same module the component reads it from, so
- * the day the flag flips these assertions flip WITH it instead of going stale.
- * That is the point of asserting an empty layer: the geometry is pinned before
- * the asset exists, so landing the asset cannot silently move it.
+ * These assertions were written while GW_LOGO_READY was false and the act
+ * painted no mark: the layer was asserted anyway — present, centred, carrying
+ * `data-gw-logo="off"` and holding zero images — and the spec reads the flag
+ * from the same module the component reads it from, so the assertions flip WITH
+ * the flag instead of going stale. GW.LOGO.1 flipped it and GW.LOGO.2 swapped in
+ * the mark-only asset; the same block now asserts a painted, visible mark. The
+ * geometry it pins has not moved across either — which is exactly what pinning
+ * it early was for.
  */
 
 const PATH = "/cinematic";
@@ -243,7 +245,7 @@ test.describe("SEQ.2 — the act on the home page", () => {
     await expect(page).toHaveURL(/\/green-world$/);
   });
 
-  test("the logo layer is wired, centred, and empty while the flag is false", async ({ page }) => {
+  test("the logo layer is wired, centred, and paints the mark while the flag is true", async ({ page }) => {
     test.setTimeout(120_000);
     await openHome(page);
     await scrollToRawProgress(page, 0.5);

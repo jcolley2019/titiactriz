@@ -40,6 +40,15 @@ export const GREEN_WORLD_ROUTE = "/green-world";
  * enough to hold up centred over a 1920-wide plate. Nothing else in the act
  * changed on the flip — the layer's geometry was already asserted by the specs
  * while it was empty, so the flip could not silently move it.
+ *
+ * GW.LOGO.2 (2026-07-28) swapped that asset for a MARK-ONLY one:
+ * public/ventures/green-world-mark.png, 1210x995, 32-bit RGBA, 36 KB — stars and
+ * leaves, with the wordmark cropped off. The full lockup carried a baked "GREEN
+ * WORLD" wordmark, and at 1440 it scaled up until that wordmark sat on the act's
+ * gold eyebrow and crowded the serif lockup beneath it: the name rendered twice,
+ * stacked. The serif lockup is the act's own voice and stays, so the NAME is the
+ * act's job and the MARK is the asset's. Mark-only is what keeps them from
+ * saying the same thing on top of each other.
  */
 export const GW_LOGO_READY = true;
 
@@ -49,7 +58,7 @@ export const GW_LOGO_READY = true;
  * half-finished flip degrades to the current (empty) state rather than to a
  * broken image.
  */
-export const GW_LOGO_SRC: string | null = "/ventures/green-world-logo.png";
+export const GW_LOGO_SRC: string | null = "/ventures/green-world-mark.png";
 
 /**
  * TITANS.OFF.1 (2026-07-27) — Titans Agency is shut down after a TikTok policy
