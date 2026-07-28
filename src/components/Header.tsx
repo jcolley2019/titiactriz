@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { setLanguage } from "@/i18n";
 import LanguageToggle from "./LanguageToggle";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
+import { TITANS_ENABLED } from "@/lib/ventures";
 import monogram from "@/assets/cp-monogram-transparent.png";
 import monogramTwoTone from "@/assets/cp-monogram-twotone.png";
 
@@ -49,10 +50,14 @@ const Header = () => {
 
   // `noTranslate` marks brand proper nouns (Green World / Titans Agency) so
   // browser auto-translate leaves them intact.
+  // TITANS.OFF.1 — the Titans entry is spread in only while the venture is
+  // live, so the nav closes up rather than leaving a hole where it was.
   const leftLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
-    { name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true },
+    ...(TITANS_ENABLED
+      ? [{ name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true }]
+      : []),
   ];
   const rightLinks: NavLink[] = [
     { name: t("nav.portfolio"), path: "/work" },
@@ -64,7 +69,9 @@ const Header = () => {
   const mobileInlineLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
-    { name: t("nav.titansShort", "Titans"), path: "/titans-agency", noTranslate: true },
+    ...(TITANS_ENABLED
+      ? [{ name: t("nav.titansShort", "Titans"), path: "/titans-agency", noTranslate: true }]
+      : []),
   ];
   if (eventsVisible) {
     mobileInlineLinks.push({ name: t("nav.events", "Events"), path: "/events" });

@@ -11,7 +11,8 @@
     <title>Cristyna Polentino | Actriz Colombiana, Bailarina y Empresaria en Medellín</title>
     <meta name="description" content="Cristyna Polentino — actriz colombiana, bailarina y empresaria en Medellín. Colombian actress, dancer & entrepreneur, also known as Titi (TitiActriz).">
     <meta name="author" content="Cristyna Polentino" />
-    <meta name="keywords" content="Cristyna Polentino, actriz colombiana, Colombian actress, bailarina, dancer, empresaria, entrepreneur, Medellín, Colombia, Titans Agency, Green World, TikTok, creadora de contenido, content creator" />
+    <!-- TITANS.OFF.1 — "Titans Agency" dropped from keywords; restore it with the flag. -->
+    <meta name="keywords" content="Cristyna Polentino, actriz colombiana, Colombian actress, bailarina, dancer, empresaria, entrepreneur, Medellín, Colombia, Green World, TikTok, creadora de contenido, content creator" />
 
     <!-- Geo targeting -->
     <meta name="geo.region" content="CO-ANT" />
@@ -48,8 +49,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Titans Agency fonts -->
+    <!-- Titans Agency fonts — TITANS.OFF.1 (2026-07-27): Anton and Caveat are
+         used only by the `font-titans` / `font-titans-script` utilities, which
+         now live only on hidden surfaces. Parked rather than deleted so the
+         revive is one uncomment; leaving it live would fetch two font families
+         on every page load for a venture nobody can reach.
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@700&display=swap" rel="stylesheet" />
+    -->
 
     <!-- HomeEditorial fonts: default Cinzel + Jost -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
@@ -57,6 +63,19 @@
     <!-- ALT B: <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" /> -->
 
     <!-- JSON-LD Structured Data -->
+    <!--
+      TITANS.OFF.1 (2026-07-27) — two Titans claims were removed from the block
+      below, because JSON-LD has no comment syntax to park them in place. To
+      revive alongside TITANS_ENABLED in src/lib/ventures.ts, restore:
+        1. sameAs      → "https://www.tiktok.com/@titansagencylatam"
+        2. affiliation → {
+             "@type": "Organization",
+             "name": "Titans Agency Latam",
+             "url": "https://titiactriz.com/titans-agency",
+             "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos"
+           }
+      Both were asserting a live organization at a URL that now answers 404.
+    -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -81,17 +100,10 @@
       "sameAs": [
         "https://www.tiktok.com/@titina_polen",
         "https://www.instagram.com/cristinapolentino_actriz",
-        "https://www.youtube.com/@mimundoderoles6875",
-        "https://www.tiktok.com/@titansagencylatam"
+        "https://www.youtube.com/@mimundoderoles6875"
       ],
       "knowsAbout": ["Acting", "Dance", "Entrepreneurship", "TikTok Content Creation", "Wellness Products", "Actuación", "Danza", "Emprendimiento"],
       "affiliation": [
-        {
-          "@type": "Organization",
-          "name": "Titans Agency Latam",
-          "url": "https://titiactriz.com/titans-agency",
-          "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos"
-        },
         {
           "@type": "Organization",
           "name": "Green World",

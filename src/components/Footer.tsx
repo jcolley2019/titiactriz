@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
+import { TITANS_ENABLED } from "@/lib/ventures";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -18,7 +19,10 @@ const Footer = () => {
   const footerLinks: { name: string; path: string; noTranslate?: boolean }[] = [
     { name: t("nav.home"), path: "/" },
     ...(eventsVisible ? [{ name: t("events.title"), path: "/events" }] : []),
-    { name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true },
+    // TITANS.OFF.1 — same spread-when-live shape the Events link already uses.
+    ...(TITANS_ENABLED
+      ? [{ name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true }]
+      : []),
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
     { name: t("nav.portfolio"), path: "/work" },
   ];

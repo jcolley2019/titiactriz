@@ -16,6 +16,7 @@ import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import CinematicGreenWorld from "@/components/cinematic/CinematicGreenWorld";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
+import { TITANS_ENABLED } from "@/lib/ventures";
 import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
@@ -140,7 +141,7 @@ const HomeCinematic = () => {
       <SEO
         path="/cinematic"
         title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"
-        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio, Titans Agency y Green World."
+        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio y Green World."
       />
 
       <CinematicHero
@@ -176,9 +177,11 @@ const HomeCinematic = () => {
 
       {/* TA.7: ventures acts — two full-viewport cinematic sections replace the
           old TA.6b split-panel (archived). Green World first (curtain reveal
-          over living wave art), then Titans (play-once badge reveal). */}
+          over living wave art), then Titans (play-once badge reveal).
+          TITANS.OFF.1 — the Titans act is gated off, so Green World now hands
+          straight to TitiLinks. */}
       <CinematicGreenWorld reduced={prefersReduced} />
-      <CinematicTitans reduced={prefersReduced} />
+      {TITANS_ENABLED && <CinematicTitans reduced={prefersReduced} />}
 
       {/* TA.8: TitiLinks act — pinned product tour → coming-soon → clean fade release. */}
       <CinematicTitiLinks reduced={prefersReduced} />

@@ -21,6 +21,7 @@ import aboutImage from "@/assets/cristyna-meet.webp";
 import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
+import { TITANS_ENABLED } from "@/lib/ventures";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
 import sunsetImage from "@/assets/cristyna-sunset.webp";
 import lifestyleImage from "@/assets/cristyna-lifestyle.jpg";
@@ -136,7 +137,7 @@ const Index = () => {
       <SEO
         path="/"
         title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"
-        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio, Titans Agency y Green World. Colombian actress, dancer & entrepreneur."
+        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio y Green World. Colombian actress, dancer & entrepreneur."
       />
 
       <CosmicBackground />
@@ -188,11 +189,15 @@ const Index = () => {
               </p>
 
 
-              {/* Quick Link Buttons */}
-              <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]">
-                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
-                  <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
-                </Button>
+              {/* Quick Link Buttons — TITANS.OFF.1 drops the Titans button, so
+                  the column count follows the flag rather than stranding an
+                  empty third cell. */}
+              <div className={`grid grid-cols-1 ${TITANS_ENABLED ? "xs:grid-cols-3 sm:grid-cols-3" : "xs:grid-cols-2 sm:grid-cols-2"} gap-3 sm:gap-4 md:gap-6 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]`}>
+                {TITANS_ENABLED && (
+                  <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
+                    <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
+                  </Button>
+                )}
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <a href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ==" target="_blank" rel="noopener noreferrer">{t("hero.buttons.greenWorld")}</a>
                 </Button>
@@ -341,18 +346,20 @@ const Index = () => {
           subtitle={t("featured.subtitle")}
         />
 
-        <StaggerContainer className="grid md:grid-cols-3 gap-8">
-          <StaggerItem>
-            <LinkCard
-              title={t("featured.titans.title")}
-              description={t("featured.titans.description")}
-              href="/titans-agency"
-              image={titansLogo}
-              hoverImage={titansLogoRed}
-              imageBackground="dark"
-              hoverColor="red"
-            />
-          </StaggerItem>
+        <StaggerContainer className={`grid ${TITANS_ENABLED ? "md:grid-cols-3" : "md:grid-cols-2 md:max-w-4xl md:mx-auto"} gap-8`}>
+          {TITANS_ENABLED && (
+            <StaggerItem>
+              <LinkCard
+                title={t("featured.titans.title")}
+                description={t("featured.titans.description")}
+                href="/titans-agency"
+                image={titansLogo}
+                hoverImage={titansLogoRed}
+                imageBackground="dark"
+                hoverColor="red"
+              />
+            </StaggerItem>
+          )}
           <StaggerItem>
             <LinkCard
               title={t("featured.greenWorld.title")}

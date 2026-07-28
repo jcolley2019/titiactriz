@@ -19,6 +19,7 @@ import aboutImage from "@/assets/cristyna-meet.webp";
 import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
+import { TITANS_ENABLED } from "@/lib/ventures";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
 import cpMonogram from "@/assets/cp-monogram-transparent.png";
 import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
@@ -168,7 +169,7 @@ const HomeEditorial = () => {
       <SEO
         path="/"
         title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"
-        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio, Titans Agency y Green World."
+        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio y Green World."
       />
 
       <CosmicBackground />
@@ -353,14 +354,17 @@ const HomeEditorial = () => {
                   >
                     Green World
                   </a>
-                  <Link
-                    to="/titans-agency"
-                    translate="no"
-                    className="notranslate inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
-                    style={{ color: CREAM, borderColor: GOLD }}
-                  >
-                    Titans Agency
-                  </Link>
+                  {/* TITANS.OFF.1 — hidden with the venture. */}
+                  {TITANS_ENABLED && (
+                    <Link
+                      to="/titans-agency"
+                      translate="no"
+                      className="notranslate inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
+                      style={{ color: CREAM, borderColor: GOLD }}
+                    >
+                      Titans Agency
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -477,18 +481,20 @@ const HomeEditorial = () => {
           title={t("featured.title")}
           subtitle={t("featured.subtitle")}
         />
-        <StaggerContainer className="grid md:grid-cols-3 gap-8">
-          <StaggerItem>
-            <LinkCard
-              title={t("featured.titans.title")}
-              description={t("featured.titans.description")}
-              href="/titans-agency"
-              image={titansLogo}
-              hoverImage={titansLogoRed}
-              imageBackground="dark"
-              hoverColor="red"
-            />
-          </StaggerItem>
+        <StaggerContainer className={`grid ${TITANS_ENABLED ? "md:grid-cols-3" : "md:grid-cols-2 md:max-w-4xl md:mx-auto"} gap-8`}>
+          {TITANS_ENABLED && (
+            <StaggerItem>
+              <LinkCard
+                title={t("featured.titans.title")}
+                description={t("featured.titans.description")}
+                href="/titans-agency"
+                image={titansLogo}
+                hoverImage={titansLogoRed}
+                imageBackground="dark"
+                hoverColor="red"
+              />
+            </StaggerItem>
+          )}
           <StaggerItem>
             <LinkCard
               title={t("featured.greenWorld.title")}

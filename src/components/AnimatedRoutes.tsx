@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 
 import PageTransition from "./PageTransition";
 import Home from "@/pages/Home";
+import { TITANS_ENABLED } from "@/lib/ventures";
 
 // Lazy-loaded routes (kept out of the home-page bundle)
 const HomeCinematic = lazy(() => import("@/pages/HomeCinematic"));
@@ -61,16 +62,22 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
-        <Route
-          path="/titans-agency"
-          element={
-            <PageTransition>
-              <Suspense fallback={<RouteFallback />}>
-                <TitansAgency />
-              </Suspense>
-            </PageTransition>
-          }
-        />
+        {/* TITANS.OFF.1 — unregistered while TITANS_ENABLED is false, so the
+            path falls through to the `*` route and gets the site's ordinary
+            404 rather than a bespoke "gone" page. The component above is still
+            lazy-imported and still builds; only the registration is gated. */}
+        {TITANS_ENABLED && (
+          <Route
+            path="/titans-agency"
+            element={
+              <PageTransition>
+                <Suspense fallback={<RouteFallback />}>
+                  <TitansAgency />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+        )}
         <Route
           path="/green-world"
           element={

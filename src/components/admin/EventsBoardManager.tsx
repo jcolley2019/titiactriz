@@ -38,6 +38,7 @@ import {
   type EventButton,
 } from "@/hooks/useEventsBoard";
 import EventsGrid from "@/components/events/EventsGrid";
+import { TITANS_ENABLED } from "@/lib/ventures";
 
 const PREVIEW_BG = "#0e0c09";
 const BUCKET = "gallery";
@@ -158,7 +159,16 @@ const BannerEditor = ({
     <div className="space-y-1">
       <FieldLabel>Show on pages</FieldLabel>
       <div className="flex flex-wrap gap-4">
-        {([["home", "Home"], ["greenWorld", "Green World"], ["titans", "Titans"]] as const).map(
+        {/* TITANS.OFF.1 — the Titans toggle is hidden while the venture is
+            down. The stored `pages.titans` value is left untouched, so an
+            owner's old choice is still there when the flag flips back. */}
+        {(
+          [
+            ["home", "Home"],
+            ["greenWorld", "Green World"],
+            ...(TITANS_ENABLED ? [["titans", "Titans"] as const] : []),
+          ] as const
+        ).map(
           ([key, lbl]) => (
             <label key={key} className="flex items-center gap-2 text-xs text-muted-foreground">
               <Switch
@@ -835,21 +845,24 @@ const EventsBoardManager = () => {
               setBoard((prev) => ({ ...prev, greenWorldBanner: { ...prev.greenWorldBanner, ...patch } }))
             }
           />
-          <BannerEditor
-            name="Titans banner"
-            banner={board.titansBanner}
-            editLang={editLang}
-            loading={loading}
-            colorOptions={[
-              { label: "White", value: "#FFFFFF" },
-              { label: "Red", value: "#AD1F1F" },
-              { label: "Gold", value: "#C9A55C" },
-              { label: "Black", value: "#0a0a0a" },
-            ]}
-            onChange={(patch) =>
-              setBoard((prev) => ({ ...prev, titansBanner: { ...prev.titansBanner, ...patch } }))
-            }
-          />
+          {/* TITANS.OFF.1 — editor hidden, stored banner preserved. */}
+          {TITANS_ENABLED && (
+            <BannerEditor
+              name="Titans banner"
+              banner={board.titansBanner}
+              editLang={editLang}
+              loading={loading}
+              colorOptions={[
+                { label: "White", value: "#FFFFFF" },
+                { label: "Red", value: "#AD1F1F" },
+                { label: "Gold", value: "#C9A55C" },
+                { label: "Black", value: "#0a0a0a" },
+              ]}
+              onChange={(patch) =>
+                setBoard((prev) => ({ ...prev, titansBanner: { ...prev.titansBanner, ...patch } }))
+              }
+            />
+          )}
         </div>
 
 
