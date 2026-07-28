@@ -13,13 +13,23 @@
  * be declared here; a wrong `count` is the one mistake the engine cannot detect
  * (it would simply 404 the tail and hold the last good frame).
  *
- * Two asymmetries in the census are deliberately preserved rather than smoothed
+ * The Green World packs were re-cut (SEQ.1b) from logo-free 4K masters —
+ * `gw-ambient-land-4k.mp4` (3840x2160) and `gw-ambient-port-4k.mp4` (2160x3840),
+ * both 24fps / 121 frames — sampled to 72 frames with both ends included, so the
+ * dead stops hold the master's true first and last frame. The logo is no longer
+ * baked into the plate; it is layered in code.
+ *
+ * One asymmetry in the census is deliberately preserved rather than smoothed
  * over, because pairing packs into device classes is NOT this brick's job:
- *   • `gw-port-720` carries 60 frames where every other pack carries 72. It is
- *     a genuinely different-length take, not a re-crop of the landscape pack.
- *   • `titans-720` is 720x406 — the same 16:9 as `titans-1280`. It is a
- *     RESOLUTION variant, whereas the Green World pair is an ORIENTATION
- *     variant. Do not assume "-720" means "phone".
+ * `titans-720` is 720x406 — the same 16:9 as `titans-1280`. It is a RESOLUTION
+ * variant, whereas the Green World pair is an ORIENTATION variant. Do not assume
+ * "-720" means "phone".
+ *
+ * Per-frame weight is held to the titans-1280 band (~40-46 KB) across all four
+ * packs, so no pack can quietly become the one that stalls a phone mid-scrub.
+ * Holding that band costs the portrait pack more fidelity than the others: its
+ * plate is denser, so it encodes at WebP q35 (SSIM ~0.974) where landscape holds
+ * q72 (SSIM ~0.986) for the same bytes.
  *
  * The packs themselves are untracked at the time of writing, so this manifest
  * is only exercised by the DEV-gated lab.
@@ -68,24 +78,24 @@ export function frameIndexAt(progress: number, count: number): number {
 /** The STEP 0 census, verbatim. */
 export const SEQ_PACKS: FrameSequence[] = [
   {
-    id: "gw-land-1280",
-    dir: "/ventures/seq/gw-land-1280",
+    id: "gw-land-1920",
+    dir: "/ventures/seq/gw-land-1920",
     count: 72,
     ext: ".webp",
     pad: 3,
-    width: 1280,
-    height: 716,
-    label: "Green World — landscape 1280",
+    width: 1920,
+    height: 1080,
+    label: "Green World — landscape 1920",
   },
   {
-    id: "gw-port-720",
-    dir: "/ventures/seq/gw-port-720",
-    count: 60,
+    id: "gw-port-1080",
+    dir: "/ventures/seq/gw-port-1080",
+    count: 72,
     ext: ".webp",
     pad: 3,
-    width: 720,
-    height: 1288,
-    label: "Green World — portrait 720",
+    width: 1080,
+    height: 1920,
+    label: "Green World — portrait 1080",
   },
   {
     id: "titans-1280",

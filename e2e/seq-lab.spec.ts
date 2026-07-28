@@ -18,9 +18,10 @@ import { attachDiagnostics, shot } from "./_helpers";
  *
  * ## The packs
  *
- * Mirrors src/components/cinematic/seq/sequences.ts (the STEP 0 census). Note
- * `gw-port-720` is 60 frames where the others are 72: the mid-stop expectation
- * is derived per pack, never hardcoded to one number.
+ * Mirrors src/components/cinematic/seq/sequences.ts (the STEP 0 census). All
+ * four packs now carry 72 frames, but the mid-stop expectation is still derived
+ * per pack rather than hardcoded to one number — the census is free to go
+ * ragged again the next time a pack is re-cut.
  *
  * ## Why the ends are exact and the middle is not
  *
@@ -36,8 +37,8 @@ import { attachDiagnostics, shot } from "./_helpers";
 const PATH = "/qa/seq-lab";
 
 const PACKS = [
-  { id: "gw-land-1280", count: 72 },
-  { id: "gw-port-720", count: 60 },
+  { id: "gw-land-1920", count: 72 },
+  { id: "gw-port-1080", count: 72 },
   { id: "titans-1280", count: 72 },
   { id: "titans-720", count: 72 },
 ] as const;
