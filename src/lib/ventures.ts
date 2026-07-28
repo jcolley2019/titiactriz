@@ -14,6 +14,42 @@ export const GREEN_WORLD_SHOP_URL =
 
 export const TITANS_ROUTE = "/titans-agency";
 
+/** The internal Green World brand page — where the scroll-scrub act's CTA lands. */
+export const GREEN_WORLD_ROUTE = "/green-world";
+
+/**
+ * SEQ.2 (2026-07-28) — the Green World act's STATIC logo layer.
+ *
+ * The re-cut frame packs are logo-free by design (SEQ.1b): the mark is no longer
+ * baked into the plate, so it can sit perfectly still while the plate scrubs
+ * underneath it. That layer is fully wired — positioned, sized, and carrying its
+ * spec hooks — but it paints NOTHING until a source asset exists that deserves
+ * to be painted.
+ *
+ * The audit that set this flag to `false` found no such asset:
+ *   • greenworld-logo-hd.webp (1120x928) — opaque (yuv420p, no alpha) AND a
+ *     different lockup (serif) from the one the act needs. Do not use it.
+ *   • greenworld-logo-clean.webp / greenworld-logo-new.png (500x500) — opaque.
+ *   • green-world_512.png / hgw_512.png / GW-SYMBOL.png — transparent, but they
+ *     cap at 512px, which cannot hold up centred over a 1920-wide plate.
+ *   • No SVG exists anywhere in the repo or the source library.
+ *
+ * The bar is a transparent source at >=1200px (an SVG would be better still).
+ * When one lands, the revive is a two-line diff: point GW_LOGO_SRC at it and
+ * flip this to `true`. Nothing else in the act changes — the layer's geometry is
+ * already asserted by the specs while it is empty, so the flip cannot silently
+ * move it.
+ */
+export const GW_LOGO_READY = false;
+
+/**
+ * The logo layer's source. `null` while GW_LOGO_READY is false — the two move
+ * together, and the act treats either one being unset as "paint nothing", so a
+ * half-finished flip degrades to the current (empty) state rather than to a
+ * broken image.
+ */
+export const GW_LOGO_SRC: string | null = null;
+
 /**
  * TITANS.OFF.1 (2026-07-27) — Titans Agency is shut down after a TikTok policy
  * change ended the creator-agency program.

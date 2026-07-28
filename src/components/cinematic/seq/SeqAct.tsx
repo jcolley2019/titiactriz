@@ -69,6 +69,19 @@ interface Props {
   /** Overlay content — type, scrims, CTAs. Painted above the canvas. */
   children?: ReactNode;
   onStatus?: (status: SeqScrubStatus) => void;
+  /**
+   * The playhead, pushed at scrub rate: `(mapped, raw)`, where `mapped` is the
+   * dead-zone-corrected 0..1 the frames actually follow and `raw` is the pin's
+   * own progress.
+   *
+   * IMPERATIVE, exactly like the scrubber handle above it — a consumer writes to
+   * refs or straight to the DOM. Calling `setState` from here would re-render
+   * the overlay sixty times a second, which is the one thing this whole act is
+   * built to avoid. Overlay elements that need to react to the playhead should
+   * latch on a THRESHOLD (crossed / not crossed) and hand the actual motion to
+   * GSAP, so the work per frame stays a comparison.
+   */
+  onProgress?: (mapped: number, raw: number) => void;
 }
 
 const SeqAct = ({
@@ -81,10 +94,16 @@ const SeqAct = ({
   backdrop,
   children,
   onStatus,
+  onProgress,
 }: Props) => {
   const sectionRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const scrubberRef = useRef<FrameScrubberHandle>(null);
+
+  // Read through a ref so a consumer's inline arrow does not become a reason to
+  // tear down and rebuild the pin on every render.
+  const onProgressRef = useRef(onProgress);
+  onProgressRef.current = onProgress;
 
   useLayoutEffect(() => {
     if (reduced) return; // no pin, no scrub binding — the scrubber holds frame 0
@@ -114,7 +133,9 @@ const SeqAct = ({
           onRefresh: publishBounds,
           onUpdate: (self) => {
             state.p = self.progress;
-            scrubberRef.current?.setProgress(seqProgress(state.p, leadIn, leadOut));
+            const mapped = seqProgress(state.p, leadIn, leadOut);
+            scrubberRef.current?.setProgress(mapped);
+            onProgressRef.current?.(mapped, state.p);
           },
         },
       });
