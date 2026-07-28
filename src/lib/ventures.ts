@@ -49,6 +49,23 @@ export const GREEN_WORLD_ROUTE = "/green-world";
  * stacked. The serif lockup is the act's own voice and stays, so the NAME is the
  * act's job and the MARK is the asset's. Mark-only is what keeps them from
  * saying the same thing on top of each other.
+ *
+ * GW.LOGO.5 (2026-07-28) REVERSES that direction, per Joey: the brand's mark is
+ * rendered as the brand draws it — leaves, stars and their own bold wordmark —
+ * so public/ventures/green-world-lockup.png (1598x1167, 32-bit RGBA, 49 KB,
+ * alpha-true trimmed) paints the FULL lockup and green-world-mark.png is gone.
+ * The site's voice lives AROUND the mark, not inside it: GW.LOGO.2 resolved the
+ * doubled name by cropping the brand's wordmark off, and that was the wrong half
+ * to cut. This brick cuts the other half — the act's serif headline is retired,
+ * the lockup carries the name alone, and "OFFICIAL DISTRIBUTOR" drops beneath it
+ * as a gold credential line. The name still renders exactly once; it is simply
+ * the brand's rendering of it rather than ours.
+ *
+ * The wordmark is black, so where it lands is a legibility constraint, not just
+ * a taste one: the act's scrim reaches 0.62 alpha by 74% of the stage and the
+ * portrait plate carries its own dark band at ~32-38%. The logo layer's band is
+ * pinned to keep the whole lockup on ground measured at >=7:1 against black at
+ * every frame of the scrub — see the band comment in CinematicGreenWorldSeq.
  */
 export const GW_LOGO_READY = true;
 
@@ -58,7 +75,7 @@ export const GW_LOGO_READY = true;
  * half-finished flip degrades to the current (empty) state rather than to a
  * broken image.
  */
-export const GW_LOGO_SRC: string | null = "/ventures/green-world-mark.png";
+export const GW_LOGO_SRC: string | null = "/ventures/green-world-lockup.png";
 
 /**
  * TITANS.OFF.1 (2026-07-27) — Titans Agency is shut down after a TikTok policy

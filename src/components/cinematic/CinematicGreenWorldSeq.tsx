@@ -24,20 +24,24 @@ import { GREEN_WORLD_ROUTE, GW_LOGO_READY, GW_LOGO_SRC } from "@/lib/ventures";
  *
  * ## The three layers over the plate
  *
- * 1. LOGO — dead centre, never parallaxed, never scrubbed. The re-cut packs are
- *    logo-free (SEQ.1b) precisely so this layer can exist; a mark baked into the
- *    plate would swim with the water. It is fully wired here and paints nothing
- *    while GW_LOGO_READY is false — see the flag in @/lib/ventures for what
- *    unblocks it. The empty layer keeps its geometry and its spec hooks, so the
- *    day the flag flips, the mark lands where the specs already say it lands.
+ * 1. LOGO — the brand's own lockup, never parallaxed, never scrubbed. The re-cut
+ *    packs are logo-free (SEQ.1b) precisely so this layer can exist; a mark baked
+ *    into the plate would swim with the water. It paints nothing while
+ *    GW_LOGO_READY is false — see the flag in @/lib/ventures for what unblocks
+ *    it. Since GW.LOGO.5 it carries the NAME as well as the mark, which is why
+ *    the act no longer sets the name in type; see the band note below for why it
+ *    is not simply centred.
  * 2. SCRIM — a single bottom-weighted gradient. The plates are bright water at
  *    both ends of the scrub, so the lower third is darkened rather than the
  *    whole frame: type stays AA legible without the act turning into a tinted
  *    photograph.
- * 3. LOCKUP — the site's ratified three-part shape, unchanged from TitiLinks:
- *    a gold Label eyebrow, the Headline, and exactly ONE Body line. No health
- *    claims (PRODUCT.md law) — the copy says where the products come from and
- *    that she will show you how to order, and stops there.
+ * 3. LOCKUP — the site's ratified shape minus its headline, which the brand's
+ *    wordmark now supplies: a gold Label credential and exactly ONE Body line.
+ *    No health claims (PRODUCT.md law) — the copy says where the products come
+ *    from and that she will show you how to order, and stops there. The heading
+ *    survives as an `sr-only` h2, the same way CinematicTitiLinks keeps one: the
+ *    document outline and the section-heading census both still want a heading
+ *    even when the name is drawn rather than set.
  *
  * ## The CTA is a dead-stop event, not a scrubbed value
  *
@@ -70,6 +74,31 @@ const CTA_REVEAL_AT = 0.999;
 
 /** Hidden resting state of the CTA, in one place so the tween and the inline style agree. */
 const CTA_HIDDEN_Y = 24;
+
+/**
+ * The band the lockup is allowed to occupy, as a fraction of the stage.
+ *
+ * This is a legibility constraint, not a taste one. The brand's wordmark is
+ * BLACK, so unlike the white type below it, it gets darker ground the further
+ * down the stage it sits. Two things darken that ground, and they compound:
+ *
+ *   • the SCRIM below, which is transparent to 42% and reaches 0.62 alpha by 74%;
+ *   • the plates themselves, which are bright water nearly throughout EXCEPT the
+ *     portrait pack, which carries a dark band at roughly 32-38% of its height.
+ *
+ * Composited over every one of the 72 frames in each pack, the ground that holds
+ * black at >=7:1 is 1-55% on the landscape plate, and 1-31% plus 39-57% on the
+ * portrait one — the phone's usable window is the LOWER of its two, because the
+ * upper one collides with the header. Hence two bands rather than one clamp:
+ *
+ *   phone   39% -> 58%   (under the dark band, above the scrim's onset)
+ *   wide    13% -> 54%   (clear of the header, above the scrim's onset)
+ *
+ * The lockup is fitted to the band's HEIGHT with width following, so the black
+ * wordmark — the bottom ~15% of the asset — cannot drift out of the band when
+ * the viewport aspect changes. Re-measure if the scrim or either pack is re-cut.
+ */
+const LOGO_BAND = "top-[39%] h-[19%] md:top-[13%] md:h-[41%]";
 
 /**
  * Pack selection. The phone/wide line is `reelSpotlight`'s 768px — the same one
@@ -134,27 +163,30 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
         backdrop={NEAR_BLACK}
         onProgress={reduced ? undefined : handleProgress}
       >
-        {/* 1 — LOGO. Centred over the canvas and completely still. Wired but
-            empty while GW_LOGO_READY is false: the box keeps its size and its
-            spec hooks so the geometry is asserted before the mark ever exists,
-            and `data-gw-logo` states plainly which of the two it is. */}
+        {/* 1 — LOGO. Horizontally centred, vertically pinned to LOGO_BAND, and
+            completely still. Wired but empty while GW_LOGO_READY is false: the
+            band keeps its geometry and its spec hooks whether or not there is an
+            asset, and `data-gw-logo` states plainly which of the two it is.
+            Decorative here — the name it draws is announced once by the sr-only
+            heading below, so alt is empty rather than doubling it. */}
         <div
           data-qa="gw-seq-logo"
           data-gw-logo={GW_LOGO_READY && GW_LOGO_SRC ? "on" : "off"}
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-20 grid place-items-center"
+          className={`pointer-events-none absolute inset-x-0 z-20 flex items-center justify-center px-6 ${LOGO_BAND}`}
         >
-          <div style={{ width: "clamp(10rem, 34vw, 26rem)" }}>
-            {GW_LOGO_READY && GW_LOGO_SRC ? (
-              <img
-                src={GW_LOGO_SRC}
-                alt=""
-                data-qa="gw-seq-logo-img"
-                className="block h-auto w-full select-none"
-                draggable={false}
-              />
-            ) : null}
-          </div>
+          {GW_LOGO_READY && GW_LOGO_SRC ? (
+            <img
+              src={GW_LOGO_SRC}
+              alt=""
+              data-qa="gw-seq-logo-img"
+              // Height-bound so the black wordmark stays inside the band; the
+              // max-widths are only a guard for very tall, narrow viewports,
+              // where the band would otherwise imply a lockup wider than the act.
+              className="block h-full max-h-full w-auto max-w-[76vw] object-contain select-none md:max-w-[40rem]"
+              draggable={false}
+            />
+          ) : null}
         </div>
 
         {/* 2 — SCRIM. Bottom-weighted only; the plate keeps its top two-thirds. */}
@@ -173,6 +205,16 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
             sitting over the button's own neighbourhood. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-6 pb-14 md:pb-20">
           <div className="mx-auto max-w-2xl text-center">
+            {/* The act's heading, drawn rather than set: the brand's wordmark
+                above carries the name, so this exists for the document outline
+                and the section-heading census only. Same device, and the same
+                reason, as the sr-only h2 in CinematicTitiLinks. */}
+            <h2 data-qa="section-heading" translate="no" className="notranslate sr-only">
+              {t("cinematic.gwSeq.title")}
+            </h2>
+            {/* The credential, beneath the lockup rather than above the name it
+                used to introduce. Same gold Label styling it has always had —
+                it changed position and job, not voice. */}
             <p
               data-qa="gw-seq-eyebrow"
               className="text-[11px] font-semibold uppercase tracking-[0.24em]"
@@ -180,23 +222,9 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
             >
               {t("cinematic.gwSeq.eyebrow")}
             </p>
-            <h2
-              data-qa="section-heading"
-              translate="no"
-              className="notranslate mt-4 font-semibold leading-[1.04] text-white"
-              style={{
-                fontFamily: "var(--font-display)",
-                // DESIGN.md's Headline ramp, verbatim. The neighbouring acts
-                // each invented their own clamp and each carry a detector
-                // advisory for it; this one does not need to add a seventh.
-                fontSize: "clamp(1.75rem, 4vw, 3.25rem)",
-              }}
-            >
-              {t("cinematic.gwSeq.title")}
-            </h2>
             <p
               data-qa="gw-seq-body"
-              className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-white/70 md:text-base"
+              className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/70 md:text-base"
             >
               {t("cinematic.gwSeq.body")}
             </p>
