@@ -14,7 +14,7 @@ import {
 } from "@/hooks/useCinematicMedia";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
-import CinematicGreenWorld from "@/components/cinematic/CinematicGreenWorld";
+import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
 import { TITANS_ENABLED } from "@/lib/ventures";
 import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
@@ -175,12 +175,15 @@ const HomeCinematic = () => {
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
 
-      {/* TA.7: ventures acts — two full-viewport cinematic sections replace the
-          old TA.6b split-panel (archived). Green World first (curtain reveal
-          over living wave art), then Titans (play-once badge reveal).
+      {/* TA.7: ventures acts — full-viewport cinematic sections that replaced
+          the old TA.6b split-panel (archived).
+          SEQ.2 — Green World is now a PINNED scroll-scrub act: scroll is the
+          playhead of a frame pack, with a static logo layer and lockup held
+          still over it. The TA.7a curtain-and-loop-video act it replaced stays
+          in-repo, unmounted, at cinematic/CinematicGreenWorld.tsx.
           TITANS.OFF.1 — the Titans act is gated off, so Green World now hands
           straight to TitiLinks. */}
-      <CinematicGreenWorld reduced={prefersReduced} />
+      <CinematicGreenWorldSeq reduced={prefersReduced} />
       {TITANS_ENABLED && <CinematicTitans reduced={prefersReduced} />}
 
       {/* TA.8: TitiLinks act — pinned product tour → coming-soon → clean fade release. */}

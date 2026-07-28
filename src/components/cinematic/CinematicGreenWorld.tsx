@@ -19,6 +19,20 @@ const IVORY = "#F4F2EA";
 type Props = { reduced: boolean };
 
 /**
+ * RETIRED — SEQ.2 (2026-07-28). This act no longer mounts anywhere. Green World
+ * on the home page is now the pinned scroll-scrub act in
+ * ./CinematicGreenWorldSeq.tsx.
+ *
+ * The component is kept verbatim under museum policy: it is the record of how
+ * the curtain-and-loop composition was built, and it is the thing a future act
+ * gets compared against. It is NOT re-mountable as written — the same commit
+ * that unmounted it deleted its two loop sources, `/ventures/greenworld-panel-
+ * loop.mp4` and `/ventures/greenworld-panel-loop-portrait.mp4` (~10 MB the site
+ * no longer serves). Its two POSTERS were kept and are still on disk. Reviving
+ * this act therefore means restoring the two mp4s from git history first; the
+ * src strings below are left pointing at their historical paths precisely so
+ * that restore is a checkout rather than a reconstruction.
+ *
  * TA.7a — Green World act. A full-viewport section over a living, seamlessly
  * looping wave video. On first scroll into view two ivory curtains split at the
  * centreline and slide off to the edges (once per page visit), unveiling the
