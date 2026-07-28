@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { attachDiagnostics, shot, BRICK } from "./_helpers";
-import { GREEN_WORLD_SHOP_URL } from "../src/lib/ventures";
+import { GREEN_WORLD_SHOP_URL, TITANS_ENABLED } from "../src/lib/ventures";
 
 /**
  * TA.7 — ventures acts. Two full-viewport cinematic sections that replace the
@@ -12,6 +12,13 @@ import { GREEN_WORLD_SHOP_URL } from "../src/lib/ventures";
  * Language is resolved synchronously before first paint (src/i18n): stored
  * "ta_lang" wins, else navigator.language (es-* → ES, else EN). These specs pin
  * `locale` and clear storage so the copy assertions are deterministic.
+ *
+ * TITANS.OFF.1 — the Titans act is hidden behind TITANS_ENABLED, so its
+ * coverage here is gated on the same constant rather than deleted. Every Titans
+ * assertion below still describes the act exactly as it behaved the day it was
+ * switched off; flipping the flag re-arms all of it with no rewrite. The
+ * always-on half of the contract — that nothing Titans reaches the page while
+ * the flag is false — lives in titans-off.spec.ts.
  */
 
 const PATH = "/cinematic";
@@ -116,6 +123,7 @@ test.describe("TA.7 — Green World act (Spanish copy)", () => {
 
 test.describe("TA.7 — Titans act (desktop, EN)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
+  test.skip(!TITANS_ENABLED, "TITANS.OFF.1 — Titans act is hidden; re-arms with the flag.");
 
   test("plays once, holds the final frame; CTA + English copy", async ({ page }) => {
     const diag = attachDiagnostics(page);
@@ -178,6 +186,7 @@ test.describe("TA.7 — Titans act (desktop, EN)", () => {
 
 test.describe("TA.7 — Titans act (Spanish copy)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "es-CO" });
+  test.skip(!TITANS_ENABLED, "TITANS.OFF.1 — Titans act is hidden; re-arms with the flag.");
 
   test("renders Spanish headline and CTA", async ({ page }) => {
     await clearStoredLang(page);
@@ -208,18 +217,20 @@ test.describe("TA.7 — reduced motion", () => {
     // No curtains under reduced motion.
     await expect(page.locator(GW_CURTAIN), "no curtains under reduced motion").toHaveCount(0);
 
-    // Both acts render their poster as a static <img>, not a <video>.
+    // Each live act renders its poster as a static <img>, not a <video>.
     const gwPoster = page.locator(GW_VIDEO);
     await expect(gwPoster).toHaveJSProperty("tagName", "IMG");
     expect(await gwPoster.getAttribute("src")).toContain("greenworld-poster.jpg");
 
-    const titansPoster = page.locator(TITANS_VIDEO);
-    await expect(titansPoster).toHaveJSProperty("tagName", "IMG");
-    expect(await titansPoster.getAttribute("src")).toContain("titans-poster.jpg");
-
-    // Zero <video> elements inside either act (nothing autoplays).
+    // Zero <video> elements inside the act (nothing autoplays).
     expect(await page.locator(`${GW_SECTION} video`).count(), "no GW video").toBe(0);
-    expect(await page.locator(`${TITANS_SECTION} video`).count(), "no Titans video").toBe(0);
+
+    if (TITANS_ENABLED) {
+      const titansPoster = page.locator(TITANS_VIDEO);
+      await expect(titansPoster).toHaveJSProperty("tagName", "IMG");
+      expect(await titansPoster.getAttribute("src")).toContain("titans-poster.jpg");
+      expect(await page.locator(`${TITANS_SECTION} video`).count(), "no Titans video").toBe(0);
+    }
 
     // Full type + both CTAs are immediately present and functional.
     await page.locator(GW_SECTION).scrollIntoViewIfNeeded();
@@ -228,20 +239,22 @@ test.describe("TA.7 — reduced motion", () => {
     await expect(gwCta).toBeVisible();
     expect(await gwCta.getAttribute("href")).toBe(GREEN_WORLD_SHOP_URL);
 
-    await page.locator(TITANS_SECTION).scrollIntoViewIfNeeded();
-    await expect(page.locator(TITANS_SECTION)).toContainText("FORGE YOUR LEGEND.");
-    const titansCta = page.locator(TITANS_CTA);
-    await expect(titansCta).toBeVisible();
-    expect(await titansCta.getAttribute("href")).toContain("/titans-agency");
+    if (TITANS_ENABLED) {
+      await page.locator(TITANS_SECTION).scrollIntoViewIfNeeded();
+      await expect(page.locator(TITANS_SECTION)).toContainText("FORGE YOUR LEGEND.");
+      const titansCta = page.locator(TITANS_CTA);
+      await expect(titansCta).toBeVisible();
+      expect(await titansCta.getAttribute("href")).toContain("/titans-agency");
+    }
 
     await page.screenshot({ path: shot(`TA.${BRICK}-reduced.png`), fullPage: true });
   });
 });
 
-test.describe("TA.7 — mobile (both acts stack)", () => {
+test.describe("TA.7 — mobile (acts stack)", () => {
   test.use({ viewport: { width: 390, height: 844 }, locale: "en-US" });
 
-  test("both acts render full-bleed with tappable CTAs", async ({ page }) => {
+  test("each live act renders full-bleed with tappable CTAs", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await clearStoredLang(page);
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
@@ -265,14 +278,16 @@ test.describe("TA.7 — mobile (both acts stack)", () => {
       "portrait wave plays once (no loop)",
     ).toBe(false);
 
-    await page.locator(TITANS_SECTION).scrollIntoViewIfNeeded();
-    // let the badge reveal + type entrance run
-    await expect
-      .poll(async () => (await page.locator(TITANS_SECTION).textContent()) ?? "", {
-        timeout: 20_000,
-      })
-      .toContain("FORGE YOUR LEGEND.");
-    await expect(page.locator(TITANS_CTA), "Titans CTA tappable on mobile").toBeVisible();
+    if (TITANS_ENABLED) {
+      await page.locator(TITANS_SECTION).scrollIntoViewIfNeeded();
+      // let the badge reveal + type entrance run
+      await expect
+        .poll(async () => (await page.locator(TITANS_SECTION).textContent()) ?? "", {
+          timeout: 20_000,
+        })
+        .toContain("FORGE YOUR LEGEND.");
+      await expect(page.locator(TITANS_CTA), "Titans CTA tappable on mobile").toBeVisible();
+    }
 
     await page.screenshot({ path: shot(`TA.${BRICK}-mobile-both.png`), fullPage: true });
 
