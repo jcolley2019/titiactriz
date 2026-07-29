@@ -131,7 +131,6 @@ const SectionPreview = ({
       zoom={zoom}
       fit={fit}
       videoDataQa="media-preview-video"
-      backdropDataQa="media-preview-backdrop"
       fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
     />
   ) : (

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import { framingFromFocalZoom, type Focal, type FitMode } from "@/hooks/useCinematicMedia";
 import {
   heroFramingAttr,
+  resolveHeroGeometry,
   resolveHeroMediaStyle,
   useElementAspect,
   videoAspect,
@@ -21,10 +23,15 @@ import {
  * Display modes (ADMIN.MEDIA.3):
  *   - "fill" (default): the resolver's cover math — gaps only at scale < 1,
  *     held by the brand-dark base.
- *   - "fit": letterboxed at natural aspect (the resolver's contain math) over
- *     a blurred, oversized cover copy of ITSELF — a single extra aria-hidden
- *     video with the same muted/loop playback. The backdrop keeps its shipped
- *     cover/blur/scale look; only the foreground rides the resolver.
+ *   - "fit": letterboxed at natural aspect (the resolver's contain math) on
+ *     the brand-dark base. HERO.WIDE.1: where the letterbox leaves side
+ *     flanks, they render as deliberate FIELDS — warm near-black ground with
+ *     a barely-there vertical light, a 1px gold hairline seam at each
+ *     video/field junction (the w2 plate-frame language), and one restrained
+ *     corner-ornament filigree per field. The old blurred video-copy spill is
+ *     gone: no hidden video ever decodes behind the plate. Fields and seams
+ *     are static and derive their edges from the SAME resolver geometry the
+ *     foreground paints with, so preview keeps equalling live.
  *
  * FIX.MEDIA.B: NO poster attribute on the <video>s — a video surface never
  * paints the hero photo. It holds on the site's dark base and fades the video
@@ -37,6 +44,18 @@ import {
  * `autoPlay`). This same component powers the live hero, the editor drag
  * surface, and the device-tab previews.
  */
+/**
+ * HERO.WIDE.1 — the framed-stage side fields. All three values are the site's
+ * ratified tokens: the warm near-black ground every media surface already
+ * holds on, its ivory (#f4ecdb) as a barely-there top light so the fields
+ * read lit rather than dead, and the w2 plate's gold hairline
+ * (rgba(201,165,92,…) = #C9A55C) for the seams.
+ */
+const FIELD_GROUND = "#0b0a08";
+const FIELD_LIGHT =
+  "linear-gradient(180deg, rgba(244,236,219,0.05) 0%, rgba(244,236,219,0.015) 42%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.24) 100%)";
+const SEAM_GOLD = "rgba(201,165,92,0.55)";
+
 type FramedVideoProps = {
   src?: string;
   focal: Focal;
@@ -49,7 +68,6 @@ type FramedVideoProps = {
   autoPlay?: boolean;
   videoClassName?: string;
   videoDataQa?: string;
-  backdropDataQa?: string;
   posterDataQa?: string;
   /** Rendered when there's neither a video src nor a poster. */
   fallback?: ReactNode;
@@ -65,7 +83,6 @@ const FramedVideo = ({
   autoPlay = true,
   videoClassName = "",
   videoDataQa,
-  backdropDataQa,
   posterDataQa,
   fallback,
 }: FramedVideoProps) => {
@@ -129,32 +146,30 @@ const FramedVideo = ({
     framing: framingFromFocalZoom(focal, zoom, fit),
   };
 
+  // HERO.WIDE.1: the fit-mode letterbox edges come from the SAME geometry the
+  // foreground paints with. Side fields exist only where horizontal flanks do
+  // (a portrait clip in a landscape box); vertical letterbox stays bare
+  // brand-dark, and cover ('fill') never has flanks — mobile is untouched.
+  const geo = fitMode
+    ? resolveHeroGeometry(mediaAspect, containerAspect, styleInput.framing)
+    : null;
+  const flanks =
+    geo && geo.widthPct < 99.5
+      ? { leftPct: geo.leftPct, rightPct: geo.leftPct + geo.widthPct }
+      : null;
+
   // ONE persistent foreground <video> across BOTH modes — switching fill↔fit
-  // must never remount it (a fresh element repaints on remount). The backdrop
-  // is conditionally rendered FIRST so the foreground's child index never
-  // shifts and React keeps the same node.
+  // must never remount it (a fresh element repaints on remount). The fields
+  // render AFTER it so its child index never shifts and React keeps the same
+  // node; they occupy only the flank rectangles, so nothing overlaps the
+  // plate. Everything is static — no parallax, no scroll coupling.
   return (
     <div
       ref={containerRef}
       data-qa={fitMode ? "framed-video-fit" : undefined}
       className="relative h-full w-full overflow-hidden"
-      style={{ backgroundColor: "#0b0a08" }}
+      style={{ backgroundColor: FIELD_GROUND }}
     >
-      {fitMode ? (
-        <video
-          {...videoBase}
-          data-qa={backdropDataQa}
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{
-            objectPosition,
-            transform: "scale(1.25)",
-            filter: "blur(28px) brightness(0.65)",
-            willChange: "transform",
-            ...fadeStyle,
-          }}
-        />
-      ) : null}
       <video
         {...videoBase}
         ref={videoRef}
@@ -165,6 +180,65 @@ const FramedVideo = ({
         className={videoClassName}
         style={{ ...resolveHeroMediaStyle(styleInput), ...fadeStyle }}
       />
+      {flanks ? (
+        <>
+          {([
+            ["left", { left: 0, width: `${flanks.leftPct}%` }],
+            ["right", { left: `${flanks.rightPct}%`, right: 0 }],
+          ] as const).map(([side, box]) => (
+            <div
+              key={side}
+              data-qa={`framed-video-field-${side}`}
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0"
+              style={{
+                ...box,
+                backgroundColor: FIELD_GROUND,
+                backgroundImage: FIELD_LIGHT,
+                ...fadeStyle,
+              }}
+            >
+              {/* ONE restrained filigree per field — the site's existing
+                  corner ornament, fine-line low-contrast gold, mirrored on
+                  the right so the pair faces the plate. */}
+              <img
+                src={cornerOrn}
+                alt=""
+                aria-hidden
+                className={`absolute top-1/2 left-1/2 h-auto -translate-x-1/2 -translate-y-1/2 select-none${
+                  side === "right" ? " -scale-x-100" : ""
+                }`}
+                style={{ width: "min(56%, 110px)", opacity: 0.22 }}
+                decoding="async"
+              />
+            </div>
+          ))}
+          {/* 1px gold hairline seams at each video/field junction, full
+              container height — the plate hangs framed, w2's language. */}
+          <div
+            data-qa="framed-video-seam-left"
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0"
+            style={{
+              left: `calc(${flanks.leftPct}% - 1px)`,
+              width: 1,
+              backgroundColor: SEAM_GOLD,
+              ...fadeStyle,
+            }}
+          />
+          <div
+            data-qa="framed-video-seam-right"
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0"
+            style={{
+              left: `${flanks.rightPct}%`,
+              width: 1,
+              backgroundColor: SEAM_GOLD,
+              ...fadeStyle,
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 };

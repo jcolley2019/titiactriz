@@ -564,7 +564,6 @@ const CinematicMediaManager = () => {
                       fit={thumbFraming.fit}
                       autoPlay
                       videoDataQa="media-slot-video"
-                      backdropDataQa="media-slot-video-backdrop"
                       fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
                     />
                   ) : r.photo ? (

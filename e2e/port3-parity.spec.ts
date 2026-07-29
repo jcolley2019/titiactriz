@@ -11,8 +11,8 @@ import {
  * PORT.3 — rendered-pixel parity law for VIDEO surfaces (mutation-verified).
  *
  * Every video surface now resolves its FOREGROUND geometry through
- * src/lib/hero-framing (via FramedVideo); the blurred fit-mode backdrop is a
- * cover copy by design and stays outside the law. Mirrors port2-parity.spec.ts
+ * src/lib/hero-framing (via FramedVideo); the fit-mode side fields (HERO.WIDE.1)
+ * are decorative ground, not media, and stay outside the law. Mirrors port2-parity.spec.ts
  * for the video surfaces:
  *
  *  (a) DISTORTION: the painted foreground box has the clip's NATURAL aspect —

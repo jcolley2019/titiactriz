@@ -62,7 +62,6 @@ const CinematicHeroMedia = ({
           fit={activeFraming.fit}
           reduced={reduced}
           videoDataQa="cinematic-hero-video"
-          backdropDataQa="cinematic-hero-video-backdrop"
           posterDataQa="cinematic-hero-video-poster"
           fallback={<div className="h-full w-full" style={{ backgroundColor: "#0b0a08" }} />}
         />

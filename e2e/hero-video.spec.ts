@@ -245,9 +245,9 @@ test.describe("VID.MODEL.1 — legacy portrait-key back-compat", () => {
   });
 });
 
-/* ---------- fit mode renders a blurred backdrop over an uncropped video ---------- */
-test.describe("VID.MODEL.1 — fit mode (blurred backdrop + contain foreground)", () => {
-  test("a landscape-viewport fit record shows contain foreground + blurred backdrop", async ({ page }) => {
+/* ---------- HERO.WIDE.1: fit mode letterboxes onto a framed stage ---------- */
+test.describe("HERO.WIDE.1 — fit mode (framed stage: side fields + gold seams, no spill)", () => {
+  test("a landscape-viewport fit record shows contain foreground framed by side fields", async ({ page }) => {
     const diag = attachDiagnostics(page);
     const media = {
       hero: {
@@ -262,15 +262,28 @@ test.describe("VID.MODEL.1 — fit mode (blurred backdrop + contain foreground)"
       reel: MEDIA_TWO_RECORDS.reel,
     };
     await stubHeroVideoMedia(page);
+    // HERO.WIDE.1: a PORTRAIT clip in a landscape viewport — the case that
+    // letterboxes with side flanks, like the shipped desktop hero.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __TEST_VIDEO_W?: number; __TEST_VIDEO_H?: number };
+      w.__TEST_VIDEO_W = 1080;
+      w.__TEST_VIDEO_H = 1920;
+    });
     await routeSupabase(page, { media, photos: MOCK_PHOTOS, heroVideo: HERO_VIDEO_URL });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(CINE, { waitUntil: "domcontentloaded" });
     await settle(page, 600);
 
-    const backdrop = page.locator('[data-qa="cinematic-hero-video-backdrop"]');
-    await expect(backdrop, "fit mode adds a backdrop copy").toHaveCount(1);
-    const blur = await backdrop.evaluate((el) => getComputedStyle(el as HTMLElement).filter);
-    expect(blur, "backdrop is blurred").toMatch(/blur/);
+    // HERO.WIDE.1: the blurred video-copy spill is gone — exactly ONE <video>
+    // renders inside the hero, and no element carries the old backdrop hook.
+    await expect(
+      page.locator('[data-qa="cinematic-hero-video-backdrop"]'),
+      "no blurred backdrop copy",
+    ).toHaveCount(0);
+    await expect(
+      page.locator('[data-qa="cinematic-section"] video'),
+      "exactly one hero video element",
+    ).toHaveCount(1);
 
     // PORT.3: the foreground letterboxes via the resolver's contain math (the
     // rectangle IS the contain box, objectFit itself is "fill") — the resolved
@@ -278,7 +291,30 @@ test.describe("VID.MODEL.1 — fit mode (blurred backdrop + contain foreground)"
     await expect
       .poll(async () => (await framingAttr(page, VIDEO)) ?? "absent", { timeout: 10_000 })
       .toContain(";fit;");
-    await page.screenshot({ path: shot("VIDMODEL-fit-render.png") });
+
+    // The flanks are deliberate fields with a gold hairline seam at each
+    // video/field junction, sized off the same resolver geometry.
+    for (const side of ["left", "right"] as const) {
+      const field = page.locator(`[data-qa="framed-video-field-${side}"]`);
+      await expect(field, `${side} field renders`).toHaveCount(1);
+      const fieldBox = await field.boundingBox();
+      expect(fieldBox && fieldBox.width, `${side} field has real width`).toBeGreaterThan(50);
+
+      const seam = page.locator(`[data-qa="framed-video-seam-${side}"]`);
+      await expect(seam, `${side} seam renders`).toHaveCount(1);
+      const seamColor = await seam.evaluate((el) => getComputedStyle(el as HTMLElement).backgroundColor);
+      expect(seamColor, `${side} seam is the gold hairline`).toContain("201, 165, 92");
+    }
+
+    // Seams sit at the video plate's edges (resolver parity, ±2px).
+    const videoBox = await page.locator(VIDEO).boundingBox();
+    const leftSeamBox = await page.locator('[data-qa="framed-video-seam-left"]').boundingBox();
+    const rightSeamBox = await page.locator('[data-qa="framed-video-seam-right"]').boundingBox();
+    expect(videoBox && leftSeamBox && rightSeamBox, "boxes measurable").toBeTruthy();
+    expect(Math.abs(leftSeamBox!.x + leftSeamBox!.width - videoBox!.x), "left seam hugs the plate").toBeLessThanOrEqual(2);
+    expect(Math.abs(rightSeamBox!.x - (videoBox!.x + videoBox!.width)), "right seam hugs the plate").toBeLessThanOrEqual(2);
+
+    await page.screenshot({ path: shot("HEROWIDE-fit-render.png") });
 
     expect(diag.consoleErrors, "console errors — fit render").toEqual([]);
     expect(diag.failedResponses, "failed requests — fit render").toEqual([]);

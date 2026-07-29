@@ -792,7 +792,7 @@ test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", ()
     await page.screenshot({ path: shot("VIDMODEL-per-viewport-records.png") });
   });
 
-  test("Fit mode adds a blurred backdrop, unlocks sub-cover zoom, and saves the fit shape", async ({
+  test("Fit mode letterboxes without a spill copy, unlocks sub-cover zoom, and saves the fit shape", async ({
     page,
   }) => {
     const writes: Write[] = [];
@@ -816,10 +816,12 @@ test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", ()
     // Fill mode: the zoom slider cannot go below cover (1.0).
     expect(await page.locator('[data-qa="media-editor-zoom"]').getAttribute("min")).toBe("1");
 
-    // Switch to Fit → backdrop appears, foreground becomes uncropped, zoom unlocks.
+    // Switch to Fit → foreground becomes uncropped, zoom unlocks. HERO.WIDE.1:
+    // the blurred backdrop copy is gone — one video, letterboxed on the base.
     await page.locator('[data-qa="media-editor-fit-fit"]').click();
     await page.waitForTimeout(200);
-    await expect(surface.locator('[data-qa="media-preview-backdrop"]'), "fit backdrop present").toBeVisible();
+    await expect(surface.locator('[data-qa="media-preview-backdrop"]'), "no spill copy in fit mode").toHaveCount(0);
+    await expect(surface.locator("video"), "one video in the editor surface").toHaveCount(1);
     // PORT.3: the foreground letterboxes via the resolver's contain math — the
     // resolved fit mode is read off the framing contract, not CSS object-fit.
     await expect
