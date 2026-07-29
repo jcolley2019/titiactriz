@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useCinematicMedia";
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
+import { resolveReelChapter } from "@/components/cinematic/reelChapters";
 import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
 import { TITANS_ENABLED } from "@/lib/ventures";
@@ -51,10 +52,14 @@ const cinematicFontVars: React.CSSProperties = {
 };
 
 const HomeCinematic = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
-  const { photos, heroVideo, heroPhotoSetting } = useCinematicData();
+  const { photos, heroVideo, heroPhotoSetting, reelChapterSettings } = useCinematicData();
+  // CINE.FLOW.6 — ES primary: anything that is not explicitly English reads
+  // the Spanish chapter (mirrors the site's es-default language law).
+  const chapterLocale = i18n.language?.toLowerCase().startsWith("en") ? "en" : "es";
+  const chapterFor = (i: number) => resolveReelChapter(reelChapterSettings[i], i, chapterLocale);
   const { media } = useCinematicMediaConfig();
 
   // ADMIN.MEDIA.1: one resolver merges cinematic_media → legacy cinematic_hero_photo
@@ -167,9 +172,24 @@ const HomeCinematic = () => {
       <CinematicReel
         reduced={prefersReduced}
         slides={[
-          { photo: reel[0].photo, title: t("hero.roles.actress"), framing: classesOf(reel[0]) },
-          { photo: reel[1].photo, title: t("hero.roles.streamer"), framing: classesOf(reel[1]) },
-          { photo: reel[2].photo, title: t("hero.roles.entrepreneur"), framing: classesOf(reel[2]) },
+          {
+            photo: reel[0].photo,
+            title: t("hero.roles.actress"),
+            framing: classesOf(reel[0]),
+            chapter: chapterFor(0),
+          },
+          {
+            photo: reel[1].photo,
+            title: t("hero.roles.streamer"),
+            framing: classesOf(reel[1]),
+            chapter: chapterFor(1),
+          },
+          {
+            photo: reel[2].photo,
+            title: t("hero.roles.entrepreneur"),
+            framing: classesOf(reel[2]),
+            chapter: chapterFor(2),
+          },
         ]}
       />
 

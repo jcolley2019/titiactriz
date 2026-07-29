@@ -50,11 +50,15 @@ import {
  * holds on, its ivory (#f4ecdb) as a barely-there top light so the fields
  * read lit rather than dead, and the w2 plate's gold hairline
  * (rgba(201,165,92,…) = #C9A55C) for the seams.
+ *
+ * Exported since CINE.FLOW.6: the wide reel's chapter columns sit on this SAME
+ * field treatment, so the hero and the reel read as one system by construction
+ * rather than by imitation.
  */
-const FIELD_GROUND = "#0b0a08";
-const FIELD_LIGHT =
+export const FIELD_GROUND = "#0b0a08";
+export const FIELD_LIGHT =
   "linear-gradient(180deg, rgba(244,236,219,0.05) 0%, rgba(244,236,219,0.015) 42%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.24) 100%)";
-const SEAM_GOLD = "rgba(201,165,92,0.55)";
+export const SEAM_GOLD = "rgba(201,165,92,0.55)";
 
 type FramedVideoProps = {
   src?: string;

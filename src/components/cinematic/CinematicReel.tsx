@@ -21,16 +21,15 @@ import {
 } from "./reelSpotlight";
 import {
   AmbientBackdrop,
-  BAND_PAD_VH,
+  CHAPTER_FIELD_FRACTION,
   PLATE_OUTLINE,
   PLATE_TOP_VH,
-  WIDE_RULE_OPACITY,
-  WIDE_RULE_X,
-  WideLockup,
+  WideChapter,
   focalFractions,
   plateBox,
   useFrameSize,
 } from "./reelWide";
+import { REEL_CHAPTER_DEFAULTS, type ReelChapterCopy } from "./reelChapters";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -43,6 +42,12 @@ export type ReelSlide = {
    * centered/1× on both, i.e. today's render.
    */
   framing?: ReelClassFraming;
+  /**
+   * CINE.FLOW.6 — the wide act's story chapter (eyebrow/title/body), resolved
+   * by the page from site_settings over the in-repo seeds. The phone act never
+   * reads it. Absent → the seed for this slide's index.
+   */
+  chapter?: ReelChapterCopy;
 };
 
 type Props = { slides: ReelSlide[]; reduced: boolean };
@@ -159,19 +164,22 @@ const PhoneSlide = ({
 );
 
 /**
- * CINE.FLOW.5 — the wide act, promoted from bake-off variant W2 "Center Plate &
- * Rules" as it stood after CINE.FLOW.4B.
+ * CINE.FLOW.6 — the wide act: an editorial STORY SPREAD.
  *
- * A centred portrait plate in a gold hairline frame, hung between two vertical
- * gold hairlines, over an ambient backdrop built from the slide's own
- * photograph; the lockup is an engraved caption centred in the band beneath the
- * plate. The plate carries NO veil — the lockup never crosses the photograph,
- * so there is no type to protect there and a veil would only cost the plate its
- * light. This replaces the letterboxed rendering and its flat wash entirely.
+ * The W2 portrait plate (unchanged laws: true portrait aspect, gold hairline
+ * outline, NO veil — no type ever crosses the photograph) hangs centred in the
+ * spread's photo page while the story chapter occupies the other page — a
+ * column on the hero's HERO.WIDE.1 field treatment, separated from the plate's
+ * page by a 1px gold seam. Sides ALTERNATE per slide: 01 plate-left/copy-right,
+ * 02 flipped, 03 as 01, so the pinned crossfade turns pages rather than
+ * repeating one. W2's centred caption band and its two 18%/82% hairlines are
+ * superseded — the seam is the spread's one vertical gold line.
  *
  * Geometry is measured, not declared in viewport units: `useFrameSize` reads the
  * box this slide actually paints into, which is the pinned stage under motion
- * and a 70svh slide under reduced motion.
+ * and a 70svh slide under reduced motion. `plateBox`'s "smaller box wins" law
+ * is applied against the PHOTO PAGE's width (the frame minus the chapter
+ * column), so the max-width cap keeps protecting the plate from short frames.
  */
 const WideSlide = ({
   slide,
@@ -182,42 +190,31 @@ const WideSlide = ({
   slide: ReelSlide;
   i: number;
   labelRef?: (el: HTMLElement | null) => void;
-  titleRef?: (el: HTMLSpanElement | null) => void;
+  titleRef?: (el: HTMLElement | null) => void;
 }) => {
   const frameRef = useRef<HTMLDivElement>(null);
   const { w: frameW, h: frameH } = useFrameSize(frameRef);
 
-  const box = plateBox(frameW, frameH);
-  const plateLeft = (frameW - box.w) / 2;
-  const plateTop = frameH * (PLATE_TOP_VH / 100);
-  const bandPad = frameH * (BAND_PAD_VH / 100);
+  // Alternation law: even slides read plate → copy, odd slides copy → plate.
+  const copySide: "left" | "right" = i % 2 === 1 ? "left" : "right";
+  const zoneW = frameW * (1 - CHAPTER_FIELD_FRACTION);
+  const zoneX = copySide === "left" ? frameW * CHAPTER_FIELD_FRACTION : 0;
+
+  const box = plateBox(zoneW, frameH);
+  const plateLeft = zoneX + (zoneW - box.w) / 2;
+  // Centred in the frame's height, but never higher than W2's header-clearing
+  // top edge (PLATE_TOP_VH) on short frames.
+  const plateTop = Math.max(frameH * (PLATE_TOP_VH / 100), (frameH - box.h) / 2);
   // FRAME.SPLIT.1: the plate's crop AND its focal read-out come from the wide
   // record, so `data-focal` reports the class actually painted here.
   const framing = framingFor(slide, "wide");
   const { fx, fy } = focalFractions(framing.focal);
   const measured = frameW > 0 && frameH > 0;
+  const chapter = slide.chapter ?? REEL_CHAPTER_DEFAULTS[i % REEL_CHAPTER_DEFAULTS.length].es;
 
   return (
     <div ref={frameRef} className="absolute inset-0 overflow-hidden">
       <AmbientBackdrop src={slide.photo?.image_url} />
-
-      {/* The two rules — identical on every slide, so the crossfade cannot make
-          them move; DOM order keeps them below the plate. */}
-      {measured &&
-        WIDE_RULE_X.map((x) => (
-          <div
-            key={x}
-            aria-hidden
-            data-qa="wide-rule"
-            className="absolute inset-y-0"
-            style={{
-              left: frameW * x,
-              width: 1,
-              backgroundColor: GOLD,
-              opacity: WIDE_RULE_OPACITY,
-            }}
-          />
-        ))}
 
       {measured && (
         <>
@@ -237,24 +234,14 @@ const WideSlide = ({
             <SlidePhoto slide={slide} framing={framing} />
           </div>
 
-          {/* The caption band: whatever height remains under the plate. */}
-          <div
-            className="absolute inset-x-0 flex items-center justify-center"
-            style={{
-              top: plateTop + box.h,
-              bottom: 0,
-              paddingTop: bandPad,
-              paddingBottom: bandPad,
-            }}
-          >
-            <WideLockup
-              index={i}
-              title={slide.title}
-              frameW={frameW}
-              labelRef={labelRef}
-              titleRef={titleRef}
-            />
-          </div>
+          <WideChapter
+            index={i}
+            copy={chapter}
+            frameW={frameW}
+            side={copySide}
+            labelRef={labelRef}
+            titleRef={titleRef}
+          />
         </>
       )}
     </div>
@@ -267,13 +254,14 @@ const WideSlide = ({
  * pinned for ~300vh and scrubbed: each slide's photo crossfades in while the
  * type animates up. Under reduced motion the three slides simply stack, static.
  *
- * CINE.FLOW.5 — the act has two compositions, split at the phone breakpoint
- * (see ./reelSpotlight, which owns that line):
+ * The act has two compositions, split at the phone breakpoint (see
+ * ./reelSpotlight, which owns that line):
  *
- *  - PHONE: V1 "Edge Veil" — cover photography under one directional veil
- *    weighted to the foot of the frame, numeral over title.
- *  - WIDE: W2 "Center Plate & Rules" — an unveiled portrait plate on an ambient
- *    backdrop between two gold hairlines, lockup captioned beneath (./reelWide).
+ *  - PHONE (CINE.FLOW.5): V1 "Edge Veil" — cover photography under one
+ *    directional veil weighted to the foot of the frame, numeral over title.
+ *  - WIDE (CINE.FLOW.6): the editorial story spread — the unveiled W2 portrait
+ *    plate on one page, the story chapter on the hero's field treatment on the
+ *    other, sides alternating per slide (./reelWide).
  *
  * Both are now inside DESIGN.md's veil band, so the reel-veil violation the
  * document has carried since TA.2 is closed on both device classes.
@@ -289,7 +277,7 @@ const CinematicReel = ({ slides, reduced }: Props) => {
   const sectionRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const titleRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const titleRefs = useRef<(HTMLElement | null)[]>([]);
   const labelRefs = useRef<(HTMLElement | null)[]>([]);
 
   useLayoutEffect(() => {

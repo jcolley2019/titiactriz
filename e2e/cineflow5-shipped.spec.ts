@@ -99,8 +99,10 @@ test.describe("CINE.FLOW.5 — shipped reel: evidence", () => {
           await expect(page.locator('[data-qa="reel-lockup"]')).toHaveCount(3);
           await expect(page.locator('[data-qa="reel-veil"]')).toHaveCount(3);
         } else {
+          // CINE.FLOW.6: the wide act is the editorial spread — plate + chapter
+          // column per slide; the W2 caption-band lockup is superseded.
           await expect(page.locator('[data-qa="wide-plate"]')).toHaveCount(3);
-          await expect(page.locator('[data-qa="wide-lockup"]')).toHaveCount(3);
+          await expect(page.locator('[data-qa="wide-chapter"]')).toHaveCount(3);
         }
 
         // Scroll far enough for the pin to be measurable, then to each stop.

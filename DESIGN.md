@@ -324,6 +324,35 @@ promoted primitives were copied into `src/components/cinematic/reelWide.tsx`
 rather than shared; the harness copy is frozen and is not a second source of
 truth for anything that ships.
 
+### Settled — the wide reel is an editorial spread (CINE.FLOW.6, 2026-07-29)
+
+Above 768px each numbered slide is a two-page STORY SPREAD: the W2 portrait
+plate (its laws unchanged — true portrait aspect, gold hairline outline,
+unveiled) hangs centred in the photo page while a story chapter occupies the
+other page, the sides alternating per slide (01 plate-left/copy-right, 02
+flipped, 03 as 01). The chapter column takes `0.42` of the frame and sits on
+the SAME field treatment HERO.WIDE.1 ratified for the hero's side fields — its
+exact exported tokens (warm near-black ground, the barely-there ivory luminance
+gradient, one restrained corner-ornament filigree) — with a `1px
+rgba(201,165,92,0.55)` gold seam at the chapter/plate junction. The chapter is
+the gold numeral eyebrow (01/02/03 at the wide numeral step, hairline, role
+label), a headline at the wide title step, and one short paragraph.
+
+Three consequences:
+
+- W2's centred caption band and its two 18%/82% hairlines are **superseded on
+  the live act**; the seam is the spread's one vertical gold line. Their
+  constants remain exported only because the admin SectionPreview still
+  restates the frozen W2 mirror (an accepted, recorded drift owed to
+  REEL.COPY.1's era).
+- The chapter FIELD is **not a veil** — an opaque ground beside the
+  photograph, never over it. The veil law is untouched: the wide plate still
+  carries none.
+- The chapter copy is seeded STRICTLY from already-shipped strings (no new
+  biographical claims) in `reelChapters.ts`, ES primary with EN parity, and is
+  overridable per chapter through the site_settings keys `reel.chapter1..3` —
+  the contract a later admin copy editor writes against.
+
 ## Elevation & Depth
 
 This system has **no shadow vocabulary on cinematic surfaces**. Depth is

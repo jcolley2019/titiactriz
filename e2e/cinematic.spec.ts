@@ -173,11 +173,11 @@ test.describe("cinematic — reel composition split", () => {
   /**
    * The two promoted acts belong to their own device classes ONLY. This is the
    * guard against either leaking across the 768px line: at 1440 the reel must
-   * carry W2 "Center Plate & Rules" — a bounded plate, two vertical hairlines,
-   * and no phone lockup or edge veil anywhere in the section — while 390 must
-   * carry V1 "Edge Veil", exactly one lockup and one veil per slide over a cover
-   * photo, and no plate. Both halves are asserted so a split that inverts fails
-   * too.
+   * carry the CINE.FLOW.6 editorial spread — the bounded W2 plate beside its
+   * story chapter, and no phone lockup or edge veil anywhere in the section —
+   * while 390 must carry V1 "Edge Veil", exactly one lockup and one veil per
+   * slide over a cover photo, and no plate. Both halves are asserted so a split
+   * that inverts fails too.
    */
   const LOCKUP = '[data-qa="reel-lockup"]';
   const VEIL = '[data-qa="reel-veil"]';
@@ -254,9 +254,11 @@ test.describe("cinematic — reel veil law: V1 on phones, no veil at all on wide
    *     lockup-bound scrim, and no rules flanking the numeral. The promoted
    *     lockup is a bare numeral over its title.
    *
-   * WIDE (W2 "Center Plate & Rules"):
+   * WIDE (CINE.FLOW.6 spread, plate laws from W2):
    *  4. UNVEILED — nothing with a gradient paints inside the plate box, and the
-   *     retired WIDE_VEIL does not paint anywhere in the section. The lockup
+   *     retired WIDE_VEIL does not paint anywhere in the section: the only
+   *     gradients permitted are the chapter fields' HERO.WIDE.1 luminance
+   *     light, which sits BESIDE the photograph, never over it. The chapter
    *     never crosses the photograph, so there is no type to protect there.
    */
   const VEIL = '[data-qa="reel-veil"]';
@@ -353,13 +355,21 @@ test.describe("cinematic — reel veil law: V1 on phones, no veil at all on wide
     );
     expect(inPlate, "the plate photograph is unveiled").toEqual([]);
 
-    // The retired flat wash does not paint anywhere in the section.
-    const washes = await reel.evaluate((sec) =>
+    // The retired flat wash does not paint anywhere in the section. CINE.FLOW.6
+    // narrows the law rather than repealing it: the ONLY gradient-backed
+    // elements permitted in the wide section are the three chapter FIELDS —
+    // HERO.WIDE.1's luminance light on an opaque ground beside the photograph,
+    // not a veil over it. Any other gradient (a restored WIDE_VEIL above all)
+    // still fails.
+    const gradientOwners = await reel.evaluate((sec) =>
       Array.from(sec.querySelectorAll("*"))
-        .map((el) => getComputedStyle(el as HTMLElement).backgroundImage)
-        .filter((bg) => bg.includes("gradient")),
+        .filter((el) => getComputedStyle(el as HTMLElement).backgroundImage.includes("gradient"))
+        .map((el) => el.getAttribute("data-qa") ?? "unmarked"),
     );
-    expect(washes, "WIDE_VEIL is deleted, not merely hidden").toEqual([]);
+    expect(
+      gradientOwners,
+      "the only gradients are the three chapter fields' luminance light",
+    ).toEqual(["wide-chapter", "wide-chapter", "wide-chapter"]);
     await expect(reel.locator(VEIL), "no phone edge veil above the breakpoint").toHaveCount(0);
   });
 });

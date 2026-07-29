@@ -80,6 +80,8 @@ type RouteOpts = {
   homeVariant?: string;
   heroVideo?: string | null; // cinematic_hero_video (landscape) value, or null/absent
   heroVideoPortrait?: string | null; // cinematic_hero_video_portrait value, or null/absent
+  /** CINE.FLOW.6 — reel.chapter<N> overrides, keyed "1".."3"; absent → seeds. */
+  reelChapters?: Record<string, string>;
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -140,6 +142,11 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
         return heroVideoPortrait ? asJson({ value: heroVideoPortrait }) : asNull();
       if (url.includes("cinematic_hero_video"))
         return heroVideo ? asJson({ value: heroVideo }) : asNull();
+      const chapter = url.match(/reel\.chapter(\d)/)?.[1];
+      if (chapter) {
+        const value = opts.reelChapters?.[chapter];
+        return value ? asJson({ value }) : asNull();
+      }
       return asNull(); // cinematic_hero_photo / events keys → absent
     }
     return asJson([]); // events tables, user_roles, anything else

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { REEL_CHAPTER_KEYS } from "./reelChapters";
 
 export type CinematicPhoto = {
   id: string;
@@ -15,13 +16,22 @@ export type CinematicPhoto = {
  *   - "cinematic_hero_photo" → the admin-chosen hero photo, stored as either a
  *     gallery photo id OR a full image_url (both resolutions are supported).
  *
- * Both keys are READ-ONLY here: if a row doesn't exist we simply fall back to
- * default behavior (first published photo). This code never creates the keys.
+ * CINE.FLOW.6 adds the wide reel's chapter copy overrides ("reel.chapter1..3",
+ * raw JSON strings resolved by reelChapters.ts against in-repo defaults).
+ *
+ * All keys are READ-ONLY here: if a row doesn't exist we simply fall back to
+ * default behavior (first published photo / seeded copy). This code never
+ * creates the keys.
  */
 export function useCinematicData() {
   const [photos, setPhotos] = useState<CinematicPhoto[]>([]);
   const [heroVideo, setHeroVideo] = useState<string | null>(null);
   const [heroPhotoSetting, setHeroPhotoSetting] = useState<string | null>(null);
+  const [reelChapterSettings, setReelChapterSettings] = useState<(string | null)[]>([
+    null,
+    null,
+    null,
+  ]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,7 +51,7 @@ export function useCinematicData() {
       // below. Committing photos before the video setting resolves gives the
       // photo-hero branch a frame to paint (the "old hero photo flash") —
       // the page must learn photos + video as a single fact.
-      const [photosRes, resolvedVideo, heroSetting] = await Promise.all([
+      const [photosRes, resolvedVideo, heroSetting, ...chapterSettings] = await Promise.all([
         supabase
           .from("gallery_photos")
           .select("id, image_url, alt_text")
@@ -56,6 +66,8 @@ export function useCinematicData() {
           (await readSetting("cinematic_hero_video_portrait")))(),
         // Optional admin-selected hero photo — absent key means default.
         readSetting("cinematic_hero_photo"),
+        // CINE.FLOW.6 — optional chapter copy overrides, absent → seeds.
+        ...REEL_CHAPTER_KEYS.map((key) => readSetting(key)),
       ]);
 
       if (cancelled) return;
@@ -65,6 +77,7 @@ export function useCinematicData() {
       }
       if (resolvedVideo) setHeroVideo(resolvedVideo);
       if (heroSetting) setHeroPhotoSetting(heroSetting);
+      setReelChapterSettings(chapterSettings);
       setLoading(false);
     })();
 
@@ -73,7 +86,7 @@ export function useCinematicData() {
     };
   }, []);
 
-  return { photos, heroVideo, heroPhotoSetting, loading };
+  return { photos, heroVideo, heroPhotoSetting, reelChapterSettings, loading };
 }
 
 /**
