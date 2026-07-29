@@ -41,6 +41,10 @@ import { GW_LOGO_READY, GW_LOGO_SRC } from "../src/lib/ventures";
  *   • The CTA latch moved from the final dead stop to mapped 0.4 — present for
  *     the whole back half of the scrub. It is still a latch, not a scrubbed
  *     value: one crossing, one tween, in either direction.
+ *   • REVIEW.3b re-timed the arrival as TWO latches: the body line lands first
+ *     (mapped 0.15) and the button follows a beat later — 10% of the mapped
+ *     progress after it, at 0.25. Same latch machinery, same dead-stop
+ *     behaviour, same pointer rules; only the timing moved.
  *
  * What survives unchanged: the dead-stop frame mapping, name-renders-exactly-
  * once, the static-layer checks, EN/ES copy with no cross-leak, and the
@@ -73,16 +77,22 @@ const LEAD_OUT = 0.08;
 const FRAME_COUNT = 72;
 
 /**
- * Mirrors CTA_REVEAL_AT in CinematicGreenWorldSeq.tsx: the MAPPED playhead at
- * which the CTA latch crosses. Restated here, like the lead zones, so a change
- * to the reveal point has to be made deliberately in both places.
+ * Mirrors BODY_REVEAL_AT / CTA_REVEAL_AT in CinematicGreenWorldSeq.tsx: the
+ * MAPPED playheads at which the two latches cross. Restated here, like the
+ * lead zones, so a change to either reveal point has to be made deliberately
+ * in both places. REVIEW.3b: the body lands first; the button follows 10% of
+ * the mapped progress later.
  */
-const CTA_REVEAL_AT = 0.4;
+const BODY_REVEAL_AT = 0.15;
+const CTA_REVEAL_AT = 0.25;
 /** Raw pin progress for a given mapped playhead — the inverse of seqProgress. */
 const rawFor = (mapped: number) => LEAD_IN + mapped * (1 - LEAD_IN - LEAD_OUT);
-/** Comfortably either side of the latch (mapped 0.26 and 0.5 at these raws). */
-const RAW_BEFORE_CTA = 0.3;
-const RAW_AFTER_CTA = 0.5;
+/**
+ * Probes: RAW_BEFORE_CTA sits BETWEEN the two latches (mapped ~0.20 — body
+ * landed, button not yet), RAW_AFTER_CTA comfortably past both (mapped ~0.44).
+ */
+const RAW_BEFORE_CTA = 0.25;
+const RAW_AFTER_CTA = 0.45;
 
 /** The mapping under test, restated independently of the implementation. */
 function expectedIndex(rawProgress: number, count = FRAME_COUNT): number {
@@ -229,8 +239,8 @@ test.describe("SEQ.2 — the act on the home page", () => {
     test.setTimeout(120_000);
     await openHome(page);
 
-    // The latch sits at mapped 0.4 (raw ~0.42): hidden at the first dead stop
-    // and still hidden into the front half of the scrub.
+    // The latch sits at mapped 0.25 (raw ~0.29): hidden at the first dead stop
+    // and still hidden between the body's landing and its own crossing.
     expect(rawFor(CTA_REVEAL_AT), "the probes bracket the latch").toBeGreaterThan(RAW_BEFORE_CTA);
     expect(rawFor(CTA_REVEAL_AT)).toBeLessThan(RAW_AFTER_CTA);
 
@@ -304,6 +314,56 @@ test.describe("SEQ.2 — the act on the home page", () => {
       )
       .toBeLessThan(0.05);
     expect(await page.locator(CTA).getAttribute("tabindex"), "CTA leaves the tab order").toBe("-1");
+  });
+
+  test("REVIEW.3b — the body lands first; the button follows a beat later", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openHome(page);
+
+    // The two latches are one beat apart on the scrub: 10% of mapped progress.
+    expect(CTA_REVEAL_AT - BODY_REVEAL_AT, "the button trails the body by one beat").toBeCloseTo(
+      0.1,
+      5,
+    );
+
+    // Before the body's latch (mapped ~0.02): nothing has landed yet.
+    await scrollToRawProgress(page, 0.1);
+    await expect(page.locator(BODY), "body hidden before its latch").toHaveAttribute(
+      "data-gw-body-state",
+      "hidden",
+    );
+    expect(
+      await page.locator(BODY).evaluate((el) => Number(getComputedStyle(el).opacity)),
+      "body transparent before its latch",
+    ).toBeLessThan(0.05);
+    await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "hidden");
+
+    // Between the latches (mapped ~0.20): the text has landed; the button has
+    // NOT — the entrance is sequenced, not simultaneous.
+    await scrollToRawProgress(page, RAW_BEFORE_CTA);
+    await expect(page.locator(BODY)).toHaveAttribute("data-gw-body-state", "shown");
+    await expect
+      .poll(
+        async () => await page.locator(BODY).evaluate((el) => Number(getComputedStyle(el).opacity)),
+        { timeout: 10_000, message: "the body finishes its entrance" },
+      )
+      .toBeGreaterThan(0.95);
+    await expect(page.locator(CTA_LAYER), "the button is still a beat away").toHaveAttribute(
+      "data-gw-cta-state",
+      "hidden",
+    );
+    await page.screenshot({ path: shot("review3-gwcta-early.png") });
+
+    // Past both latches: text and button are both present.
+    await scrollToRawProgress(page, RAW_AFTER_CTA);
+    await expect(page.locator(BODY)).toHaveAttribute("data-gw-body-state", "shown");
+    await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
+
+    // And scrolling back above the body's latch puts BOTH away — each latch
+    // reverses on its own crossing.
+    await scrollToRawProgress(page, 0.1);
+    await expect(page.locator(BODY)).toHaveAttribute("data-gw-body-state", "hidden");
+    await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "hidden");
   });
 
   test("the CTA actually navigates to the Green World page", async ({ page }) => {
@@ -466,9 +526,9 @@ test.describe("SEQ.2 — the act on the home page", () => {
 
     // The body line is the probe rather than the heading: the heading is
     // `sr-only`, absolutely positioned and clipped to a pixel, so its box says
-    // nothing about where the act's type is painted. Both probes sit below the
-    // CTA latch and above it, so the latch crossing between the two reads must
-    // not move either of them.
+    // nothing about where the act's type is painted. Both probes sit past BOTH
+    // reveal latches (REVIEW.3b: body 0.15, button 0.25 — raw ~0.29), with the
+    // body's entrance settled, so what is measured is the resting layer.
     const read = () =>
       page.evaluate(
         ([logoSel, bodySel]) => {
@@ -479,8 +539,14 @@ test.describe("SEQ.2 — the act on the home page", () => {
         [LOGO, BODY],
       );
 
-    await scrollToRawProgress(page, 0.2);
-    await settleOnFrame(page, expectedIndex(0.2), 2, "raw 0.2");
+    await scrollToRawProgress(page, 0.35);
+    await settleOnFrame(page, expectedIndex(0.35), 2, "raw 0.35");
+    await expect
+      .poll(
+        async () => await page.locator(BODY).evaluate((el) => Number(getComputedStyle(el).opacity)),
+        { timeout: 10_000, message: "the body settles before its position is read" },
+      )
+      .toBeGreaterThan(0.95);
     const before = await read();
 
     await scrollToRawProgress(page, 0.8);
@@ -596,6 +662,10 @@ test.describe("SEQ.2 — reduced motion", () => {
     // The layer, the type and a fully live CTA are all there from the start.
     await expect(page.locator(LOGO)).toHaveCount(1);
     await expect(page.locator(BODY)).toContainText("Natural wellness");
+    await expect(page.locator(BODY), "body visible from the start (reduced)").toHaveAttribute(
+      "data-gw-body-state",
+      "shown",
+    );
     await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
     await expect(page.locator(CTA)).toBeVisible();
     expect(await page.locator(CTA).getAttribute("tabindex"), "CTA is a tab stop").toBe("0");

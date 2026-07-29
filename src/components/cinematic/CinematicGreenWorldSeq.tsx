@@ -43,14 +43,14 @@ import { GREEN_WORLD_ROUTE, GW_LOGO_READY, GW_LOGO_SRC } from "@/lib/ventures";
  *    document outline and the section-heading census both still want a heading
  *    even when the name is drawn rather than set.
  *
- * ## The CTA is a dead-stop event, not a scrubbed value
+ * ## The lockup arrives on latches, not scrubbed values
  *
- * A button whose opacity tracks progress reads as a smear. Instead the act
- * LATCHES on the final dead stop — the moment the mapped playhead reaches 1,
- * which is exactly when the frames stop advancing — and hands the entrance to
- * GSAP (fade + rise, power3.out). Per scrub frame the work is one comparison;
- * the tween runs once per crossing, in either direction, so scrolling back up
- * puts the button away again cleanly.
+ * Type whose opacity tracks progress reads as a smear. Instead the act LATCHES:
+ * a threshold crossing hands the entrance to GSAP (fade + rise, power3.out).
+ * Per scrub frame the work is one comparison per latch; each tween runs once
+ * per crossing, in either direction, so scrolling back up puts everything away
+ * again cleanly. REVIEW.3b sequenced the arrival: the body line lands first
+ * (BODY_REVEAL_AT), the button follows one beat later (CTA_REVEAL_AT).
  *
  * ## Reduced motion
  *
@@ -93,23 +93,28 @@ const INK = "#0b0a08";
 const DEEP_GREEN = "#0B5D2A";
 
 /**
- * Mapped playhead at which the CTA arrives.
+ * REVIEW.3b — the CTA's arrival is TWO latches, sequenced.
  *
- * This used to be 0.999 — the final dead stop, the instant the frames stop
- * advancing. Correct as an *event*, wrong as an *invitation*: the button landed
- * with nothing left to scroll, so it was on screen for the lead-out only and a
- * reader moving at any speed scrolled past before it finished its entrance.
+ * The reveal point has walked forward twice already: 0.999 (the final dead
+ * stop — correct as an event, wrong as an invitation), then 0.4 (present for
+ * the back half of the scrub). Joey's second review moved it earlier still and
+ * split it: the body line LANDS FIRST, and the button follows on its heels —
+ * one beat, 10% of the act's mapped progress, after the text's entrance
+ * completes. Never simultaneous: the reader is given the sentence before the
+ * ask.
  *
- * 0.7 was still too late — it read as arriving at the end rather than being
- * part of the act. At 0.4 the button is present for the whole back half of the
- * scrub, which is the difference between a reader noticing it and a reader
- * scrolling past it. It is still a latch, not a scrubbed value — one crossing,
- * one tween, in either direction.
+ * Both are still latches, not scrubbed values — one crossing, one tween, in
+ * either direction — and the dead-stop behaviour and pointer rules are
+ * untouched: the layer's hit-testing still flips at the crossing, and the
+ * frames still hold at both ends.
  */
-const CTA_REVEAL_AT = 0.4;
+const BODY_REVEAL_AT = 0.15;
+const CTA_REVEAL_AT = BODY_REVEAL_AT + 0.1;
 
 /** Hidden resting state of the CTA, in one place so the tween and the inline style agree. */
 const CTA_HIDDEN_Y = 24;
+/** The body's own hidden rest — a shallower rise than the button's, it is a line of type. */
+const BODY_HIDDEN_Y = 16;
 
 /**
  * GW.LAYOUT.2 — ONE centred stack, not three independently placed layers.
@@ -210,10 +215,32 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
   // kill it.
   const ctaLayerRef = useRef<HTMLDivElement>(null);
   const ctaLinkRef = useRef<HTMLAnchorElement>(null);
-  // The latch. A ref, not state: this is compared on every scrub frame.
+  const bodyRef = useRef<HTMLParagraphElement>(null);
+  // The latches. Refs, not state: these are compared on every scrub frame.
   const ctaShownRef = useRef(reduced);
+  const bodyShownRef = useRef(reduced);
 
   const handleProgress = useCallback((mapped: number) => {
+    // REVIEW.3b latch #1 — the body line. Same one-comparison-per-frame shape
+    // as the button below; it just crosses one beat earlier. The body is
+    // inside a pointer-transparent stack and is not a tab stop, so unlike the
+    // button it has no hit-testing or tab-order to flip.
+    const body = bodyRef.current;
+    if (body) {
+      const wantBody = mapped >= BODY_REVEAL_AT;
+      if (wantBody !== bodyShownRef.current) {
+        bodyShownRef.current = wantBody;
+        gsap.killTweensOf(body);
+        body.setAttribute("data-gw-body-state", wantBody ? "shown" : "hidden");
+        gsap.to(body, {
+          opacity: wantBody ? 1 : 0,
+          y: wantBody ? 0 : BODY_HIDDEN_Y,
+          duration: wantBody ? 0.55 : 0.3,
+          ease: wantBody ? "power3.out" : "power2.in",
+        });
+      }
+    }
+
     const layer = ctaLayerRef.current;
     if (!layer) return;
     const want = mapped >= CTA_REVEAL_AT;
@@ -307,7 +334,9 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
               The lockup now goes straight from the drawn wordmark to the one
               Body line; nothing stands between the name and the offer. */}
           <p
+            ref={bodyRef}
             data-qa="gw-seq-body"
+            data-gw-body-state={reduced ? "shown" : "hidden"}
             // GW.COPY.2 — set in the DISPLAY face, not the Body ramp.
             //
             // Three treatments were built and looked at in the running act: the
@@ -323,7 +352,15 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
             // Legibility comes from the veil beneath and the type's own weight.
             // No plate, no outline, no shadow: the Unboxed Type Rule.
             className="max-w-xl text-xl leading-snug tracking-[0.01em] md:text-[34px]"
-            style={{ color: INK, fontFamily: "var(--font-display)" }}
+            style={{
+              color: INK,
+              fontFamily: "var(--font-display)",
+              // Painted straight into the inline style so the line cannot
+              // flash before GSAP's first write — the same device as the CTA
+              // layer below. Reduced motion starts, and stays, landed.
+              opacity: reduced ? 1 : 0,
+              transform: reduced ? undefined : `translateY(${BODY_HIDDEN_Y}px)`,
+            }}
           >
               {/* GW.COPY.3 — ONE accent, on the provenance clause. The line is
                   split in the locale files rather than marked up in a single
