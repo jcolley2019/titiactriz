@@ -15,6 +15,7 @@ import {
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import { resolveReelChapter } from "@/components/cinematic/reelChapters";
+import CinematicBook from "@/components/cinematic/CinematicBook";
 import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
 import { TITANS_ENABLED } from "@/lib/ventures";
@@ -194,6 +195,12 @@ const HomeCinematic = () => {
       />
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
+
+      {/* BOOK.ACT.1 — the coming-soon book teaser, immediately before Green
+          World in the scroll order. Publisher law: it reuses the /book page's
+          bilingual coming-soon strings only — no title, date, cover, or
+          purchase language until Cristyna confirms them. */}
+      <CinematicBook reduced={prefersReduced} />
 
       {/* TA.7: ventures acts — full-viewport cinematic sections that replaced
           the old TA.6b split-panel (archived).
