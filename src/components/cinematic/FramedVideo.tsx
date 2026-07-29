@@ -56,6 +56,19 @@ import {
  * rather than by imitation.
  */
 export const FIELD_GROUND = "#0b0a08";
+/**
+ * REVIEW.2 — the three chapter grounds. Each wide reel spread is ONE
+ * uninterrupted field, and the three chapters sit on sibling shades of
+ * FIELD_GROUND — derived by shifting its luminance/warmth one small step per
+ * chapter, all inside the site's warm near-black world. The difference is meant
+ * to be felt in succession, not seen in isolation: chapter 1 a step warmer and
+ * lighter, chapter 2 held at the base luminance but cooled, chapter 3 a step
+ * deeper. Indexed by slide via CHAPTER_GROUNDS.
+ */
+export const CHAPTER_GROUND_1 = "#0d0b08";
+export const CHAPTER_GROUND_2 = "#0b0b0a";
+export const CHAPTER_GROUND_3 = "#080706";
+export const CHAPTER_GROUNDS = [CHAPTER_GROUND_1, CHAPTER_GROUND_2, CHAPTER_GROUND_3] as const;
 export const FIELD_LIGHT =
   "linear-gradient(180deg, rgba(244,236,219,0.05) 0%, rgba(244,236,219,0.015) 42%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.24) 100%)";
 export const SEAM_GOLD = "rgba(201,165,92,0.55)";

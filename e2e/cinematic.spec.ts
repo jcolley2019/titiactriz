@@ -355,12 +355,12 @@ test.describe("cinematic — reel veil law: V1 on phones, no veil at all on wide
     );
     expect(inPlate, "the plate photograph is unveiled").toEqual([]);
 
-    // The retired flat wash does not paint anywhere in the section. CINE.FLOW.6
-    // narrows the law rather than repealing it: the ONLY gradient-backed
-    // elements permitted in the wide section are the three chapter FIELDS —
-    // HERO.WIDE.1's luminance light on an opaque ground beside the photograph,
-    // not a veil over it. Any other gradient (a restored WIDE_VEIL above all)
-    // still fails.
+    // The retired flat wash does not paint anywhere in the section. REVIEW.2
+    // narrows the law again: the ONLY gradient-backed elements permitted in
+    // the wide section are the three tonal ROOMS — HERO.WIDE.1's luminance
+    // light on each spread's single opaque ground, which sits beside and
+    // behind the photograph's plate, never over it. Any other gradient (a
+    // restored WIDE_VEIL above all) still fails.
     const gradientOwners = await reel.evaluate((sec) =>
       Array.from(sec.querySelectorAll("*"))
         .filter((el) => getComputedStyle(el as HTMLElement).backgroundImage.includes("gradient"))
@@ -368,8 +368,8 @@ test.describe("cinematic — reel veil law: V1 on phones, no veil at all on wide
     );
     expect(
       gradientOwners,
-      "the only gradients are the three chapter fields' luminance light",
-    ).toEqual(["wide-chapter", "wide-chapter", "wide-chapter"]);
+      "the only gradients are the three rooms' luminance light",
+    ).toEqual(["wide-room", "wide-room", "wide-room"]);
     await expect(reel.locator(VEIL), "no phone edge veil above the breakpoint").toHaveCount(0);
   });
 });

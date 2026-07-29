@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
@@ -20,15 +20,16 @@ import {
   useReelIsPhone,
 } from "./reelSpotlight";
 import {
-  AmbientBackdrop,
   CHAPTER_FIELD_FRACTION,
-  PLATE_OUTLINE,
+  ORNAMENT_OPACITY,
   PLATE_TOP_VH,
+  PlateFrame,
   WideChapter,
   focalFractions,
   plateBox,
   useFrameSize,
 } from "./reelWide";
+import { CHAPTER_GROUNDS, FIELD_LIGHT } from "./FramedVideo";
 import { REEL_CHAPTER_DEFAULTS, type ReelChapterCopy } from "./reelChapters";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -108,6 +109,9 @@ const PhoneSlide = ({
   i: number;
   labelRef?: (el: HTMLElement | null) => void;
   titleRef?: (el: HTMLSpanElement | null) => void;
+  /** Wide-only entrance refs (REVIEW.2); the phone act never renders them. */
+  ornRef?: (el: HTMLImageElement | null) => void;
+  frameRef?: (el: SVGRectElement | null) => void;
 }) => (
   <>
     <div className="absolute inset-0">
@@ -167,10 +171,13 @@ const PhoneSlide = ({
  * CINE.FLOW.6 — the wide act: an editorial STORY SPREAD.
  *
  * The W2 portrait plate (unchanged laws: true portrait aspect, gold hairline
- * outline, NO veil — no type ever crosses the photograph) hangs centred in the
- * spread's photo page while the story chapter occupies the other page — a
- * column on the hero's HERO.WIDE.1 field treatment, separated from the plate's
- * page by a 1px gold seam. Sides ALTERNATE per slide: 01 plate-left/copy-right,
+ * frame, NO veil — no type ever crosses the photograph) hangs centred in the
+ * spread's photo page while the story chapter occupies the other page,
+ * separated from the plate's page by a 1px gold seam. REVIEW.2: the spread is
+ * ONE tonal room — a single uninterrupted field on the chapter's sibling shade
+ * of the hero ground (no blurred backdrop, no second material behind the
+ * plate) — and the plate's gold hairline DRAWS itself on the slide's entrance
+ * slot of the pinned timeline, the corner filigree blooming in after. Sides ALTERNATE per slide: 01 plate-left/copy-right,
  * 02 flipped, 03 as 01, so the pinned crossfade turns pages rather than
  * repeating one. W2's centred caption band and its two 18%/82% hairlines are
  * superseded — the seam is the spread's one vertical gold line.
@@ -186,14 +193,18 @@ const WideSlide = ({
   i,
   labelRef,
   titleRef,
+  ornRef,
+  frameRef,
 }: {
   slide: ReelSlide;
   i: number;
   labelRef?: (el: HTMLElement | null) => void;
   titleRef?: (el: HTMLElement | null) => void;
+  ornRef?: (el: HTMLImageElement | null) => void;
+  frameRef?: (el: SVGRectElement | null) => void;
 }) => {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const { w: frameW, h: frameH } = useFrameSize(frameRef);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const { w: frameW, h: frameH } = useFrameSize(stageRef);
 
   // Alternation law: even slides read plate → copy, odd slides copy → plate.
   const copySide: "left" | "right" = i % 2 === 1 ? "left" : "right";
@@ -213,9 +224,19 @@ const WideSlide = ({
   const chapter = slide.chapter ?? REEL_CHAPTER_DEFAULTS[i % REEL_CHAPTER_DEFAULTS.length].es;
 
   return (
-    <div ref={frameRef} className="absolute inset-0 overflow-hidden">
-      <AmbientBackdrop src={slide.photo?.image_url} />
-
+    <div
+      ref={stageRef}
+      className="absolute inset-0 overflow-hidden"
+      data-qa="wide-room"
+      // REVIEW.2 — the tonal room: ONE uninterrupted field edge to edge, both
+      // sides of the seam, on this chapter's sibling shade of the hero ground
+      // under the same barely-there luminance gradient. The blurred backdrop is
+      // retired from the live act.
+      style={{
+        backgroundColor: CHAPTER_GROUNDS[i % CHAPTER_GROUNDS.length],
+        backgroundImage: FIELD_LIGHT,
+      }}
+    >
       {measured && (
         <>
           <div
@@ -227,11 +248,12 @@ const WideSlide = ({
               top: plateTop,
               width: box.w,
               height: box.h,
-              outline: PLATE_OUTLINE,
             }}
           >
-            {/* Unveiled: nothing paints over the photograph inside the plate. */}
+            {/* Unveiled: nothing paints over the photograph inside the plate.
+                The gold hairline is the self-drawing frame, not an outline. */}
             <SlidePhoto slide={slide} framing={framing} />
+            <PlateFrame frameRef={frameRef} />
           </div>
 
           <WideChapter
@@ -241,6 +263,7 @@ const WideSlide = ({
             side={copySide}
             labelRef={labelRef}
             titleRef={titleRef}
+            ornRef={ornRef}
           />
         </>
       )}
@@ -279,6 +302,23 @@ const CinematicReel = ({ slides, reduced }: Props) => {
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titleRefs = useRef<(HTMLElement | null)[]>([]);
   const labelRefs = useRef<(HTMLElement | null)[]>([]);
+  // REVIEW.2 — wide-only entrance elements: the self-drawing plate frame and
+  // the corner filigree that blooms after it. The phone act never sets these,
+  // so on phone the guards below simply skip their tweens and the timeline is
+  // byte-identical to CINE.FLOW.5's.
+  const plateFrameRefs = useRef<(SVGRectElement | null)[]>([]);
+  const ornRefs = useRef<(HTMLImageElement | null)[]>([]);
+  // The wide composition mounts its entrance elements only AFTER useFrameSize
+  // has measured (a second commit), which is after this component's layout
+  // effect has already built the timeline — against null targets. Counting the
+  // mounted plate frames in state re-runs the effect once they exist, so the
+  // timeline is rebuilt against the real elements. Phone never sets these and
+  // the count stays 0.
+  const [wideFrameCount, setWideFrameCount] = useState(0);
+  const setPlateFrameRef = (i: number) => (el: SVGRectElement | null) => {
+    if (!!plateFrameRefs.current[i] !== !!el) setWideFrameCount((n) => n + (el ? 1 : -1));
+    plateFrameRefs.current[i] = el;
+  };
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -296,6 +336,34 @@ const CinematicReel = ({ slides, reduced }: Props) => {
           anticipatePin: 1,
         },
       });
+
+      // REVIEW.2 — the frame draw + filigree bloom, on each slide's entrance
+      // slot of the SAME scrubbed timeline (never free-running). The line
+      // finishes before the slide's dead-stop; the filigree blooms only AFTER
+      // the line completes. Slide 1 has no crossfade — its slot is the head of
+      // the scrub, so the frame draws as the pin engages and is complete by the
+      // first dead-stop (0.5).
+      const frameDraw = (i: number, at: number, duration: number) => {
+        const line = plateFrameRefs.current[i];
+        if (line) {
+          tl.fromTo(
+            line,
+            { strokeDashoffset: 1 },
+            { strokeDashoffset: 0, duration, ease: "power3.out" },
+            at,
+          );
+        }
+        const orn = ornRefs.current[i];
+        if (orn) {
+          tl.fromTo(
+            orn,
+            { opacity: 0 },
+            { opacity: ORNAMENT_OPACITY, duration: 0.15, ease: "power2.out" },
+            at + duration + 0.02,
+          );
+        }
+      };
+      frameDraw(0, 0, 0.3);
 
       for (let i = 1; i < els.length; i++) {
         tl.to(els[i - 1], { opacity: 0, duration: 0.5 }, i);
@@ -316,18 +384,30 @@ const CinematicReel = ({ slides, reduced }: Props) => {
           { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
           i + 0.15,
         );
+        frameDraw(i, i + 0.1, 0.4);
       }
       tl.to({}, { duration: 0.5 }); // dwell on the final slide before release
     }, sectionRef);
 
+    // The wide rebuild (wideFrameCount) reverts and recreates this pinned
+    // trigger AFTER the later acts created theirs, which leaves it LAST in
+    // ScrollTrigger's refresh order: on the next global refresh every later
+    // pinned act would be measured without this act's 300vh pin spacer and
+    // pin ~2160px too early (the Green World canvas then swallows the
+    // gallery). Re-sort into document order, then refresh, so the spacers
+    // accumulate top-down again.
+    ScrollTrigger.sort();
+    ScrollTrigger.refresh();
+
     return () => ctx.revert();
-  }, [reduced, slides.length, phone]);
+  }, [reduced, slides.length, phone, wideFrameCount]);
 
   const Composition = phone ? PhoneSlide : WideSlide;
 
   // Reduced motion: static stacked slides, no pinning/scrubbing. Both acts are
-  // their own first frame — the wide act keeps its backdrop and plate, and
-  // neither has a veil whose entrance was carrying anything.
+  // their own SETTLED frame — the wide act's plate frame and filigree render
+  // complete and static (their markup state), and neither act has a veil whose
+  // entrance was carrying anything.
   if (reduced) {
     return (
       <section ref={sectionRef} data-qa="cinematic-section" className="relative">
@@ -360,6 +440,8 @@ const CinematicReel = ({ slides, reduced }: Props) => {
               i={i}
               labelRef={(el) => (labelRefs.current[i] = el)}
               titleRef={(el) => (titleRefs.current[i] = el)}
+              ornRef={(el) => (ornRefs.current[i] = el)}
+              frameRef={setPlateFrameRef(i)}
             />
           </div>
         ))}

@@ -353,6 +353,34 @@ Three consequences:
   overridable per chapter through the site_settings keys `reel.chapter1..3` —
   the contract a later admin copy editor writes against.
 
+### Settled — spreads are tonal rooms; the frame draws itself (REVIEW.2, 2026-07-29)
+
+Ratified on Joey's direction. Three decisions:
+
+1. **Each spread is ONE continuous field.** The blurred ambient backdrop is
+   retired from the live wide act: both sides of the seam sit on a single
+   uninterrupted ground, edge to edge, under the HERO.WIDE.1 luminance
+   gradient. The seam is a hairline on the room's wall, not the join of two
+   materials. (`AmbientBackdrop` stays exported solely for the admin
+   SectionPreview's frozen W2 mirror.)
+
+2. **The three chapters carry sibling tonal shades.** `CHAPTER_GROUND_1..3`
+   (`#0d0b08`, `#0b0b0a`, `#080706`), defined beside `FIELD_GROUND` in
+   `FramedVideo.tsx`, are derived from it by shifting luminance/warmth one
+   small step per chapter — warmer/lighter, cooled at base luminance, deeper —
+   all inside the warm near-black world. The difference is felt in succession,
+   invisible in isolation; the three grounds must differ from each other.
+
+3. **The plate's gold frame is a scroll-drawn line.** The hairline renders as
+   an SVG rect (`pathLength` 1, stroke `rgba(201,165,92,0.55)`) whose
+   dashoffset the PINNED timeline scrubs 1 → 0 on the slide's own entrance
+   slot — never free-running — completing before the slide's dead-stop. The
+   corner filigree (outer-corner law: one per spread, at the copy column's
+   outer top corner, mirrored per alternation) blooms in only AFTER the line
+   completes. The markup state is the finished frame, so reduced motion — and
+   any surface that never wires the ref — renders frame and filigree complete
+   and static, no draw.
+
 ## Elevation & Depth
 
 This system has **no shadow vocabulary on cinematic surfaces**. Depth is

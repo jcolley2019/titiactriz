@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import { GOLD, IVORY, spotlightCentre } from "./reelSpotlight";
-import { FIELD_GROUND, FIELD_LIGHT, SEAM_GOLD } from "./FramedVideo";
+import { SEAM_GOLD } from "./FramedVideo";
 import type { ReelChapterCopy } from "./reelChapters";
 import type { Focal } from "@/hooks/useCinematicMedia";
 
@@ -24,6 +24,16 @@ import type { Focal } from "@/hooks/useCinematicMedia";
  * photograph — no type ever crosses the plate, which stays unveiled exactly as
  * W2 settled it.
  *
+ * REVIEW.2 — the spread is a TONAL ROOM. The blurred ambient backdrop is gone
+ * from the live act: each spread is one uninterrupted field edge to edge, both
+ * sides of the seam, on the chapter's own sibling shade of FIELD_GROUND
+ * (CHAPTER_GROUNDS, see FramedVideo.tsx) under the HERO.WIDE.1 luminance
+ * gradient. The plate's gold hairline frame is no longer a static outline: it
+ * DRAWS itself (PlateFrame, a stroke-dashoffset rect) on the slide's segment of
+ * the pinned timeline, and the corner filigree blooms in after the line
+ * completes. AmbientBackdrop remains exported below only because the admin
+ * SectionPreview still restates the frozen W2 mirror.
+ *
  * CINE.FLOW.5 — the plate itself is unchanged from the promoted bake-off
  * variant W2 ("Center Plate & Rules") as it stood after CINE.FLOW.4B.
  *
@@ -38,8 +48,8 @@ import type { Focal } from "@/hooks/useCinematicMedia";
  * NO VEIL. The plate photograph renders unveiled inside its gold hairline
  * frame. The veil law is that veils exist only to protect type over
  * photography; here the lockup sits BELOW the plate and never crosses it, so a
- * veil would buy nothing and cost the plate its light. The AmbientBackdrop is
- * what carries the lockup's legibility.
+ * veil would buy nothing and cost the plate its light. The chapter's opaque
+ * tonal ground is what carries the copy's legibility.
  *
  * Geometry is computed in px from the frame's true measured CSS dimensions,
  * never in CSS vw/vh: the reel's frame is the pinned stage, and under reduced
@@ -157,9 +167,10 @@ const numeral = (i: number) => String(i + 1).padStart(2, "0");
  * The full-frame ambient ground: the slide's own photograph, cover-fit,
  * blurred/darkened, scaled 1.1 so the blur never reveals its own edges.
  *
- * Each slide layer carries its own backdrop and the slide layers crossfade by
- * OPACITY ONLY — backdrop and plate fade together, the filter itself is static.
- * That is the whole of the backdrop transition law.
+ * REVIEW.2 — RETIRED from the live act: the spread's ground is now the
+ * chapter's tonal room (one uninterrupted field, see CHAPTER_GROUNDS). Still
+ * exported because the admin SectionPreview restates the frozen W2 mirror,
+ * which keeps its backdrop.
  */
 export const AmbientBackdrop = ({ src, blur }: { src?: string; blur?: string }) => (
   <div aria-hidden className="absolute inset-0 overflow-hidden">
@@ -188,21 +199,73 @@ export const AmbientBackdrop = ({ src, blur }: { src?: string; blur?: string }) 
   </div>
 );
 
+/**
+ * REVIEW.2 — the plate's gold hairline frame as a SELF-DRAWING line. A single
+ * SVG rect, `pathLength` normalised to 1 with a matching dash, whose
+ * stroke-dashoffset the pinned timeline scrubs 1 → 0 on the slide's entrance
+ * segment — the line draws around the photograph as the spread settles, from
+ * the top-left corner clockwise, and never free-runs.
+ *
+ * The MARKUP state is the finished frame (dashoffset 0): reduced motion — and
+ * any surface that never wires `frameRef` into a timeline — renders the frame
+ * complete and static with no branch. Under motion the timeline's fromTo sets
+ * the undrawn state at creation, exactly as the chapter type's entrances do.
+ *
+ * The rect is inset half a stroke so the 1px line paints whole on the plate's
+ * edge; overflow stays visible so no corner pixel is clipped.
+ */
+export const PlateFrame = ({
+  frameRef,
+}: {
+  frameRef?: (el: SVGRectElement | null) => void;
+}) => (
+  <svg
+    aria-hidden
+    data-qa="plate-frame"
+    className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+  >
+    <rect
+      ref={frameRef}
+      data-qa="plate-frame-line"
+      x="0.5"
+      y="0.5"
+      fill="none"
+      stroke={SEAM_GOLD}
+      strokeWidth="1"
+      pathLength={1}
+      style={{
+        // Geometry via CSS (SVG2 geometry properties): calc() keeps the 1px
+        // stroke wholly inside the plate at any measured size.
+        width: "calc(100% - 1px)",
+        height: "calc(100% - 1px)",
+        strokeDasharray: 1,
+        strokeDashoffset: 0,
+      }}
+    />
+  </svg>
+);
+
 /** Chapter body copy: quiet Jost, clamped in px against the measured frame. */
 export const chapterBodyPx = (frameW: number) => clampNum(14, frameW * 0.0115, 17);
 
 /**
- * CINE.FLOW.6 — the story chapter: the spread's copy page, on the hero's field
- * treatment. Gold chapter-number eyebrow (numeral · hairline · role label),
- * ivory headline at the wide title step, one short paragraph. The scrub
- * grammar's two entrance elements are the eyebrow row (labelRef) and the
- * headline+body block (titleRef) — same properties, marks and easing as the
- * phone act, so the pinned timeline stays composition-blind.
+ * CINE.FLOW.6 — the story chapter: the spread's copy page. Gold chapter-number
+ * eyebrow (numeral · hairline · role label), ivory headline at the wide title
+ * step, one short paragraph. The scrub grammar's two entrance elements are the
+ * eyebrow row (labelRef) and the headline+body block (titleRef) — same
+ * properties, marks and easing as the phone act, so the pinned timeline stays
+ * composition-blind.
  *
- * The ornament is the site's ONE corner filigree, exactly as the hero fields
- * carry it: fine-line low-contrast gold, mirrored on a right-hand column so it
- * faces the plate.
+ * REVIEW.2 — the column paints NO ground of its own: the spread is one
+ * continuous field owned by the slide, so the seam is a hairline on the room's
+ * wall, not the join of two different materials. The ornament is the site's ONE
+ * corner filigree, placed at the copy column's OUTER top corner (the frame-edge
+ * side), mirrored per alternation so the pair of spreads book-end; it carries
+ * `ornRef` so the timeline can bloom it in after the plate frame finishes
+ * drawing.
  */
+export const ORNAMENT_OPACITY = 0.18;
+
 export const WideChapter = ({
   index,
   copy,
@@ -210,6 +273,7 @@ export const WideChapter = ({
   side,
   labelRef,
   titleRef,
+  ornRef,
 }: {
   index: number;
   copy: ReelChapterCopy;
@@ -217,6 +281,7 @@ export const WideChapter = ({
   side: "left" | "right";
   labelRef?: (el: HTMLDivElement | null) => void;
   titleRef?: (el: HTMLElement | null) => void;
+  ornRef?: (el: HTMLImageElement | null) => void;
 }) => {
   const colW = frameW * CHAPTER_FIELD_FRACTION;
   const padX = clampNum(28, frameW * 0.04, 96);
@@ -225,12 +290,7 @@ export const WideChapter = ({
       data-qa="wide-chapter"
       data-side={side}
       className="absolute inset-y-0 overflow-hidden"
-      style={{
-        [side]: 0,
-        width: colW,
-        backgroundColor: FIELD_GROUND,
-        backgroundImage: FIELD_LIGHT,
-      }}
+      style={{ [side]: 0, width: colW }}
     >
       {/* The 1px gold hairline seam at the chapter/plate junction. */}
       <div
@@ -243,19 +303,34 @@ export const WideChapter = ({
           backgroundColor: SEAM_GOLD,
         }}
       />
+      {/* Outer-corner law: the filigree sits at the column's OUTER top corner —
+          the frame-edge side — mirrored on a right-hand column, one per spread.
+          Its settled opacity lives in the markup so reduced motion renders it
+          complete without a branch; the timeline blooms it from 0 after the
+          plate frame's line completes. */}
+      <img
+        ref={ornRef}
+        src={cornerOrn}
+        alt=""
+        aria-hidden
+        data-qa="chapter-ornament"
+        className={`absolute h-auto select-none${side === "right" ? " -scale-x-100" : ""}`}
+        style={{
+          // 112px clears the fixed header band (and its grounded REVIEW.2b
+          // state) at every supported frame, so the filigree is never swallowed
+          // by site chrome while still reading as the column's top corner.
+          top: 112,
+          [side]: 28,
+          width: "min(22%, 96px)",
+          opacity: ORNAMENT_OPACITY,
+        }}
+        decoding="async"
+      />
       <div
         className="flex h-full flex-col justify-center"
         style={{ paddingLeft: padX, paddingRight: padX }}
       >
         <div style={{ maxWidth: Math.min(colW - 2 * padX, 420) }}>
-          <img
-            src={cornerOrn}
-            alt=""
-            aria-hidden
-            className={`block h-auto select-none${side === "right" ? " -scale-x-100" : ""}`}
-            style={{ width: "min(34%, 96px)", opacity: 0.18, marginBottom: 26 }}
-            decoding="async"
-          />
           <div ref={labelRef} data-qa="chapter-eyebrow" className="flex items-center gap-3">
             <span
               aria-hidden
