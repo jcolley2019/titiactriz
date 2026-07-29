@@ -81,7 +81,6 @@
 
     /* Transitions */
     --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 45 30% 96%;
@@ -295,11 +294,6 @@
     color: hsl(var(--gold-light));
     border-color: hsl(var(--accent) / 0.7);
     box-shadow: 0 0 15px hsl(var(--accent) / 0.15);
-  }
-
-  /* Gradient text */
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent via-gold-light to-accent;
   }
 
   /* Background utilities */

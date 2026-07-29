@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-25",
+  "generatedAt": "2026-07-29",
   "title": "Design System: Titiactriz",
   "extensions": {
     "colorMeta": {
@@ -71,9 +71,9 @@
         "purpose": "Fully transparent through the upper third; all suppression lives in the lower third where the type sits."
       },
       {
-        "name": "reel-veil-CURRENT-VIOLATION",
-        "value": "linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))",
-        "purpose": "KNOWN VIOLATION at CinematicReel.tsx:36. A flat undirected wash inside the banned 50-80% range and outside the mandated 0.15-0.35. Owed to CINE.FLOW; recorded, not sanctioned."
+        "name": "reel-edge-veil",
+        "value": "linear-gradient(180deg, rgba(11,10,8,0) 0%, rgba(11,10,8,0) 54%, rgba(11,10,8,0.16) 70%, rgba(11,10,8,0.32) 100%)",
+        "purpose": "Phone reel only. A weight at the foot of the frame: the photograph is completely unveiled through its top 54%, suppression begins only where the lockup lands, deepening to 0.32 at the hand-off edge. The wide reel carries NO veil - no type crosses the photograph there, so none is owed."
       }
     ],
     "shadows": [],
@@ -84,7 +84,7 @@
       { "name": "none", "value": "gsap none (linear)", "purpose": "Scroll-scrubbed parallax. Travel must map linearly to scroll position or the pin feels rubbery." },
       { "name": "duration-standard", "value": "0.5s - 0.9s", "purpose": "The cinematic duration band. Stagger between siblings is 0.12s." },
       { "name": "hover-lift", "value": "transform 300ms, translateY(-2px)", "purpose": "The only CTA hover treatment. No fill change, no scale, no glow." },
-      { "name": "BANNED-bounce", "value": "cubic-bezier(0.34, 1.56, 0.64, 1)", "purpose": "Prohibited on cinematic surfaces (control point exceeds 1). Exists as --transition-bounce at src/index.css:84 in the admin-exempt layer; under review pending CINE.FLOW." }
+      { "name": "BANNED-bounce", "value": "cubic-bezier(0.34, 1.56, 0.64, 1)", "purpose": "Prohibited everywhere (control point exceeds 1, banned by the Dead-Stop Rule). The legacy --transition-bounce token was deleted in PIPELINE.2; the ban is retained as law." }
     ],
     "breakpoints": [
       { "name": "xs", "value": "480px" },
@@ -152,7 +152,7 @@
       { "name": "The Warm Dark Rule", "body": "The ground is #0b0a08 and its veils are rgba(11,10,8,a). Pure #000 and cool blue-blacks are both regressions: the warmth is what lets her skin tones sit in the frame without going waxy.", "section": "colors" },
       { "name": "The Two Systems Rule", "body": "The cinematic palette is normative for everything a visitor sees. /admin and the shadcn internals are explicitly exempt and may keep the legacy :root tokens. Any appearance of #121212 or #C4A86C on a public surface is drift, not a choice.", "section": "colors" },
       { "name": "The Unboxed Type Rule", "body": "Type earns legibility from its own weight, color, and the veil beneath it - never from a plate, chip, or panel drawn behind it. If text needs a box to be readable, the veil is wrong, not the type.", "section": "typography" },
-      { "name": "The Parity Rule", "body": "Every string ships in Spanish and English. ES and EN locale files are held at exact key parity (622 / 622 today). Spanish is primary; English is parity, not a follow-up.", "section": "typography" },
+      { "name": "The Parity Rule", "body": "Every string ships in Spanish and English. ES and EN locale files are held at exact key parity (625 / 625 today). Spanish is primary; English is parity, not a follow-up.", "section": "typography" },
       { "name": "The Full-Bleed Rule", "body": "Cinematic acts are edge-to-edge and viewport-true. A max-width container, a visible gutter, or a card boundary on an act is a regression - the frame is the viewport.", "section": "layout" },
       { "name": "The Atmosphere-Not-Elevation Rule", "body": "Depth is made of light and distance, never of a drop shadow. Nothing on a cinematic surface floats above the ground plane.", "section": "elevation" },
       { "name": "The Hard-Corner Rule", "body": "Radius on a cinematic surface is zero. Pills, squircles, rounded-[2rem] shells, and nested bezels are all foreign bodies here.", "section": "shapes" },

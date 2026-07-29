@@ -1,0 +1,30 @@
+{
+  "detector": {
+    "ignoreFiles": [
+      "src/components/admin/**",
+      "src/components/events/**",
+      "src/_archive/**",
+      "src/pages/HomeEditorial.tsx"
+    ],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": ["src/index.css"],
+        "reason": "Legacy :root HSL layer. The Two Systems Rule (DESIGN.md): /admin and the shadcn internals are exempt; the cinematic palette is normative only for visitor-facing surfaces."
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": ["src/index.css"],
+        "reason": "Legacy :root HSL layer, admin-exempt per the Two Systems Rule. Cinematic utilities in this file remain governed by every non-design-system rule."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": ["src/index.css"],
+        "reason": "The 0.5rem --radius scale belongs to the admin-exempt shadcn layer (DESIGN.md, Shapes)."
+      }
+    ]
+  }
+}

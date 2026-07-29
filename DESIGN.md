@@ -111,16 +111,19 @@ the identity and requires an explicit brick.
 - Photos carry the page: near-full brightness, luminous veil ~0.15–0.35, type
   carries its own glow
 
-### Open item — detector activation
+### Settled — the detector baseline (PIPELINE.2, 2026-07-29)
 
-Writing this file armed the gate it will be judged by. Against the bare
-repository the Impeccable detector reported **6** findings; with a token spec to
-compare against, 59 previously-dormant `design-system-*` rules fire and the count
-is **65** — with no source file changed. The delta is `design-system-color` (25),
-`design-system-font-size` (33), and `design-system-radius` (1), splitting **34 in
-the normative cinematic layer** and **25 in the admin-exempt layer** the detector
-cannot see the exemption for. The normative 34 are real work owed to CINE.FLOW;
-the exempt 25 are candidates for a detector ignore-list rather than for edits.
+Writing this file armed the gate it is judged by: with a token spec to compare
+against, the dormant `design-system-*` rules fire. `.impeccable/config.json` now
+encodes the exemption the detector could not see: the admin-exempt layer
+(`src/components/admin/**`, the events components, the `_archive`, the editorial
+home variant, and the legacy `:root` values in `src/index.css`) is ignored for
+`design-system-*` rules only — every other rule still applies everywhere. At the
+PIPELINE.2 census the raw count was **77**; the exempt layer held **25** of
+those, and deleting the two ratified-dead items (`--transition-bounce`,
+`.text-gradient-gold`) removed two more. The normative baseline is **50**. That
+number is the gate: a brick that raises it introduces drift; a brick that lowers
+it retires debt owed to CINE.FLOW.
 
 ### Motion
 
@@ -136,11 +139,11 @@ scroll; ScrollTrigger owns the pinned stages.
 overshoots, springs back, or bounces. If a curve's control points exceed 1, it
 does not belong on a cinematic surface.
 
-**Open item — bounce easing.** `--transition-bounce: all 0.6s
-cubic-bezier(0.34, 1.56, 0.64, 1)` at `src/index.css:84` is under review pending
-CINE.FLOW motion decisions. (Context: it is a legacy token in the admin-exempt
-layer; no cinematic component references it, and the detector flags it as
-`bounce-easing`.)
+**Resolved — bounce easing (PIPELINE.2, 2026-07-29).** The legacy
+`--transition-bounce` token (`cubic-bezier(0.34, 1.56, 0.64, 1)`) is **deleted**
+from `src/index.css`. It had zero references anywhere, and its control points
+exceed 1, which the Dead-Stop Rule bans outright. The ban stands; the token is
+gone.
 
 ## Colors
 
@@ -186,12 +189,11 @@ visitor sees. `/admin` and the shadcn internals are explicitly exempt and may
 keep the legacy `:root` tokens. Any appearance of `#121212` or `#C4A86C` on a
 public surface is drift, not a choice.
 
-**Open item — gradient text.** `.text-gradient-gold` at `src/index.css:302`
-(`bg-clip-text` over `from-accent via-gold-light to-accent`) is a candidate brand
-exception pending confirmation it is the gold treatment. (Context: it is the
-gold treatment by construction, but a repo-wide search finds **zero call sites** —
-it is currently dead code in the admin-exempt layer, and the detector flags it as
-`gradient-text`.)
+**Resolved — gradient text (PIPELINE.2, 2026-07-29).** `.text-gradient-gold`
+(`bg-clip-text` over `from-accent via-gold-light to-accent`) is **deleted** from
+`src/index.css`. A repo-wide search confirmed zero call sites — it was dead code,
+and a gradient wash across type is exactly what the One Filament Rule prohibits.
+It is not the gold treatment; the gold treatment is line, letter, and rule.
 
 ## Typography
 
