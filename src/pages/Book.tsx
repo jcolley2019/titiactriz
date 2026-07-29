@@ -52,6 +52,7 @@ const Book = () => {
 
   return (
     <main
+      data-qa="book-page"
       className="relative flex min-h-screen flex-col items-center justify-center px-6 py-32 text-center"
       style={{ ...fontVars, backgroundColor: GROUND, color: IVORY }}
     >
@@ -60,6 +61,7 @@ const Book = () => {
       </SEO>
 
       <p
+        data-qa="book-eyebrow"
         className="text-[11px] font-medium uppercase tracking-[0.28em] md:text-xs"
         style={{ color: GOLD }}
       >
@@ -74,6 +76,7 @@ const Book = () => {
       />
 
       <h1
+        data-qa="book-title"
         className="mt-8 max-w-3xl text-4xl uppercase leading-[1.05] tracking-[0.04em] md:text-6xl lg:text-7xl"
         style={{ fontFamily: "var(--font-display)" }}
       >
@@ -81,6 +84,7 @@ const Book = () => {
       </h1>
 
       <p
+        data-qa="book-body"
         className="mt-8 max-w-md text-sm leading-relaxed md:text-base"
         style={{ color: `${IVORY}b3` }}
       >

@@ -19,10 +19,10 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  // NAV.SOON.1 — the "coming soon" disclosure. Its children are announcements,
-  // not destinations: neither Book nor TitiLinks has a route yet, so they are
-  // rendered as inert items rather than dead links a reader can click into a
-  // 404. Give them `to` values here the day they ship.
+  // NAV.SOON.1 — the "coming soon" disclosure. A child with `path: null` is an
+  // announcement, not a destination — rendered inert rather than as a dead link
+  // a reader can click into a 404. Book shipped (BOOK.0) and carries its route;
+  // TitiLinks gets its `to` value the day it does.
   const [soonOpen, setSoonOpen] = useState(false);
   const soonRef = useRef<HTMLLIElement>(null);
   const { board } = useEventsBoard();
@@ -120,9 +120,9 @@ const Header = () => {
   useEffect(() => setSoonOpen(false), [location.pathname]);
 
   /** The disclosure's children. `path: null` means "announced, not yet built". */
-  const soonItems: { name: string; path: string | null }[] = [
-    { name: t("nav.book"), path: "/book" },
-    { name: t("nav.titilinks"), path: null },
+  const soonItems: { name: string; path: string | null; qa: string }[] = [
+    { name: t("nav.book"), path: "/book", qa: "book" },
+    { name: t("nav.titilinks"), path: null, qa: "titilinks" },
   ];
 
   const handleNavClick = (path: string) => {
@@ -253,13 +253,19 @@ const Header = () => {
                       <Link
                         to={item.path}
                         translate="no"
+                        data-qa={`nav-soon-${item.qa}`}
                         onClick={() => setSoonOpen(false)}
                         className={`${cls} hover:text-gold-light`}
                       >
                         {item.name}
                       </Link>
                     ) : (
-                      <span aria-disabled translate="no" className={`${cls} opacity-60`}>
+                      <span
+                        aria-disabled
+                        translate="no"
+                        data-qa={`nav-soon-${item.qa}`}
+                        className={`${cls} opacity-60`}
+                      >
                         {item.name}
                       </span>
                     )}
@@ -427,11 +433,22 @@ const Header = () => {
                 return (
                   <li key={item.name}>
                     {item.path ? (
-                      <Link to={item.path} translate="no" onClick={closeMenu} className={cls}>
+                      <Link
+                        to={item.path}
+                        translate="no"
+                        data-qa={`nav-soon-mobile-${item.qa}`}
+                        onClick={closeMenu}
+                        className={cls}
+                      >
                         {item.name}
                       </Link>
                     ) : (
-                      <span aria-disabled translate="no" className={`${cls} opacity-60`}>
+                      <span
+                        aria-disabled
+                        translate="no"
+                        data-qa={`nav-soon-mobile-${item.qa}`}
+                        className={`${cls} opacity-60`}
+                      >
                         {item.name}
                       </span>
                     )}

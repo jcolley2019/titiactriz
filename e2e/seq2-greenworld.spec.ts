@@ -9,7 +9,7 @@ import { GW_LOGO_READY, GW_LOGO_SRC } from "../src/lib/ventures";
  * The lab (seq-lab.spec.ts) proves the engine. This proves the ACT: that it is
  * the thing the home page mounts, that it pins, that the right pack is chosen
  * for the viewport, that the layers held still over the plate really are still,
- * and that the CTA is a consequence of the final dead stop rather than of time
+ * and that the CTA is a consequence of crossing a latch rather than of time
  * passing.
  *
  * Scroll is driven the same way the lab drives it — read the pin's published
@@ -19,31 +19,33 @@ import { GW_LOGO_READY, GW_LOGO_SRC } from "../src/lib/ventures";
  * scroll listener alongside it, so a programmatic instant scroll still lands,
  * and every frame assertion polls rather than sampling once.
  *
- * ## The logo layer's geometry was asserted BEFORE it had anything to paint
+ * ## SPEC.GW.1 — rewritten against the redesigned act
  *
- * These assertions were written while GW_LOGO_READY was false and the act
- * painted no mark: the layer was asserted anyway — present, centred, carrying
- * `data-gw-logo="off"` and holding zero images — and the spec reads the flag
- * from the same module the component reads it from, so the assertions flip WITH
- * the flag instead of going stale. GW.LOGO.1 flipped it, GW.LOGO.2 swapped in a
- * mark-only asset, and GW.LOGO.5 replaced that with the brand's FULL lockup.
+ * The act this file used to assert (gold credential above dark-ground type, a
+ * LOGO_BAND pinning the lockup, a CTA latched on the final dead stop) shipped
+ * and was then redesigned out from under it:
  *
- * ## What GW.LOGO.5 changed about what is asserted here
+ *   • GW.COPY.1 retired the "Official distributor" credential entirely — the
+ *     lockup goes straight from the drawn wordmark to one Body line. The copy
+ *     assertions now hold the credential ABSENT in both languages.
+ *   • GW.COPY.5 flipped the act's polarity: near-black INK on the bright plate,
+ *     with one deep-green accent (`gw-seq-body-accent`) inside the line. The
+ *     ground-contrast test therefore measures BLACK-on-LIGHT for the body line
+ *     as well as for the wordmark, both held to 5:1. The act currently paints
+ *     no light type over dark ground; if that ever returns, hold it to AA.
+ *   • GW.VEIL.2 pulled the scrim out of the stack — clear through 76% of the
+ *     stage, taking hold only in the last eighth. SCRIM_STOPS restates that.
+ *   • GW.LAYOUT.2 replaced the band-plus-hung-copy geometry with ONE centred
+ *     flex column (logo, body, CTA) sharing a single gap, offset below the
+ *     fixed header. The geometry assertions follow: equal gaps, one centre.
+ *   • The CTA latch moved from the final dead stop to mapped 0.4 — present for
+ *     the whole back half of the scrub. It is still a latch, not a scrubbed
+ *     value: one crossing, one tween, in either direction.
  *
- * The lockup now carries the name, so the act's serif headline is retired and
- * the assertions follow it: the name is no longer asserted as rendered TYPE, it
- * is asserted to appear exactly ONCE — the heading survives only as `sr-only`,
- * for the outline and the section-heading census, and must not be visible type.
- * The gold credential drops beneath the mark, so it is asserted BELOW it rather
- * than above.
- *
- * The one genuinely new invariant is legibility. The brand's wordmark is BLACK,
- * which no other element in this act is, so where it lands is load-bearing: it
- * has to stay above the scrim's onset and clear of the portrait plate's own dark
- * band. `the black wordmark sits on light ground` samples the composited stage
- * behind the wordmark at both widths, at all three dead stops, and holds it to a
- * real contrast ratio — the check the two previous logo bricks could not have
- * failed, because neither of them painted anything black.
+ * What survives unchanged: the dead-stop frame mapping, name-renders-exactly-
+ * once, the static-layer checks, EN/ES copy with no cross-leak, and the
+ * canvas-pixel ground measurement with its analytic scrim composite and its
+ * read-the-computed-filter grade correction.
  */
 
 const PATH = "/cinematic";
@@ -53,8 +55,9 @@ const SEQ_ACT = `${ACT} [data-qa="seq-act"]`;
 const CANVAS = `${ACT} canvas[data-qa="seq-canvas"]`;
 const LOGO = '[data-qa="gw-seq-logo"]';
 const LOGO_IMG = '[data-qa="gw-seq-logo-img"]';
-const CREDENTIAL = '[data-qa="gw-seq-eyebrow"]';
 const HEADING = `${ACT} [data-qa="section-heading"]`;
+const BODY = '[data-qa="gw-seq-body"]';
+const ACCENT = '[data-qa="gw-seq-body-accent"]';
 const CTA_LAYER = '[data-qa="gw-seq-cta-layer"]';
 const CTA = '[data-qa="gw-seq-cta"]';
 
@@ -68,6 +71,18 @@ const LEAD_IN = 0.08;
 const LEAD_OUT = 0.08;
 /** Both Green World packs, per the census in sequences.ts. */
 const FRAME_COUNT = 72;
+
+/**
+ * Mirrors CTA_REVEAL_AT in CinematicGreenWorldSeq.tsx: the MAPPED playhead at
+ * which the CTA latch crosses. Restated here, like the lead zones, so a change
+ * to the reveal point has to be made deliberately in both places.
+ */
+const CTA_REVEAL_AT = 0.4;
+/** Raw pin progress for a given mapped playhead — the inverse of seqProgress. */
+const rawFor = (mapped: number) => LEAD_IN + mapped * (1 - LEAD_IN - LEAD_OUT);
+/** Comfortably either side of the latch (mapped 0.26 and 0.5 at these raws). */
+const RAW_BEFORE_CTA = 0.3;
+const RAW_AFTER_CTA = 0.5;
 
 /** The mapping under test, restated independently of the implementation. */
 function expectedIndex(rawProgress: number, count = FRAME_COUNT): number {
@@ -157,6 +172,17 @@ async function settleOnFrame(page: Page, want: number, tolerance: number, label:
     .toBeLessThanOrEqual(tolerance);
 }
 
+/** WCAG relative luminance from a computed `rgb(…)` string. */
+function wcagLuminance(rgb: string): number {
+  const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!m) throw new Error(`not a computed color: ${rgb}`);
+  const chan = (v: number) => {
+    const c = v / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * chan(Number(m[1])) + 0.7152 * chan(Number(m[2])) + 0.0722 * chan(Number(m[3]));
+}
+
 test.describe("SEQ.2 — the act on the home page", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
@@ -199,12 +225,16 @@ test.describe("SEQ.2 — the act on the home page", () => {
     expect(diag.failedResponses, diag.failedResponses.join("\n")).toEqual([]);
   });
 
-  test("the CTA is a consequence of the final dead stop", async ({ page }) => {
+  test("the CTA is a consequence of crossing the reveal latch", async ({ page }) => {
     test.setTimeout(120_000);
     await openHome(page);
 
-    // Hidden at the first dead stop and still hidden halfway through.
-    for (const t of [0, 0.5]) {
+    // The latch sits at mapped 0.4 (raw ~0.42): hidden at the first dead stop
+    // and still hidden into the front half of the scrub.
+    expect(rawFor(CTA_REVEAL_AT), "the probes bracket the latch").toBeGreaterThan(RAW_BEFORE_CTA);
+    expect(rawFor(CTA_REVEAL_AT)).toBeLessThan(RAW_AFTER_CTA);
+
+    for (const t of [0, RAW_BEFORE_CTA]) {
       await scrollToRawProgress(page, t);
       await expect(page.locator(CTA_LAYER), `CTA hidden at raw ${t}`).toHaveAttribute(
         "data-gw-cta-state",
@@ -213,17 +243,20 @@ test.describe("SEQ.2 — the act on the home page", () => {
       const state = await page.locator(CTA_LAYER).evaluate((el) => ({
         opacity: Number(getComputedStyle(el).opacity),
         pointerEvents: getComputedStyle(el).pointerEvents,
+        ariaHidden: el.getAttribute("aria-hidden"),
       }));
       expect(state.opacity, `CTA transparent at raw ${t}`).toBeLessThan(0.05);
       expect(state.pointerEvents, `CTA not hit-testable at raw ${t}`).toBe("none");
+      expect(state.ariaHidden, `CTA hidden from the tree at raw ${t}`).toBe("true");
       // …and it is not a tab stop while it is invisible.
       expect(await page.locator(CTA).getAttribute("tabindex"), `CTA out of tab order at raw ${t}`).toBe(
         "-1",
       );
     }
 
-    // Visible, opaque, hit-testable and back in the tab order at the last stop.
-    await scrollToRawProgress(page, 1);
+    // Crossing the latch mid-act brings it in: visible, opaque, hit-testable
+    // and back in the tab order — present for the whole back half of the scrub.
+    await scrollToRawProgress(page, RAW_AFTER_CTA);
     await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
     await expect
       .poll(
@@ -235,18 +268,42 @@ test.describe("SEQ.2 — the act on the home page", () => {
     await expect(page.locator(CTA)).toBeVisible();
     expect(
       await page.locator(CTA_LAYER).evaluate((el) => getComputedStyle(el).pointerEvents),
-      "CTA hit-testable at the final stop",
+      "CTA hit-testable once arrived",
     ).toBe("auto");
     expect(await page.locator(CTA).getAttribute("tabindex"), "CTA back in the tab order").toBe("0");
+
+    // …and it is still there at the final dead stop, where the act releases.
+    await scrollToRawProgress(page, 1);
+    await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
+
+    // The button's own pair is a fixed composite — near-black label on the gold
+    // fill — so it is held to AA analytically, from the computed styles.
+    const pair = await page.locator(CTA).evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { fg: cs.color, bg: cs.backgroundColor };
+    });
+    const [lighter, darker] = [wcagLuminance(pair.fg), wcagLuminance(pair.bg)].sort((a, b) => b - a);
+    expect(
+      (lighter + 0.05) / (darker + 0.05),
+      "the CTA label is AA against its own fill",
+    ).toBeGreaterThan(4.5);
 
     // It goes to the existing Green World page, internally.
     const href = await page.locator(CTA).getAttribute("href");
     expect(href ?? "", "CTA routes to /green-world").toBe("/green-world");
     expect(href ?? "", "CTA is not external").not.toContain("http");
 
-    // Scrolling back up puts it away again — the latch reverses.
-    await scrollToRawProgress(page, 0.5);
+    // Scrolling back above the latch puts it away again — the latch reverses.
+    await scrollToRawProgress(page, RAW_BEFORE_CTA);
     await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "hidden");
+    await expect
+      .poll(
+        async () =>
+          await page.locator(CTA_LAYER).evaluate((el) => Number(getComputedStyle(el).opacity)),
+        { timeout: 10_000, message: "CTA finishes its exit" },
+      )
+      .toBeLessThan(0.05);
+    expect(await page.locator(CTA).getAttribute("tabindex"), "CTA leaves the tab order").toBe("-1");
   });
 
   test("the CTA actually navigates to the Green World page", async ({ page }) => {
@@ -266,10 +323,20 @@ test.describe("SEQ.2 — the act on the home page", () => {
     await expect(page).toHaveURL(/\/green-world$/);
   });
 
-  test("the logo layer is wired, centred, and paints the brand's lockup", async ({ page }) => {
+  test("one centred stack: logo, body and CTA share a centre and a gap", async ({ page }) => {
     test.setTimeout(120_000);
     await openHome(page);
-    await scrollToRawProgress(page, 0.5);
+    // Measured past the latch so the CTA layer is at rest at its shown position
+    // (y = 0) and its box is the one the reader actually sees.
+    await scrollToRawProgress(page, RAW_AFTER_CTA);
+    await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
+    await expect
+      .poll(
+        async () =>
+          await page.locator(CTA_LAYER).evaluate((el) => Number(getComputedStyle(el).opacity)),
+        { timeout: 10_000, message: "CTA settles before geometry is read" },
+      )
+      .toBeGreaterThan(0.95);
 
     const layer = page.locator(LOGO);
     await expect(layer, "the logo layer is always in the DOM").toHaveCount(1);
@@ -284,7 +351,7 @@ test.describe("SEQ.2 — the act on the home page", () => {
     } else {
       const img = page.locator(LOGO_IMG);
       await expect(img).toBeVisible();
-      // The FULL lockup, not the retired mark-only crop.
+      // The FULL lockup — the brand's own rendering of mark and name.
       expect(GW_LOGO_SRC, "the act paints the brand's own lockup").toBe(
         "/ventures/green-world-lockup.png",
       );
@@ -296,32 +363,48 @@ test.describe("SEQ.2 — the act on the home page", () => {
       ).toBeGreaterThan(0);
     }
 
-    // Horizontally centred on the canvas. The layer is deliberately NOT centred
-    // vertically any more — it is pinned to a band that keeps the black wordmark
-    // off the scrim (see LOGO_BAND) — so only x is asserted as a centre, and the
-    // band is asserted as a band.
+    // GW.LAYOUT.2 — the three are flex children of ONE centred column. So the
+    // layout's invariants are the column's: everything shares the canvas's
+    // horizontal centre, the stack starts below the fixed header, the body sits
+    // on unveiled water, and the two gaps are the SAME gap.
     const geo = await page.evaluate(
-      ([logoSel, canvasSel]) => {
+      ([logoSel, bodySel, ctaSel, canvasSel]) => {
         const l = document.querySelector(logoSel)!.getBoundingClientRect();
+        const b = document.querySelector(bodySel)!.getBoundingClientRect();
+        const k = document.querySelector(ctaSel)!.getBoundingClientRect();
         const c = document.querySelector(canvasSel)!.getBoundingClientRect();
+        const cx = c.left + c.width / 2;
         return {
-          dx: l.left + l.width / 2 - (c.left + c.width / 2),
-          topFrac: (l.top - c.top) / c.height,
-          bottomFrac: (l.bottom - c.top) / c.height,
-          spansWidth: l.width >= c.width - 1,
+          logoDx: l.left + l.width / 2 - cx,
+          bodyDx: b.left + b.width / 2 - cx,
+          ctaDx: k.left + k.width / 2 - cx,
+          logoTopFrac: (l.top - c.top) / c.height,
+          bodyBottomFrac: (b.bottom - c.top) / c.height,
+          ctaBottomFrac: (k.bottom - c.top) / c.height,
+          gapLogoBody: b.top - l.bottom,
+          gapBodyCta: k.top - b.bottom,
         };
       },
-      [LOGO, CANVAS],
+      [LOGO, BODY, CTA_LAYER, CANVAS],
     );
-    expect(Math.abs(geo.dx), "logo layer is horizontally centred on the canvas").toBeLessThan(2);
-    expect(geo.spansWidth, "logo layer spans the stage it centres within").toBe(true);
-    expect(geo.topFrac, "logo band starts below the header").toBeGreaterThan(0.1);
-    expect(geo.bottomFrac, "logo band ends above the scrim's weight").toBeLessThan(0.58);
+    expect(Math.abs(geo.logoDx), "logo shares the canvas centre").toBeLessThan(2);
+    expect(Math.abs(geo.bodyDx), "body shares the canvas centre").toBeLessThan(2);
+    expect(Math.abs(geo.ctaDx), "CTA shares the canvas centre").toBeLessThan(2);
+    // The stack's box starts at the fixed header's own height (top-28/top-32),
+    // so nothing in it can centre itself up underneath the nav.
+    expect(geo.logoTopFrac, "the stack starts below the fixed header").toBeGreaterThan(0.13);
+    // GW.VEIL.2 — the veil is clear through 76% of the stage; the type sits on
+    // unveiled water, and only the handoff below it is darkened.
+    expect(geo.bodyBottomFrac, "the body sits on unveiled water").toBeLessThan(0.78);
+    expect(geo.ctaBottomFrac, "the CTA stays out of the scrim's weight").toBeLessThan(0.93);
+    expect(geo.gapLogoBody, "logo and body are separated, not touching").toBeGreaterThan(8);
+    expect(
+      Math.abs(geo.gapLogoBody - geo.gapBodyCta),
+      "the two gaps are the SAME gap (one flex column)",
+    ).toBeLessThan(3);
   });
 
-  test("the name renders exactly once, and the credential sits beneath the mark", async ({
-    page,
-  }) => {
+  test("the name renders exactly once, drawn by the mark", async ({ page }) => {
     test.setTimeout(120_000);
     await openHome(page);
     await scrollToRawProgress(page, 0.5);
@@ -356,33 +439,24 @@ test.describe("SEQ.2 — the act on the home page", () => {
     });
     expect(visibleName, "the brand name is drawn by the mark, not also set in type").toBe(0);
 
-    // DOM order: the logo layer precedes the credential…
-    const domOrder = await page.evaluate(
-      ([logoSel, credSel]) => {
-        const l = document.querySelector(logoSel)!;
-        const c = document.querySelector(credSel)!;
-        // eslint-disable-next-line no-bitwise
-        return Boolean(l.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING);
-      },
-      [LOGO, CREDENTIAL],
-    );
-    expect(domOrder, "the credential follows the logo in the DOM").toBe(true);
+    // GW.COPY.1 — the credential is retired outright: nothing stands between
+    // the drawn name and the one Body line, in either language.
+    expect(
+      await page.locator('[data-qa="gw-seq-eyebrow"]').count(),
+      "the credential element is gone, not merely emptied",
+    ).toBe(0);
 
-    // …and it is genuinely painted below it, with the body below that.
+    // DOM and paint order: the lockup precedes the body line, directly.
     const stack = await page.evaluate(
-      ([imgSel, credSel, bodySel]) => {
+      ([imgSel, bodySel]) => {
         const i = document.querySelector(imgSel)!.getBoundingClientRect();
-        const c = document.querySelector(credSel)!.getBoundingClientRect();
         const b = document.querySelector(bodySel)!.getBoundingClientRect();
-        return { markBottom: i.bottom, credTop: c.top, credBottom: c.bottom, bodyTop: b.top };
+        return { markBottom: i.bottom, bodyTop: b.top };
       },
-      [LOGO_IMG, CREDENTIAL, '[data-qa="gw-seq-body"]'],
+      [LOGO_IMG, BODY],
     );
-    expect(stack.credTop, "the credential sits beneath the lockup").toBeGreaterThan(
+    expect(stack.bodyTop, "the body sits directly beneath the lockup").toBeGreaterThan(
       stack.markBottom,
-    );
-    expect(stack.bodyTop, "the body sits beneath the credential").toBeGreaterThanOrEqual(
-      stack.credBottom - 1,
     );
   });
 
@@ -390,17 +464,19 @@ test.describe("SEQ.2 — the act on the home page", () => {
     test.setTimeout(120_000);
     await openHome(page);
 
-    // The credential is the probe rather than the heading: since GW.LOGO.5 the
-    // heading is `sr-only`, which is absolutely positioned and clipped to a
-    // pixel, so its box says nothing about where the act's type is painted.
+    // The body line is the probe rather than the heading: the heading is
+    // `sr-only`, absolutely positioned and clipped to a pixel, so its box says
+    // nothing about where the act's type is painted. Both probes sit below the
+    // CTA latch and above it, so the latch crossing between the two reads must
+    // not move either of them.
     const read = () =>
       page.evaluate(
-        ([logoSel, credSel]) => {
+        ([logoSel, bodySel]) => {
           const l = document.querySelector(logoSel)!.getBoundingClientRect();
-          const c = document.querySelector(credSel)!.getBoundingClientRect();
-          return { logo: [l.left, l.top], credential: [c.left, c.top] };
+          const b = document.querySelector(bodySel)!.getBoundingClientRect();
+          return { logo: [l.left, l.top], body: [b.left, b.top] };
         },
-        [LOGO, CREDENTIAL],
+        [LOGO, BODY],
       );
 
     await scrollToRawProgress(page, 0.2);
@@ -413,21 +489,36 @@ test.describe("SEQ.2 — the act on the home page", () => {
 
     expect(Math.abs(after.logo[0] - before.logo[0]), "logo x is static").toBeLessThan(2);
     expect(Math.abs(after.logo[1] - before.logo[1]), "logo y is static").toBeLessThan(2);
-    expect(Math.abs(after.credential[0] - before.credential[0]), "credential x is static").toBeLessThan(2);
-    expect(Math.abs(after.credential[1] - before.credential[1]), "credential y is static").toBeLessThan(2);
+    expect(Math.abs(after.body[0] - before.body[0]), "body x is static").toBeLessThan(2);
+    expect(Math.abs(after.body[1] - before.body[1]), "body y is static").toBeLessThan(2);
   });
 
   test("renders the English lockup", async ({ page }) => {
     await openHome(page);
     const act = page.locator(ACT);
-    await expect(act).toContainText("Official distributor");
-    // The name is drawn by the brand's wordmark now; the heading is sr-only and
+    // The name is drawn by the brand's wordmark; the heading is sr-only and
     // carries it for the outline only.
     await expect(act.locator('[data-qa="section-heading"]')).toHaveText("Green World");
     await expect(act.locator('[data-qa="section-heading"]')).toHaveClass(/sr-only/);
-    await expect(act).toContainText("Natural wellness, straight from the source.");
+    // GW.COPY.3 — one line, split so the accent lands on the provenance clause.
+    await expect(act.locator(BODY)).toHaveText(
+      "Natural wellness, straight from the source. I'll show you how to order it, step by step.",
+    );
+    await expect(act.locator(ACCENT)).toHaveText("straight from the source");
+    // GW.COPY.5 — dark ink, with the deep-green accent, not the gold.
+    expect(
+      await act.locator(BODY).evaluate((el) => getComputedStyle(el).color),
+      "the body is set in ink",
+    ).toBe("rgb(11, 10, 8)");
+    expect(
+      await act.locator(ACCENT).evaluate((el) => getComputedStyle(el).color),
+      "the accent is the deep green",
+    ).toBe("rgb(11, 93, 42)");
     await expect(page.locator(CTA)).toHaveText("How to order");
+    // The credential is retired — in BOTH languages, not merely translated away.
+    await expect(act, "no credential renders").not.toContainText("Official distributor");
     await expect(act, "no Spanish copy leaks through").not.toContainText("Distribuidora oficial");
+    await expect(act, "no Spanish copy leaks through").not.toContainText("Bienestar natural");
   });
 });
 
@@ -437,14 +528,20 @@ test.describe("SEQ.2 — Spanish copy", () => {
   test("renders the Spanish lockup", async ({ page }) => {
     await openHome(page);
     const act = page.locator(ACT);
-    await expect(act).toContainText("Distribuidora oficial");
-    // The brand name still carries translate="no" in both languages — it is now
-    // an sr-only heading rather than the act's rendered headline.
+    // The brand name still carries translate="no" in both languages — it is an
+    // sr-only heading rather than the act's rendered headline.
     await expect(act.locator('[data-qa="section-heading"]')).toHaveText("Green World");
     await expect(act.locator('[data-qa="section-heading"]')).toHaveAttribute("translate", "no");
-    await expect(act).toContainText("Bienestar natural, directo de la fuente.");
+    await expect(act.locator(BODY)).toHaveText(
+      "Bienestar natural, directo de la fuente. Te muestro cómo pedirlo paso a paso.",
+    );
+    // Spanish puts the accent on its own words — that is why the line is split
+    // in the locale files rather than marked up at a fixed offset.
+    await expect(act.locator(ACCENT)).toHaveText("directo de la fuente");
     await expect(page.locator(CTA)).toHaveText("Cómo comprar");
+    await expect(act, "no credential renders").not.toContainText("Distribuidora oficial");
     await expect(act, "no English copy leaks through").not.toContainText("Official distributor");
+    await expect(act, "no English copy leaks through").not.toContainText("Natural wellness");
   });
 });
 
@@ -458,6 +555,10 @@ test.describe("SEQ.2 — portrait viewport", () => {
 
     await scrollToRawProgress(page, 0);
     await settleOnFrame(page, expectedIndex(0), 0, "phone first dead stop");
+    await expect(page.locator(CTA_LAYER), "CTA still hidden at the first stop").toHaveAttribute(
+      "data-gw-cta-state",
+      "hidden",
+    );
     await scrollToRawProgress(page, 1);
     await settleOnFrame(page, expectedIndex(1), 0, "phone final dead stop");
     await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
@@ -494,7 +595,7 @@ test.describe("SEQ.2 — reduced motion", () => {
 
     // The layer, the type and a fully live CTA are all there from the start.
     await expect(page.locator(LOGO)).toHaveCount(1);
-    await expect(page.locator(ACT)).toContainText("Official distributor");
+    await expect(page.locator(BODY)).toContainText("Natural wellness");
     await expect(page.locator(CTA_LAYER)).toHaveAttribute("data-gw-cta-state", "shown");
     await expect(page.locator(CTA)).toBeVisible();
     expect(await page.locator(CTA).getAttribute("tabindex"), "CTA is a tab stop").toBe("0");
@@ -508,23 +609,35 @@ test.describe("SEQ.2 — reduced motion", () => {
 /**
  * The scrim's stops, restated from CinematicGreenWorldSeq.tsx exactly as the
  * frame mapping above is restated — so a change to the gradient has to be made
- * here too, deliberately, rather than silently darkening the wordmark's ground.
+ * here too, deliberately, rather than silently darkening the type's ground.
+ * GW.VEIL.2: clear through 76% of the stage, 0.45 by 93%, 0.88 at the bottom.
  */
 const SCRIM_STOPS: Array<[number, number]> = [
   [0, 0],
-  [0.42, 0],
-  [0.74, 0.62],
-  [1, 0.9],
+  [0.76, 0],
+  [0.93, 0.45],
+  [1, 0.88],
 ];
 /** #0b0a08, the scrim's colour and the FrameScrubber's backdrop. */
 const SCRIM_RGB = [11, 10, 8] as const;
 
-test.describe("SEQ.2 — the black wordmark's ground", () => {
+test.describe("SEQ.2 — dark type on bright water", () => {
+  /**
+   * GW.COPY.5 flipped the act's polarity: the black wordmark AND the ink body
+   * line both stand on the bright plate, so BOTH grounds are measured — canvas
+   * pixels behind each zone, graded by the canvas's own computed CSS filter
+   * (GW.BRIGHT.1 — getImageData returns the UNGRADED backing store), with the
+   * scrim composited analytically, at every dead stop, worst row wins. Held to
+   * 5:1 against black — designed brighter; 5:1 fails loudly if the stack is
+   * ever re-centred down into the scrim without being brittle to a re-cut
+   * plate. The act paints no light type over dark ground any more; if that
+   * returns, hold it to AA (4.5:1) the same way.
+   */
   for (const [width, height] of [
     [390, 844],
     [1440, 900],
   ] as const) {
-    test(`the black wordmark sits on light ground at ${width}`, async ({ browser }) => {
+    test(`the ink sits on light ground at ${width}`, async ({ browser }) => {
       test.setTimeout(180_000);
       test.skip(!GW_LOGO_READY || !GW_LOGO_SRC, "nothing is painted while the flag is false");
 
@@ -532,133 +645,141 @@ test.describe("SEQ.2 — the black wordmark's ground", () => {
       const page = await context.newPage();
       await openHome(page);
 
-      const samples: Array<{ t: number; luminance: number; contrast: number }> = [];
+      // Each zone is a slice of an overlay element, in fractions of its own
+      // box: the wordmark is the bottom of the lockup asset; the body line is
+      // its whole rect.
+      const zones = [
+        { name: "wordmark", sel: LOGO_IMG, topFrac: WORDMARK_TOP_FRAC },
+        { name: "body", sel: BODY, topFrac: 0 },
+      ];
+      const samples: Array<{ zone: string; t: number; luminance: number; contrast: number }> = [];
 
-      // Every dead stop, because the plate moves under a wordmark that does not.
+      // Every dead stop, because the plate moves under type that does not.
       for (const t of [0, 0.5, 1]) {
         await scrollToRawProgress(page, t);
-        await settleOnFrame(page, expectedIndex(t), 1, `wordmark ground @ raw ${t}`);
+        await settleOnFrame(page, expectedIndex(t), 1, `type ground @ raw ${t}`);
         await page.waitForTimeout(250);
 
-        const s = await page.evaluate(
-          ({ imgSel, canvasSel, stops, rgb, topFrac }) => {
-            const img = document.querySelector(imgSel) as HTMLImageElement;
-            const canvas = document.querySelector(canvasSel) as HTMLCanvasElement;
-            const ir = img.getBoundingClientRect();
-            const cr = canvas.getBoundingClientRect();
+        for (const zone of zones) {
+          const s = await page.evaluate(
+            ({ zoneSel, canvasSel, stops, rgb, topFrac }) => {
+              const el = document.querySelector(zoneSel) as HTMLElement;
+              const canvas = document.querySelector(canvasSel) as HTMLCanvasElement;
+              const zr = el.getBoundingClientRect();
+              const cr = canvas.getBoundingClientRect();
 
-            // The wordmark's slice of the painted lockup, in viewport pixels.
-            const wmTop = ir.top + ir.height * topFrac;
-            const wmBottom = ir.bottom;
+              // The zone's slice, in viewport pixels…
+              const zTop = zr.top + zr.height * topFrac;
+              const zBottom = zr.bottom;
 
-            // …mapped into canvas backing-store pixels (the canvas is DPR-scaled).
-            const sx = canvas.width / cr.width;
-            const sy = canvas.height / cr.height;
-            const x0 = Math.max(0, Math.round((ir.left - cr.left) * sx));
-            const x1 = Math.min(canvas.width, Math.round((ir.right - cr.left) * sx));
-            const y0 = Math.max(0, Math.round((wmTop - cr.top) * sy));
-            const y1 = Math.min(canvas.height, Math.round((wmBottom - cr.top) * sy));
-            if (x1 <= x0 || y1 <= y0) throw new Error("the wordmark is off the canvas");
+              // …mapped into canvas backing-store pixels (the canvas is DPR-scaled).
+              const sx = canvas.width / cr.width;
+              const sy = canvas.height / cr.height;
+              const x0 = Math.max(0, Math.round((zr.left - cr.left) * sx));
+              const x1 = Math.min(canvas.width, Math.round((zr.right - cr.left) * sx));
+              const y0 = Math.max(0, Math.round((zTop - cr.top) * sy));
+              const y1 = Math.min(canvas.height, Math.round((zBottom - cr.top) * sy));
+              if (x1 <= x0 || y1 <= y0) throw new Error("the zone is off the canvas");
 
-            const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-            const data = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+              const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+              const data = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
 
-            // GW.BRIGHT.1: the plate carries a CSS `filter`, and getImageData
-            // returns the UNGRADED backing store — so the grade has to be applied
-            // here or this test would measure ground the reader never sees. It is
-            // read off the canvas rather than restated, so it cannot drift from
-            // whatever the act actually sets.
-            const filter = getComputedStyle(canvas).filter;
-            const num = (fn: string) => {
-              const m = filter.match(new RegExp(`${fn}\\(([0-9.]+)\\)`));
-              return m ? Number(m[1]) : 1;
-            };
-            const bright = num("brightness");
-            const sat = num("saturate");
-            const cl = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : v);
-            const sr0 = 0.213 + 0.787 * sat;
-            const sr1 = 0.715 - 0.715 * sat;
-            const sr2 = 0.072 - 0.072 * sat;
-            const sg0 = 0.213 - 0.213 * sat;
-            const sg1 = 0.715 + 0.285 * sat;
-            const sg2 = 0.072 - 0.072 * sat;
-            const sb0 = 0.213 - 0.213 * sat;
-            const sb1 = 0.715 - 0.715 * sat;
-            const sb2 = 0.072 + 0.928 * sat;
-            const grade = (r: number, g: number, b: number) => {
-              const R = cl(r * bright);
-              const G = cl(g * bright);
-              const B = cl(b * bright);
-              return [
-                cl(sr0 * R + sr1 * G + sr2 * B),
-                cl(sg0 * R + sg1 * G + sg2 * B),
-                cl(sb0 * R + sb1 * G + sb2 * B),
-              ] as const;
-            };
+              // GW.BRIGHT.1: the plate carries a CSS `filter`, and getImageData
+              // returns the UNGRADED backing store — so the grade has to be
+              // applied here or this test would measure ground the reader never
+              // sees. It is read off the canvas rather than restated, so it
+              // cannot drift from whatever the act actually sets.
+              const filter = getComputedStyle(canvas).filter;
+              const num = (fn: string) => {
+                const m = filter.match(new RegExp(`${fn}\\(([0-9.]+)\\)`));
+                return m ? Number(m[1]) : 1;
+              };
+              const bright = num("brightness");
+              const sat = num("saturate");
+              const cl = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : v);
+              const sr0 = 0.213 + 0.787 * sat;
+              const sr1 = 0.715 - 0.715 * sat;
+              const sr2 = 0.072 - 0.072 * sat;
+              const sg0 = 0.213 - 0.213 * sat;
+              const sg1 = 0.715 + 0.285 * sat;
+              const sg2 = 0.072 - 0.072 * sat;
+              const sb0 = 0.213 - 0.213 * sat;
+              const sb1 = 0.715 - 0.715 * sat;
+              const sb2 = 0.072 + 0.928 * sat;
+              const grade = (r: number, g: number, b: number) => {
+                const R = cl(r * bright);
+                const G = cl(g * bright);
+                const B = cl(b * bright);
+                return [
+                  cl(sr0 * R + sr1 * G + sr2 * B),
+                  cl(sg0 * R + sg1 * G + sg2 * B),
+                  cl(sb0 * R + sb1 * G + sb2 * B),
+                ] as const;
+              };
 
-            const alphaAt = (p: number) => {
-              for (let i = 0; i < stops.length - 1; i += 1) {
-                const [p0, a0] = stops[i];
-                const [p1, a1] = stops[i + 1];
-                if (p >= p0 && p <= p1) {
-                  return p1 === p0 ? a1 : a0 + ((a1 - a0) * (p - p0)) / (p1 - p0);
+              const alphaAt = (p: number) => {
+                for (let i = 0; i < stops.length - 1; i += 1) {
+                  const [p0, a0] = stops[i];
+                  const [p1, a1] = stops[i + 1];
+                  if (p >= p0 && p <= p1) {
+                    return p1 === p0 ? a1 : a0 + ((a1 - a0) * (p - p0)) / (p1 - p0);
+                  }
                 }
-              }
-              return stops[stops.length - 1][1];
-            };
+                return stops[stops.length - 1][1];
+              };
 
-            // The DARKEST row of ground under the wordmark, scrim included —
-            // an average would let a dark band hide inside a bright mean.
-            let worstRow = 1e9;
-            const rowW = x1 - x0;
-            for (let y = 0; y < y1 - y0; y += 1) {
-              let sum = 0;
-              for (let x = 0; x < rowW; x += 1) {
-                const i = (y * rowW + x) * 4;
-                // Rec.709 on the plate as GRADED — i.e. as it is actually painted.
-                const [R, G, B] = grade(data[i], data[i + 1], data[i + 2]);
-                sum += 0.2126 * R + 0.7152 * G + 0.0722 * B;
+              // The DARKEST row of ground under the zone, scrim included —
+              // an average would let a dark band hide inside a bright mean.
+              let worstRow = 1e9;
+              const rowW = x1 - x0;
+              for (let y = 0; y < y1 - y0; y += 1) {
+                let sum = 0;
+                for (let x = 0; x < rowW; x += 1) {
+                  const i = (y * rowW + x) * 4;
+                  // Rec.709 on the plate as GRADED — i.e. as it is actually painted.
+                  const [R, G, B] = grade(data[i], data[i + 1], data[i + 2]);
+                  sum += 0.2126 * R + 0.7152 * G + 0.0722 * B;
+                }
+                const plate = sum / rowW;
+                // Composite the scrim over it at this row's height on the stage.
+                const stageFrac = (y0 + y) / canvas.height;
+                const a = alphaAt(stageFrac);
+                const scrimL = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+                const L = plate * (1 - a) + scrimL * a;
+                if (L < worstRow) worstRow = L;
               }
-              const plate = sum / rowW;
-              // Composite the scrim over it at this row's height on the stage.
-              const stageFrac = (y0 + y) / canvas.height;
-              const a = alphaAt(stageFrac);
-              const scrimL = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
-              const L = plate * (1 - a) + scrimL * a;
-              if (L < worstRow) worstRow = L;
-            }
-            return { luminance: worstRow };
-          },
-          {
-            imgSel: LOGO_IMG,
-            canvasSel: CANVAS,
-            stops: SCRIM_STOPS,
-            rgb: [...SCRIM_RGB] as number[],
-            topFrac: WORDMARK_TOP_FRAC,
-          },
-        );
+              return { luminance: worstRow };
+            },
+            {
+              zoneSel: zone.sel,
+              canvasSel: CANVAS,
+              stops: SCRIM_STOPS,
+              rgb: [...SCRIM_RGB] as number[],
+              topFrac: zone.topFrac,
+            },
+          );
 
-        const lin = ((s.luminance / 255 + 0.055) / 1.055) ** 2.4;
-        const contrast = (lin + 0.05) / 0.05;
-        samples.push({ t, luminance: s.luminance, contrast });
+          const lin = ((s.luminance / 255 + 0.055) / 1.055) ** 2.4;
+          const contrast = (lin + 0.05) / 0.05;
+          samples.push({ zone: zone.name, t, luminance: s.luminance, contrast });
+        }
       }
 
-      const worst = samples.reduce((a, b) => (a.contrast < b.contrast ? a : b));
-      console.log(
-        `[GW.LOGO.5 ${width}] wordmark ground ` +
-          samples
-            .map((s) => `raw${s.t}: L=${s.luminance.toFixed(0)} ${s.contrast.toFixed(1)}:1`)
-            .join("  ") +
-          `  | worst ${worst.contrast.toFixed(1)}:1`,
-      );
-
-      // Designed to ~7:1; held at 5:1 so the check fails loudly if the lockup is
-      // ever re-centred back down into the scrim, without being brittle to a
-      // re-cut plate that shifts the water a little.
-      expect(
-        worst.contrast,
-        `black wordmark ground at ${width} (worst of 3 dead stops)`,
-      ).toBeGreaterThan(5);
+      for (const zone of zones) {
+        const zoneSamples = samples.filter((s) => s.zone === zone.name);
+        const worst = zoneSamples.reduce((a, b) => (a.contrast < b.contrast ? a : b));
+        console.log(
+          `[GW.COPY.5 ${width}] ${zone.name} ground ` +
+            zoneSamples
+              .map((s) => `raw${s.t}: L=${s.luminance.toFixed(0)} ${s.contrast.toFixed(1)}:1`)
+              .join("  ") +
+            `  | worst ${worst.contrast.toFixed(1)}:1`,
+        );
+        expect(
+          worst.contrast,
+          `black-on-light ${zone.name} ground at ${width} (worst of 3 dead stops)`,
+        ).toBeGreaterThan(5);
+      }
 
       await context.close();
     });
@@ -685,8 +806,9 @@ test.describe("SEQ.2 — evidence", () => {
         ] as const) {
           await scrollToRawProgress(page, t);
           await settleOnFrame(page, expectedIndex(t), 1, `${label} @ ${width}`);
-          // Let the CTA's entrance finish before the last frame is captured.
-          await page.waitForTimeout(t === 1 ? 900 : 250);
+          // Let the CTA's entrance finish before the mid and last frames are
+          // captured — the latch has crossed by mid (mapped 0.5 > 0.4).
+          await page.waitForTimeout(t >= 0.5 ? 900 : 250);
           await page.screenshot({ path: shot(`seq2-${width}-${lang}-${label}.png`) });
         }
 
