@@ -1,8 +1,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import type { CinematicPhoto } from "./useCinematicData";
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Props = { photos: CinematicPhoto[]; reduced: boolean };
 
@@ -14,10 +17,13 @@ type Props = { photos: CinematicPhoto[]; reduced: boolean };
  * COUNT (~4s per photo), so the drift speed stays constant no matter how many
  * photos exist — it never gets tedious as the gallery grows.
  *
- * The section is NOT scroll-pinned: it is a normal ~70vh flow section, so
- * vertical scroll passes straight through. Hover (desktop) or touch-hold
- * (mobile) pauses the drift; releasing resumes it. Under reduced motion it
- * falls back to a plain static grid.
+ * REVIEW.3a — the gallery DWELLS: like every story act it pins for +=120%
+ * (the About standard) before releasing, so the reader sits with the pictures
+ * instead of sliding past them. The marquee keeps self-driving through the
+ * dwell, and every interaction survives the pin — hover still pauses the
+ * drift, and a tap still opens the lightbox — because pinning only fixes the
+ * section's position; it never touches its pointer events. Under reduced
+ * motion there is no pin and the marquee falls back to a plain static grid.
  */
 const CinematicGallery = ({ photos, reduced }: Props) => {
   const { t } = useTranslation();
@@ -52,7 +58,26 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
         duration: photos.length * 4,
         repeat: -1,
       });
+
+      // REVIEW.3a — the uniform dwell. Same grammar as the About pin: the act
+      // holds the frame for +=120% before it releases. The marquee tween above
+      // is time-driven, not scroll-driven, so it keeps drifting through the
+      // dwell — the pin freezes the section's place on the page, not its life.
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top top",
+        end: "+=120%",
+        pin: true,
+        anticipatePin: 1,
+      });
     }, sectionRef);
+
+    // This effect waits for the async photos, so its pin is born AFTER the acts
+    // below it already measured. Same hazard as the reel's wide rebuild: a
+    // trigger registered out of document order makes every later pinned act
+    // measure without this pin's spacer. Re-sort, then refresh.
+    ScrollTrigger.sort();
+    ScrollTrigger.refresh();
 
     return () => {
       tweenRef.current = null;

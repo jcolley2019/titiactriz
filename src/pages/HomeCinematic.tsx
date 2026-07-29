@@ -219,7 +219,7 @@ const HomeCinematic = () => {
         zoom={resolved.about?.zoom}
       />
 
-      <CinematicContact />
+      <CinematicContact reduced={prefersReduced} />
     </div>
   );
 };

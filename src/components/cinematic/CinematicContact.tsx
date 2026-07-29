@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { supabase } from "@/integrations/supabase/client";
+
+gsap.registerPlugin(ScrollTrigger);
 
 // Same schema as HomeEditorial's contact form.
 const contactSchema = z.object({
@@ -17,11 +21,33 @@ type ContactFormData = z.infer<typeof contactSchema>;
  * TA.4 contact — cinematic restyle of the editorial contact section. The
  * submission logic is reused EXACTLY from HomeEditorial: persist via the
  * send-contact edge function, then best-effort notify via Formspree.
+ *
+ * REVIEW.3a — contact joined the uniform dwell law: like the gallery and
+ * About it pins for +=120% before the footer reveals. The pin holds the
+ * section's place only — the form stays fully usable through the dwell
+ * (click, focus, type, submit), because a pinned element keeps its pointer
+ * events. The FOOTER itself never pins (still ruled). Reduced motion skips
+ * the pin entirely.
  */
-const CinematicContact = () => {
+const CinematicContact = ({ reduced }: { reduced: boolean }) => {
   const { t } = useTranslation();
+  const sectionRef = useRef<HTMLElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  useLayoutEffect(() => {
+    if (reduced) return;
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top top",
+        end: "+=120%",
+        pin: true,
+        anticipatePin: 1,
+      });
+    }, sectionRef);
+    return () => ctx.revert();
+  }, [reduced]);
 
   const {
     register,
@@ -67,6 +93,7 @@ const CinematicContact = () => {
 
   return (
     <section
+      ref={sectionRef}
       id="contact"
       data-qa="cinematic-section"
       className="relative px-6 py-24 md:py-32"

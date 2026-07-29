@@ -14,8 +14,10 @@ import { shot } from "./_helpers";
  *  3. ABOUT DWELLS — the About section pins at the top of the frame for
  *     +=120% of scroll before releasing.
  *  4. REDUCED MOTION SKIPS THE PIN — About renders unpinned, in flow.
- *  5. CONTACT NEVER PINS — no pin-spacer ever wraps the contact act (ruled:
- *     contact, footer and forms never pin).
+ *  5. THE FOOTER NEVER PINS — no pin-spacer ever wraps the footer. (This law
+ *     used to read "contact never pins"; REVIEW.3a extended the dwell to every
+ *     story act, contact included — review3-dwell.spec.ts owns that side. What
+ *     survives here is the boundary: the dwell stops at the footer.)
  *
  * Evidence: _qa/review2-nav-scrolled.png (grounded nav over the reel act).
  */
@@ -76,12 +78,12 @@ test.describe("REVIEW.2b — nav ground and the About dwell", () => {
     await settle(page, 900);
 
     // The pin exists: ScrollTrigger wraps About in a spacer sized for the
-    // dwell. Contact has none — it is never pinned.
+    // dwell. The footer has none — the dwell law stops at the footer.
     const spacer = page.locator("#cinematic-about").locator("xpath=ancestor::*[contains(@class,'pin-spacer')]");
     await expect(spacer, "About sits in a pin spacer under motion").toHaveCount(1);
     await expect(
-      page.locator("#contact").locator("xpath=ancestor::*[contains(@class,'pin-spacer')]"),
-      "contact never pins",
+      page.locator("footer").locator("xpath=ancestor-or-self::*[contains(@class,'pin-spacer')]"),
+      "the footer never pins",
     ).toHaveCount(0);
 
     // Engage: just past the spacer's top (wheelTo converges within ±8px, so
@@ -120,8 +122,8 @@ test.describe("REVIEW.2b — nav ground and the About dwell", () => {
       "no pin under reduced motion",
     ).toHaveCount(0);
     await expect(
-      page.locator("#contact").locator("xpath=ancestor::*[contains(@class,'pin-spacer')]"),
-      "contact never pins (reduced)",
+      page.locator("footer").locator("xpath=ancestor-or-self::*[contains(@class,'pin-spacer')]"),
+      "the footer never pins (reduced)",
     ).toHaveCount(0);
     await expect(page.locator("#cinematic-about")).toBeAttached();
   });

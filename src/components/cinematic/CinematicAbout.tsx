@@ -57,8 +57,9 @@ const CinematicAbout = ({ reduced, photo, focal, zoom }: Props) => {
       // REVIEW.2b — the About DWELL: the section pins for +=120% before it
       // releases, so the reader sits with the belief statement instead of
       // sliding straight through to contact. Reduced motion skips the pin with
-      // the rest of this effect, and the dwell is About's alone — contact,
-      // footer and forms NEVER pin (ruled).
+      // the rest of this effect. REVIEW.3a made this the UNIFORM dwell law:
+      // every story act (gallery, About, contact) pins with these exact
+      // numbers. Only the footer never pins (still ruled).
       ScrollTrigger.create({
         trigger: sectionRef.current,
         start: "top top",
