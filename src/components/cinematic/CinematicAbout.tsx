@@ -53,6 +53,19 @@ const CinematicAbout = ({ reduced, photo, focal, zoom }: Props) => {
         stagger: 0.14,
         scrollTrigger: { trigger: sectionRef.current, start: "top 72%" },
       });
+
+      // REVIEW.2b — the About DWELL: the section pins for +=120% before it
+      // releases, so the reader sits with the belief statement instead of
+      // sliding straight through to contact. Reduced motion skips the pin with
+      // the rest of this effect, and the dwell is About's alone — contact,
+      // footer and forms NEVER pin (ruled).
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top top",
+        end: "+=120%",
+        pin: true,
+        anticipatePin: 1,
+      });
     }, sectionRef);
     return () => ctx.revert();
   }, [reduced]);

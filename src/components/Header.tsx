@@ -17,6 +17,10 @@ const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
+  // REVIEW.2b — on the cinematic home the nav is transparent only over the
+  // hero; past ~80vh it takes the site's near-black ground so content passes
+  // beneath it without glyph collisions.
+  const [pastHero, setPastHero] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   // NAV.SOON.1 — the "coming soon" disclosure. A child with `path: null` is an
@@ -85,15 +89,21 @@ const Header = () => {
 
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
-  // NAV.CLEAR.1 — the cinematic surface is a reel of full-bleed acts, and a bar
-  // that fills in on scroll cuts a lid across every one of them. Here the header
-  // never takes a background: the acts run edge to edge and the nav floats on
-  // them. Scoped to this route on purpose — the ordinary pages scroll content
-  // UNDER the header and still need the fill to stay readable.
+  // NAV.CLEAR.1, amended by REVIEW.2b — on the cinematic surface the header is
+  // transparent only over the HERO, where a bar would cut a lid across the
+  // opening picture. Past ~80vh (the pastHero threshold) it grounds on the
+  // site's near-black so the acts' type and ornaments pass beneath it instead
+  // of colliding with the glyphs; the 700ms header transition makes the switch
+  // a fade, not a pop. Scoped to this route on purpose — the ordinary pages
+  // keep their own scrolled fill.
   const isCinematicHome = location.pathname === "/" || location.pathname === "/cinematic";
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+      setPastHero(window.scrollY > window.innerHeight * 0.8);
+    };
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -192,7 +202,9 @@ const Header = () => {
           : isGreenWorldPage
             ? `bg-white py-3 border-b border-gw-green/15${isScrolled ? " shadow-sm" : ""}`
             : isCinematicHome
-              ? "bg-transparent py-3"
+              ? pastHero
+                ? "bg-[#0b0a08]/95 backdrop-blur-xl py-3"
+                : "bg-transparent py-3"
               : isScrolled
                 ? "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
                 : "bg-transparent py-3"
