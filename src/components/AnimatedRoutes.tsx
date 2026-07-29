@@ -17,7 +17,6 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const Events = lazy(() => import("@/pages/Events"));
 const Book = lazy(() => import("@/pages/Book"));
 const Studio = lazy(() => import("@/pages/Studio"));
-const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
 
 // CINE.FLOW.2 — QA-only bake-off harness. Registered below under
 // `import.meta.env.DEV` only, absent from the nav and public/sitemap.xml, and
@@ -171,14 +170,6 @@ const AnimatedRoutes = () => {
             }
           />
         )}
-        <Route
-          path="/.lovable/oauth/consent"
-          element={
-            <Suspense fallback={<RouteFallback />}>
-              <OAuthConsent />
-            </Suspense>
-          }
-        />
         <Route
           path="*"
           element={
