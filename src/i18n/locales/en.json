@@ -14,7 +14,15 @@
     "greenWorld": "Green World",
     "portfolio": "Portfolio",
     "socials": "Socials",
-    "contact": "Contact"
+    "contact": "Contact",
+    "comingSoon": "Coming soon!!!",
+    "book": "Book",
+    "titilinks": "TitiLinks"
+  },
+  "book": {
+    "eyebrow": "Coming soon",
+    "title": "New Book Coming Soon!",
+    "body": "Cristyna Polentino's book is being published. The release date and where to order it are coming soon."
   },
   "hero": {
     "headline": "Creating impact through presence, performance, and purpose.",
@@ -176,7 +184,9 @@
     "gwSeq": {
       "eyebrow": "Official distributor",
       "title": "Green World",
-      "body": "Natural wellness, straight from the source. I'll show you how to order it, step by step.",
+      "bodyPre": "Natural wellness, ",
+      "bodyAccent": "straight from the source",
+      "bodyPost": ". I'll show you how to order it, step by step.",
       "cta": "How to order"
     },
     "titans": {

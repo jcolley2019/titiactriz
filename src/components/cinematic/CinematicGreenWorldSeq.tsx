@@ -66,39 +66,92 @@ const GOLD = "#C9A55C";
 const NEAR_BLACK = "#0b0a08";
 
 /**
- * Mapped playhead at which the CTA is considered to have reached the final dead
- * stop. The mapping clamps at 1 for the whole lead-out zone, so this fires the
- * instant the frames stop advancing rather than at the very end of the pin.
+ * GW.COPY.5 — this act sets its type DARK on a bright plate.
+ *
+ * Every other act in the site is warm ivory over the dark, because every other
+ * act is a photograph burning through a near-black room. The Green World plates
+ * are the opposite: near-white water, bright end to end, with no dark for light
+ * type to stand against. The measurement was unambiguous — over the composited
+ * ground the ivory reached only 2.1:1 and the gold 1.0:1, and the only way to
+ * rescue either was a veil heavy enough to kill the very brightness the plates
+ * exist for.
+ *
+ * So the polarity flips instead. Near-black ink on bright water is the same
+ * relationship the brand's own BLACK wordmark already has with this plate — the
+ * act simply stops fighting it. Warm near-black rather than pure #000, for the
+ * same reason the ground is #0b0a08.
  */
-const CTA_REVEAL_AT = 0.999;
+const INK = "#0b0a08";
+
+/**
+ * The accent, in the brand's own green rather than the site's gold. Gold is a
+ * light-on-dark accent and cannot survive here at any weight; a deep green
+ * carries on bright water AND ties the phrase to the mark directly above it.
+ * Deliberately much darker than the logo's #12A03B, which is itself too light
+ * to hold against the plate.
+ */
+const DEEP_GREEN = "#0B5D2A";
+
+/**
+ * Mapped playhead at which the CTA arrives.
+ *
+ * This used to be 0.999 — the final dead stop, the instant the frames stop
+ * advancing. Correct as an *event*, wrong as an *invitation*: the button landed
+ * with nothing left to scroll, so it was on screen for the lead-out only and a
+ * reader moving at any speed scrolled past before it finished its entrance.
+ *
+ * 0.7 was still too late — it read as arriving at the end rather than being
+ * part of the act. At 0.4 the button is present for the whole back half of the
+ * scrub, which is the difference between a reader noticing it and a reader
+ * scrolling past it. It is still a latch, not a scrubbed value — one crossing,
+ * one tween, in either direction.
+ */
+const CTA_REVEAL_AT = 0.4;
 
 /** Hidden resting state of the CTA, in one place so the tween and the inline style agree. */
 const CTA_HIDDEN_Y = 24;
 
 /**
- * The band the lockup is allowed to occupy, as a fraction of the stage.
+ * GW.LAYOUT.2 — ONE centred stack, not three independently placed layers.
  *
- * This is a legibility constraint, not a taste one. The brand's wordmark is
- * BLACK, so unlike the white type below it, it gets darker ground the further
- * down the stage it sits. Two things darken that ground, and they compound:
+ * The act used to pin the lockup inside a legibility band and hang the copy off
+ * the bottom of the stage. That made the gap between logo and copy a function of
+ * viewport height and the gap between copy and button a separate margin, so the
+ * three never related to each other. They are now flex children of a single
+ * full-stage column, centre-justified, sharing ONE gap — so "same spacing
+ * between them, centred vertically" is a property of the layout rather than
+ * three numbers kept in sync by hand.
  *
- *   • the SCRIM below, which is transparent to 42% and reaches 0.62 alpha by 74%;
- *   • the plates themselves, which are bright water nearly throughout EXCEPT the
- *     portrait pack, which carries a dark band at roughly 32-38% of its height.
+ * The top padding is the FIXED HEADER's height. The stage is viewport-true and
+ * runs underneath the header, so centring against the raw stage buried the top
+ * of the mark behind the nav — measured at 34px of overlap at 1440. Padding the
+ * box means the stack centres in the area the reader can actually see, which is
+ * what "centred" has to mean on a surface with a fixed chrome over it.
  *
- * Composited over every one of the 72 frames in each pack, the ground that holds
- * black at >=7:1 is 1-55% on the landscape plate, and 1-31% plus 39-57% on the
- * portrait one — the phone's usable window is the LOWER of its two, because the
- * upper one collides with the header. Hence two bands rather than one clamp:
- *
- *   phone   39% -> 58%   (under the dark band, above the scrim's onset)
- *   wide    13% -> 54%   (clear of the header, above the scrim's onset)
- *
- * The lockup is fitted to the band's HEIGHT with width following, so the black
- * wordmark — the bottom ~15% of the asset — cannot drift out of the band when
- * the viewport aspect changes. Re-measure if the scrim or either pack is re-cut.
+ * What this trades away: the old band kept the BLACK wordmark off the plates'
+ * dark zones (the portrait pack carries one at ~32-38% of its height, and the
+ * scrim reaches 0.62 alpha by 74%). Centring puts the lockup near the middle of
+ * the stage instead. The wordmark still clears the scrim's onset at 42%, but if
+ * it ever reads muddy on the phone pack, this is the reason — re-measure with
+ * the wordmark-ground test rather than nudging the gap.
  */
-const LOGO_BAND = "top-[39%] h-[19%] md:top-[13%] md:h-[41%]";
+const STACK = "flex flex-col items-center justify-center gap-6 md:gap-8";
+
+/**
+ * The stack's box STARTS below the fixed header rather than at the top of the
+ * stage. Padding was tried first and is not equivalent: when the content is
+ * taller than the padded box it overflows in both directions and the mark goes
+ * back under the nav. Offsetting the box's top edge means the centre the stack
+ * resolves against is the centre of what the reader can actually see, at every
+ * viewport height. The values are the header's own height.
+ */
+const STACK_BOX = "absolute inset-x-0 bottom-0 top-28 md:top-32";
+
+/**
+ * The lockup's height as a fraction of the stage — what the old band-times-56%
+ * arithmetic actually resolved to, now stated directly.
+ */
+const LOGO_SIZE = "h-[11%] md:h-[23%]";
 
 /**
  * GW.BRIGHT.1 — the plate's grade, applied to the CANVAS only.
@@ -194,70 +247,95 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
         canvasFilter={PLATE_GRADE}
         onProgress={reduced ? undefined : handleProgress}
       >
-        {/* 1 — LOGO. Horizontally centred, vertically pinned to LOGO_BAND, and
-            completely still. Wired but empty while GW_LOGO_READY is false: the
-            band keeps its geometry and its spec hooks whether or not there is an
-            asset, and `data-gw-logo` states plainly which of the two it is.
-            Decorative here — the name it draws is announced once by the sr-only
-            heading below, so alt is empty rather than doubling it. */}
-        <div
-          data-qa="gw-seq-logo"
-          data-gw-logo={GW_LOGO_READY && GW_LOGO_SRC ? "on" : "off"}
-          aria-hidden
-          className={`pointer-events-none absolute inset-x-0 z-20 flex items-center justify-center px-6 ${LOGO_BAND}`}
-        >
-          {GW_LOGO_READY && GW_LOGO_SRC ? (
-            <img
-              src={GW_LOGO_SRC}
-              alt=""
-              data-qa="gw-seq-logo-img"
-              // Height-bound so the black wordmark stays inside the band; the
-              // max-widths are only a guard for very tall, narrow viewports,
-              // where the band would otherwise imply a lockup wider than the act.
-              className="block h-full max-h-full w-auto max-w-[76vw] object-contain select-none md:max-w-[40rem]"
-              draggable={false}
-            />
-          ) : null}
-        </div>
-
-        {/* 2 — SCRIM. Bottom-weighted only; the plate keeps its top two-thirds. */}
+        {/* 1 — SCRIM. Bottom-weighted only; the plate keeps its top two-thirds. */}
         <div
           className="pointer-events-none absolute inset-0 z-10"
           aria-hidden
           style={{
-            background: `linear-gradient(180deg, rgba(11,10,8,0) 42%, rgba(11,10,8,0.62) 74%, rgba(11,10,8,0.9) 100%)`,
+            // GW.VEIL.2 — the veil got OUT OF THE WAY. Once the type went dark
+            // (GW.COPY.5) the veil stopped being what buys legibility and went
+            // back to being what it is supposed to be: the handoff to the next
+            // act. It is now fully clear through the entire stack — logo, copy
+            // and button all sit on unveiled water — and only takes hold in the
+            // last eighth of the stage. Darkening any earlier both dulls the
+            // plate and actively HURTS the dark type now sitting on it.
+            background: `linear-gradient(180deg, rgba(11,10,8,0) 76%, rgba(11,10,8,0.45) 93%, rgba(11,10,8,0.88) 100%)`,
           }}
         />
 
-        {/* 3 — LOCKUP. Lower third, centred at every width. The block itself is
-            pointer-transparent — the CTA layer is the ONLY thing in this act
-            that takes a pointer, and it takes one only once it has arrived.
-            Without this, the type wrapper is a full-width invisible target
-            sitting over the button's own neighbourhood. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-6 pb-14 md:pb-20">
-          <div className="mx-auto max-w-2xl text-center">
-            {/* The act's heading, drawn rather than set: the brand's wordmark
-                above carries the name, so this exists for the document outline
-                and the section-heading census only. Same device, and the same
-                reason, as the sr-only h2 in CinematicTitiLinks. */}
-            <h2 data-qa="section-heading" translate="no" className="notranslate sr-only">
-              {t("cinematic.gwSeq.title")}
-            </h2>
-            {/* The credential, beneath the lockup rather than above the name it
-                used to introduce. Same gold Label styling it has always had —
-                it changed position and job, not voice. */}
-            <p
-              data-qa="gw-seq-eyebrow"
-              className="text-[11px] font-semibold uppercase tracking-[0.24em]"
-              style={{ color: GOLD }}
-            >
-              {t("cinematic.gwSeq.eyebrow")}
-            </p>
-            <p
-              data-qa="gw-seq-body"
-              className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/70 md:text-base"
-            >
-              {t("cinematic.gwSeq.body")}
+        {/* 2 — THE STACK. Logo, copy and button as three flex children of one
+            centred column, so the spacing between them is a single gap and the
+            group's centre is the stage's centre. The block is pointer-
+            transparent — the CTA layer is the ONLY thing in this act that takes
+            a pointer, and it takes one only once it has arrived. Without this,
+            the type wrapper is a full-width invisible target sitting over the
+            button's own neighbourhood. */}
+        <div className={`pointer-events-none z-30 px-6 text-center ${STACK_BOX} ${STACK}`}>
+          {/* LOGO. Wired but empty while GW_LOGO_READY is false: the slot keeps
+              its spec hooks whether or not there is an asset, and `data-gw-logo`
+              states plainly which of the two it is. Decorative — the name it
+              draws is announced once by the sr-only heading, so alt is empty
+              rather than doubling it. */}
+          <div
+            data-qa="gw-seq-logo"
+            data-gw-logo={GW_LOGO_READY && GW_LOGO_SRC ? "on" : "off"}
+            aria-hidden
+            className={`flex w-full shrink-0 items-center justify-center ${LOGO_SIZE}`}
+          >
+            {GW_LOGO_READY && GW_LOGO_SRC ? (
+              <img
+                src={GW_LOGO_SRC}
+                alt=""
+                data-qa="gw-seq-logo-img"
+                // Height-bound with width following, so the lockup's proportions
+                // never depend on the viewport's. The max-widths are only a guard
+                // for very tall, narrow viewports.
+                className="block h-full w-auto max-w-[76vw] object-contain select-none md:max-w-[40rem]"
+                draggable={false}
+              />
+            ) : null}
+          </div>
+
+          {/* The act's heading, drawn rather than set: the brand's wordmark
+              above carries the name, so this exists for the document outline
+              and the section-heading census only. Same device, and the same
+              reason, as the sr-only h2 in CinematicTitiLinks. */}
+          <h2 data-qa="section-heading" translate="no" className="notranslate sr-only">
+            {t("cinematic.gwSeq.title")}
+          </h2>
+          {/* GW.COPY.1 — the gold "official distributor" credential is gone.
+              The lockup now goes straight from the drawn wordmark to the one
+              Body line; nothing stands between the name and the offer. */}
+          <p
+            data-qa="gw-seq-body"
+            // GW.COPY.2 — set in the DISPLAY face, not the Body ramp.
+            //
+            // Three treatments were built and looked at in the running act: the
+            // corrected veil with ivory sans, this, and an outlined ivory with a
+            // green accent. The sans read as a caption under the mark; the
+            // outline read crisp but is a trick, and its green accent would have
+            // been a second filament (DESIGN.md's One Filament Rule). Cinzel is
+            // already the voice of the hero and the act titles, so at this size
+            // the line belongs to the same film instead of annotating it — and
+            // the larger, thinner letterforms are what let the gold accent
+            // survive over bright water at all.
+            //
+            // Legibility comes from the veil beneath and the type's own weight.
+            // No plate, no outline, no shadow: the Unboxed Type Rule.
+            className="max-w-xl text-xl leading-snug tracking-[0.01em] md:text-[34px]"
+            style={{ color: INK, fontFamily: "var(--font-display)" }}
+          >
+              {/* GW.COPY.3 — ONE accent, on the provenance clause. The line is
+                  split in the locale files rather than marked up in a single
+                  string so Spanish can put the accent on its own words ("directo
+                  de la fuente") instead of on whatever falls at the same offset.
+                  The <em> keeps the emphasis semantic; gold is the site accent,
+                  spent here and on the button and nowhere else in the act. */}
+              {t("cinematic.gwSeq.bodyPre")}
+              <em data-qa="gw-seq-body-accent" style={{ color: DEEP_GREEN, fontWeight: 700 }}>
+                {t("cinematic.gwSeq.bodyAccent")}
+              </em>
+              {t("cinematic.gwSeq.bodyPost")}
             </p>
 
             <div
@@ -265,7 +343,7 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
               data-qa="gw-seq-cta-layer"
               data-gw-cta-state={reduced ? "shown" : "hidden"}
               aria-hidden={reduced ? undefined : true}
-              className="mt-8 flex justify-center"
+              className="flex justify-center"
               style={{
                 // Painted straight into the inline style so the button cannot
                 // flash before GSAP's first write. Reduced motion starts, and
@@ -286,7 +364,6 @@ const CinematicGreenWorldSeq = ({ reduced }: Props) => {
                 {t("cinematic.gwSeq.cta")}
               </Link>
             </div>
-          </div>
         </div>
       </SeqAct>
     </div>

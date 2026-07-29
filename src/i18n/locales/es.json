@@ -14,7 +14,15 @@
     "greenWorld": "Green World",
     "portfolio": "Portafolio",
     "socials": "Redes Sociales",
-    "contact": "Contacto"
+    "contact": "Contacto",
+    "comingSoon": "¡Próximamente!!!",
+    "book": "El Libro",
+    "titilinks": "TitiLinks"
+  },
+  "book": {
+    "eyebrow": "Próximamente",
+    "title": "¡Nuevo Libro Muy Pronto!",
+    "body": "El libro de Cristyna Polentino está en proceso de publicación. Pronto compartiremos la fecha de lanzamiento y dónde conseguirlo."
   },
   "hero": {
     "headline": "Creando impacto a través de presencia, actuación y propósito.",
@@ -176,7 +184,9 @@
     "gwSeq": {
       "eyebrow": "Distribuidora oficial",
       "title": "Green World",
-      "body": "Bienestar natural, directo de la fuente. Te muestro cómo pedirlo paso a paso.",
+      "bodyPre": "Bienestar natural, ",
+      "bodyAccent": "directo de la fuente",
+      "bodyPost": ". Te muestro cómo pedirlo paso a paso.",
       "cta": "Cómo comprar"
     },
     "titans": {

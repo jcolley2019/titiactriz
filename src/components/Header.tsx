@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Lock, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, X, Lock, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,12 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  // NAV.SOON.1 — the "coming soon" disclosure. Its children are announcements,
+  // not destinations: neither Book nor TitiLinks has a route yet, so they are
+  // rendered as inert items rather than dead links a reader can click into a
+  // 404. Give them `to` values here the day they ship.
+  const [soonOpen, setSoonOpen] = useState(false);
+  const soonRef = useRef<HTMLLIElement>(null);
   const { board } = useEventsBoard();
   const eventsVisible = !!board?.pageVisible;
   const location = useLocation();
@@ -79,12 +85,45 @@ const Header = () => {
 
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
+  // NAV.CLEAR.1 — the cinematic surface is a reel of full-bleed acts, and a bar
+  // that fills in on scroll cuts a lid across every one of them. Here the header
+  // never takes a background: the acts run edge to edge and the nav floats on
+  // them. Scoped to this route on purpose — the ordinary pages scroll content
+  // UNDER the header and still need the fill to stay readable.
+  const isCinematicHome = location.pathname === "/" || location.pathname === "/cinematic";
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Dismiss the disclosure on an outside pointer or on Escape. Both are wired
+  // only while it is open, so the closed state costs nothing.
+  useEffect(() => {
+    if (!soonOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!soonRef.current?.contains(e.target as Node)) setSoonOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSoonOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [soonOpen]);
+
+  // Route changes must not leave the panel hanging open over the new page.
+  useEffect(() => setSoonOpen(false), [location.pathname]);
+
+  /** The disclosure's children. `path: null` means "announced, not yet built". */
+  const soonItems: { name: string; path: string | null }[] = [
+    { name: t("nav.book"), path: "/book" },
+    { name: t("nav.titilinks"), path: null },
+  ];
 
   const handleNavClick = (path: string) => {
     setIsMobileMenuOpen(false);
@@ -96,6 +135,15 @@ const Header = () => {
       }
     }
   };
+
+  // NAV.CLEAR.1 — with no bar behind it, the nav has to survive whatever act is
+  // under it: near-black at the hero, near-WHITE at Green World. A halo on the
+  // glyphs does that at zero cost to the picture, where any panel or fill would
+  // be the very lid the transparent header exists to remove. Applied only where
+  // the header is transparent over moving art.
+  const navHalo = isCinematicHome
+    ? { textShadow: "0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)" }
+    : undefined;
 
   const linkBase =
     `text-xs lg:text-[13px] uppercase ${isGreenWorldPage ? "font-semibold" : "font-light"} leading-none link-underline transition-all duration-300 whitespace-nowrap`;
@@ -117,6 +165,7 @@ const Header = () => {
           href={link.path}
           onClick={() => handleNavClick(link.path)}
           translate={noTranslate}
+          style={navHalo}
           className={`${linkBase} ${linkColor(false)}`}
         >
           {link.name}
@@ -124,7 +173,12 @@ const Header = () => {
       );
     }
     return (
-      <Link to={link.path} translate={noTranslate} className={`${linkBase} ${linkColor(active)}`}>
+      <Link
+        to={link.path}
+        translate={noTranslate}
+        style={navHalo}
+        className={`${linkBase} ${linkColor(active)}`}
+      >
         {link.name}
       </Link>
     );
@@ -137,9 +191,11 @@ const Header = () => {
           ? "bg-titans-dark/98 backdrop-blur-xl py-3"
           : isGreenWorldPage
             ? `bg-white py-3 border-b border-gw-green/15${isScrolled ? " shadow-sm" : ""}`
-            : isScrolled
-              ? "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
-              : "bg-transparent py-3"
+            : isCinematicHome
+              ? "bg-transparent py-3"
+              : isScrolled
+                ? "bg-background/95 backdrop-blur-xl py-3 border-b border-border/50"
+                : "bg-transparent py-3"
       }`}
     >
       {/* Desktop nav — unchanged */}
@@ -151,6 +207,67 @@ const Header = () => {
           {leftLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
+
+          {/* NAV.SOON.1 — a disclosure, not a link, and it lives on the LEFT:
+              the right rail already carries three links plus the language
+              toggle, so hanging it there tipped the whole bar. The trigger is a
+              button so it is keyboard-operable, and the panel opens left-aligned
+              under it. Gold at every state — the one item meant to be noticed. */}
+          <li ref={soonRef} className="relative">
+            <button
+              type="button"
+              aria-expanded={soonOpen}
+              aria-haspopup="true"
+              data-qa="nav-coming-soon"
+              onClick={() => setSoonOpen((v) => !v)}
+              style={navHalo}
+              className={`${linkBase} flex items-center gap-1 text-gold-light hover:text-gold-light`}
+            >
+              {t("nav.comingSoon")}
+              <ChevronDown
+                size={13}
+                aria-hidden
+                className={`transition-transform duration-300 ${soonOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            <ul
+              data-qa="nav-coming-soon-panel"
+              className={`absolute left-0 top-full mt-3 min-w-[11rem] border transition-all duration-300 ${
+                isGreenWorldPage
+                  ? "bg-white border-gw-green/20"
+                  : "bg-[#0b0a08]/95 backdrop-blur-xl border-[#C9A55C]/30"
+              } ${
+                soonOpen
+                  ? "opacity-100 visible translate-y-0"
+                  : "pointer-events-none invisible -translate-y-1 opacity-0"
+              }`}
+            >
+              {soonItems.map((item) => {
+                const cls = `notranslate block px-4 py-3 text-xs uppercase tracking-[0.16em] transition-colors ${
+                  isGreenWorldPage ? "text-gw-green-dark" : "text-[#f0e9da]"
+                }`;
+                return (
+                  <li key={item.name}>
+                    {item.path ? (
+                      <Link
+                        to={item.path}
+                        translate="no"
+                        onClick={() => setSoonOpen(false)}
+                        className={`${cls} hover:text-gold-light`}
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <span aria-disabled translate="no" className={`${cls} opacity-60`}>
+                        {item.name}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
         </ul>
 
         <div className="justify-self-center">
@@ -168,6 +285,7 @@ const Header = () => {
           {rightLinks.map((link) => (
             <li key={link.name}>{renderLink(link)}</li>
           ))}
+
           <li>
             <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
           </li>
@@ -196,6 +314,7 @@ const Header = () => {
                 <Link
                   to={link.path}
                   translate={link.noTranslate ? "no" : undefined}
+                  style={navHalo}
                   className={`mobile-nav-link uppercase font-light whitespace-nowrap transition-colors ${
                     isGreenWorldPage
                       ? active
@@ -215,6 +334,7 @@ const Header = () => {
 
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          style={navHalo}
           className={`shrink-0 p-2 transition-colors ${
             isGreenWorldPage
               ? "text-gw-green-dark hover:text-gw-green"
@@ -284,6 +404,42 @@ const Header = () => {
               )}
             </li>
           ))}
+
+          {/* NAV.SOON.1 — mobile. No disclosure to open here: the sheet is
+              already a disclosure, so the items are simply listed under their
+              heading rather than hidden behind a second tap. */}
+          <li className="pt-2">
+            <p
+              data-qa="nav-coming-soon-mobile"
+              className="text-xs uppercase tracking-[0.2em] text-gold-light"
+            >
+              {t("nav.comingSoon")}
+            </p>
+            <ul className="mt-2 space-y-1 pl-3">
+              {soonItems.map((item) => {
+                const cls = `notranslate block py-1 text-base font-serif ${
+                  isTitansPage
+                    ? "text-white/70"
+                    : isGreenWorldPage
+                      ? "text-gw-white/70"
+                      : "text-foreground/70"
+                }`;
+                return (
+                  <li key={item.name}>
+                    {item.path ? (
+                      <Link to={item.path} translate="no" onClick={closeMenu} className={cls}>
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <span aria-disabled translate="no" className={`${cls} opacity-60`}>
+                        {item.name}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
 
           <li aria-hidden className="pt-2">
             <div

@@ -15,6 +15,7 @@ const Socials = lazy(() => import("@/pages/Socials"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Events = lazy(() => import("@/pages/Events"));
+const Book = lazy(() => import("@/pages/Book"));
 const Studio = lazy(() => import("@/pages/Studio"));
 const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
 
@@ -104,6 +105,20 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <Suspense fallback={<RouteFallback />}>
                 <Socials />
+              </Suspense>
+            </PageTransition>
+          }
+        />
+        {/* BOOK.0 — the slug is English like every other route here; the page
+            itself is bilingual, which is this site's convention (see SEO.tsx:
+            "routes are language-neutral"). Worth revisiting to /libro before it
+            is indexed if ES-first slugs are wanted, but not after. */}
+        <Route
+          path="/book"
+          element={
+            <PageTransition>
+              <Suspense fallback={<RouteFallback />}>
+                <Book />
               </Suspense>
             </PageTransition>
           }
