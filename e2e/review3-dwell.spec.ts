@@ -6,16 +6,16 @@ import { routeSupabase } from "./_admin";
  * REVIEW.3a — the UNIFORM dwell law.
  *
  * Every story act pins with the About standard — `start: "top top"`,
- * `end: "+=120%"` — before it releases: the gallery, About, and contact. The
- * showcases (Green World, TitiLinks, the Book teaser) keep their own scrub
- * timelines and are not this file's business.
+ * `end: "+=120%"` — before it releases: the gallery, the Book announcement
+ * (BOOK.ACT.2), About, and contact. The scrub showcases (Green World and
+ * TitiLinks) keep their own `+=300%` timelines and are not this file's business.
  *
  * Laws, each falsifiable on the live render:
  *
  *  1. EACH STORY ACT DWELLS — engages at the top of the frame, holds through
  *     the dwell, releases after +=120%.
- *  2. THE DWELL IS UNIFORM — the three acts' pin distances are the SAME
- *     distance, not three numbers that happen to be near each other.
+ *  2. THE DWELL IS UNIFORM — the four acts' pin distances are the SAME
+ *     distance, not four numbers that happen to be near each other.
  *  3. THE GALLERY STAYS ALIVE WHILE PINNED — hover still pauses the marquee,
  *     and a click still opens the lightbox, mid-dwell.
  *  4. THE FORM STAYS USABLE WHILE PINNED — an input can be clicked, focused
@@ -23,7 +23,7 @@ import { routeSupabase } from "./_admin";
  *  5. THE FOOTER NEVER PINS — the dwell law stops at the footer.
  *  6. REDUCED MOTION SKIPS EVERY PIN.
  *
- * Evidence: _qa/review3-dwell-{gallery,about,contact}.png — each act held
+ * Evidence: _qa/review3-dwell-{gallery,book,about,contact}.png — each act held
  * mid-dwell.
  */
 
@@ -32,8 +32,10 @@ const VH = 900;
 /** The dwell: +=120% of the viewport, the About standard. */
 const DWELL = 1.2 * VH;
 
+/** Document order, so the sweep below only ever wheels downward. */
 const ACTS = [
   { name: "gallery", sel: '[data-qa="cinematic-gallery"]' },
+  { name: "book", sel: '[data-qa="cinematic-book"]' },
   { name: "about", sel: "#cinematic-about" },
   { name: "contact", sel: "#contact" },
 ] as const;
@@ -97,6 +99,29 @@ async function pinStartOf(page: Page, sel: string) {
 const topOf = (page: Page, sel: string) =>
   page.locator(sel).evaluate((el) => el.getBoundingClientRect().top);
 
+/**
+ * Wheel until the act is genuinely holding the top of the frame, and return the
+ * pin start it engaged on.
+ *
+ * `pinStartOf` above hands back a STABILIZED offset, but stability is not
+ * permanence: a `ScrollTrigger.refresh()` landing between the read and the end
+ * of the wheel re-flows every later act, leaving the aim short (measured 82px
+ * adrift on a cold run — enough to miss a 60px overshoot and read the act as
+ * unpinned). Aiming at the engage point is the one step in this file with no
+ * slack — mid-dwell and release both aim hundreds of pixels inside their
+ * window — so the aim is simply re-taken against a fresh measurement. The law
+ * is unchanged: the caller still asserts the act is pinned when this returns.
+ */
+async function engage(page: Page, sel: string) {
+  let pinStart = await pinStartOf(page, sel);
+  for (let i = 0; i < 4; i++) {
+    await wheelTo(page, pinStart + 60);
+    if (Math.abs(await topOf(page, sel)) <= 2) break;
+    pinStart = await pinStartOf(page, sel);
+  }
+  return pinStart;
+}
+
 test.describe("REVIEW.3a — the uniform dwell law", () => {
   test("1440 — each story act engages, holds, and releases on the same +=120%", async ({
     page,
@@ -121,8 +146,7 @@ test.describe("REVIEW.3a — the uniform dwell law", () => {
       // Engage: just past the spacer's top (wheelTo converges within ±8px, so
       // aiming a hair beyond keeps the check deterministic) the act holds the
       // top of the frame…
-      const pinStart = await pinStartOf(page, act.sel);
-      await wheelTo(page, pinStart + 60);
+      const pinStart = await engage(page, act.sel);
       expect(Math.abs(await topOf(page, act.sel)), `${act.name} pinned at engage`).toBeLessThanOrEqual(2);
 
       // …and half a dwell later it is STILL holding the frame.
@@ -138,8 +162,8 @@ test.describe("REVIEW.3a — the uniform dwell law", () => {
       expect(await topOf(page, act.sel), `${act.name} released after the dwell`).toBeLessThan(-200);
     }
 
-    // Law 2 — ONE dwell, not three: every act's pin distance is +=120% of the
-    // viewport, and all three are the SAME number.
+    // Law 2 — ONE dwell, not four: every act's pin distance is +=120% of the
+    // viewport, and all four are the SAME number.
     for (const act of ACTS) {
       expect(
         Math.abs(distances[act.name] - DWELL),
@@ -149,7 +173,7 @@ test.describe("REVIEW.3a — the uniform dwell law", () => {
     const values = ACTS.map((a) => distances[a.name]);
     expect(
       Math.max(...values) - Math.min(...values),
-      `the three dwells are one distance (${values.join(", ")})`,
+      `the four dwells are one distance (${values.join(", ")})`,
     ).toBeLessThanOrEqual(4);
 
     // Law 5 — the dwell law stops at the footer.

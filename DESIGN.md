@@ -336,14 +336,16 @@ is parity, not a follow-up.
 The hero uses `.cine-act-lvh` — `100vh` then `100lvh` — so it covers the full
 *physical* screen and nothing but the hero can ever sit behind a floating mobile
 browser bar; it overflows by the chrome's height while the chrome is shown, a
-deliberate trade the hero can absorb. Mid-page unpinned acts (Green World,
-Titans) use `.cine-act-vh`, which declares `100vh` and then `100dvh` on mobile
-so the act covers exactly the visible viewport as browser chrome collapses.
-Pinned stages (the reel, TitiLinks)
-deliberately stay on `svh`: ScrollTrigger writes pixel dimensions at refresh
-time, and a `dvh` stage would be re-measured taller and jump mid-scrub when the
-URL bar retracts. Every full-viewport section reserves its height in CSS before
-any JS or media loads, so the document is never momentarily short on first paint.
+deliberate trade the hero can absorb. Mid-page acts (Green World, Titans) use
+`.cine-act-vh`, which declares `100vh` and then `100dvh` on mobile so the act
+covers exactly the visible viewport as browser chrome collapses — as does the
+Book announcement, which is pinned but *held* rather than scrubbed (BOOK.ACT.2).
+Pinned SCRUB stages (the reel, TitiLinks) deliberately stay on `svh`:
+ScrollTrigger writes pixel dimensions at refresh time, and a `dvh` stage would be
+re-measured taller and jump mid-scrub when the URL bar retracts. A held act has
+no playhead to jump, so it takes `dvh` and the coverage guarantee. Every
+full-viewport section reserves its height in CSS before any JS or media loads, so
+the document is never momentarily short on first paint.
 
 **Act padding.** `1.5rem` horizontal, `6rem` top, `4rem` bottom — top-weighted to
 clear the fixed header. These values are description, not machine tokens: no
@@ -462,15 +464,19 @@ Ratified on Joey's direction. Three decisions:
 
 The page's scroll cost is a ruled vocabulary with exactly two prices:
 
-1. **Story acts dwell `+=120%`.** The gallery, About, and Contact each pin
-   (`start: "top top"`, `end: "+=120%"`) and hold their frame for 120% of a
-   viewport before releasing — the uniform dwell law: every story act earns the
-   same beat of stillness, no act more. A pinned act keeps its pointer events,
-   so the Contact form stays fully usable through its dwell. **The footer never
-   pins.** Reduced motion skips every pin.
-2. **Showcases pin `+=300%`.** The reel, TitiLinks, and the Green World
-   sequence each hold for three viewports (`SEQ_PIN_DURATION = "+=300%"`) —
-   the price of a scrubbed performance, uniform across all three.
+1. **Story acts dwell `+=120%`.** The gallery, the **Book announcement**
+   (BOOK.ACT.2), About, and Contact each pin (`start: "top top"`,
+   `end: "+=120%"`) and hold their frame for 120% of a viewport before
+   releasing — the uniform dwell law: every story act earns the same beat of
+   stillness, no act more. A pinned act keeps its pointer events, so the Contact
+   form stays fully usable and the Book CTA stays clickable through the dwell.
+   **The footer never pins.** Reduced motion skips every pin.
+2. **The scrub showcases pin `+=300%`.** The reel, TitiLinks, and the Green
+   World sequence each hold for three viewports
+   (`SEQ_PIN_DURATION = "+=300%"`) — the price of a scrubbed performance,
+   uniform across all three. These three are the *only* showcases; an act with a
+   scrubbed entrance but nothing to perform is a story act and takes the story
+   price, which is what moved the Book act off the showcase side of the line.
 3. **Scrubbed sequences carry dead zones.** Frame-scrubbed acts map pin
    progress through `SEQ_LEAD_IN = 0.08` and `SEQ_LEAD_OUT = 0.08`: the first
    frame holds while the act settles, the final frame holds before release, and
@@ -481,6 +487,19 @@ The page's scroll cost is a ruled vocabulary with exactly two prices:
 **The Dwell Law.** A story act pins for `+=120%`; a showcase pins for
 `+=300%`; the footer never pins. A new act chooses one of the two prices — a
 third duration is a design-system change, not a tuning.
+
+**A pinned act owns its full ground** (BOOK.ACT.2). An act that holds the frame
+must *cover* the frame: its ground reaches the bottom edge at the settled
+position and at every point of the hold, so no strip of the next act shows
+beneath it. This is what a short stage costs — the Book act at `min-h-[80svh]`
+left 180px of Green World's bright water visible under it at 1440×900. A held
+act is therefore a full-viewport stage on the acts' own height grammar
+(`.cine-act-vh`), with `min-height` and never `height`, so long copy grows the
+stage instead of being clipped by it. This does not soften the `svh`-on-pinned
+rule under Do's and Don'ts: that rule protects a *scrubbed* stage, whose playhead
+would jump if the stage re-measured mid-scrub. A held act has no playhead to
+jump, and covering the visible viewport is the stronger requirement — so a story
+act's dwell takes `dvh`, and only the scrub showcases stay on `svh`.
 
 ### Settled — the Green World act: dark ink on bright water (GW.COPY.5 → REVIEW.3b, 2026-07-29)
 
@@ -658,7 +677,7 @@ The recurring unit: a full-bleed viewport-true stage holding one photograph at
 near-full brightness, a directional veil, a gold eyebrow, a display or headline
 in warm ivory, and at most one ghost CTA. Acts advance; they do not stack.
 
-### Signature — the Book teaser act (BOOK.ACT.1)
+### Signature — the Book teaser act (BOOK.ACT.1 → BOOK.ACT.2)
 
 The book act, between the gallery and Green World, is the pattern for an act
 that **reuses instead of claiming**:
@@ -670,15 +689,23 @@ that **reuses instead of claiming**:
   keys** (`book.*`, plus the nav's name for the page on the CTA) — a census,
   not new claims. The act gains detail the day `/book` does, from the same
   keys.
-- **Field language, showcase class.** One uninterrupted `CHAPTER_GROUND_1`
-  room (the warmest of the family — candle-light for a book, re-opening the
-  reel's tonal sequence before Green World's bright water), the gold eyebrow,
-  the display face, and the outlined button.
-- **Scrubbed entrance, no pin.** The entrance is a modest scrub timeline in
-  the spreads' own grammar (`y: 14 → 0`, opacity, `power3.out`, `0.12`
-  stagger, scrubbed from `top 78%` to `top 22%`) with **no long pin** — the
-  act costs the reader only its own height of scroll, which is what keeps it a
-  teaser rather than a showcase. Reduced motion renders it static and settled.
+- **Field language.** One uninterrupted `CHAPTER_GROUND_1` room (the warmest of
+  the family — candle-light for a book, re-opening the reel's tonal sequence
+  before Green World's bright water), the gold eyebrow, the display face, and
+  the outlined button.
+- **A full stage, its column centred** (BOOK.ACT.2). The act is a
+  `.cine-act-vh` full-viewport stage with its content column centred inside the
+  site's act padding (`1.5rem` / `6rem` / `4rem`). It shipped at
+  `min-h-[80svh]`, which both read short and leaked the seam — see *A pinned act
+  owns its full ground* under the scroll grammar.
+- **Scrubbed entrance, then the story dwell** (BOOK.ACT.2). The entrance is a
+  modest scrub timeline in the spreads' own grammar (`y: 14 → 0`, opacity,
+  `power3.out`, `0.12` stagger, scrubbed from `top 78%` to `top 22%`), and the
+  act then pins for the story acts' `+=120%`. The entrance completes at
+  `top 22%`, before the pin engages at `top top`, so the hold always begins on
+  an act that has already settled. It shipped with no pin at all, and an
+  announcement that scrolls past unbidden reads as an aside. Reduced motion
+  builds neither: static, settled, unpinned — and still a full stage.
 
 ## Do's and Don'ts
 
@@ -692,8 +719,9 @@ that **reuses instead of claiming**:
 - **Do** use `outline` with a negative `outline-offset` for hairlines on framed
   media, never `border` — a border changes the measured box and breaks framing
   parity.
-- **Do** keep `dvh` on unpinned acts and `svh` on pinned stages. Test: collapse
-  the mobile URL bar mid-scrub; a pinned stage must not jump.
+- **Do** keep `dvh` on acts that just stand there — unpinned, or pinned and
+  merely held — and `svh` on pinned SCRUB stages. Test: collapse the mobile URL
+  bar mid-scrub; a scrubbed stage must not jump.
 - **Do** let the veil be directional — open where the photograph carries the
   frame, heavier only where type actually lands.
 - **Do** ship every string in ES and EN at the same time. Test: locale key counts

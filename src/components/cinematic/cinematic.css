@@ -66,18 +66,25 @@
      is the deliberate trade, and it costs nothing here: the hero is unpinned,
      its lockup is centered, and its scroll cue sits `2rem` off the bottom.
      At first paint lvh ≥ svh, so TA.7d's height reservation still holds.
-   • OTHER unpinned full-bleed acts (`.cine-act-vh`: Green World, Titans) keep
-     `dvh` on mobile so they always cover exactly the visible viewport. At first
-     paint the chrome is shown, so dvh ≡ svh and TA.7d's guarantee is unchanged.
-     They are mid-page, so no browser bar floats over them at rest.
-   • PINNED stages (`.cine-h-full` reel, `.cine-vh-full` TitiLinks) deliberately
-     stay on `svh`. ScrollTrigger measures a pinned element and writes px
-     dimensions at refresh time; a URL-bar collapse fires a resize → refresh, so
-     a `dvh` stage would be re-measured taller and JUMP mid-scrub — exactly when
-     the chrome retracts. `svh` re-measures to the same number, so the pin is
-     immune. (Filling the collapsed-chrome viewport here would need static `lvh`,
-     which instead overflows while the chrome is shown — a design trade, not a
-     silent fix.)
+   • OTHER full-bleed acts (`.cine-act-vh`: Green World, Titans, and the Book
+     announcement) keep `dvh` on mobile so they always cover exactly the visible
+     viewport. At first paint the chrome is shown, so dvh ≡ svh and TA.7d's
+     guarantee is unchanged. They are mid-page, so no browser bar floats over
+     them at rest.
+     BOOK.ACT.2 — the Book act is on this class and IS pinned, which is not a
+     contradiction of the rule below: it is a HELD act, not a scrubbed one. What
+     `svh` protects is a playhead, and a hold has none — a taller re-measure
+     just gives the act more ground to own, which is the direction the seam law
+     wants. Covering the visible viewport is the stronger requirement for an act
+     whose whole job is to leave no strip of its neighbour showing.
+   • PINNED SCRUB stages (`.cine-h-full` reel, `.cine-vh-full` TitiLinks)
+     deliberately stay on `svh`. ScrollTrigger measures a pinned element and
+     writes px dimensions at refresh time; a URL-bar collapse fires a resize →
+     refresh, so a `dvh` stage would be re-measured taller and JUMP mid-scrub —
+     exactly when the chrome retracts. `svh` re-measures to the same number, so
+     the pin is immune. (Filling the collapsed-chrome viewport here would need
+     static `lvh`, which instead overflows while the chrome is shown — a design
+     trade, not a silent fix.)
    Desktop (md+) keeps `svh` throughout: there is no dynamic chrome. The hero
    needs no md+ override — with no dynamic chrome, lvh ≡ svh ≡ vh. */
 .cine-vh-full { min-height: 100vh; min-height: 100svh; }
