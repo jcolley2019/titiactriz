@@ -375,6 +375,21 @@
     to { transform: translate3d(-50%, 0, 0); }
   }
 
+  /* GALLERY.TOUCH.1 — lightbox plate entrances. A subtle slide in the swipe
+     direction; the reduced-motion branch uses the plain crossfade instead. */
+  @keyframes lightbox-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes lightbox-slide-in-next {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes lightbox-slide-in-prev {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
 
 
   /* Stagger animations */

@@ -1,8 +1,8 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import ScrollReveal from "@/components/ScrollReveal";
 
 type Photo = {
@@ -158,21 +158,10 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
     setIsOpen(true);
   };
 
-  const navigateLightbox = (direction: "prev" | "next") => {
-    if (photos.length === 0) return;
-    const newIndex =
-      direction === "prev"
-        ? (selectedIndex - 1 + photos.length) % photos.length
-        : (selectedIndex + 1) % photos.length;
-    setSelectedIndex(newIndex);
-  };
-
   const altFor = (photo: Photo, i: number) =>
     photo.alt_text && photo.alt_text.trim().length > 0
       ? photo.alt_text
       : t("gallery.imageAlt", { number: i + 1 });
-
-  const selectedPhoto = photos[selectedIndex];
 
   // Build two copies for seamless marquee
   const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
@@ -259,6 +248,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
                       if (i < photos.length) imageRefs.current[i] = el;
                     }}
                     data-index={originalIndex}
+                    data-qa="gallery-photo"
                     onClick={() => handleImageClick(originalIndex)}
                     aria-hidden={i >= photos.length ? true : undefined}
                     className={`${tileClass} ${
@@ -292,49 +282,14 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
         </div>
       </section>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
-          <button
-            onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-            aria-label={t("gallery.close")}
-          >
-            <X className="w-5 h-5 text-foreground group-hover:text-gold-light" />
-          </button>
-
-          <button
-            onClick={() => navigateLightbox("prev")}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-            aria-label={t("common.previousImage")}
-          >
-            <ChevronLeft className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-          </button>
-
-          <button
-            onClick={() => navigateLightbox("next")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-background/90 backdrop-blur border border-border/50 flex items-center justify-center hover:bg-background hover:border-accent/50 hover:shadow-glow transition-all duration-300 group"
-            aria-label={t("common.nextImage")}
-          >
-            <ChevronRight className="w-5 h-5 text-foreground group-hover:text-gold-light transition-colors duration-300" />
-          </button>
-
-          {selectedPhoto && (
-            <img
-              src={selectedPhoto.image_url}
-              alt={altFor(selectedPhoto, selectedIndex)}
-              className="w-full h-auto max-h-[85vh] object-contain rounded-sm animate-[fadeIn_0.3s_ease-out]"
-            />
-          )}
-
-          {photos.length > 0 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50">
-              <span className="text-sm text-foreground/80 bg-background/60 backdrop-blur px-4 py-2 rounded-full border border-border/30">
-                {selectedIndex + 1} / {photos.length}
-              </span>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* GALLERY.TOUCH.1: the shared lightbox replaces the old generic
+          Dialog — same photos array the marquee renders, opened at index. */}
+      <PhotoLightbox
+        photos={photos}
+        open={isOpen}
+        initialIndex={selectedIndex}
+        onClose={() => setIsOpen(false)}
+      />
     </>
   );
 };

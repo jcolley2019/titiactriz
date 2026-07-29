@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import gsap from "gsap";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import type { CinematicPhoto } from "./useCinematicData";
 
 type Props = { photos: CinematicPhoto[]; reduced: boolean };
@@ -23,6 +24,13 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const tweenRef = useRef<gsap.core.Tween | null>(null);
+
+  // GALLERY.TOUCH.1: tap/click a photo → the shared lightbox at that index.
+  const [lightbox, setLightbox] = useState<{ open: boolean; index: number }>({
+    open: false,
+    index: 0,
+  });
+  const openLightbox = (index: number) => setLightbox({ open: true, index });
 
   const altFor = (p: CinematicPhoto, i: number) =>
     p.alt_text && p.alt_text.trim().length > 0
@@ -77,19 +85,32 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
         {heading}
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 md:grid-cols-3">
           {photos.map((p, i) => (
-            <img
+            <button
               key={p.id}
-              src={p.image_url}
-              alt={altFor(p, i)}
-              loading="lazy"
-              decoding="async"
-              className="aspect-[4/5] w-full rounded-sm object-cover"
-            />
+              type="button"
+              data-qa="gallery-photo"
+              onClick={() => openLightbox(i)}
+              className="block aspect-[4/5] w-full overflow-hidden rounded-sm"
+            >
+              <img
+                src={p.image_url}
+                alt={altFor(p, i)}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            </button>
           ))}
         </div>
         <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
           {photos.length} · {t("gallery.title")}
         </p>
+        <PhotoLightbox
+          photos={photos}
+          open={lightbox.open}
+          initialIndex={lightbox.index}
+          onClose={() => setLightbox((s) => ({ ...s, open: false }))}
+        />
       </section>
     );
   }
@@ -126,13 +147,23 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
                 aria-hidden={isClone}
                 className="relative mr-6 aspect-[4/5] h-[56svh] shrink-0 overflow-hidden rounded-sm md:mr-8"
               >
-                <img
-                  src={p.image_url}
-                  alt={isClone ? "" : altFor(p, originalIndex)}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                />
+                {/* GALLERY.TOUCH.1: every tile (clones included, mapped back
+                    to the original index) opens the lightbox at that photo. */}
+                <button
+                  type="button"
+                  data-qa="gallery-photo"
+                  tabIndex={isClone ? -1 : undefined}
+                  onClick={() => openLightbox(originalIndex)}
+                  className="block h-full w-full"
+                >
+                  <img
+                    src={p.image_url}
+                    alt={isClone ? "" : altFor(p, originalIndex)}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </button>
               </figure>
             );
           })}
@@ -142,6 +173,13 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
       <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
         {photos.length} · {t("gallery.title")}
       </p>
+
+      <PhotoLightbox
+        photos={photos}
+        open={lightbox.open}
+        initialIndex={lightbox.index}
+        onClose={() => setLightbox((s) => ({ ...s, open: false }))}
+      />
     </section>
   );
 };
