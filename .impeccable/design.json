@@ -28,6 +28,30 @@
         "canonical": "#f0e9da",
         "tonalRamp": ["#282318", "#413a29", "#5b513a", "#786b4e", "#988966", "#bbab84", "#d9cdaf", "#f0e9da"]
       },
+      "ground-adjacent": {
+        "role": "neutral",
+        "displayName": "Adjacent Ground",
+        "canonical": "#0e0c09",
+        "tonalRamp": ["#0e0c09", "#1b1814", "#29251e", "#38332a", "#4d463a", "#6e6455", "#9c9180", "#d7cfc2"]
+      },
+      "ground-field": {
+        "role": "neutral",
+        "displayName": "Field-Input Ground",
+        "canonical": "#12100c",
+        "tonalRamp": ["#12100c", "#1f1c16", "#2d2920", "#3c362b", "#51493a", "#726755", "#9f9480", "#d8d1c2"]
+      },
+      "ground-chrome": {
+        "role": "neutral",
+        "displayName": "Chrome Ground",
+        "canonical": "#141210",
+        "tonalRamp": ["#141210", "#211e1a", "#2f2b25", "#3e3930", "#534c40", "#746b5b", "#a09786", "#d9d3c6"]
+      },
+      "gw-deep-green": {
+        "role": "secondary",
+        "displayName": "Deep Green (Green World act only — the One Filament Rule's single scoped exception)",
+        "canonical": "#0B5D2A",
+        "tonalRamp": ["#041d0e", "#073019", "#094722", "#0B5D2A", "#1f7a3e", "#459a5f", "#7dbd90", "#c0e2cb"]
+      },
       "admin-charcoal": {
         "role": "neutral",
         "displayName": "Legacy Charcoal (admin-exempt, not normative)",
@@ -148,7 +172,9 @@
       "Spanish and English at exact parity on every surface"
     ],
     "rules": [
-      { "name": "The One Filament Rule", "body": "Exactly one accent lights the room. Gold appears as line, letter, or rule - never as a filled surface, never as a second accent alongside it, and never blended into another hue. If a screen reads as 'gold themed' rather than as dark with a gold detail, there is too much of it.", "section": "colors" },
+      { "name": "The One Filament Rule (amended PIPELINE.2)", "body": "Exactly one accent lights the room. Gold appears as line, letter, or rule - never as a filled surface, never as a second accent alongside it, and never blended into another hue. One exception is ratified, and it is scoped: the Green World act sets its type accent in Deep Green (#0B5D2A), because that act flips polarity to dark ink on bright water and gold cannot survive there at any weight. The exception belongs to that single act; the venture reds stay behind their own gate.", "section": "colors" },
+      { "name": "The Dwell Law", "body": "A story act pins for +=120%; a showcase pins for +=300%; the footer never pins. A new act chooses one of the two prices - a third duration is a design-system change, not a tuning.", "section": "layout" },
+      { "name": "The Publisher Law", "body": "The book act is a coming-soon teaser only: no title, no date, no cover, no way to buy. Every string is the /book page's own bilingual copy via the same locale keys - a census, not new claims.", "section": "components" },
       { "name": "The Warm Dark Rule", "body": "The ground is #0b0a08 and its veils are rgba(11,10,8,a). Pure #000 and cool blue-blacks are both regressions: the warmth is what lets her skin tones sit in the frame without going waxy.", "section": "colors" },
       { "name": "The Two Systems Rule", "body": "The cinematic palette is normative for everything a visitor sees. /admin and the shadcn internals are explicitly exempt and may keep the legacy :root tokens. Any appearance of #121212 or #C4A86C on a public surface is drift, not a choice.", "section": "colors" },
       { "name": "The Unboxed Type Rule", "body": "Type earns legibility from its own weight, color, and the veil beneath it - never from a plate, chip, or panel drawn behind it. If text needs a box to be readable, the veil is wrong, not the type.", "section": "typography" },

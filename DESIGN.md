@@ -6,6 +6,10 @@ colors:
   gold: "#C9A55C"
   ivory: "#f4ecdb"
   ivory-dim: "#f0e9da"
+  ground-adjacent: "#0e0c09"
+  ground-field: "#12100c"
+  ground-chrome: "#141210"
+  gw-deep-green: "#0B5D2A"
   admin-charcoal: "#121212"
   admin-tan: "#C4A86C"
 typography:
@@ -33,11 +37,6 @@ typography:
 rounded:
   sharp: "0px"
   admin: "0.5rem"
-spacing:
-  act-x: "1.5rem"
-  act-top: "6rem"
-  act-bottom: "4rem"
-  column-gap: "3rem"
 components:
   cta-ghost:
     backgroundColor: "transparent"
@@ -169,16 +168,90 @@ screening room, not of a product page.
 - **Dimmed Ivory** (`#f0e9da`): secondary and supporting type, typically at
   reduced opacity for scroll cues and captions.
 
+### Secondary grounds
+
+The ground is not one value but a short family of warm near-blacks, each a
+named step with a job. All of them stay inside the Warm Dark Rule's world.
+
+- **Adjacent Ground** (`#0e0c09`): the room one step lighter than the ground —
+  the Contact act's field and the TitiLinks landing. Used where an act carries
+  no photograph and needs to read as its own opaque room beside the
+  photographic acts, and as the ink on the one solid-gold surface (the
+  Contact submit button's text).
+- **Field-Input Ground** (`#12100c`): form surfaces. The Contact inputs sit on
+  it at 70% opacity so the field reads as a shallow recess in the room's wall,
+  not a plate.
+- **Chrome Ground** (`#141210`): simulated device chrome and media fallback —
+  the TitiLinks phone's browser bar and the reel's pre-media fallback surface.
+  A component-surface step, never an act ground.
+- **Field family** (the wide reel's spread): `FIELD_GROUND` (`#0b0a08`, the
+  ground restated as an exported constant), the sibling `CHAPTER_GROUND_1..3`
+  shades recorded under the REVIEW.2 decision below, `FIELD_LIGHT`
+  (`linear-gradient(180deg, rgba(244,236,219,0.05) 0%, rgba(244,236,219,0.015)
+  42%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.24) 100%)` — the barely-there ivory
+  luminance that keeps the field from reading as a dead fill), and `SEAM_GOLD`
+  (`rgba(201,165,92,0.55)`, the chapter/plate seam at the ratified frame
+  opacity).
+
+### Venture accents (gated)
+
+Two ventures carry their own brand accents. Both are **gated to their own
+surfaces**: their appearance anywhere outside the named scope is drift, exactly
+as `#121212` on a public surface would be.
+
+- **Titans reds** — kicker `#E24A54` (the brand red brightened so it holds AA
+  over the dark art) and CTA `#C41E2A` (the on-brand solid, white text).
+  Scope: the Titans act and the `/titans-agency` page only.
+- **Deep Green** (`#0B5D2A`) — the Green World act's type accent, deliberately
+  much darker than the logo's `#12A03B`, which cannot hold against the bright
+  plate. Scope: the Green World act's bright-water surfaces only. This is the
+  One Filament Rule's single ratified exception; see the amendment below and
+  the Green World grammar under Layout.
+
+### The gold alpha ladder
+
+Gold appears at fixed alpha steps of `rgba(201,165,92,α)`, and the step *is*
+the meaning — three bands, from substance to air:
+
+- **`1.0`** — the filament itself: letterforms, eyebrows, the CTA border, solid
+  hairline rules. Gold as line and letter.
+- **`0.85` / `0.65` / `0.5` (glow band)** — light *around* a gold line, never a
+  surface: the TitiLinks exit-shimmer's peak (`0.85`), the bloom on the moving
+  progress rule (`0.65`), the halo on a gold-bordered overlay and the success
+  border (`0.5`). Always a `drop-shadow`/`box-shadow` or a border, never a fill.
+- **`0.55`** — the **ratified frame opacity**: the wide plate's hairline, the
+  spread seam (`SEAM_GOLD`), the lightbox frame. A gold edge that must read as
+  drawn, not glowing.
+- **`0.4` / `0.35` (structure band)** — hairlines at rest on or beside
+  photography: the About panel's inset outline and tag borders (`0.4`), side
+  rails, input borders, and ambient edge glows (`0.35`). Present, not
+  assertive.
+- **`0.12` / `0.1` / `0.08` (atmosphere band)** — gold as air: edgeless radial
+  tints over a stage (`0.12`, `0.1`), the fill of a gold-bordered chip and the
+  success wash (`0.12`, `0.08`). At these alphas gold may be an area — it has
+  no edge and reads as warmth, not as a second accent.
+- **`0`** — the terminus of every fading gold gradient (scroll-cue rule,
+  shimmer rest state).
+
+New gold must land on an existing step with the step's meaning; a new alpha is
+a design-system change, not a tweak.
+
 ### Admin-exempt (not normative)
 
 - **Legacy Charcoal** (`#121212`) and **Legacy Tan** (`#C4A86C`): the older
   `:root` HSL system in `src/index.css`, commented "inspired by
   mistytrevino.com". It powers `/admin` and the shadcn primitives.
 
-**The One Filament Rule.** Exactly one accent lights the room. Gold appears as
-line, letter, or rule — never as a filled surface, never as a second accent
-alongside it, and never blended into another hue. If a screen reads as "gold
-themed" rather than as dark with a gold detail, there is too much of it.
+**The One Filament Rule (amended PIPELINE.2, 2026-07-29).** Exactly one accent
+lights the room. Gold appears as line, letter, or rule — never as a filled
+surface, never as a second accent alongside it, and never blended into another
+hue. If a screen reads as "gold themed" rather than as dark with a gold detail,
+there is too much of it. **One exception is ratified, and it is scoped:** the
+Green World act sets its type accent in Deep Green (`#0B5D2A`), because that
+act flips polarity to dark ink on bright water and gold cannot survive there at
+any weight (measured `1.0:1`). The exception belongs to that single act — on
+every other cinematic surface, gold remains the only accent, and the venture
+reds stay behind their own gate.
 
 **The Warm Dark Rule.** The ground is `#0b0a08` and its veils are
 `rgba(11,10,8,α)`. Pure `#000` and cool blue-blacks are both regressions: the
@@ -273,7 +346,9 @@ URL bar retracts. Every full-viewport section reserves its height in CSS before
 any JS or media loads, so the document is never momentarily short on first paint.
 
 **Act padding.** `1.5rem` horizontal, `6rem` top, `4rem` bottom — top-weighted to
-clear the fixed header.
+clear the fixed header. These values are description, not machine tokens: no
+code reads a spacing scale, so the former frontmatter `spacing:` block was
+deleted (PIPELINE.2) rather than left implying one exists.
 
 **Breakpoints.** `xs 480 · sm 640 · md 768 · lg 1024 · xl 1280 · 2xl 1536`. The
 container centers with `2rem` padding and caps at `1400px` — a constraint that
@@ -382,6 +457,63 @@ Ratified on Joey's direction. Three decisions:
    completes. The markup state is the finished frame, so reduced motion — and
    any surface that never wires the ref — renders frame and filigree complete
    and static, no draw.
+
+### Settled — the scroll grammar: dwells, pins, and dead zones (REVIEW.3a, 2026-07-29)
+
+The page's scroll cost is a ruled vocabulary with exactly two prices:
+
+1. **Story acts dwell `+=120%`.** The gallery, About, and Contact each pin
+   (`start: "top top"`, `end: "+=120%"`) and hold their frame for 120% of a
+   viewport before releasing — the uniform dwell law: every story act earns the
+   same beat of stillness, no act more. A pinned act keeps its pointer events,
+   so the Contact form stays fully usable through its dwell. **The footer never
+   pins.** Reduced motion skips every pin.
+2. **Showcases pin `+=300%`.** The reel, TitiLinks, and the Green World
+   sequence each hold for three viewports (`SEQ_PIN_DURATION = "+=300%"`) —
+   the price of a scrubbed performance, uniform across all three.
+3. **Scrubbed sequences carry dead zones.** Frame-scrubbed acts map pin
+   progress through `SEQ_LEAD_IN = 0.08` and `SEQ_LEAD_OUT = 0.08`: the first
+   frame holds while the act settles, the final frame holds before release, and
+   both zones **clamp** — over-scrolling cannot push the playhead past its end.
+   The clamp is what produces the dead stop; without it the sequence reads as
+   already moving when it arrives and still moving when it leaves.
+
+**The Dwell Law.** A story act pins for `+=120%`; a showcase pins for
+`+=300%`; the footer never pins. A new act chooses one of the two prices — a
+third duration is a design-system change, not a tuning.
+
+### Settled — the Green World act: dark ink on bright water (GW.COPY.5 → REVIEW.3b, 2026-07-29)
+
+The Green World act is the site's one polarity flip, and every piece of it is
+ruled:
+
+- **Dark ink, not light type.** Every other act is warm ivory over a
+  photograph burning through the dark. The Green World plates are the opposite
+  — near-white water, bright end to end — and over the composited ground the
+  ivory measured only `2.1:1` and the gold `1.0:1`. So the type flips to
+  `INK = #0b0a08`: warm near-black on bright water, the same relationship the
+  brand's own black wordmark already has with the plate. Never pure `#000`,
+  for the same reason the ground isn't.
+- **The accent is Deep Green** (`#0B5D2A`) — the One Filament Rule's single
+  scoped exception, recorded under Colors. It is deliberately far darker than
+  the logo's `#12A03B`, which is itself too light to hold on the plate.
+- **`PLATE_GRADE = brightness(1.03) saturate(1.35)`**, with a **<1% clip
+  budget**: `1.04` breaks the budget at 390px and `1.05` blew 2.3% of the frame
+  to pure white. The grade may not be raised without re-measuring clipping
+  against the shipped frame pack.
+- **The scrim is a handoff, not legibility** (GW.VEIL.2):
+  `linear-gradient(180deg, rgba(11,10,8,0) 76%, rgba(11,10,8,0.45) 93%,
+  rgba(11,10,8,0.88) 100%)`. Fully clear through the entire stack — logo, copy,
+  and button all sit on unveiled water — taking hold only in the last eighth
+  of the stage to hand off to the next act. Darkening earlier both dulls the
+  plate and actively hurts the dark type now sitting on it.
+- **The lockup arrives on two latches, sequenced** (REVIEW.3b): the body line
+  lands at mapped progress `0.15` (`BODY_REVEAL_AT`) and the button follows
+  one beat later at `0.25` (`CTA_REVEAL_AT = BODY_REVEAL_AT + 0.1`) — never
+  simultaneous; the reader is given the sentence before the ask. Both are
+  latches, not scrubbed values: one comparison per frame, one tween per
+  crossing, clean in both directions, and the CTA layer takes a pointer only
+  once it has arrived.
 
 ## Elevation & Depth
 
@@ -498,6 +630,18 @@ navigation is the **scroll cue**: a `0.625rem` uppercase label at `0.3em`
 tracking above a 40px vertical rule that fades from `#C9A55C` at 80% opacity to
 transparent, pulsing gently on a 2s loop and disabled under reduced motion.
 
+**Nav grounding** (NAV.CLEAR.1, amended REVIEW.2b). On the cinematic home the
+header is transparent **only over the hero**, where a bar would cut a lid
+across the opening picture. Past `~80vh` (`scrollY > innerHeight * 0.8`) it
+grounds on the site's near-black — `#0b0a08` at 95% with backdrop blur — so
+the acts' type and ornaments pass beneath it instead of colliding with the
+glyphs; the header's `700ms` transition makes the switch a fade, not a pop.
+While transparent over moving art, legibility comes from a per-glyph halo
+(`text-shadow: 0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)`),
+never from a panel — the panel would be the very lid the transparent header
+exists to remove. Scoped to the cinematic routes; ordinary pages keep their
+own scrolled fill.
+
 ### Signature — the framed media resolver
 
 The system's defining component is not visual chrome but a contract.
@@ -513,6 +657,28 @@ else may hardcode `object-fit` or re-derive a transform.
 The recurring unit: a full-bleed viewport-true stage holding one photograph at
 near-full brightness, a directional veil, a gold eyebrow, a display or headline
 in warm ivory, and at most one ghost CTA. Acts advance; they do not stack.
+
+### Signature — the Book teaser act (BOOK.ACT.1)
+
+The book act, between the gallery and Green World, is the pattern for an act
+that **reuses instead of claiming**:
+
+- **The Publisher Law.** The act is a coming-soon teaser only: no title, no
+  date, no cover, no way to buy — none of that is settled, and owner-truth
+  means the copy cannot run ahead of what Cristyna has confirmed. Every string
+  is the `/book` page's own bilingual coming-soon copy via the **same locale
+  keys** (`book.*`, plus the nav's name for the page on the CTA) — a census,
+  not new claims. The act gains detail the day `/book` does, from the same
+  keys.
+- **Field language, showcase class.** One uninterrupted `CHAPTER_GROUND_1`
+  room (the warmest of the family — candle-light for a book, re-opening the
+  reel's tonal sequence before Green World's bright water), the gold eyebrow,
+  the display face, and the outlined button.
+- **Scrubbed entrance, no pin.** The entrance is a modest scrub timeline in
+  the spreads' own grammar (`y: 14 → 0`, opacity, `power3.out`, `0.12`
+  stagger, scrubbed from `top 78%` to `top 22%`) with **no long pin** — the
+  act costs the reader only its own height of scroll, which is what keeps it a
+  teaser rather than a showcase. Reduced motion renders it static and settled.
 
 ## Do's and Don'ts
 
