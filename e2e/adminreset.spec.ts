@@ -260,6 +260,14 @@ test.describe("ADMIN.RESET.1a — Cancel exits without saving", () => {
     writes.length = 0;
     await page.locator('[data-qa="media-editor-save"]').click();
     await expect(page.locator(SURFACE)).toHaveCount(0);
+    // The dialog closes SYNCHRONOUSLY (setEditor(null)) and the upsert follows on
+    // the network, so a closed dialog is not evidence the write landed. Poll for
+    // the write itself or this races under load.
+    await expect
+      .poll(() => configWrites(writes).filter((w) => w.method === "POST").length, {
+        timeout: 15_000,
+      })
+      .toBeGreaterThan(0);
 
     const upsert = writes
       .filter((w) => w.method === "POST" && /site_settings/.test(w.url))

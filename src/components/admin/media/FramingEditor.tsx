@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import SectionPreview from "./SectionPreview";
+import { previewMediaFrame, type PreviewFrame } from "./previewFrame";
 import { resolveHeroGeometry } from "@/lib/hero-framing";
 import { decodeImage, cropErrorCauseKey } from "@/lib/crop";
 import { RECOMMENDED_SOURCE_WIDTH } from "@/lib/gallery-upload";
@@ -294,25 +295,39 @@ const FramingEditor = ({
   // Overflow comes from the resolver itself — the same geometry the canvas
   // paints, image AND video since PORT.3 — so drag distance maps 1:1 to what
   // the user sees.
+  //
+  // ADMIN.RESET.1c — measured against the box the media ACTUALLY paints into,
+  // not the device-shaped surface. BOTH axes are the zoomed rendered size versus
+  // that box, so slack anywhere is reachable (including diagonally) and an axis
+  // is dead only where the frame would stop being covered. Passing the surface
+  // aspect and the editor's notional `imageFit` here is what froze horizontal
+  // pan on the wide reel tabs — see previewFrame.ts for the arithmetic.
   const surfaceOverflow = useCallback(
-    (focal: Focal, z: number, fitMode: FitMode) => {
+    (focal: Focal, z: number, videoFit: FitMode) => {
       if (!natural || natural.w <= 0 || natural.h <= 0) return { x: 0, y: 0 };
+      // Video paints the full surface in its record's own fit; an image paints
+      // whatever previewMediaFrame says its composition crops to, always cover.
+      const frame: PreviewFrame = isVideo
+        ? { w: fw, h: fh, aspect, fit: videoFit }
+        : previewMediaFrame(kind, resolveDevicePreset(deviceId).width, fw, fh);
       const geo = resolveHeroGeometry(
         natural.w / natural.h,
-        aspect,
-        framingFromFocalZoom(focal, z, fitMode),
+        frame.aspect,
+        framingFromFocalZoom(focal, z, frame.fit),
       );
       if (!geo) return { x: 0, y: 0 };
       return {
-        x: (Math.max(0, geo.widthPct - 100) / 100) * fw,
-        y: (Math.max(0, geo.heightPct - 100) / 100) * fh,
+        x: (Math.max(0, geo.widthPct - 100) / 100) * frame.w,
+        y: (Math.max(0, geo.heightPct - 100) / 100) * frame.h,
       };
     },
-    [natural, aspect, fw, fh],
+    [natural, aspect, fw, fh, isVideo, kind, deviceId],
   );
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!natural || loadError) return;
+    // Pointer events, so mouse / touch / pen all arrive here on identical terms
+    // — touch drag is the same computation, not a parallel path.
     const o = isVideo
       ? surfaceOverflow(vCur.focal, vCur.zoom, vCur.fit)
       : surfaceOverflow(curFocal, curZoom, imageFit);

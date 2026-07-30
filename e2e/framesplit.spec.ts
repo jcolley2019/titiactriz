@@ -241,6 +241,22 @@ test.describe("FRAME.SPLIT.1 — editing wide leaves phone untouched", () => {
 
     await page.locator('[data-qa="media-editor-save"]').click();
     await expect(page.locator('[data-qa="media-editor-surface"]')).toHaveCount(0);
+    // The dialog closes SYNCHRONOUSLY (setEditor(null)) and the upsert follows on
+    // the network, so a closed dialog is not evidence the write landed. Polling
+    // for the write itself is what fixes this spec's long-standing flake under a
+    // loaded run (it always passed in isolation).
+    await expect
+      .poll(
+        () =>
+          writes.filter(
+            (w) =>
+              w.method === "POST" &&
+              /site_settings/.test(w.url) &&
+              (w.body ?? "").includes("cinematic_media"),
+          ).length,
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(0);
 
     /* --- 3. The saved payload: two records, only one of them moved. --- */
     const upsert = writes
