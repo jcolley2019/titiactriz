@@ -9,7 +9,7 @@ import { useCinematicData } from "@/components/cinematic/useCinematicData";
 import {
   getCinematicMedia,
   useCinematicMediaConfig,
-  type ReelClassFraming,
+  type ClassFramingPair,
   type ResolvedReelSlot,
 } from "@/hooks/useCinematicMedia";
 import CinematicHero from "@/components/cinematic/CinematicHero";
@@ -44,7 +44,7 @@ gsap.registerPlugin(ScrollTrigger);
  * FRAME.SPLIT.1 — lift just the two class records off a resolved reel slot. The
  * photo travels as its own prop, so nothing but framing rides in `framing`.
  */
-const classesOf = (s: ResolvedReelSlot): ReelClassFraming => ({ phone: s.phone, wide: s.wide });
+const classesOf = (s: ResolvedReelSlot): ClassFramingPair => ({ phone: s.phone, wide: s.wide });
 
 const cinematicFontVars: React.CSSProperties = {
   ["--font-display" as string]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",
@@ -222,8 +222,8 @@ const HomeCinematic = () => {
       <CinematicAbout
         reduced={prefersReduced}
         photo={resolved.about?.photo}
-        focal={resolved.about?.focal}
-        zoom={resolved.about?.zoom}
+        phone={resolved.about?.phone}
+        wide={resolved.about?.wide}
       />
 
       <CinematicContact reduced={prefersReduced} />

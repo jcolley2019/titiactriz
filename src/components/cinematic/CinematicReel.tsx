@@ -6,7 +6,7 @@ import type { CinematicPhoto } from "./useCinematicData";
 import {
   defaultClassFraming,
   type ClassFraming,
-  type ReelClassFraming,
+  type ClassFramingPair,
 } from "@/hooks/useCinematicMedia";
 import {
   GOLD,
@@ -42,7 +42,7 @@ export type ReelSlide = {
    * phone act reads `framing.phone`, the wide act reads `framing.wide`. Absent →
    * centered/1× on both, i.e. today's render.
    */
-  framing?: ReelClassFraming;
+  framing?: ClassFramingPair;
   /**
    * CINE.FLOW.6 — the wide act's story chapter (eyebrow/title/body), resolved
    * by the page from site_settings over the in-repo seeds. The phone act never

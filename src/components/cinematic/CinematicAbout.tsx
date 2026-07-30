@@ -5,8 +5,9 @@ import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
+import { useReelIsPhone } from "./reelSpotlight";
 import type { CinematicPhoto } from "./useCinematicData";
-import type { Focal } from "@/hooks/useCinematicMedia";
+import type { ClassFraming } from "@/hooks/useCinematicMedia";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,10 +17,13 @@ type Props = {
    * ABOUT.MEDIA.1 — the resolved About portrait panel (from resolved.about).
    * All three arrive together or all are absent: with no photo the panel isn't
    * rendered and the section is byte-identical to its text-only original.
+   *
+   * ADMIN.RESET.1b — the framing arrives as BOTH device-class records; this
+   * component picks one, at the same 768px line the reel act forks on.
    */
   photo?: CinematicPhoto;
-  focal?: Focal;
-  zoom?: number;
+  phone?: ClassFraming;
+  wide?: ClassFraming;
 };
 
 /**
@@ -31,15 +35,25 @@ type Props = {
  * column of a two-column editorial split with a fixed 3:4 portrait panel on the
  * right (md+); on mobile the panel stacks between the blockquote and the
  * paragraphs. With no photo, none of that attaches (see `hasPanel`).
+ *
+ * ADMIN.RESET.1b — the panel's FRAME is 3:4 on every screen, but its CROP is
+ * class-split like a reel slide: below 768px it paints the `phone` record, at or
+ * above it the `wide` one. The frame shape never changes, so the split buys the
+ * owner a tighter phone crop of the same portrait — nothing about the layout.
  */
-const CinematicAbout = ({ reduced, photo, focal, zoom }: Props) => {
+const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
+  // The SAME hook and the SAME 768px line the reel act forks on — read
+  // synchronously on first render, so the panel never paints one class's crop
+  // and then swaps to the other under the visitor.
+  const isPhone = useReelIsPhone();
+  const framing = isPhone ? phone : wide;
 
   // Opt-in: only a fully-resolved panel switches the container to the grid and
   // tags each block with its grid area. Without it, every class below is exactly
   // today's and no panel node renders — a byte-identical text-only section.
-  const hasPanel = !!photo && !!focal && typeof zoom === "number";
+  const hasPanel = !!photo && !!framing;
   const area = (name: string) => (hasPanel ? ` cine-a-${name}` : "");
 
   useLayoutEffect(() => {
@@ -101,8 +115,8 @@ const CinematicAbout = ({ reduced, photo, focal, zoom }: Props) => {
             <FramedImage
               src={photo!.image_url}
               alt={photo!.alt_text ?? ""}
-              focal={focal!}
-              zoom={zoom!}
+              focal={framing!.focal}
+              zoom={framing!.zoom}
               fit="fill"
               imgDataQa="cinematic-about-img"
               loading="lazy"

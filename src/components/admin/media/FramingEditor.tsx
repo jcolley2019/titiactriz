@@ -25,7 +25,7 @@ import {
   ABOUT_DEFAULT_FOCAL,
   HERO_DEFAULT_FOCAL,
   clampSourceZoom,
-  defaultClassFraming,
+  REEL_DEFAULT_FOCAL,
   defaultHeroVideo,
   defaultVideoSource,
   framingFromFocalZoom,
@@ -34,7 +34,7 @@ import {
   type HeroVideoFraming,
   type VideoOrientation,
   type DeviceClass,
-  type ReelClassFraming,
+  type ClassFramingPair,
 } from "@/hooks/useCinematicMedia";
 import { reelIsPhoneWidth } from "@/components/cinematic/reelSpotlight";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
@@ -56,9 +56,15 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  * self-centred by the resolver's geometry, so no snap logic exists here — a
  * saved focal on a bar axis is simply ignored by the render.
  *
- * ABOUT.MEDIA.1 — the "about" kind is fixed 3:4 EVERYWHERE, so it edits on a
- * single canvas at ABOUT_PANEL_ASPECT with no device tabs (one aspect IS the
- * contract). Fill mode, same resolver drag + zoom; Save writes focal/zoom.
+ * ABOUT.MEDIA.1 — the "about" kind is fixed 3:4 EVERYWHERE, so its canvas is
+ * always ABOUT_PANEL_ASPECT (one aspect IS the contract). Fill mode, same
+ * resolver drag + zoom.
+ *
+ * ADMIN.RESET.1b — the About panel is otherwise at FULL REEL PARITY: the same
+ * device tab row, the same per-class records, the same Reset. What the tabs
+ * change for About is the RECORD, never the shape — all three draw the same 3:4
+ * canvas, because that is what the live panel is on all three devices. Save
+ * writes both class records through the same resolver contract as the reel.
  *
  * ADMIN.RESET.1a — RESET IS A TRANSFORM CONTROL, NOT AN EXIT.
  *
@@ -85,11 +91,12 @@ type Props = {
   initialFocal: Focal;
   initialZoom: number;
   /**
-   * FRAME.SPLIT.1 — reel slots only: the two device-class records to edit. When
-   * omitted (or for a slot stored before the split) both classes seed from
-   * initialFocal/initialZoom, which is the same seeding law the resolver applies.
+   * FRAME.SPLIT.1 / ADMIN.RESET.1b — class-split slots (reel, about): the two
+   * device-class records to edit. When omitted (or for a slot stored before the
+   * split) both classes seed from initialFocal/initialZoom, which is the same
+   * seeding law the resolver applies.
    */
-  initialReelClasses?: ReelClassFraming;
+  initialClasses?: ClassFramingPair;
   heroVideoActive?: boolean;
   saving?: boolean;
   mode?: "image" | "video";
@@ -97,8 +104,8 @@ type Props = {
   initialVideo?: HeroVideoFraming;
   poster?: string;
   onSave: (focal: Focal, zoom: number) => void;
-  /** FRAME.SPLIT.1 — reel slots save BOTH class records, edited or not. */
-  onSaveReel?: (classes: ReelClassFraming) => void;
+  /** Class-split slots save BOTH class records, edited or not. */
+  onSaveClasses?: (classes: ClassFramingPair) => void;
   onSaveVideo?: (framing: HeroVideoFraming) => void;
   onCancel: () => void;
 };
@@ -112,7 +119,7 @@ const FramingEditor = ({
   photo,
   initialFocal,
   initialZoom,
-  initialReelClasses,
+  initialClasses,
   heroVideoActive,
   saving,
   mode = "image",
@@ -120,7 +127,7 @@ const FramingEditor = ({
   initialVideo,
   poster,
   onSave,
-  onSaveReel,
+  onSaveClasses,
   onSaveVideo,
   onCancel,
 }: Props) => {
@@ -130,8 +137,10 @@ const FramingEditor = ({
   const [deviceId, setDeviceId] = useState(MEDIA_PREVIEW_DEVICES[0].id);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  // ABOUT.MEDIA.1 — the About panel is a fixed 3:4 frame with no device tabs, so
-  // its canvas aspect is the constant, never the active device preset.
+  // ABOUT.MEDIA.1 — the About panel is a fixed 3:4 frame on every screen, so its
+  // canvas aspect is the constant, never the active device preset.
+  // ADMIN.RESET.1b — it DOES get the device tabs now, but they select a class
+  // record, not a shape: every About tab draws this same 3:4 canvas.
   const isAbout = kind === "about";
   const aspect = isAbout ? ABOUT_PANEL_ASPECT : devicePreviewAspect(deviceId);
 
@@ -143,24 +152,34 @@ const FramingEditor = ({
   const [iFocal, setIFocal] = useState<Focal>(initialFocal);
   const [iZoom, setIZoom] = useState(initialZoom);
 
-  /* ---------------- FRAME.SPLIT.1 (reel: one record per device class) ---------------- */
+  /* ------- FRAME.SPLIT.1 / ADMIN.RESET.1b (one record per device class) ------- */
   const isReel = kind === "reel";
+  // Which kinds are class-split. The reel named the split; the About panel joined
+  // it on identical terms, so both take the two-record path below and the hero is
+  // the only single-record image slot left.
+  const usesClasses = isReel || isAbout;
+  // The kind's default framing anchor — what Reset restores this tab to.
+  const kindDefaultFocal: Focal = isAbout
+    ? ABOUT_DEFAULT_FOCAL
+    : isReel
+      ? REEL_DEFAULT_FOCAL
+      : HERO_DEFAULT_FOCAL;
   // The seeding law, mirrored from the resolver: with no stored class records,
   // BOTH classes start from the slot's single record, so opening the editor on a
   // pre-split slot shows exactly what the site is rendering today.
-  const seedReelClasses = (): ReelClassFraming =>
-    initialReelClasses
-      ? { phone: { ...initialReelClasses.phone }, wide: { ...initialReelClasses.wide } }
+  const seedClasses = (): ClassFramingPair =>
+    initialClasses
+      ? { phone: { ...initialClasses.phone }, wide: { ...initialClasses.wide } }
       : {
           phone: { focal: { ...initialFocal }, zoom: initialZoom },
           wide: { focal: { ...initialFocal }, zoom: initialZoom },
         };
-  const [rFraming, setRFraming] = useState<ReelClassFraming>(seedReelClasses);
+  const [rFraming, setRFraming] = useState<ClassFramingPair>(seedClasses);
   // Class membership is WIDTH-derived, never tab identity: a preset under 768
   // edits "phone", one at or above it edits "wide". Today that puts iPhone on
   // phone and iPad + Desktop on wide — two tabs previewing ONE record, each at
   // its own geometry — and a new tab lands in the right class by its width
-  // alone. The line is the same one the live act splits its compositions on.
+  // alone. The line is the same one the live surfaces split on.
   const classOfWidth = (w: number): DeviceClass => (reelIsPhoneWidth(w) ? "phone" : "wide");
   const activeClass = classOfWidth(resolveDevicePreset(deviceId).width);
   const rCur = rFraming[activeClass];
@@ -170,12 +189,12 @@ const FramingEditor = ({
   const setRZoom = (z: number) =>
     setRFraming((v) => ({ ...v, [activeClass]: { ...v[activeClass], zoom: z } }));
 
-  // The image record actually being shown and dragged. For the reel that is the
-  // active class's record; every other slot keeps its single record.
-  const curFocal = isReel ? rCur.focal : iFocal;
-  const curZoom = isReel ? rCur.zoom : iZoom;
-  const setCurFocal = isReel ? setRFocal : setIFocal;
-  const setCurZoom = isReel ? setRZoom : setIZoom;
+  // The image record actually being shown and dragged. For a class-split slot
+  // that is the active class's record; the hero keeps its single record.
+  const curFocal = usesClasses ? rCur.focal : iFocal;
+  const curZoom = usesClasses ? rCur.zoom : iZoom;
+  const setCurFocal = usesClasses ? setRFocal : setIFocal;
+  const setCurZoom = usesClasses ? setRZoom : setIZoom;
 
   /* ---------------- VIDEO mode (object-position surface) ---------------- */
   const [vFraming, setVFraming] = useState<HeroVideoFraming>(initialVideo ?? defaultHeroVideo());
@@ -214,7 +233,7 @@ const FramingEditor = ({
     setDeviceId(MEDIA_PREVIEW_DEVICES[0].id);
     setIFocal({ ...initialFocal });
     setIZoom(clampSourceZoom(initialZoom, imageFit));
-    setRFraming(seedReelClasses());
+    setRFraming(seedClasses());
     setVFraming(initialVideo ?? defaultHeroVideo());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -328,17 +347,20 @@ const FramingEditor = ({
    * ADMIN.RESET.1a — reset THIS tab's transform to the loaded media's default.
    *
    * Local state only, one record only: the video path resets the active
-   * orientation, the reel path the active device class, and a single-record slot
-   * its own focal/zoom. No navigation, no close, no write — the editor stays on
-   * the slot and tab it was on, and Save is still what publishes.
+   * orientation, a class-split path the active device class, and a single-record
+   * slot its own focal/zoom. No navigation, no close, no write — the editor stays
+   * on the slot and tab it was on, and Save is still what publishes.
    */
   const resetActive = () => {
     if (isVideo) {
       setVFraming((v) => ({ ...v, [activeOrientation]: defaultVideoSource() }));
-    } else if (isReel) {
-      setRFraming((v) => ({ ...v, [activeClass]: defaultClassFraming() }));
+    } else if (usesClasses) {
+      setRFraming((v) => ({
+        ...v,
+        [activeClass]: { focal: { ...kindDefaultFocal }, zoom: DEFAULT_ZOOM },
+      }));
     } else {
-      setIFocal({ ...(isAbout ? ABOUT_DEFAULT_FOCAL : HERO_DEFAULT_FOCAL) });
+      setIFocal({ ...kindDefaultFocal });
       setIZoom(DEFAULT_ZOOM);
     }
     toast({ title: t("admin.media.editor.resetDone") });
@@ -347,11 +369,11 @@ const FramingEditor = ({
   const handleSave = () => {
     if (isVideo) {
       onSaveVideo?.(vFraming);
-    } else if (isReel) {
+    } else if (usesClasses) {
       // FRAME.SPLIT.1: both records go up, but only the class the owner touched
       // differs from what came in — the untouched class is handed back exactly
       // as it was read, so saving one class cannot rewrite the other's values.
-      onSaveReel?.(rFraming);
+      onSaveClasses?.(rFraming);
     } else {
       // PORT.2: the edited focal/zoom persist EXACTLY — no conversion layer.
       onSave(iFocal, iZoom);
@@ -425,23 +447,27 @@ const FramingEditor = ({
           </p>
         )}
 
-        {/* Device tabs — each a scaled live preview of the actual section. Hidden
-            for the About panel, which is one fixed 3:4 canvas (no per-device aspect). */}
-        {!isAbout && (
+        {/* Device tabs — each a scaled live preview of the actual section.
+            ADMIN.RESET.1b: the About panel gets the same tab row as every other
+            slot. Its thumbnails render at ABOUT_PANEL_ASPECT rather than the
+            device aspect, because the live panel IS 3:4 on all three devices —
+            a device-shaped About thumbnail would be a lie about the section. */}
         <div data-qa="media-editor-devices" className="flex flex-wrap gap-2">
           {MEDIA_PREVIEW_DEVICES.map((d) => {
             const isActive = d.id === deviceId;
-            const a = d.width / d.height;
+            // The thumbnail's own aspect: the section's shape on that device.
+            const a = isAbout ? ABOUT_PANEL_ASPECT : d.width / d.height;
             // VID.MODEL.1: one video across all tabs; each tab previews its own
-            // viewport-orientation framing record of that single clip.
-            const tabOrient: VideoOrientation = a < 1 ? "portrait" : "landscape";
+            // viewport-orientation framing record of that single clip. Keyed off
+            // the DEVICE aspect, which is the viewport's, not the thumbnail's.
+            const tabOrient: VideoOrientation = d.width / d.height < 1 ? "portrait" : "landscape";
             const tabSrc = isVideo ? videoSrc ?? undefined : undefined;
-            // FRAME.SPLIT.1: a reel thumbnail previews the record for ITS OWN
-            // device class, so the phone tabs and the wide tabs visibly diverge
-            // the moment one class is edited.
+            // FRAME.SPLIT.1: a class-split thumbnail previews the record for ITS
+            // OWN device class, so the phone tabs and the wide tabs visibly
+            // diverge the moment one class is edited.
             const tabFraming = isVideo
               ? vFraming[tabOrient]
-              : isReel
+              : usesClasses
                 ? rFraming[classOfWidth(d.width)]
                 : liveImageFraming;
             return (
@@ -482,7 +508,6 @@ const FramingEditor = ({
             );
           })}
         </div>
-        )}
 
         {/* Editing surface. */}
         <div ref={wrapRef} className="flex w-full min-w-0 justify-center">

@@ -551,7 +551,7 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
     }
   });
 
-  test("a+b — About slot card + editor canvas (3:4 fill, no device tabs)", async ({ page }) => {
+  test("a+b — About slot card + editor canvas (3:4 fill on every device tab)", async ({ page }) => {
     await openAdminMedia(page);
 
     // Slot card thumbnail — the About card renders the framed 3:4 panel.
@@ -559,18 +559,34 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
     await framingReady(card);
     await assertParity(await measure(card), ABOUT_FRAMING, "slot card about");
 
-    // Editor canvas — one fixed 3:4 canvas, the device-tab row is hidden.
+    // ADMIN.RESET.1b — the About editor now carries the SAME device tab row as
+    // every other slot (it used to hide it). What stays fixed is the CANVAS: the
+    // live panel is 3:4 on all three devices, so every tab must draw 3:4 and the
+    // parity law must hold on each. The tabs select a class record, not a shape.
     await page
       .locator('[data-qa="media-slot"][data-slot="about"] [data-qa="media-slot-edit"]')
       .click();
     const canvas = page.locator(EDITOR_CANVAS_IMG).first();
     await expect(canvas).toBeVisible();
     await expect(
-      page.locator('[data-qa="media-editor-devices"]'),
-      "About editor hides the device tabs (one 3:4 canvas is the contract)",
-    ).toHaveCount(0);
-    await framingReady(canvas);
-    await assertParity(await measure(canvas), ABOUT_FRAMING, "editor about canvas");
+      page.locator('[data-qa="media-editor-devices"] > button'),
+      "About editor shows the standard device tabs",
+    ).toHaveCount(DEVICE_TABS.length);
+
+    for (const tab of DEVICE_TABS) {
+      await page.locator(`[data-qa="media-device-${tab}"]`).click();
+      await page.waitForTimeout(300);
+      await framingReady(canvas);
+      const m = await measure(canvas);
+      // The canvas box is 3:4 regardless of which device tab is active.
+      expect(
+        Math.abs(m.box.w / m.box.h - 0.75),
+        `about canvas stays 3:4 on the ${tab} tab (got ${(m.box.w / m.box.h).toFixed(4)})`,
+      ).toBeLessThan(0.01);
+      // Both classes seed from the legacy single record in this fixture, so every
+      // tab resolves the same framing — and the parity law holds on each.
+      await assertParity(m, ABOUT_FRAMING, `editor about canvas @${tab}`);
+    }
   });
 
   test("c — About editor canvas == live panel (byte-identical 3:4 framing)", async ({ page }) => {
