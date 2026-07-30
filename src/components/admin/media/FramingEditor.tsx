@@ -20,8 +20,12 @@ import {
   MIN_ZOOM,
   MAX_ZOOM,
   FIT_MIN_ZOOM,
+  DEFAULT_ZOOM,
   ABOUT_PANEL_ASPECT,
+  ABOUT_DEFAULT_FOCAL,
+  HERO_DEFAULT_FOCAL,
   clampSourceZoom,
+  defaultClassFraming,
   defaultHeroVideo,
   defaultVideoSource,
   framingFromFocalZoom,
@@ -55,6 +59,16 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  * ABOUT.MEDIA.1 — the "about" kind is fixed 3:4 EVERYWHERE, so it edits on a
  * single canvas at ABOUT_PANEL_ASPECT with no device tabs (one aspect IS the
  * contract). Fill mode, same resolver drag + zoom; Save writes focal/zoom.
+ *
+ * ADMIN.RESET.1a — RESET IS A TRANSFORM CONTROL, NOT AN EXIT.
+ *
+ * Reset restores the ACTIVE TAB's transform to the default for the loaded media
+ * (zoom 1, the kind's default focal) and does nothing else: it stays open on the
+ * same slot and the same tab, leaves every other tab's record alone, and writes
+ * NOTHING — the value only reaches Supabase when the owner presses Save. It used
+ * to delegate to the owner's `onReset`, which closed the dialog and persisted a
+ * whole-slot wipe, so the control read as "discard this slot" and behaved like a
+ * back button. Cancel is the exit-without-saving control; Reset is not.
  */
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -86,7 +100,6 @@ type Props = {
   /** FRAME.SPLIT.1 — reel slots save BOTH class records, edited or not. */
   onSaveReel?: (classes: ReelClassFraming) => void;
   onSaveVideo?: (framing: HeroVideoFraming) => void;
-  onReset: () => void;
   onCancel: () => void;
 };
 
@@ -109,7 +122,6 @@ const FramingEditor = ({
   onSave,
   onSaveReel,
   onSaveVideo,
-  onReset,
   onCancel,
 }: Props) => {
   const { t } = useTranslation();
@@ -312,9 +324,24 @@ const FramingEditor = ({
     }
   };
 
+  /**
+   * ADMIN.RESET.1a — reset THIS tab's transform to the loaded media's default.
+   *
+   * Local state only, one record only: the video path resets the active
+   * orientation, the reel path the active device class, and a single-record slot
+   * its own focal/zoom. No navigation, no close, no write — the editor stays on
+   * the slot and tab it was on, and Save is still what publishes.
+   */
   const resetActive = () => {
-    if (isVideo) setVFraming((v) => ({ ...v, [activeOrientation]: defaultVideoSource() }));
-    else onReset();
+    if (isVideo) {
+      setVFraming((v) => ({ ...v, [activeOrientation]: defaultVideoSource() }));
+    } else if (isReel) {
+      setRFraming((v) => ({ ...v, [activeClass]: defaultClassFraming() }));
+    } else {
+      setIFocal({ ...(isAbout ? ABOUT_DEFAULT_FOCAL : HERO_DEFAULT_FOCAL) });
+      setIZoom(DEFAULT_ZOOM);
+    }
+    toast({ title: t("admin.media.editor.resetDone") });
   };
 
   const handleSave = () => {

@@ -146,12 +146,6 @@ const writeReelSlot = (
   ],
 });
 
-/** ABOUT.MEDIA.1 — drop the About key entirely (Reset → unconfigured, no panel). */
-const stripAbout = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
-  const { about: _about, ...rest } = cfg;
-  return rest;
-};
-
 /** Drop the hero's video framing block (used when both sources are removed). */
 const stripHeroVideo = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
   const { video: _video, ...heroNoVideo } = cfg.hero;
@@ -243,15 +237,21 @@ const CinematicMediaManager = () => {
   const heroPosterUrl = resolved.hero.photo?.image_url;
   const anyHeroVideo = !!heroVideo;
 
-  const persist = async (next: CinematicMediaConfig, slotKey: string, kind: "saved" | "reset") => {
+  /**
+   * ADMIN.RESET.1a — the ONE write path, and it is only ever a save. The editor's
+   * Reset is a local transform control now (see FramingEditor): it changes the
+   * open editor's active tab and nothing else, so nothing here is reachable
+   * without the owner pressing Save.
+   */
+  const persist = async (next: CinematicMediaConfig, slotKey: string) => {
     setSavingKey(slotKey);
     try {
       if (isAllDefault(next)) await clearCinematicMedia();
       else await setCinematicMedia(next);
       setConfig(next);
       toast({
-        title: t(kind === "saved" ? "admin.media.editor.saved" : "admin.media.editor.resetDone"),
-        description: kind === "saved" ? t("admin.media.editor.savedDesc") : undefined,
+        title: t("admin.media.editor.saved"),
+        description: t("admin.media.editor.savedDesc"),
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("admin.media.editor.saveFailed");
@@ -303,7 +303,7 @@ const CinematicMediaManager = () => {
         ? { photo_id: editor.photo.id, focal, zoom, video: config.hero.video }
         : { photo_id: editor.photo.id, focal, zoom };
     setEditor(null);
-    void persist(writeSlot(config, slot, base), slot.key, "saved");
+    void persist(writeSlot(config, slot, base), slot.key);
   };
 
   /**
@@ -323,38 +323,12 @@ const CinematicMediaManager = () => {
       wide: classes.wide,
     };
     setEditor(null);
-    void persist(writeReelSlot(config, slot.reelIndex, next), slot.key, "saved");
+    void persist(writeReelSlot(config, slot.reelIndex, next), slot.key);
   };
 
   const saveVideoFraming = (video: HeroVideoFraming) => {
     setEditor(null);
-    void persist(withHeroVideo(config, video), "hero", "saved");
-  };
-
-  const resetSlot = () => {
-    if (!editor || editor.mode !== "image") return;
-    const { slot } = editor;
-    // ABOUT.MEDIA.1 — Reset on the opt-in About slot removes it outright, so the
-    // live section returns to text-only (no photo, no reserved panel).
-    if (slot.kind === "about") {
-      setEditor(null);
-      void persist(stripAbout(config), slot.key, "reset");
-      return;
-    }
-    // FRAME.SPLIT.1 — resetting a reel slot clears BOTH classes: "reset" means
-    // the slot is unconfigured, and a slot half-reset would never drop the key.
-    if (slot.kind === "reel") {
-      setEditor(null);
-      void persist(writeReelSlot(config, slot.reelIndex, defaultReelSlot()), slot.key, "reset");
-      return;
-    }
-    const base = defaultSlot(slot.kind);
-    const next =
-      slot.kind === "hero" && config.hero.video
-        ? writeSlot(config, slot, { ...base, video: config.hero.video })
-        : writeSlot(config, slot, base);
-    setEditor(null);
-    void persist(next, slot.key, "reset");
+    void persist(withHeroVideo(config, video), "hero");
   };
 
   /* ---------------- Hero video: upload / remove (VID.MODEL.1 — one video) ---------------- */
@@ -622,9 +596,11 @@ const CinematicMediaManager = () => {
                   </div>
 
                   {/* ADMIN.MOBILE.2 — slot cards carry camera + pencil only. No
-                      destructive control here: clearing the About slot lives on
-                      Reset inside its framing editor, so the swap-never-empty
-                      workflow can't blank a section by a stray tap. */}
+                      destructive control here: the owner's workflow is swap,
+                      never empty, so a stray tap can't blank a section.
+                      ADMIN.RESET.1a — Reset inside the editor is a transform
+                      control and no longer clears a slot, so there is no
+                      slot-clearing path on this screen at all. */}
 
                   {savingKey === d.key && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/40">
@@ -701,7 +677,6 @@ const CinematicMediaManager = () => {
           onSave={saveImageFraming}
           onSaveReel={saveReelFraming}
           onSaveVideo={saveVideoFraming}
-          onReset={resetSlot}
           onCancel={() => setEditor(null)}
         />
       )}

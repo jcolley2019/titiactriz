@@ -180,21 +180,52 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
       page.locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-badge"]'),
     ).toHaveText(/custom/i);
 
-    // Reset → clears the slot (all-default → cinematic_media key removed).
+    // ADMIN.RESET.1a — Reset restores THIS tab's transform and stops there: the
+    // editor stays open, nothing is persisted, and the slot keeps its badge. It
+    // used to close the dialog and delete the key; that was the defect. Reset
+    // followed by Save is what publishes the default (see adminreset.spec.ts).
     await page
       .locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-edit"]')
       .click();
-    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+    const surfaceR = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surfaceR).toBeVisible();
     await page.waitForTimeout(300);
+    const writesBefore = writes.filter((w) => /site_settings/.test(w.url)).length;
     await page.locator('[data-qa="media-editor-reset"]').click();
     await page.waitForTimeout(400);
     expect(
-      writes.filter((w) => w.method === "DELETE" && /site_settings/.test(w.url)).length,
-      "reset removes the key",
-    ).toBeGreaterThan(0);
+      writes.filter((w) => /site_settings/.test(w.url)).length,
+      "Reset persists nothing on its own",
+    ).toBe(writesBefore);
+    await expect(surfaceR, "Reset leaves the editor open on the same slot").toBeVisible();
+    // The zoom readout is back at the default, in place.
+    await expect(page.locator('[data-qa="media-editor-zoom-value"]')).toHaveText(/1\.00/);
+
+    // Save commits the reset TRANSFORM and nothing else — the slot keeps its
+    // chosen photo, so it is still a customized slot, now framed at the default.
+    const postsBefore = writes.filter((w) => w.method === "POST" && /site_settings/.test(w.url)).length;
+    await page.locator('[data-qa="media-editor-save"]').click();
+    await expect(surfaceR).toHaveCount(0);
+    // The dialog closes before the upsert lands — wait for the write itself.
+    await expect
+      .poll(() => writes.filter((w) => w.method === "POST" && /site_settings/.test(w.url)).length, {
+        timeout: 10_000,
+      })
+      .toBeGreaterThan(postsBefore);
+    const afterReset = writes
+      .filter((w) => w.method === "POST" && /site_settings/.test(w.url))
+      .map((w) => w.body ?? "")
+      .filter((b) => b.includes("cinematic_media"))
+      .pop();
+    expect(afterReset, "Save after Reset upserts the config").toBeTruthy();
+    const resetRow = JSON.parse(afterReset!);
+    const resetHero = (Array.isArray(resetRow) ? resetRow[0] : resetRow).value.hero;
+    expect(resetHero.zoom, "the saved zoom is the default").toBeCloseTo(1, 5);
+    expect(resetHero.focal.y, "the saved focal is the TA.6d hero default").toBeCloseTo(0.08, 5);
+    expect(resetHero.photo_id, "Reset never dropped the slot's photo").toBe("p1");
     await expect(
       page.locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-badge"]'),
-    ).toHaveText(/default/i);
+    ).toHaveText(/custom/i);
 
     expect(pageErrors, "no uncaught errors during the admin flow").toEqual([]);
   });
@@ -339,13 +370,13 @@ test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () =>
 
 /* ---------- (c4) ADMIN.MOBILE.2: slot cards are camera+pencil only ---------- */
 test.describe("ADMIN.MEDIA — slot cards carry no destructive control", () => {
-  test("configured About card shows camera+pencil only; clearing lives on the editor's Reset", async ({ page }) => {
+  test("configured About card shows camera+pencil only; the editor's Reset clears nothing", async ({ page }) => {
     const writes: Write[] = [];
     await injectAdminSession(page);
     await forceLanguage(page, "en");
     await routeSupabase(page, {
-      // Only the About slot is configured — hero/reel stay default so clearing
-      // About takes the whole config back to all-default (key deleted).
+      // Only the About slot is configured — hero/reel stay default, so a write
+      // that took the config all-default would be visible as a key DELETE.
       media: {
         hero: { photo_id: null, focal: { x: 0.5, y: 0.08 }, zoom: 1 },
         reel: [
@@ -378,20 +409,28 @@ test.describe("ADMIN.MEDIA — slot cards carry no destructive control", () => {
     await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
     await expect(aboutCard.locator("button")).toHaveCount(2);
 
-    // Clearing is still reachable — Reset inside the framing editor.
+    // ADMIN.RESET.1a — Reset is a TRANSFORM control now, so it is no longer a
+    // slot-clearing path either: it neither writes nor closes. (The old law here
+    // asserted the opposite — Reset deleting the key — and that behavior is the
+    // defect this brick fixes. See adminreset.spec.ts for the full contract.)
     await aboutCard.locator('[data-qa="media-slot-edit"]').click();
-    await expect(page.locator('[data-qa="media-editor-surface"]')).toBeVisible();
+    const surface = page.locator('[data-qa="media-editor-surface"]');
+    await expect(surface).toBeVisible();
     await page.waitForTimeout(300);
+    writes.length = 0;
     await page.locator('[data-qa="media-editor-reset"]').click();
     await page.waitForTimeout(400);
     expect(
-      writes.filter((w) => w.method === "DELETE" && /cinematic_media/.test(w.url)).length,
-      "editor Reset on the sole configured slot deletes the key",
-    ).toBeGreaterThan(0);
+      writes.filter((w) => /site_settings/.test(w.url)),
+      "editor Reset writes nothing at all — no upsert, no key delete",
+    ).toHaveLength(0);
+    await expect(surface, "editor Reset does not close the editor").toBeVisible();
 
-    // Card returns to the unconfigured (text-only) state: None badge, no photo.
-    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/none/i);
-    await expect(aboutCard.locator("img")).toHaveCount(0);
+    // Cancel out: the slot is still configured, exactly as it was found.
+    await page.locator('[data-qa="media-editor-cancel"]').click();
+    await expect(surface).toHaveCount(0);
+    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/custom/i);
+    await expect(aboutCard.locator("img")).toBeVisible();
   });
 });
 
