@@ -33,6 +33,14 @@ import {
  * single-record shape seeds BOTH classes at read time, so every published About
  * panel keeps rendering exactly as it does today until an owner edits a class.
  *
+ * ADMIN.ASPECT.1 — a REEL slide's WIDE record additionally carries the SHAPE of
+ * the plate it hangs in: `wide = { focal, zoom, plate?: "portrait"|"landscape" }`.
+ * A landscape photograph should not be forced into a portrait plate on desktop,
+ * and the choice belongs to the wide record because it belongs to the wide
+ * composition — the phone act is edge-to-edge and hangs no plate, so it has no
+ * opinion to store. The field is WRITTEN ONLY WHEN LANDSCAPE (absent ≡ portrait),
+ * which is what keeps every existing slide byte-identical, JSON included.
+ *
  * The absent-key-is-default contract is total: a missing key, a missing slot, or
  * a missing field all resolve to *exactly* today's behavior — the legacy
  * cinematic_hero_photo (first published photo) for the hero, the TA.6d focal
@@ -100,8 +108,46 @@ export type SlotFraming = {
  */
 export type DeviceClass = "phone" | "wide";
 
-/** One device class's framing for a slide or panel — position and scale, nothing else. */
-export type ClassFraming = { focal: Focal; zoom: number };
+/**
+ * ADMIN.ASPECT.1 — the SHAPE of the plate a WIDE reel slide hangs in. "portrait"
+ * is the W2 plate the act has drawn since CINE.FLOW.5; "landscape" is the 3:2
+ * plate a landscape photograph earns instead of being forced into a portrait box
+ * on desktop. The geometry of each is one law — `plateLaw` in reelWide.tsx — and
+ * the phone act has neither: it is edge-to-edge and hangs no plate at all.
+ */
+export type PlateAspect = "portrait" | "landscape";
+
+/**
+ * One device class's framing for a slide or panel — position and scale, plus (on
+ * the reel's WIDE record only) the shape of the box that position is measured
+ * against.
+ */
+export type ClassFraming = {
+  focal: Focal;
+  zoom: number;
+  /**
+   * ADMIN.ASPECT.1 — THE REEL'S WIDE RECORD ONLY, AND ONLY WHEN LANDSCAPE.
+   *
+   * Absent ≡ "portrait". Every record written before this brick, and every
+   * portrait slide written after it, therefore stores byte-identical JSON — the
+   * field materializes only when an owner chooses landscape, exactly as `about`
+   * and `hero.video` materialize only when they are not the default.
+   *
+   * Two laws keep that honest and they live in one place each: `normClassSlot`
+   * parses the phone class and the About panel WITHOUT a plate, so neither can
+   * carry one; `plateAspectOf` is the single read, so no surface spells
+   * `?? "portrait"` for itself and drifts.
+   */
+  plate?: PlateAspect;
+};
+
+/**
+ * ADMIN.ASPECT.1 — the ONE read of a record's plate shape. Absent (and any
+ * unrecognized value) is portrait, which is what makes a legacy slide render
+ * exactly as it does today without a migration.
+ */
+export const plateAspectOf = (c?: ClassFraming | null): PlateAspect =>
+  c?.plate === "landscape" ? "landscape" : "portrait";
 
 /**
  * Both device classes' records. Every class-split slot carries exactly two —
@@ -121,7 +167,11 @@ export type ClassSlotFraming = {
   wide: ClassFraming;
 };
 
-/** One reel slot. Same shape as any class-split slot — the reel named it first. */
+/**
+ * One reel slot. Same shape as any class-split slot — the reel named it first.
+ * ADMIN.ASPECT.1: the reel is also the one kind whose WIDE record may carry a
+ * `plate`; the type is shared, and `normReelSlot` is what grants the field.
+ */
 export type ReelSlotFraming = ClassSlotFraming;
 
 /** The full cinematic_media value — one hero slot plus exactly three reel slots. */
@@ -203,16 +253,20 @@ export const defaultAboutClasses = (): ClassFramingPair => ({
 });
 
 /**
- * True when one class record sits at its kind's default (centered, unzoomed).
- * The default focal is passed in because the reel and the About panel each own
- * their own anchor — they happen to agree on centre today, and a reader should
- * not have to know that to trust this function.
+ * True when one class record sits at its kind's default (centered, unzoomed, and
+ * — ADMIN.ASPECT.1 — in the portrait plate). The default focal is passed in
+ * because the reel and the About panel each own their own anchor — they happen to
+ * agree on centre today, and a reader should not have to know that to trust this
+ * function.
  */
 export const classFramingIsDefault = (
   c: ClassFraming,
   defaultFocal: Focal = REEL_DEFAULT_FOCAL,
 ): boolean =>
-  c.focal.x === defaultFocal.x && c.focal.y === defaultFocal.y && c.zoom === DEFAULT_ZOOM;
+  c.focal.x === defaultFocal.x &&
+  c.focal.y === defaultFocal.y &&
+  c.zoom === DEFAULT_ZOOM &&
+  plateAspectOf(c) === "portrait";
 
 /** True when a single source equals the centered / unzoomed / fill default. */
 export const videoSourceIsDefault = (s: VideoSourceFraming | undefined): boolean =>
@@ -301,16 +355,41 @@ const normSlot = (raw: unknown, defaultFocal: Focal, fit: FitMode): SlotFraming 
 };
 
 /**
+ * ADMIN.ASPECT.1 — a stored plate value. Only the exact string "landscape" is a
+ * landscape plate; everything else (absent, null, a typo, a future value this
+ * build does not know) is the portrait default, and is returned as UNDEFINED so
+ * the normalized record stays sparse and portrait JSON never grows a field.
+ */
+const normPlate = (raw: unknown): PlateAspect | undefined =>
+  raw === "landscape" ? "landscape" : undefined;
+
+/**
  * One class record. `fit` is the ZOOM FLOOR's owner, not a geometry choice: reel
  * slides legally zoom BELOW cover (the `fit` floor of 0.5), so a saved sub-1 reel
  * zoom round-trips instead of snapping back to 1, while the About panel keeps the
  * cover floor of 1 it has always had.
+ *
+ * ADMIN.ASPECT.1 — `carriesPlate` is how the "wide reel only" half of the plate
+ * law is enforced at the read: a record parsed without it comes back with no
+ * plate no matter what the stored JSON holds, so a stray field on a phone record
+ * or an About panel is dropped rather than silently ignored downstream.
  */
-const normClassFraming = (raw: unknown, defaultFocal: Focal, fit: FitMode): ClassFraming => {
-  const r = (raw && typeof raw === "object" ? raw : {}) as { focal?: unknown; zoom?: unknown };
+const normClassFraming = (
+  raw: unknown,
+  defaultFocal: Focal,
+  fit: FitMode,
+  carriesPlate = false,
+): ClassFraming => {
+  const r = (raw && typeof raw === "object" ? raw : {}) as {
+    focal?: unknown;
+    zoom?: unknown;
+    plate?: unknown;
+  };
+  const plate = carriesPlate ? normPlate(r.plate) : undefined;
   return {
     focal: normFocal(r.focal, defaultFocal),
     zoom: isNum(r.zoom) ? clampSourceZoom(r.zoom, fit) : DEFAULT_ZOOM,
+    ...(plate ? { plate } : {}),
   };
 };
 
@@ -329,8 +408,18 @@ const normClassFraming = (raw: unknown, defaultFocal: Focal, fit: FitMode): Clas
  * A half-written slot (one class present, the other not) falls back the same
  * way — the missing class inherits the legacy record if there is one, else the
  * kind's default. Each class gets its own object, never a shared reference.
+ *
+ * ADMIN.ASPECT.1 — `widePlate` says whether THIS kind's WIDE record may carry a
+ * plate shape. Only the reel passes true, and only its wide class is offered it:
+ * the phone act hangs no plate and the About panel is 3:4 everywhere, so for both
+ * the field is parsed away here rather than tolerated further down.
  */
-const normClassSlot = (raw: unknown, defaultFocal: Focal, fit: FitMode): ClassSlotFraming => {
+const normClassSlot = (
+  raw: unknown,
+  defaultFocal: Focal,
+  fit: FitMode,
+  widePlate = false,
+): ClassSlotFraming => {
   const r = (raw && typeof raw === "object" ? raw : {}) as {
     photo_id?: unknown;
     focal?: unknown;
@@ -340,19 +429,22 @@ const normClassSlot = (raw: unknown, defaultFocal: Focal, fit: FitMode): ClassSl
   };
   // The legacy single record — read off the slot itself. With no focal/zoom
   // stored this normalizes to the kind's default, which is the same answer.
-  const legacy = () => normClassFraming(r, defaultFocal, fit);
-  const cls = (v: unknown) =>
-    v !== undefined && v !== null ? normClassFraming(v, defaultFocal, fit) : legacy();
+  const legacy = (carriesPlate: boolean) => normClassFraming(r, defaultFocal, fit, carriesPlate);
+  const cls = (v: unknown, carriesPlate = false) =>
+    v !== undefined && v !== null
+      ? normClassFraming(v, defaultFocal, fit, carriesPlate)
+      : legacy(carriesPlate);
   return {
     photo_id:
       typeof r.photo_id === "string" && r.photo_id.length > 0 ? r.photo_id : null,
     phone: cls(r.phone),
-    wide: cls(r.wide),
+    wide: cls(r.wide, widePlate),
   };
 };
 
+/** ADMIN.ASPECT.1 — the reel is the one kind whose wide record carries a plate. */
 const normReelSlot = (raw: unknown): ReelSlotFraming =>
-  normClassSlot(raw, REEL_DEFAULT_FOCAL, "fit");
+  normClassSlot(raw, REEL_DEFAULT_FOCAL, "fit", true);
 
 /** ADMIN.RESET.1b — the About panel is always cover, so its zoom floor is 1. */
 const normAboutSlot = (raw: unknown): ClassSlotFraming =>

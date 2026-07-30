@@ -30,12 +30,15 @@ import {
   defaultHeroVideo,
   defaultVideoSource,
   framingFromFocalZoom,
+  plateAspectOf,
   type Focal,
   type FitMode,
   type HeroVideoFraming,
   type VideoOrientation,
   type DeviceClass,
+  type ClassFraming,
   type ClassFramingPair,
+  type PlateAspect,
 } from "@/hooks/useCinematicMedia";
 import { reelIsPhoneWidth } from "@/components/cinematic/reelSpotlight";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
@@ -66,6 +69,14 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  * change for About is the RECORD, never the shape — all three draw the same 3:4
  * canvas, because that is what the live panel is on all three devices. Save
  * writes both class records through the same resolver contract as the reel.
+ *
+ * ADMIN.ASPECT.1 — a REEL slide's WIDE record also carries the SHAPE of the plate
+ * it hangs in, and the wide tabs get a Portrait / Landscape toggle for it. The
+ * whole of the geometry consequence is one argument to `previewMediaFrame`: the
+ * canvas re-frames to the chosen plate box and the drag, the zoom floor, the pan
+ * clamps and Reset all keep operating against "the box the media paints into"
+ * (ADMIN.RESET.1c) without a branch of their own. The phone tab is untouched — the
+ * phone act is edge-to-edge and hangs no plate — and so is the About panel.
  *
  * ADMIN.RESET.1a — RESET IS A TRANSFORM CONTROL, NOT AN EXIT.
  *
@@ -190,6 +201,22 @@ const FramingEditor = ({
   const setRZoom = (z: number) =>
     setRFraming((v) => ({ ...v, [activeClass]: { ...v[activeClass], zoom: z } }));
 
+  /* -------------------- ADMIN.ASPECT.1 (the plate's shape) -------------------- */
+  // A WIDE REEL record's own field: which plate the slide hangs in on the
+  // desktop/tablet composition. The phone act is edge-to-edge and hangs no plate,
+  // and the About panel is 3:4 everywhere, so neither offers the control.
+  const platePref: PlateAspect = plateAspectOf(rFraming.wide);
+  const showAspect = isReel && !isVideo && activeClass === "wide";
+  // Portrait is stored as the ABSENCE of the field, never as `plate: "portrait"`:
+  // that is what keeps a portrait slide's saved JSON byte-identical to today's,
+  // and it makes "flip to landscape and back" a true round trip.
+  const withPlate = (rec: ClassFraming, plate: PlateAspect): ClassFraming => {
+    const { plate: _drop, ...rest } = rec;
+    return plate === "landscape" ? { ...rest, plate } : rest;
+  };
+  const setPlate = (plate: PlateAspect) =>
+    setRFraming((v) => ({ ...v, wide: withPlate(v.wide, plate) }));
+
   // The image record actually being shown and dragged. For a class-split slot
   // that is the active class's record; the hero keeps its single record.
   const curFocal = usesClasses ? rCur.focal : iFocal;
@@ -309,7 +336,10 @@ const FramingEditor = ({
       // whatever previewMediaFrame says its composition crops to, always cover.
       const frame: PreviewFrame = isVideo
         ? { w: fw, h: fh, aspect, fit: videoFit }
-        : previewMediaFrame(kind, resolveDevicePreset(deviceId).width, fw, fh);
+        : // ADMIN.ASPECT.1 — the plate's shape is part of "the box the media
+          // actually paints into", so it belongs in this one call and nowhere
+          // else: switching to landscape re-frames the drag with no branch here.
+          previewMediaFrame(kind, resolveDevicePreset(deviceId).width, fw, fh, platePref);
       const geo = resolveHeroGeometry(
         natural.w / natural.h,
         frame.aspect,
@@ -321,7 +351,7 @@ const FramingEditor = ({
         y: (Math.max(0, geo.heightPct - 100) / 100) * frame.h,
       };
     },
-    [natural, aspect, fw, fh, isVideo, kind, deviceId],
+    [natural, aspect, fw, fh, isVideo, kind, deviceId, platePref],
   );
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -365,6 +395,11 @@ const FramingEditor = ({
    * orientation, a class-split path the active device class, and a single-record
    * slot its own focal/zoom. No navigation, no close, no write — the editor stays
    * on the slot and tab it was on, and Save is still what publishes.
+   *
+   * ADMIN.ASPECT.1 — Reset restores the TRANSFORM, and the plate's shape is not
+   * one: it is a composition choice, like which photo is in the slot. So a reset
+   * recentres and unzooms INSIDE the chosen plate and leaves the plate standing —
+   * the same reason Reset does not clear the photo.
    */
   const resetActive = () => {
     if (isVideo) {
@@ -372,7 +407,10 @@ const FramingEditor = ({
     } else if (usesClasses) {
       setRFraming((v) => ({
         ...v,
-        [activeClass]: { focal: { ...kindDefaultFocal }, zoom: DEFAULT_ZOOM },
+        [activeClass]: withPlate(
+          { focal: { ...kindDefaultFocal }, zoom: DEFAULT_ZOOM },
+          plateAspectOf(v[activeClass]),
+        ),
       }));
     } else {
       setIFocal({ ...kindDefaultFocal });
@@ -516,6 +554,12 @@ const FramingEditor = ({
                     deviceWidth={d.width}
                     videoSrc={tabSrc}
                     poster={poster}
+                    // ADMIN.ASPECT.1 — each thumbnail draws the plate of the
+                    // record IT previews. The wide tabs share one record, so
+                    // both re-shape together the moment the toggle moves; the
+                    // phone tab has no plate in its record and no plate in its
+                    // composition, so it is untouched either way.
+                    plate={plateAspectOf(tabFraming)}
                   />
                 </span>
                 {d.label}
@@ -558,6 +602,9 @@ const FramingEditor = ({
                 deviceWidth={resolveDevicePreset(deviceId).width}
                 videoSrc={displayedSrc}
                 poster={poster}
+                // ADMIN.ASPECT.1 — the drag surface IS the chosen plate, which is
+                // what makes the pan slack the editor offers the live plate's own.
+                plate={platePref}
               />
               <div className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-inset ring-[hsl(var(--gold-light))]/70" />
             </div>
@@ -607,6 +654,42 @@ const FramingEditor = ({
               >
                 {t("admin.media.video.fitFit")}
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ADMIN.ASPECT.1 — the wide plate's SHAPE. Same control grammar as the
+            video Fill/Fit pair (two aria-pressed buttons, accent when active), on
+            the wide reel tabs only: iPad and Desktop both render the wide act and
+            both edit its one record, so the choice is offered wherever that record
+            is being edited — exactly like the zoom slider above them. The iPhone
+            tab never shows it, because the phone act hangs no plate. */}
+        {showAspect && (
+          <div className="flex items-center gap-3">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">
+              {t("admin.media.editor.aspectLabel")}
+            </span>
+            <div data-qa="media-editor-aspect" className="flex gap-2">
+              {(["portrait", "landscape"] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  data-qa={`media-editor-aspect-${p}`}
+                  onClick={() => setPlate(p)}
+                  aria-pressed={platePref === p}
+                  className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
+                    platePref === p
+                      ? "border-accent bg-accent/10 text-foreground"
+                      : "border-border text-muted-foreground hover:border-accent/60"
+                  }`}
+                >
+                  {t(
+                    p === "portrait"
+                      ? "admin.media.editor.aspectPortrait"
+                      : "admin.media.editor.aspectLandscape",
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         )}

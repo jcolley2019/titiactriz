@@ -4,7 +4,7 @@ import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import { GOLD, IVORY, spotlightCentre } from "./reelSpotlight";
 import { SEAM_GOLD } from "./FramedVideo";
 import type { ReelChapterCopy } from "./reelChapters";
-import type { Focal } from "@/hooks/useCinematicMedia";
+import type { Focal, PlateAspect } from "@/hooks/useCinematicMedia";
 
 /**
  * CINE.FLOW.6 — the wide (>= 768px) reel act: an editorial STORY SPREAD.
@@ -37,6 +37,16 @@ import type { Focal } from "@/hooks/useCinematicMedia";
  * CINE.FLOW.5 — the plate itself is unchanged from the promoted bake-off
  * variant W2 ("Center Plate & Rules") as it stood after CINE.FLOW.4B.
  *
+ * ADMIN.ASPECT.1 — the plate now has TWO shapes and each slide picks one: the W2
+ * portrait plate (the default; every law of it unchanged) or a 3:2 landscape
+ * plate, so a landscape photograph is no longer forced into a portrait box on
+ * desktop. Both shapes are declared once in `plateLaw` and sized by the one
+ * `plateBox` comparison, and everything hung ON the plate — the self-drawing gold
+ * frame, the filigree bloom, the seam, the ground — is shape-blind by
+ * construction: it measures the plate rather than restating its aspect.
+ * The choice lives on the slide's WIDE framing record because it is a WIDE-only
+ * concern: the phone act is edge-to-edge and hangs no plate at all.
+ *
  * This retires the letterboxed rendering entirely. The old wide act put the
  * whole photo in a letterbox on brand dark under a flat 0.5 → 0.8 wash — bare
  * ground inside the frame, and a wash squarely in DESIGN.md's banned 50–80%
@@ -64,6 +74,16 @@ import type { Focal } from "@/hooks/useCinematicMedia";
 /** The plate's aspect (width / height) — the portrait sources' own. */
 export const PLATE_ASPECT = 0.563;
 
+/**
+ * ADMIN.ASPECT.1 — the LANDSCAPE plate: 3:2, the classic still-photography
+ * frame. Chosen over 16:10 because this is a photographer's plate, not a screen:
+ * 3:2 is what a full-frame camera hands over, and at every supported wide frame
+ * it is the deeper of the two, which is what keeps the plate reading as the
+ * spread's photo PAGE beside a full-height copy column rather than as a banner.
+ * The portrait plate (`PLATE_ASPECT`) remains the default; nothing about it moves.
+ */
+export const PLATE_LANDSCAPE_ASPECT = 1.5;
+
 /** Ambient backdrop filter — a LAW: this filter NEVER animates. */
 export const AMBIENT_BLUR_PX = 64;
 export const AMBIENT_FILTER = `blur(${AMBIENT_BLUR_PX}px) brightness(0.35) saturate(0.9)`;
@@ -74,6 +94,18 @@ export const PLATE_OUTLINE = "1px solid rgba(201,165,92,0.55)";
 /** W2's declared composition, as fractions of the frame. */
 export const PLATE_HEIGHT_VH = 76;
 export const PLATE_MAX_WIDTH_VW = 60;
+/**
+ * ADMIN.ASPECT.1 — the landscape plate's own two declared fractions. It cannot
+ * inherit the portrait pair: at 76vh a 3:2 box would be 114vw wide, so the width
+ * cap alone would govern at every frame and the height rule would be dead
+ * arithmetic. These two are the landscape reading of the same intent — the plate
+ * is the spread's wider page (78% of the photo page against the portrait plate's
+ * 60%) and a shallower one (52% of the frame's height against 76%) — so a
+ * landscape slide is visibly WIDER and SHALLOWER than a portrait one at every
+ * supported frame, which is the whole point of the choice.
+ */
+export const PLATE_LANDSCAPE_HEIGHT_VH = 52;
+export const PLATE_LANDSCAPE_MAX_WIDTH_VW = 78;
 /**
  * The plate's top edge. W2 declared 8, which the bake-off harness could afford
  * because its frame was a bare div. The live act is pinned UNDER the fixed
@@ -108,23 +140,46 @@ const clampNum = (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo
 export type PlateBox = { w: number; h: number };
 
 /**
- * Plate sizing law: a portrait box at `PLATE_ASPECT`. The height rule and the
+ * ADMIN.ASPECT.1 — one plate shape's whole geometry: its aspect and its two
+ * declared fractions of the frame. THE single source for both shapes, so the live
+ * act, the admin drag math and the admin CSS mirror cannot hold three opinions
+ * about what a landscape plate is.
+ */
+export type PlateLaw = { aspect: number; heightVh: number; maxWidthVw: number };
+
+export function plateLaw(plate: PlateAspect = "portrait"): PlateLaw {
+  return plate === "landscape"
+    ? {
+        aspect: PLATE_LANDSCAPE_ASPECT,
+        heightVh: PLATE_LANDSCAPE_HEIGHT_VH,
+        maxWidthVw: PLATE_LANDSCAPE_MAX_WIDTH_VW,
+      }
+    : { aspect: PLATE_ASPECT, heightVh: PLATE_HEIGHT_VH, maxWidthVw: PLATE_MAX_WIDTH_VW };
+}
+
+/**
+ * Plate sizing law: a box at the chosen shape's aspect. The height rule and the
  * max-width cap are both declared as percentages of the frame; the plate takes
  * whichever yields the SMALLER box, so a short landscape frame is governed by
  * height and a narrow tall one by width.
+ *
+ * ADMIN.ASPECT.1 — the "smaller box wins" comparison is untouched; only the three
+ * numbers it runs on come from `plateLaw` now. A portrait plate therefore computes
+ * exactly the box it computed before this brick, arithmetic included. The old
+ * heightVh / maxWidthVw override parameters are gone: they had no live caller (the
+ * frozen bake-off harness keeps its own copy of this function for W1/W3), and
+ * leaving them would have offered a second way to declare a plate.
  */
 export function plateBox(
   frameW: number,
   frameH: number,
-  heightVh: number = PLATE_HEIGHT_VH,
-  maxWidthVw: number | undefined = PLATE_MAX_WIDTH_VW,
+  plate: PlateAspect = "portrait",
 ): PlateBox {
+  const { aspect, heightVh, maxWidthVw } = plateLaw(plate);
   const hRule = (frameH * heightVh) / 100;
-  const wFromH = hRule * PLATE_ASPECT;
-  if (maxWidthVw != null) {
-    const wCap = (frameW * maxWidthVw) / 100;
-    if (wCap < wFromH) return { w: wCap, h: wCap / PLATE_ASPECT };
-  }
+  const wFromH = hRule * aspect;
+  const wCap = (frameW * maxWidthVw) / 100;
+  if (wCap < wFromH) return { w: wCap, h: wCap / aspect };
   return { w: wFromH, h: hRule };
 }
 

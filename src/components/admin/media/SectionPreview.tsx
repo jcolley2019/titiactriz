@@ -16,9 +16,6 @@ import {
   AMBIENT_BLUR_PX,
   AmbientBackdrop,
   BAND_PAD_VH,
-  PLATE_ASPECT,
-  PLATE_HEIGHT_VH,
-  PLATE_MAX_WIDTH_VW,
   PLATE_OUTLINE,
   PLATE_TOP_VH,
   WIDE_RULE_OPACITY,
@@ -26,8 +23,9 @@ import {
   lockupNumeralPx,
   lockupRulePx,
   lockupTitlePx,
+  plateLaw,
 } from "@/components/cinematic/reelWide";
-import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
+import type { Focal, FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
 
 /**
  * ADMIN.MEDIA.1 (ITEM 3) — a scaled, live composition of the actual cinematic
@@ -59,6 +57,15 @@ import type { Focal, FitMode } from "@/hooks/useCinematicMedia";
  * units — exact for everything that is a pure ratio (the plate box, the rules,
  * the band), and calibrated against the previewed device's own width for the
  * things the live act clamps in px (type sizes, the backdrop's blur radius).
+ *
+ * ADMIN.ASPECT.1 — the wide mirror's plate takes the edited slide's SHAPE
+ * (portrait or 3:2 landscape) from `plateLaw`, so the drag surface is genuinely
+ * the box that publishes and the editor's pan slack is the live plate's slack. The
+ * mirror keeps hanging the plate from `PLATE_TOP_VH` with the W2 caption band
+ * beneath it in both shapes: this is the frozen W2 composition, whose plate
+ * POSITION already differs from the CINE.FLOW.6 spread (a recorded drift, see
+ * DESIGN.md). What must not drift — and does not — is the plate's BOX, because
+ * that is what the framing is resolved against.
  */
 const DISPLAY = "'Cinzel', 'Cormorant Garamond', Georgia, serif";
 
@@ -84,18 +91,33 @@ type Props = {
   poster?: string;
   /** ADMIN.MEDIA.3 — fill (crop) or fit (letterbox over blurred backdrop). */
   fit?: FitMode;
+  /**
+   * ADMIN.ASPECT.1 — the wide reel plate's shape for the slide being previewed.
+   * Wide reel compositions only; every other surface hangs no plate. Absent ≡
+   * portrait, so a caller that predates the field draws today's plate exactly.
+   */
+  plate?: PlateAspect;
 };
 
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
 /**
- * The wide plate box, as CSS. This IS `plateBox`'s "smaller box wins" rule:
- * the height rule is 76cqh, the width cap is 60cqw — restated as the height it
- * implies (60 / 0.563 cqw) so a single `min()` can pick the smaller box, exactly
- * as the live act's comparison does.
+ * The wide plate box, as CSS. This IS `plateBox`'s "smaller box wins" rule: the
+ * height rule is `heightVh`cqh, the width cap is `maxWidthVw`cqw — restated as the
+ * height it implies (maxWidthVw / aspect cqw) so a single `min()` can pick the
+ * smaller box, exactly as the live act's comparison does.
+ *
+ * ADMIN.ASPECT.1 — a function of the plate's shape rather than two constants, and
+ * the three numbers come from `plateLaw`, so this mirror cannot hold a second
+ * opinion about what a landscape plate is. Portrait resolves to the identical
+ * strings it did before this brick (`min(76cqh, 106.572cqw)`), which is what makes
+ * a portrait slide's editor canvas byte-identical.
  */
-const PLATE_H = `min(${PLATE_HEIGHT_VH}cqh, ${(PLATE_MAX_WIDTH_VW / PLATE_ASPECT).toFixed(3)}cqw)`;
-const PLATE_W = `calc(${PLATE_H} * ${PLATE_ASPECT})`;
+const plateCss = (plate: PlateAspect) => {
+  const { aspect, heightVh, maxWidthVw } = plateLaw(plate);
+  const h = `min(${heightVh}cqh, ${(maxWidthVw / aspect).toFixed(3)}cqw)`;
+  return { h, w: `calc(${h} * ${aspect})` };
+};
 
 /**
  * The reference frame the wide act's px clamps are calibrated against. A slot
@@ -118,10 +140,14 @@ const SectionPreview = ({
   videoSrc,
   poster,
   fit = "fill",
+  plate = "portrait",
 }: Props) => {
   const phoneReel = kind === "reel" && deviceWidth != null && reelIsPhoneWidth(deviceWidth);
   const wideReel = kind === "reel" && !phoneReel;
   const wideRefW = deviceWidth ?? WIDE_PREVIEW_REF_W;
+  // ADMIN.ASPECT.1 — the plate's box in container units. Computed for every kind
+  // (it is two string concatenations) and read only by the wide branch below.
+  const plateSize = plateCss(plate);
 
   const media = videoSrc ? (
     <FramedVideo
@@ -183,13 +209,16 @@ const SectionPreview = ({
           ))}
           <div
             data-qa="wide-plate"
+            // ADMIN.ASPECT.1 — the canvas declares the shape it drew, exactly as
+            // the live plate does, so one spec reads both surfaces the same way.
+            data-plate={plate}
             className="absolute overflow-hidden"
             style={{
               top: `${PLATE_TOP_VH}cqh`,
               left: "50%",
               transform: "translateX(-50%)",
-              width: PLATE_W,
-              height: PLATE_H,
+              width: plateSize.w,
+              height: plateSize.h,
               outline: PLATE_OUTLINE,
             }}
           >
@@ -291,7 +320,7 @@ const SectionPreview = ({
           data-qa="wide-lockup"
           className="absolute inset-x-0 flex flex-col items-center justify-center text-center"
           style={{
-            top: `calc(${PLATE_TOP_VH}cqh + ${PLATE_H})`,
+            top: `calc(${PLATE_TOP_VH}cqh + ${plateSize.h})`,
             bottom: 0,
             paddingTop: `${BAND_PAD_VH}cqh`,
             paddingBottom: `${BAND_PAD_VH}cqh`,

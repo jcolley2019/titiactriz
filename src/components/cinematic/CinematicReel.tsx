@@ -5,6 +5,7 @@ import FramedImage from "./FramedImage";
 import type { CinematicPhoto } from "./useCinematicData";
 import {
   defaultClassFraming,
+  plateAspectOf,
   type ClassFraming,
   type ClassFramingPair,
 } from "@/hooks/useCinematicMedia";
@@ -187,6 +188,13 @@ const PhoneSlide = ({
  * and a 70svh slide under reduced motion. `plateBox`'s "smaller box wins" law
  * is applied against the PHOTO PAGE's width (the frame minus the chapter
  * column), so the max-width cap keeps protecting the plate from short frames.
+ *
+ * ADMIN.ASPECT.1 — the plate's SHAPE is per slide, read off the wide framing
+ * record: portrait (the default, and every existing slide) or a 3:2 landscape
+ * plate. Only `plateBox`'s three numbers change with it. The spread's own
+ * geometry — the 0.42 chapter column, the alternation, the seam, the centring —
+ * is measured against the plate's box and so needs no branch, and the drawn gold
+ * frame and the filigree keep working on a landscape plate for the same reason.
  */
 const WideSlide = ({
   slide,
@@ -211,14 +219,20 @@ const WideSlide = ({
   const zoneW = frameW * (1 - CHAPTER_FIELD_FRACTION);
   const zoneX = copySide === "left" ? frameW * CHAPTER_FIELD_FRACTION : 0;
 
-  const box = plateBox(zoneW, frameH);
-  const plateLeft = zoneX + (zoneW - box.w) / 2;
-  // Centred in the frame's height, but never higher than W2's header-clearing
-  // top edge (PLATE_TOP_VH) on short frames.
-  const plateTop = Math.max(frameH * (PLATE_TOP_VH / 100), (frameH - box.h) / 2);
   // FRAME.SPLIT.1: the plate's crop AND its focal read-out come from the wide
   // record, so `data-focal` reports the class actually painted here.
   const framing = framingFor(slide, "wide");
+  // ADMIN.ASPECT.1: and so does the plate's SHAPE. Absent ≡ portrait, so a slide
+  // that predates the field sizes byte-identically to before.
+  const plate = plateAspectOf(framing);
+  const box = plateBox(zoneW, frameH, plate);
+  const plateLeft = zoneX + (zoneW - box.w) / 2;
+  // Centred in the frame's height, but never higher than W2's header-clearing
+  // top edge (PLATE_TOP_VH) on short frames. ADMIN.ASPECT.1 needs no second rule:
+  // a landscape plate is shallow, so this same expression centres it against the
+  // full-height copy column, and the clamp only ever binds on the tall portrait
+  // plate at short frames — exactly as it did before.
+  const plateTop = Math.max(frameH * (PLATE_TOP_VH / 100), (frameH - box.h) / 2);
   const { fx, fy } = focalFractions(framing.focal);
   const measured = frameW > 0 && frameH > 0;
   const chapter = slide.chapter ?? REEL_CHAPTER_DEFAULTS[i % REEL_CHAPTER_DEFAULTS.length].es;
@@ -242,6 +256,10 @@ const WideSlide = ({
           <div
             data-qa="wide-plate"
             data-focal={`${fx.toFixed(4)},${fy.toFixed(4)}`}
+            // ADMIN.ASPECT.1 — the painted plate declares its own shape, so a
+            // spec reads the choice off the render instead of inferring it from
+            // a measured ratio.
+            data-plate={plate}
             className="absolute overflow-hidden"
             style={{
               left: plateLeft,

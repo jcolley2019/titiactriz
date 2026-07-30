@@ -1,6 +1,6 @@
-import { PLATE_ASPECT, plateBox } from "@/components/cinematic/reelWide";
+import { plateBox, plateLaw } from "@/components/cinematic/reelWide";
 import { reelIsPhoneWidth } from "@/components/cinematic/reelSpotlight";
-import type { FitMode } from "@/hooks/useCinematicMedia";
+import type { FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
 
 /**
  * ADMIN.RESET.1c — THE BOX THE MEDIA ACTUALLY PAINTS INTO.
@@ -33,6 +33,13 @@ import type { FitMode } from "@/hooks/useCinematicMedia";
  * The plate law is not restated here: `plateBox` is the same function the live
  * wide act sizes its plate with, and SectionPreview's CSS `min()` is that
  * function expressed in container units. One law, three surfaces.
+ *
+ * ADMIN.ASPECT.1 — the plate has two shapes now, so that box is a function of the
+ * edited slide's `plate` too. The pan law does not change at all: both axes still
+ * derive from the zoomed rendered size against the box this returns. Switching to
+ * a landscape plate simply returns a wider, shallower box, and the same arithmetic
+ * hands back the slack that box implies — which is why the editor re-frames on the
+ * toggle without a single geometry branch in the drag code.
  */
 export type PreviewFrame = {
   /** Width of the painted box, in the surface's own px. */
@@ -60,12 +67,18 @@ export function previewMediaFrame(
   deviceWidth: number,
   surfaceW: number,
   surfaceH: number,
+  /**
+   * ADMIN.ASPECT.1 — which plate shape the edited slide hangs in. Wide reel tabs
+   * only; every other surface has no plate and ignores it. Defaults to portrait,
+   * so a caller that predates the field gets exactly the old geometry.
+   */
+  plate: PlateAspect = "portrait",
 ): PreviewFrame {
   // The wide reel act crops into the plate; the phone act is edge-to-edge. The
   // test is the same width-derived one the live act and the class split use.
   if (kind === "reel" && !reelIsPhoneWidth(deviceWidth)) {
-    const box = plateBox(surfaceW, surfaceH);
-    return { w: box.w, h: box.h, aspect: PLATE_ASPECT, fit: "fill" };
+    const box = plateBox(surfaceW, surfaceH, plate);
+    return { w: box.w, h: box.h, aspect: plateLaw(plate).aspect, fit: "fill" };
   }
   // Everything else paints the full surface: the phone reel act (inset-0), the
   // hero, and the About panel (whose surface IS its fixed 3:4 canvas).

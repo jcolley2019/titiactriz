@@ -381,6 +381,10 @@ one narrows what a later brick may do:
    with at least `3vh` clear above and below. The letterboxed rendering it
    replaces is retired.
 
+   ADMIN.ASPECT.1 narrows this: the portrait plate described here is now the
+   DEFAULT shape rather than the only one, and a slide may instead choose a 3:2
+   landscape plate. Everything else in this paragraph stands.
+
    This is a deliberate exception to nothing: the plate is a *frame within the
    act*, not a card. The act itself is still full-bleed and viewport-true — the
    backdrop reaches every edge — so the Full-Bleed Rule holds. What the plate
@@ -533,6 +537,50 @@ ruled:
   latches, not scrubbed values: one comparison per frame, one tween per
   crossing, clean in both directions, and the CTA layer takes a pointer only
   once it has arrived.
+
+### Settled — the wide plate has two shapes, chosen per slide (ADMIN.ASPECT.1, 2026-07-29)
+
+Ratified on Joey's direction: a landscape photograph must not be forced into a
+portrait plate on desktop. Each wide reel slide now chooses its plate's **shape**,
+and the choice is a **wide-only** one — the phone act is edge-to-edge and hangs no
+plate, so it has no opinion to store and ignores the field entirely.
+
+- **Portrait (the default) is unchanged.** `aspect 0.563`, height `76vh` capped at
+  `60vw` of the photo page — the W2 plate, arithmetic included. Every slide that
+  predates this decision, and every slide left on portrait, renders and *stores*
+  byte-identically: the field is written only when landscape is chosen, so absent
+  ≡ portrait, exactly as an absent `about` key means "no panel".
+- **Landscape is `3:2`** — `aspect 1.5`, height `52vh` capped at `78vw` of the
+  photo page. 3:2 over 16:10 because this is a photographer's plate, not a
+  screen: it is the frame a full-frame camera hands over, and it is the deeper of
+  the two candidates at every supported wide frame, which keeps the plate reading
+  as the spread's photo *page* beside a full-height copy column rather than as a
+  banner. The landscape shape carries **its own two fractions** and cannot
+  inherit the portrait pair: at `76vh` a 3:2 box would be `114vw` wide, so the
+  width cap would govern at every frame and the height rule would be dead
+  arithmetic. The pair is the landscape reading of the same intent — the wider
+  page (`78%` against `60%`) and the shallower one (`52%` against `76%`) — so a
+  landscape slide is visibly wider and shallower than a portrait one everywhere.
+  At 1440×900 that is a `651×434` plate against portrait's `385×684`.
+- **One law, three surfaces, still.** Both shapes are declared once (`plateLaw`)
+  and sized by the one unchanged "smaller box wins" comparison (`plateBox`), which
+  the live act, the admin drag math (`previewMediaFrame`) and the admin CSS mirror
+  all read. Everything hung *on* the plate is shape-blind because it measures the
+  plate rather than restating its aspect: the self-drawing gold hairline frame, the
+  filigree bloom, the gold seam, the tonal ground, and the vertical centring —
+  `max(PLATE_TOP_VH, (frame − plate) / 2)`, whose clamp only ever binds on the tall
+  portrait plate at short frames, so a shallow landscape plate centres against the
+  copy column with no second rule.
+- **The choice lives on the slide's WIDE framing record** (`reel[i].wide.plate`),
+  beside that record's focal and zoom, because it belongs to the composition that
+  record serves. The phone class and the About panel are parsed *without* the
+  field, so neither can carry one. The admin offers a Portrait / Landscape toggle
+  on the wide tabs (iPad and Desktop both render the wide act and both edit its one
+  record — the same reason the zoom slider governs both), in the same control
+  grammar as the hero video's Fill / Fit pair.
+- **Reset does not undo the shape.** Reset is a transform control (ADMIN.RESET.1a):
+  it recentres and unzooms *inside* the chosen plate and leaves the plate standing,
+  for the same reason it does not clear the slot's photo.
 
 ## Elevation & Depth
 
