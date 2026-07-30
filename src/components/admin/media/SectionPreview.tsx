@@ -64,8 +64,16 @@ import type { Focal, FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * mirror keeps hanging the plate from `PLATE_TOP_VH` with the W2 caption band
  * beneath it in both shapes: this is the frozen W2 composition, whose plate
  * POSITION already differs from the CINE.FLOW.6 spread (a recorded drift, see
- * DESIGN.md). What must not drift — and does not — is the plate's BOX, because
- * that is what the framing is resolved against.
+ * DESIGN.md). What must not drift — and does not — is the plate's SHAPE, because
+ * that is what the framing is resolved against; a plate's SIZE already differs
+ * between the live act (measured against the photo page) and this canvas.
+ *
+ * ADMIN.ABOUT.2 — the About panel mirrors the same plate law, on both classes, and
+ * NOTHING else: no ambient backdrop, no W2 rules, no lockup, no self-drawing frame.
+ * The live panel is a plate hung in the About layout with one quiet gold inset
+ * outline, so that is exactly what this canvas draws — a plate centred in the device
+ * frame. The tabs change WHICH record is edited (and, on the wide tabs, its shape);
+ * the composition around the panel is the section's, not the reel's.
  */
 const DISPLAY = "'Cinzel', 'Cormorant Garamond', Georgia, serif";
 
@@ -92,8 +100,9 @@ type Props = {
   /** ADMIN.MEDIA.3 — fill (crop) or fit (letterbox over blurred backdrop). */
   fit?: FitMode;
   /**
-   * ADMIN.ASPECT.1 — the wide reel plate's shape for the slide being previewed.
-   * Wide reel compositions only; every other surface hangs no plate. Absent ≡
+   * ADMIN.ASPECT.1 — the plate's shape for the record being previewed. Plated
+   * compositions only (a wide reel slide and, since ADMIN.ABOUT.2, the About panel
+   * at either class); the reel's phone act and the hero hang no plate. Absent ≡
    * portrait, so a caller that predates the field draws today's plate exactly.
    */
   plate?: PlateAspect;
@@ -125,6 +134,14 @@ const plateCss = (plate: PlateAspect) => {
  */
 const WIDE_PREVIEW_REF_W = 1440;
 
+/**
+ * ADMIN.ABOUT.2 — the About panel's gold inset outline, restated from
+ * `.cine-about-panel` (src/components/cinematic/cinematic.css). An OUTLINE, never a
+ * border, for the reason DESIGN.md records: it sits outside the box model, so the
+ * canvas and the live panel keep measuring the same clean plate box.
+ */
+const ABOUT_PLATE_OUTLINE = "1px solid rgba(201, 165, 92, 0.4)";
+
 /** A px constant from the live wide lockup, as a fraction of its own frame. */
 const asWideCqw = (px: number, refW: number) => `${((px / refW) * 100).toFixed(3)}cqw`;
 
@@ -144,9 +161,13 @@ const SectionPreview = ({
 }: Props) => {
   const phoneReel = kind === "reel" && deviceWidth != null && reelIsPhoneWidth(deviceWidth);
   const wideReel = kind === "reel" && !phoneReel;
+  // ADMIN.ABOUT.2 — the About panel is a plate at BOTH classes (its phone record
+  // stores no shape, so a phone panel is the portrait plate by the same default the
+  // resolver applies). Same law, no reel chrome.
+  const aboutPlate = kind === "about";
   const wideRefW = deviceWidth ?? WIDE_PREVIEW_REF_W;
   // ADMIN.ASPECT.1 — the plate's box in container units. Computed for every kind
-  // (it is two string concatenations) and read only by the wide branch below.
+  // (it is two string concatenations) and read only by the plated branches below.
   const plateSize = plateCss(plate);
 
   const media = videoSrc ? (
@@ -225,13 +246,36 @@ const SectionPreview = ({
             {media}
           </div>
         </>
+      ) : aboutPlate ? (
+        // ADMIN.ABOUT.2 — the About panel: the plate law's box, centred in the
+        // device frame, with the panel's own gold inset outline and nothing else.
+        // Centred on BOTH axes because the live panel is centred in its column
+        // (`align-self: center` in the md+ rail, block flow on a phone) — this
+        // canvas mirrors the panel, not a full-frame act.
+        <div
+          data-qa="about-plate"
+          data-plate={plate}
+          className="absolute overflow-hidden"
+          style={{
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: plateSize.w,
+            height: plateSize.h,
+            outline: ABOUT_PLATE_OUTLINE,
+            outlineOffset: -1,
+          }}
+        >
+          {media}
+        </div>
       ) : (
         <div className="absolute inset-0">{media}</div>
       )}
 
-      {kind === "about" ? (
+      {aboutPlate ? (
         // ABOUT.MEDIA.1 — the live About panel is the bare framed photo (no
-        // scrim, no lockup), so the preview is too: card ≡ canvas ≡ live panel.
+        // scrim, no lockup), so the preview is too. ADMIN.ABOUT.2 changed the
+        // panel's BOX to the plate law's; it did not give the panel chrome.
         null
       ) : kind === "hero" ? (
         <>

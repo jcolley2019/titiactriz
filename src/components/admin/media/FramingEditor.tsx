@@ -22,7 +22,6 @@ import {
   MAX_ZOOM,
   FIT_MIN_ZOOM,
   DEFAULT_ZOOM,
-  ABOUT_PANEL_ASPECT,
   ABOUT_DEFAULT_FOCAL,
   HERO_DEFAULT_FOCAL,
   clampSourceZoom,
@@ -60,23 +59,24 @@ import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
  * self-centred by the resolver's geometry, so no snap logic exists here — a
  * saved focal on a bar axis is simply ignored by the render.
  *
- * ABOUT.MEDIA.1 — the "about" kind is fixed 3:4 EVERYWHERE, so its canvas is
- * always ABOUT_PANEL_ASPECT (one aspect IS the contract). Fill mode, same
- * resolver drag + zoom.
+ * ADMIN.RESET.1b — the About panel edits at FULL REEL PARITY: the same device tab
+ * row, the same per-class records, the same Reset. Save writes both class records
+ * through the same resolver contract as the reel.
  *
- * ADMIN.RESET.1b — the About panel is otherwise at FULL REEL PARITY: the same
- * device tab row, the same per-class records, the same Reset. What the tabs
- * change for About is the RECORD, never the shape — all three draw the same 3:4
- * canvas, because that is what the live panel is on all three devices. Save
- * writes both class records through the same resolver contract as the reel.
+ * ADMIN.ASPECT.1 — a WIDE record also carries the SHAPE of the plate it hangs in,
+ * and the wide tabs get a Portrait / Landscape toggle for it. The whole of the
+ * geometry consequence is one argument to `previewMediaFrame`: the canvas re-frames
+ * to the chosen plate box and the drag, the zoom floor, the pan clamps and Reset all
+ * keep operating against "the box the media paints into" (ADMIN.RESET.1c) without a
+ * branch of their own. The phone tab of a REEL slide is untouched — the phone act is
+ * edge-to-edge and hangs no plate.
  *
- * ADMIN.ASPECT.1 — a REEL slide's WIDE record also carries the SHAPE of the plate
- * it hangs in, and the wide tabs get a Portrait / Landscape toggle for it. The
- * whole of the geometry consequence is one argument to `previewMediaFrame`: the
- * canvas re-frames to the chosen plate box and the drag, the zoom floor, the pan
- * clamps and Reset all keep operating against "the box the media paints into"
- * (ADMIN.RESET.1c) without a branch of their own. The phone tab is untouched — the
- * phone act is edge-to-edge and hangs no plate — and so is the About panel.
+ * ADMIN.ABOUT.2 — and there is no longer an "About mode" of this component at all.
+ * The About panel is a reel-class surface: its canvas is the DEVICE-shaped frame of
+ * the active tab (the fixed 3:4 canvas ABOUT.MEDIA.1 declared is superseded), its
+ * media paints in the plate law's box like a slide's, and its wide tabs offer the
+ * same Shape toggle. What remains kind-specific is exactly what always was: the
+ * default focal a Reset restores, and the zoom floor (About is cover, so 1).
  *
  * ADMIN.RESET.1a — RESET IS A TRANSFORM CONTROL, NOT AN EXIT.
  *
@@ -149,12 +149,11 @@ const FramingEditor = ({
   const [deviceId, setDeviceId] = useState(MEDIA_PREVIEW_DEVICES[0].id);
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  // ABOUT.MEDIA.1 — the About panel is a fixed 3:4 frame on every screen, so its
-  // canvas aspect is the constant, never the active device preset.
-  // ADMIN.RESET.1b — it DOES get the device tabs now, but they select a class
-  // record, not a shape: every About tab draws this same 3:4 canvas.
+  // ADMIN.ABOUT.2 — ONE canvas law for every slot: the active tab's device frame.
+  // The About panel's fixed 3:4 canvas is gone with the 3:4 panel it modelled; what
+  // the About canvas now draws inside that frame is the plate (see SectionPreview).
   const isAbout = kind === "about";
-  const aspect = isAbout ? ABOUT_PANEL_ASPECT : devicePreviewAspect(deviceId);
+  const aspect = devicePreviewAspect(deviceId);
 
   /* ---------------- IMAGE mode (resolver drag surface) ---------------- */
   const imageSrc = !isVideo ? photo?.image_url : undefined;
@@ -202,11 +201,22 @@ const FramingEditor = ({
     setRFraming((v) => ({ ...v, [activeClass]: { ...v[activeClass], zoom: z } }));
 
   /* -------------------- ADMIN.ASPECT.1 (the plate's shape) -------------------- */
-  // A WIDE REEL record's own field: which plate the slide hangs in on the
-  // desktop/tablet composition. The phone act is edge-to-edge and hangs no plate,
-  // and the About panel is 3:4 everywhere, so neither offers the control.
+  // A WIDE record's own field: which plate the media hangs in on the
+  // desktop/tablet composition. ADMIN.ABOUT.2 — offered by every class-split kind,
+  // on its wide tabs only: a reel slide's phone act is edge-to-edge and hangs no
+  // plate, and an About phone panel is always the portrait plate, so in both cases
+  // the phone class has no shape to choose and stores none.
   const platePref: PlateAspect = plateAspectOf(rFraming.wide);
-  const showAspect = isReel && !isVideo && activeClass === "wide";
+  const showAspect = usesClasses && !isVideo && activeClass === "wide";
+  /**
+   * The plate the ACTIVE tab's surface hangs — the ACTIVE CLASS's own record, not
+   * the wide one. On a wide tab the two are the same value; on a phone tab this is
+   * always portrait, because a phone record cannot carry a shape. That is what keeps
+   * an About phone canvas on the portrait plate while the same slot's wide panel is
+   * landscape (a reel phone tab hangs no plate at all, so it reads this and ignores
+   * it), and it is why the drag math and the canvas are handed THIS, never platePref.
+   */
+  const activePlate: PlateAspect = usesClasses ? plateAspectOf(rCur) : "portrait";
   // Portrait is stored as the ABSENCE of the field, never as `plate: "portrait"`:
   // that is what keeps a portrait slide's saved JSON byte-identical to today's,
   // and it makes "flip to landscape and back" a true round trip.
@@ -339,7 +349,7 @@ const FramingEditor = ({
         : // ADMIN.ASPECT.1 — the plate's shape is part of "the box the media
           // actually paints into", so it belongs in this one call and nowhere
           // else: switching to landscape re-frames the drag with no branch here.
-          previewMediaFrame(kind, resolveDevicePreset(deviceId).width, fw, fh, platePref);
+          previewMediaFrame(kind, resolveDevicePreset(deviceId).width, fw, fh, activePlate);
       const geo = resolveHeroGeometry(
         natural.w / natural.h,
         frame.aspect,
@@ -351,7 +361,7 @@ const FramingEditor = ({
         y: (Math.max(0, geo.heightPct - 100) / 100) * frame.h,
       };
     },
-    [natural, aspect, fw, fh, isVideo, kind, deviceId, platePref],
+    [natural, aspect, fw, fh, isVideo, kind, deviceId, activePlate],
   );
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -502,14 +512,14 @@ const FramingEditor = ({
 
         {/* Device tabs — each a scaled live preview of the actual section.
             ADMIN.RESET.1b: the About panel gets the same tab row as every other
-            slot. Its thumbnails render at ABOUT_PANEL_ASPECT rather than the
-            device aspect, because the live panel IS 3:4 on all three devices —
-            a device-shaped About thumbnail would be a lie about the section. */}
+            slot. ADMIN.ABOUT.2: and the same DEVICE-SHAPED thumbnails, because the
+            panel's shape is now the plate's and its frame is the device's — an
+            About thumbnail locked to 3:4 would be the lie about the section. */}
         <div data-qa="media-editor-devices" className="flex flex-wrap gap-2">
           {MEDIA_PREVIEW_DEVICES.map((d) => {
             const isActive = d.id === deviceId;
-            // The thumbnail's own aspect: the section's shape on that device.
-            const a = isAbout ? ABOUT_PANEL_ASPECT : d.width / d.height;
+            // The thumbnail's own aspect: the device frame, for every kind.
+            const a = d.width / d.height;
             // VID.MODEL.1: one video across all tabs; each tab previews its own
             // viewport-orientation framing record of that single clip. Keyed off
             // the DEVICE aspect, which is the viewport's, not the thumbnail's.
@@ -556,9 +566,10 @@ const FramingEditor = ({
                     poster={poster}
                     // ADMIN.ASPECT.1 — each thumbnail draws the plate of the
                     // record IT previews. The wide tabs share one record, so
-                    // both re-shape together the moment the toggle moves; the
-                    // phone tab has no plate in its record and no plate in its
-                    // composition, so it is untouched either way.
+                    // both re-shape together the moment the toggle moves; a reel
+                    // phone tab has no plate in its record and none in its
+                    // composition, so it is untouched either way, and an About
+                    // phone tab draws the portrait plate the absent field means.
                     plate={plateAspectOf(tabFraming)}
                   />
                 </span>
@@ -604,7 +615,7 @@ const FramingEditor = ({
                 poster={poster}
                 // ADMIN.ASPECT.1 — the drag surface IS the chosen plate, which is
                 // what makes the pan slack the editor offers the live plate's own.
-                plate={platePref}
+                plate={activePlate}
               />
               <div className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-inset ring-[hsl(var(--gold-light))]/70" />
             </div>
@@ -660,10 +671,12 @@ const FramingEditor = ({
 
         {/* ADMIN.ASPECT.1 — the wide plate's SHAPE. Same control grammar as the
             video Fill/Fit pair (two aria-pressed buttons, accent when active), on
-            the wide reel tabs only: iPad and Desktop both render the wide act and
-            both edit its one record, so the choice is offered wherever that record
-            is being edited — exactly like the zoom slider above them. The iPhone
-            tab never shows it, because the phone act hangs no plate. */}
+            the WIDE tabs of a class-split slot: iPad and Desktop both render the
+            wide composition and both edit its one record, so the choice is offered
+            wherever that record is being edited — exactly like the zoom slider
+            above them. The iPhone tab never shows it, because a phone surface has
+            no shape to choose. ADMIN.ABOUT.2 — a reel slide and the About panel
+            reach this control on identical terms; there is no About branch. */}
         {showAspect && (
           <div className="flex items-center gap-3">
             <span className="w-14 shrink-0 text-xs text-muted-foreground">

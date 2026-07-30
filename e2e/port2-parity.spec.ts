@@ -63,9 +63,10 @@ const MEDIA = {
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
     { photo_id: null, focal: { x: 0.5, y: 0.5 }, zoom: 1 },
   ],
-  // ABOUT.MEDIA.1 — the opt-in 3:4 portrait panel. The portrait source at zoom
-  // 1.15 in a 0.75 container overflows on BOTH axes, so posY=35 pans vertically
-  // (making the posY mutation visible) while posX=50 stays centred-with-overflow.
+  // ABOUT.MEDIA.1 — the opt-in photo panel. ADMIN.ABOUT.2: its box is the portrait
+  // PLATE (0.563). The 1080x1920 source at zoom 1.15 overflows that box on BOTH
+  // axes, so posY=35 pans vertically (making the posY mutation visible) while
+  // posX=50 stays centred-with-overflow.
   about: { photo_id: "port", focal: { x: 0.5, y: 0.35 }, zoom: 1.15 },
 };
 
@@ -78,6 +79,13 @@ const REEL0_PHONE: Framing = { scale: 1.25, posX: 80, posY: 30, fit: "fill" };
 const REEL0_WIDE: Framing = { scale: 1.6, posX: 25, posY: 65, fit: "fill" };
 const REEL_DEFAULT_FRAMING: Framing = { scale: 1, posX: 50, posY: 50, fit: "fill" };
 const ABOUT_FRAMING: Framing = { scale: 1.15, posX: 50, posY: 35, fit: "fill" };
+/**
+ * ADMIN.ABOUT.2 — the box the About panel's framing is resolved against, restated
+ * from `PLATE_ASPECT` (src/components/cinematic/reelWide.tsx). The panel is a
+ * reel-class plate: the portrait plate at the phone class always, and at the wide
+ * class unless its record chose landscape (about2.spec.ts owns that half).
+ */
+const ABOUT_PLATE_ASPECT = 0.563;
 
 /**
  * CINE.FLOW.5 — the reel act still has TWO true renderings, split at the 768px
@@ -522,16 +530,22 @@ test.describe("CINE.FLOW.5 — reel composition parity (editor device tabs)", ()
 
 /**
  * ABOUT.MEDIA.1 (ITEM 4) — the same rendered-pixel parity law, extended to the
- * opt-in About portrait panel. The panel is fixed 3:4 EVERYWHERE (card thumbnail
- * ≡ editor canvas ≡ live panel), so it needs no device tabs and the editor
- * canvas and live panel — both 3:4, same photo, same focal/zoom — expose a
- * BYTE-IDENTICAL data-hero-framing string, the strongest form of part (c).
+ * opt-in About photo panel.
+ *
+ * ADMIN.ABOUT.2 — the panel is a REEL-CLASS PLATE now, not a fixed 3:4 frame, so
+ * this block's SHAPE claims move to the plate law while its parity claims stand
+ * unchanged: whatever a surface predicts, it must paint, and the editor canvas for a
+ * device class must resolve what that class publishes. The editor canvas and the
+ * live panel are the same SHAPE but no longer the same SIZE (a canvas is not a
+ * rail), so part (c) is asserted as the resolved rectangle rather than as a
+ * byte-identical string — `heroFramingAttr` reports percentages to one decimal, and
+ * a shape held in common is exactly what makes those percentages agree.
  *
  * Mutation verification (manual, results in the sprint report): forcing posY=50
  * into CinematicAbout's FramedImage focal must fail the live (a)/(b) parity and
- * the byte-identical editor==live equality; reverting restores green.
+ * the editor==live rectangle equality; reverting restores green.
  */
-test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
+test.describe("ABOUT.MEDIA.1 — parity law (About photo panel)", () => {
   test("a+b — live About panel paints at natural aspect (desktop + mobile)", async ({ page }) => {
     // Reduced motion keeps the panel static (no Lenis/pins) so the bottom-of-page
     // section is measurable at both widths; the parity maths are motion-agnostic.
@@ -551,18 +565,22 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
     }
   });
 
-  test("a+b — About slot card + editor canvas (3:4 fill on every device tab)", async ({ page }) => {
+  test("a+b — About slot card + editor canvas (the plate, on every device tab)", async ({
+    page,
+  }) => {
     await openAdminMedia(page);
 
-    // Slot card thumbnail — the About card renders the framed 3:4 panel.
+    // Slot card thumbnail — a 3:4 identifier tile belonging to no device, showing
+    // the phone class's crop. The parity law is measured against the tile it paints
+    // into, so the card's own shape is not the panel's claim about the section.
     const card = page.locator('[data-qa="media-slot"][data-slot="about"] img').first();
     await framingReady(card);
     await assertParity(await measure(card), ABOUT_FRAMING, "slot card about");
 
-    // ADMIN.RESET.1b — the About editor now carries the SAME device tab row as
-    // every other slot (it used to hide it). What stays fixed is the CANVAS: the
-    // live panel is 3:4 on all three devices, so every tab must draw 3:4 and the
-    // parity law must hold on each. The tabs select a class record, not a shape.
+    // ADMIN.RESET.1b — the About editor carries the SAME device tab row as every
+    // other slot. ADMIN.ABOUT.2 — and the same canvas law: the tab's DEVICE frame,
+    // with the plate hung inside it. So the box the parity law measures is the
+    // PLATE's, and it must be the plate law's shape on every tab.
     await page
       .locator('[data-qa="media-slot"][data-slot="about"] [data-qa="media-slot-edit"]')
       .click();
@@ -578,10 +596,10 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
       await page.waitForTimeout(300);
       await framingReady(canvas);
       const m = await measure(canvas);
-      // The canvas box is 3:4 regardless of which device tab is active.
+      // The measured container IS the portrait plate — the box that publishes.
       expect(
-        Math.abs(m.box.w / m.box.h - 0.75),
-        `about canvas stays 3:4 on the ${tab} tab (got ${(m.box.w / m.box.h).toFixed(4)})`,
+        Math.abs(m.box.w / m.box.h - ABOUT_PLATE_ASPECT),
+        `about canvas hangs the portrait plate on the ${tab} tab (got ${(m.box.w / m.box.h).toFixed(4)})`,
       ).toBeLessThan(0.01);
       // Both classes seed from the legacy single record in this fixture, so every
       // tab resolves the same framing — and the parity law holds on each.
@@ -589,9 +607,9 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
     }
   });
 
-  test("c — About editor canvas == live panel (byte-identical 3:4 framing)", async ({ page }) => {
-    // LIVE panel at 1440x900 — the desktop grid resolves the panel column to a
-    // clean 400px 3:4 box.
+  test("c — About editor canvas resolves what the live panel paints", async ({ page }) => {
+    // LIVE panel at 1440x900 — the desktop rail resolves the panel to a portrait
+    // plate box (ADMIN.ABOUT.2), which is the shape the canvas must also hang.
     await page.emulateMedia({ reducedMotion: "reduce" });
     await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -600,12 +618,16 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
     const panel = page.locator(ABOUT_IMG).first();
     await panel.scrollIntoViewIfNeeded().catch(() => {});
     await framingReady(panel);
-    const liveAttr = await panel.getAttribute("data-hero-framing");
-    expect(liveAttr, "live About framing attr").toContain(attrPrefix(ABOUT_FRAMING));
+    const live = await measure(panel);
+    expect(live.attr, "live About framing attr").toContain(attrPrefix(ABOUT_FRAMING));
+    expect(
+      Math.abs(live.box.w / live.box.h - ABOUT_PLATE_ASPECT),
+      `the live panel is the portrait plate (got ${(live.box.w / live.box.h).toFixed(4)})`,
+    ).toBeLessThan(0.01);
 
-    // EDITOR canvas — same media + same 3:4 container + same focal/zoom ⇒ a
-    // byte-identical data-hero-framing string (the PORT.2 part-c law, strongest
-    // form: both surfaces are literally 3:4).
+    // EDITOR canvas — same media, same plate SHAPE, same focal/zoom ⇒ the same
+    // resolved rectangle. The two boxes differ in size (a canvas is not a rail), so
+    // the law is the rectangle each reports, to the 0.1 the attr rounds to.
     await openAdminMedia(page);
     await page
       .locator('[data-qa="media-slot"][data-slot="about"] [data-qa="media-slot-edit"]')
@@ -613,7 +635,27 @@ test.describe("ABOUT.MEDIA.1 — parity law (About portrait panel)", () => {
     const canvas = page.locator(EDITOR_CANVAS_IMG).first();
     await expect(canvas).toBeVisible();
     await framingReady(canvas);
-    const canvasAttr = await canvas.getAttribute("data-hero-framing");
-    expect(canvasAttr, "editor About canvas == live About panel (both 3:4)").toBe(liveAttr);
+    const editor = await measure(canvas);
+    expect(editor.attr, "editor About canvas resolves the same framing").toContain(
+      attrPrefix(ABOUT_FRAMING),
+    );
+
+    const rect = (attr: string | null) => {
+      const box = (attr ?? "").split(";")[4] ?? "";
+      return box.split(",").map((n) => parseFloat(n));
+    };
+    const [lw, lh, ll, lt] = rect(live.attr);
+    const [ew, eh, el, et] = rect(editor.attr);
+    for (const [name, a, b] of [
+      ["widthPct", ew, lw],
+      ["heightPct", eh, lh],
+      ["leftPct", el, ll],
+      ["topPct", et, lt],
+    ] as const) {
+      expect(
+        Math.abs(a - b),
+        `editor About canvas ${name} ${a} == live About panel ${b}`,
+      ).toBeLessThanOrEqual(0.2);
+    }
   });
 });

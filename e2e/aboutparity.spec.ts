@@ -23,10 +23,13 @@ import { shot } from "./_helpers";
  *     silently re-crop every published About panel, so it is asserted on the
  *     live panel at both viewports and on every editor tab.
  *
- * What the tabs do NOT change is the panel's SHAPE: the live About panel is 3:4
- * on every device, so every tab draws a 3:4 canvas. The split buys a tighter
- * phone crop of the same portrait, nothing more. (port2-parity.spec.ts owns the
- * pixel-parity form of that law; here it is asserted as the canvas box aspect.)
+ * ADMIN.ABOUT.2 amended what a tab CHANGES. This spec used to assert that every
+ * About tab drew the same 3:4 canvas, because the live panel was 3:4 on every
+ * device. It no longer is: the panel is a reel-class plate, so each tab draws its
+ * own DEVICE frame with the plate hung inside it, and the wide tabs additionally
+ * choose the plate's shape. The two laws above are unchanged and still asserted
+ * here; the canvas-shape assertion now reads the device frame, and about2.spec.ts
+ * owns the plate/shape laws in full.
  */
 
 const CINE = "/cinematic";
@@ -56,7 +59,19 @@ const LEGACY_MEDIA = {
   about: { photo_id: "port", focal: LEGACY_FOCAL, zoom: LEGACY_ZOOM },
 };
 
+/**
+ * The three editor tabs and their frames, mirroring src/lib/device-presets.ts.
+ * ADMIN.ABOUT.2 — the About canvas is the DEVICE frame now, on every kind, so the
+ * aspect a tab must draw is a number this spec can state.
+ */
+const DEVICE_FRAMES = {
+  "iphone-17-pro": 402 / 874,
+  "ipad-air": 820 / 1180,
+  desktop: 1440 / 900,
+} as const;
 const DEVICE_TABS = ["iphone-17-pro", "ipad-air", "desktop"] as const;
+/** src/components/cinematic/reelWide.tsx — the portrait plate the panel hangs in. */
+const PORTRAIT_PLATE = 0.563;
 const ABOUT_IMG = '[data-qa="cinematic-about-img"]';
 const SURFACE = '[data-qa="media-editor-surface"]';
 const CANVAS_IMG = '[data-qa="media-editor-surface"] [data-qa="media-preview-img"]';
@@ -153,7 +168,9 @@ async function livePanelAttr(page: Page, media: unknown, w: number, h: number) {
 /* ===================== A. THE ABOUT EDITOR HAS THE TAB SET ===================== */
 
 test.describe("ADMIN.RESET.1b — About editor reaches reel parity", () => {
-  test("About editor shows the standard device tabs, each on a 3:4 canvas", async ({ page }) => {
+  test("About editor shows the standard device tabs, each on its own device canvas", async ({
+    page,
+  }) => {
     test.setTimeout(120_000);
     await openAdminMedia(page, LEGACY_MEDIA);
     await openAboutEditor(page);
@@ -165,14 +182,20 @@ test.describe("ADMIN.RESET.1b — About editor reaches reel parity", () => {
       await expect(page.locator(`[data-qa="media-device-${tab}"]`)).toBeVisible();
     }
 
-    // Every tab draws the SAME 3:4 canvas — the tabs pick a record, not a shape.
+    // ADMIN.ABOUT.2 — each tab draws ITS OWN device frame, with the plate hung
+    // inside it. A tab is a device now, not just a record.
     for (const tab of DEVICE_TABS) {
       await page.locator(`[data-qa="media-device-${tab}"]`).click();
       await page.waitForTimeout(300);
       const box = (await page.locator(SURFACE).boundingBox())!;
       expect(
-        Math.abs(box.width / box.height - 0.75),
-        `${tab} tab keeps the 3:4 About canvas (got ${(box.width / box.height).toFixed(4)})`,
+        Math.abs(box.width / box.height - DEVICE_FRAMES[tab]),
+        `${tab} tab draws its device frame (got ${(box.width / box.height).toFixed(4)})`,
+      ).toBeLessThan(0.01);
+      const plate = (await page.locator(`${SURFACE} [data-qa="about-plate"]`).boundingBox())!;
+      expect(
+        Math.abs(plate.width / plate.height - PORTRAIT_PLATE),
+        `${tab} tab hangs the portrait plate (got ${(plate.width / plate.height).toFixed(4)})`,
       ).toBeLessThan(0.01);
     }
 
@@ -343,7 +366,7 @@ test.describe("ADMIN.RESET.1b — About framing round-trips per tab", () => {
     await page.waitForTimeout(400);
     await framingReady(page.locator(CANVAS_IMG));
 
-    // The About default is a centred, unzoomed 3:4 crop.
+    // The About default is a centred, unzoomed crop of its plate.
     expect(await canvasAttr(page), "About Reset lands on the centred default").toContain(
       attrPrefix({ x: 0.5, y: 0.5 }, 1),
     );

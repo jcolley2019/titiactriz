@@ -560,7 +560,7 @@
         "heroDesc": "The full-screen opening image.",
         "reelDesc": "Featured reel slide {{n}}.",
         "about": "About",
-        "aboutDesc": "Optional 3:4 portrait beside the About copy."
+        "aboutDesc": "Optional photo beside the About copy — framed per device, portrait or landscape."
       },
       "reelLabel": "Reel {{n}}",
       "picker": {

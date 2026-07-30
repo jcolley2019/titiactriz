@@ -89,7 +89,8 @@ const SLOTS: SlotDesc[] = [
   { key: "reel-0", kind: "reel", reelIndex: 0, titleKey: REEL_TITLE_KEYS[0] },
   { key: "reel-1", kind: "reel", reelIndex: 1, titleKey: REEL_TITLE_KEYS[1] },
   { key: "reel-2", kind: "reel", reelIndex: 2, titleKey: REEL_TITLE_KEYS[2] },
-  // ABOUT.MEDIA.1 — fifth card: the opt-in 3:4 About portrait panel.
+  // ABOUT.MEDIA.1 — fifth card: the opt-in About photo panel. ADMIN.ABOUT.2 made
+  // it a reel-class slot, so it takes the same class-split editor a slide does.
   { key: "about", kind: "about", reelIndex: 0 },
 ];
 
@@ -229,10 +230,11 @@ const CinematicMediaManager = () => {
   // ABOUT.MEDIA.1 — the About slot resolves to null when unconfigured; surface a
   // photo-less shape so the card falls to its empty state (never a pool photo).
   //
-  // FRAME.SPLIT.1 / ADMIN.RESET.1b — a class-split card is one small 3:4
-  // thumbnail, so it must pick a single class: it shows PHONE. That is the class
-  // the editor's first tab opens on, so card → pencil is continuous, and it is
-  // the crop Joey approves first. True for the reel and, now, for About.
+  // FRAME.SPLIT.1 / ADMIN.RESET.1b — a class-split card is one small 3:4 tile (an
+  // identifier, belonging to no device), so it must pick a single class: it shows
+  // PHONE. That is the class the editor's first tab opens on, so card → pencil is
+  // continuous, and it is the crop Joey approves first. True for the reel and About
+  // alike; neither card claims to be the section's shape.
   const resolvedFor = (
     d: SlotDesc,
   ): { photo?: CinematicPhoto; focal: Focal; zoom: number } => {

@@ -6,8 +6,9 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
 import { useReelIsPhone } from "./reelSpotlight";
+import { plateLaw } from "./reelWide";
 import type { CinematicPhoto } from "./useCinematicData";
-import type { ClassFraming } from "@/hooks/useCinematicMedia";
+import { plateAspectOf, type ClassFraming } from "@/hooks/useCinematicMedia";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,14 +33,22 @@ type Props = {
  * on scroll. Reduced motion renders everything static.
  *
  * ABOUT.MEDIA.1 — when an About photo is configured, the copy becomes the left
- * column of a two-column editorial split with a fixed 3:4 portrait panel on the
- * right (md+); on mobile the panel stacks between the blockquote and the
- * paragraphs. With no photo, none of that attaches (see `hasPanel`).
+ * column of a two-column editorial split with the photo panel on the right (md+);
+ * on mobile the panel stacks between the blockquote and the paragraphs. With no
+ * photo, none of that attaches (see `hasPanel`).
  *
- * ADMIN.RESET.1b — the panel's FRAME is 3:4 on every screen, but its CROP is
- * class-split like a reel slide: below 768px it paints the `phone` record, at or
- * above it the `wide` one. The frame shape never changes, so the split buys the
- * owner a tighter phone crop of the same portrait — nothing about the layout.
+ * ADMIN.RESET.1b — the panel's CROP is class-split like a reel slide: below 768px
+ * it paints the `phone` record, at or above it the `wide` one.
+ *
+ * ADMIN.ABOUT.2 — AND SO IS ITS SHAPE. The panel is a REEL-CLASS PLATE: its box is
+ * the plate law's (`plateLaw`, the one the wide reel act sizes its plate with), so
+ * the phone class paints the portrait plate — a phone record stores no shape, and
+ * cannot — while the wide class paints whichever shape its record chose, the
+ * portrait plate or the 3:2 landscape one. The ABOUT.MEDIA.1 fixed 3:4 frame is
+ * SUPERSEDED; nothing else about the act moves (same grid, same dwell, same reveal).
+ * The layout adapts to the shape rather than the shape to the layout: the md+ rail
+ * widens for a landscape panel (see `.cine-about-grid[data-plate]`), because a 3:2
+ * page squeezed into a portrait rail would read as a strip, not as a photograph.
  */
 const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   const { t } = useTranslation();
@@ -55,6 +64,12 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   // today's and no panel node renders — a byte-identical text-only section.
   const hasPanel = !!photo && !!framing;
   const area = (name: string) => (hasPanel ? ` cine-a-${name}` : "");
+
+  // ADMIN.ABOUT.2 — the panel's plate. ONE read (`plateAspectOf`), so this surface
+  // never spells `?? "portrait"` for itself: on the phone class the field is parsed
+  // away by the resolver and this is portrait by law, not by a branch here.
+  const plate = plateAspectOf(framing);
+  const plateAspect = plateLaw(plate).aspect;
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -92,7 +107,12 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
       data-qa="cinematic-section"
       className="relative px-6 py-24 md:py-32"
     >
-      <div className={hasPanel ? "mx-auto max-w-5xl cine-about-grid" : "mx-auto max-w-4xl"}>
+      <div
+        className={hasPanel ? "mx-auto max-w-5xl cine-about-grid" : "mx-auto max-w-4xl"}
+        // The rail's width is a function of the panel's shape (md+ only, where the
+        // rail exists). Declared on the grid so the CSS owns the two widths.
+        data-plate={hasPanel ? plate : undefined}
+      >
         <p className={`cine-about-line text-caps mb-8${area("eyebrow")}`} style={{ color: "#C9A55C" }}>
           {t("about.eyebrow")}
         </p>
@@ -111,7 +131,14 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
         </blockquote>
 
         {hasPanel && (
-          <div className="cine-about-line cine-about-panel mt-10 md:mt-0">
+          <div
+            data-qa="cinematic-about-panel"
+            data-plate={plate}
+            className="cine-about-line cine-about-panel mt-10 md:mt-0"
+            // The plate law's shape, inline: the box the framing is resolved
+            // against must be the law's answer, never a CSS restatement of it.
+            style={{ aspectRatio: plateAspect }}
+          >
             <FramedImage
               src={photo!.image_url}
               alt={photo!.alt_text ?? ""}

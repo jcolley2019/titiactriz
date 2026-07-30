@@ -6,10 +6,10 @@ import type { FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * ADMIN.RESET.1c — THE BOX THE MEDIA ACTUALLY PAINTS INTO.
  *
  * The framing editor's drag surface is the whole device-shaped canvas, but the
- * photo inside it is not always the same rectangle. On the reel's WIDE
- * compositions the photo is cropped into the W2 plate — a fixed portrait box
- * (`PLATE_ASPECT`) hung inside the frame — while on the phone act, the hero and
- * the About panel it fills the surface edge to edge.
+ * photo inside it is not always the same rectangle. On a REEL-CLASS surface's
+ * plated compositions the photo is cropped into a plate — a bounded box
+ * (`plateLaw`) hung inside the frame — while on the reel's phone act and the hero
+ * it fills the surface edge to edge.
  *
  * That distinction is the whole of the pan bug this brick fixes. `surfaceOverflow`
  * used to resolve its geometry against the DEVICE aspect at the editor's notional
@@ -40,6 +40,12 @@ import type { FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * a landscape plate simply returns a wider, shallower box, and the same arithmetic
  * hands back the slack that box implies — which is why the editor re-frames on the
  * toggle without a single geometry branch in the drag code.
+ *
+ * ADMIN.ABOUT.2 — the About panel is a reel-class surface, so it hangs a plate too,
+ * and it hangs one at BOTH device classes: its phone panel is the portrait plate
+ * (the phone class stores no shape, so it can only ever be that), its wide panel the
+ * shape its wide record chose. The reel's PHONE act stays the one plated kind's
+ * exception, because there the photograph IS the stage rather than a page hung in it.
  */
 export type PreviewFrame = {
   /** Width of the painted box, in the surface's own px. */
@@ -68,20 +74,24 @@ export function previewMediaFrame(
   surfaceW: number,
   surfaceH: number,
   /**
-   * ADMIN.ASPECT.1 — which plate shape the edited slide hangs in. Wide reel tabs
-   * only; every other surface has no plate and ignores it. Defaults to portrait,
-   * so a caller that predates the field gets exactly the old geometry.
+   * ADMIN.ASPECT.1 — which plate shape the edited record hangs in. Plated
+   * surfaces only; the reel's phone act and the hero have no plate and ignore it.
+   * Defaults to portrait, so a caller that predates the field gets exactly the old
+   * geometry — and an About phone record, which can never store a shape, resolves
+   * to the portrait plate through this same default.
    */
   plate: PlateAspect = "portrait",
 ): PreviewFrame {
-  // The wide reel act crops into the plate; the phone act is edge-to-edge. The
-  // test is the same width-derived one the live act and the class split use.
-  if (kind === "reel" && !reelIsPhoneWidth(deviceWidth)) {
+  // A reel-class surface crops into its plate. The reel's phone act is the one
+  // exception — it is edge-to-edge, the photograph IS the stage — and the test for
+  // it is the same width-derived one the live act and the class split use.
+  const platedReel = kind === "reel" && !reelIsPhoneWidth(deviceWidth);
+  if (kind === "about" || platedReel) {
     const box = plateBox(surfaceW, surfaceH, plate);
     return { w: box.w, h: box.h, aspect: plateLaw(plate).aspect, fit: "fill" };
   }
-  // Everything else paints the full surface: the phone reel act (inset-0), the
-  // hero, and the About panel (whose surface IS its fixed 3:4 canvas).
+  // Everything else paints the full surface: the phone reel act (inset-0) and the
+  // hero, whose composition IS the whole frame.
   return {
     w: surfaceW,
     h: surfaceH,

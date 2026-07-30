@@ -20,26 +20,31 @@ import {
  * `normReelSlot` for the backward-compatibility law that lets a legacy
  * single-record slot keep rendering exactly as it does today.
  *
- * ABOUT.MEDIA.1: `about` is an OPT-IN 3:4 portrait panel. Unlike the reel it has
+ * ABOUT.MEDIA.1: `about` is an OPT-IN portrait panel. Unlike the reel it has
  * NO pool fallback — an absent key or unresolvable photo_id resolves to null,
  * meaning "render no panel". It stores no `fit` (the panel is always fill).
  *
  * ADMIN.RESET.1b — the About panel now stores PER DEVICE CLASS too, on exactly
  * the reel's terms: `about = { photo_id, phone: {focal,zoom}, wide: {focal,zoom} }`
- * split at the same 768px line. The panel's FRAME is 3:4 on every screen, so the
- * two records exist for editorial reasons, not geometric ones — a portrait can be
- * cropped tighter on a phone than in the desktop rail. `normClassSlot` carries the
- * same backward-compatibility law the reel has: a slot stored in the legacy
+ * split at the same 768px line. `normClassSlot` carries the same
+ * backward-compatibility law the reel has: a slot stored in the legacy
  * single-record shape seeds BOTH classes at read time, so every published About
  * panel keeps rendering exactly as it does today until an owner edits a class.
  *
- * ADMIN.ASPECT.1 — a REEL slide's WIDE record additionally carries the SHAPE of
- * the plate it hangs in: `wide = { focal, zoom, plate?: "portrait"|"landscape" }`.
- * A landscape photograph should not be forced into a portrait plate on desktop,
- * and the choice belongs to the wide record because it belongs to the wide
- * composition — the phone act is edge-to-edge and hangs no plate, so it has no
- * opinion to store. The field is WRITTEN ONLY WHEN LANDSCAPE (absent ≡ portrait),
- * which is what keeps every existing slide byte-identical, JSON included.
+ * ADMIN.ASPECT.1 — a WIDE record additionally carries the SHAPE of the plate it
+ * hangs in: `wide = { focal, zoom, plate?: "portrait"|"landscape" }`. A landscape
+ * photograph should not be forced into a portrait plate on desktop, and the choice
+ * belongs to the wide record because it belongs to the wide composition — the
+ * phone class hangs the portrait plate and has no opinion to store. The field is
+ * WRITTEN ONLY WHEN LANDSCAPE (absent ≡ portrait), which is what keeps every
+ * existing slide byte-identical, JSON included.
+ *
+ * ADMIN.ABOUT.2 — the About panel is a REEL-CLASS SURFACE, so `about` and a reel
+ * slide are now the SAME KIND OF RECORD in every respect: both are read by
+ * `normClassSlot` with the plate granted to their wide class. The ABOUT.MEDIA.1
+ * fixed 3:4 frame is superseded — About's media paints in the plate law's box
+ * (`plateLaw`), portrait by default and 3:2 landscape when the owner toggles the
+ * wide record's shape, exactly as a slide does.
  *
  * The absent-key-is-default contract is total: a missing key, a missing slot, or
  * a missing field all resolve to *exactly* today's behavior — the legacy
@@ -109,11 +114,15 @@ export type SlotFraming = {
 export type DeviceClass = "phone" | "wide";
 
 /**
- * ADMIN.ASPECT.1 — the SHAPE of the plate a WIDE reel slide hangs in. "portrait"
- * is the W2 plate the act has drawn since CINE.FLOW.5; "landscape" is the 3:2
- * plate a landscape photograph earns instead of being forced into a portrait box
- * on desktop. The geometry of each is one law — `plateLaw` in reelWide.tsx — and
- * the phone act has neither: it is edge-to-edge and hangs no plate at all.
+ * ADMIN.ASPECT.1 — the SHAPE of the plate a WIDE record hangs in. "portrait" is
+ * the W2 plate the act has drawn since CINE.FLOW.5; "landscape" is the 3:2 plate a
+ * landscape photograph earns instead of being forced into a portrait box on
+ * desktop. The geometry of each is one law — `plateLaw` in reelWide.tsx.
+ *
+ * ADMIN.ABOUT.2 — the choice is offered by every WIDE record of a reel-class
+ * surface (a reel slide, and now the About panel). The reel's PHONE act stores
+ * none because it is edge-to-edge and hangs no plate at all; the About panel's
+ * phone class stores none because a phone panel is always the portrait plate.
  */
 export type PlateAspect = "portrait" | "landscape";
 
@@ -126,7 +135,7 @@ export type ClassFraming = {
   focal: Focal;
   zoom: number;
   /**
-   * ADMIN.ASPECT.1 — THE REEL'S WIDE RECORD ONLY, AND ONLY WHEN LANDSCAPE.
+   * ADMIN.ASPECT.1 — A WIDE RECORD ONLY, AND ONLY WHEN LANDSCAPE.
    *
    * Absent ≡ "portrait". Every record written before this brick, and every
    * portrait slide written after it, therefore stores byte-identical JSON — the
@@ -134,9 +143,10 @@ export type ClassFraming = {
    * and `hero.video` materialize only when they are not the default.
    *
    * Two laws keep that honest and they live in one place each: `normClassSlot`
-   * parses the phone class and the About panel WITHOUT a plate, so neither can
-   * carry one; `plateAspectOf` is the single read, so no surface spells
-   * `?? "portrait"` for itself and drifts.
+   * parses the PHONE class without a plate, so it can never carry one (ADMIN.ABOUT.2
+   * left that half untouched while granting the field to About's wide record);
+   * `plateAspectOf` is the single read, so no surface spells `?? "portrait"` for
+   * itself and drifts.
    */
   plate?: PlateAspect;
 };
@@ -179,8 +189,9 @@ export type CinematicMediaConfig = {
   hero: SlotFraming;
   reel: [ReelSlotFraming, ReelSlotFraming, ReelSlotFraming];
   /**
-   * ABOUT.MEDIA.1 — opt-in 3:4 portrait panel; absent = no panel (no fallback).
-   * ADMIN.RESET.1b — class-split, exactly like a reel slot.
+   * ABOUT.MEDIA.1 — opt-in portrait panel; absent = no panel (no fallback).
+   * ADMIN.RESET.1b / ADMIN.ABOUT.2 — a class-split, plate-carrying reel-class
+   * slot: the same type, read by the same normalizer, as a reel slide.
    */
   about?: ClassSlotFraming;
 };
@@ -198,18 +209,8 @@ export const HERO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.08 };
 export const REEL_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
 /** Hero video defaults to a plain centered, unzoomed cover. */
 export const VIDEO_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
-/** ABOUT.MEDIA.1 — the About portrait panel fills a centered 3:4 frame. */
+/** ABOUT.MEDIA.1 — the About portrait panel fills its plate, centred. */
 export const ABOUT_DEFAULT_FOCAL: Focal = { x: 0.5, y: 0.5 };
-/**
- * ABOUT.MEDIA.1 — the About panel is a fixed 3:4 frame EVERYWHERE (card
- * thumbnail ≡ editor canvas ≡ live panel). One aspect IS the contract.
- *
- * ADMIN.RESET.1b — that makes the About editor's device tabs ASPECT-FREE: every
- * tab draws the same 3:4 canvas and differs only in WHICH class record it edits.
- * The tabs select a record, never a shape — which is why this constant, not
- * `devicePreviewAspect`, still governs the About canvas on every tab.
- */
-export const ABOUT_PANEL_ASPECT = 3 / 4;
 
 /** Default (untouched) framing for one video source. */
 export const defaultVideoSource = (): VideoSourceFraming => ({
@@ -369,10 +370,10 @@ const normPlate = (raw: unknown): PlateAspect | undefined =>
  * zoom round-trips instead of snapping back to 1, while the About panel keeps the
  * cover floor of 1 it has always had.
  *
- * ADMIN.ASPECT.1 — `carriesPlate` is how the "wide reel only" half of the plate
- * law is enforced at the read: a record parsed without it comes back with no
- * plate no matter what the stored JSON holds, so a stray field on a phone record
- * or an About panel is dropped rather than silently ignored downstream.
+ * ADMIN.ASPECT.1 — `carriesPlate` is how the "wide record only" half of the plate
+ * law is enforced at the read: a record parsed without it comes back with no plate
+ * no matter what the stored JSON holds, so a stray field on a phone record is
+ * dropped rather than silently ignored downstream.
  */
 const normClassFraming = (
   raw: unknown,
@@ -409,10 +410,11 @@ const normClassFraming = (
  * way — the missing class inherits the legacy record if there is one, else the
  * kind's default. Each class gets its own object, never a shared reference.
  *
- * ADMIN.ASPECT.1 — `widePlate` says whether THIS kind's WIDE record may carry a
- * plate shape. Only the reel passes true, and only its wide class is offered it:
- * the phone act hangs no plate and the About panel is 3:4 everywhere, so for both
- * the field is parsed away here rather than tolerated further down.
+ * ADMIN.ASPECT.1 / ADMIN.ABOUT.2 — `widePlate` says whether THIS kind's WIDE
+ * record may carry a plate shape. Both reel-class kinds pass true (a slide and the
+ * About panel), and in both cases only the WIDE class is offered it: a phone
+ * surface never hangs a chosen plate, so the field is parsed away here rather than
+ * tolerated further down. The hero is not class-split at all.
  */
 const normClassSlot = (
   raw: unknown,
@@ -442,13 +444,17 @@ const normClassSlot = (
   };
 };
 
-/** ADMIN.ASPECT.1 — the reel is the one kind whose wide record carries a plate. */
+/** ADMIN.ASPECT.1 — a slide's wide record carries the plate it hangs in. */
 const normReelSlot = (raw: unknown): ReelSlotFraming =>
   normClassSlot(raw, REEL_DEFAULT_FOCAL, "fit", true);
 
-/** ADMIN.RESET.1b — the About panel is always cover, so its zoom floor is 1. */
+/**
+ * ADMIN.RESET.1b — the About panel is always cover, so its zoom floor is 1.
+ * ADMIN.ABOUT.2 — and its wide record carries a plate on the reel's exact terms:
+ * the panel IS a plate now, so the shape is the wide composition's to choose.
+ */
 const normAboutSlot = (raw: unknown): ClassSlotFraming =>
-  normClassSlot(raw, ABOUT_DEFAULT_FOCAL, "fill");
+  normClassSlot(raw, ABOUT_DEFAULT_FOCAL, "fill", true);
 
 /** FRAME.SPLIT.1 — an untouched reel slot: no photo, both classes default. */
 export const defaultReelSlot = (): ReelSlotFraming => ({
@@ -597,7 +603,7 @@ export type ResolvedHeroSlot = ResolvedSlot & {
 /**
  * ABOUT.MEDIA.1 — the resolved About panel. Null whenever the About slot is
  * unconfigured or its photo can't be resolved (opt-in; no pool fallback). When
- * non-null the photo is guaranteed present, ready to render in the 3:4 frame.
+ * non-null the photo is guaranteed present, ready to render in its plate.
  *
  * ADMIN.RESET.1b — carries BOTH class records, like a resolved reel slide. There
  * is no slot-level focal/zoom to fall back to: the panel names the class it is
@@ -626,7 +632,7 @@ export type ResolvedReelSlot = {
 export type ResolvedCinematicMedia = {
   hero: ResolvedHeroSlot;
   reel: [ResolvedReelSlot, ResolvedReelSlot, ResolvedReelSlot];
-  /** ABOUT.MEDIA.1 — the 3:4 portrait panel, or null when unconfigured. */
+  /** ABOUT.MEDIA.1 — the About portrait panel, or null when unconfigured. */
   about: ResolvedAboutSlot;
 };
 

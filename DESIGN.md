@@ -358,9 +358,11 @@ applies to the editorial surfaces, not to full-bleed acts, which are edge-to-edg
 by definition.
 
 **The editorial split.** At `md+`, the About act becomes a named-grid two-column
-layout (`minmax(0,1fr)` and `clamp(300px, 32vw, 400px)`, `3rem` gap) in which a
-single panel node reflows from mid-column on mobile to a full-height right rail
-on desktop — one DOM node, no duplication, no gap left behind.
+layout (`minmax(0,1fr)` and a photo rail, `3rem` gap) in which a single panel node
+reflows from mid-column on mobile to a full-height right rail on desktop — one DOM
+node, no duplication, no gap left behind. The rail's width follows the panel's plate
+shape (ADMIN.ABOUT.2): `clamp(300px, 32vw, 400px)` portrait, `clamp(340px, 42vw,
+520px)` landscape.
 
 **The Full-Bleed Rule.** Cinematic acts are edge-to-edge and viewport-true. A
 max-width container, a visible gutter, or a card boundary on an act is a
@@ -571,16 +573,51 @@ plate, so it has no opinion to store and ignores the field entirely.
   `max(PLATE_TOP_VH, (frame − plate) / 2)`, whose clamp only ever binds on the tall
   portrait plate at short frames, so a shallow landscape plate centres against the
   copy column with no second rule.
-- **The choice lives on the slide's WIDE framing record** (`reel[i].wide.plate`),
-  beside that record's focal and zoom, because it belongs to the composition that
-  record serves. The phone class and the About panel are parsed *without* the
-  field, so neither can carry one. The admin offers a Portrait / Landscape toggle
-  on the wide tabs (iPad and Desktop both render the wide act and both edit its one
-  record — the same reason the zoom slider governs both), in the same control
-  grammar as the hero video's Fill / Fit pair.
+- **The choice lives on the WIDE framing record** (`reel[i].wide.plate`), beside
+  that record's focal and zoom, because it belongs to the composition that record
+  serves. The **phone** class is parsed *without* the field, so it can never carry
+  one. (ADMIN.ABOUT.2 extended the field to `about.wide.plate` on identical terms;
+  the phone half of this law is untouched.) The admin offers a Portrait / Landscape
+  toggle on the wide tabs (iPad and Desktop both render the wide composition and
+  both edit its one record — the same reason the zoom slider governs both), in the
+  same control grammar as the hero video's Fill / Fit pair.
 - **Reset does not undo the shape.** Reset is a transform control (ADMIN.RESET.1a):
   it recentres and unzooms *inside* the chosen plate and leaves the plate standing,
   for the same reason it does not clear the slot's photo.
+
+### Settled — the About photo is a reel-class surface (ADMIN.ABOUT.2, 2026-07-30)
+
+Joey's ruling, and it is total: **the About photo is not a special case of anything.**
+It is a reel-class surface, governed by the plate law, edited by the reel's editor.
+This **supersedes the ABOUT.MEDIA.1 record that the panel is a fixed `3:4` frame
+everywhere** — that shape is gone from the live panel, from the editor canvas, and
+from the code (`ABOUT_PANEL_ASPECT` is deleted, not deprecated).
+
+- **The panel is a plate.** Its box is `plateLaw`'s — the same function the wide reel
+  act sizes its plate with. The **phone** class paints the portrait plate (`0.563`)
+  and can paint nothing else, because a phone record stores no shape; the **wide**
+  class paints the shape its record chose, portrait or the `3:2` landscape plate.
+  One law, and now four surfaces read it: the live act, the live About panel, the
+  admin drag math (`previewMediaFrame`), and the admin CSS mirror.
+- **The layout adapts to the shape, never the shape to the layout.** The md+ rail is
+  a function of the panel's plate: `clamp(300px, 32vw, 400px)` for portrait
+  (unchanged) and `clamp(340px, 42vw, 520px)` for landscape, mirroring the plate
+  law's own reading that a landscape page is the wider one. The copy column keeps a
+  true measure at both (~456px at 1440). The act's grammar is untouched: same named
+  grid, same line-by-line reveal, same `+=120%` dwell.
+- **The panel keeps its own quiet frame.** It is the plate's *box*, not the reel
+  act's plate *chrome*: no ambient backdrop, no W2 rules, no self-drawing gold line,
+  no filigree, no lockup — one `rgba(201,165,92,0.4)` inset outline, as recorded
+  under Shapes. The reel's chrome belongs to the reel's act.
+- **The editor is the reel's editor, verbatim.** Not a parallel path: the same
+  component, the same device tabs at the same **device-shaped** canvas, the same
+  zoom slider, pan, Reset, Cancel and Save — and the same Portrait / Landscape
+  toggle on the wide tabs. `FramingEditor` holds no About branch beyond the two
+  things that were always per-kind: the default focal a Reset restores, and the
+  zoom floor (About is cover, so `1`).
+- **What is still About's own** is the panel's *opt-in* nature (an absent or
+  unresolvable `about` renders no panel at all — no pool fallback, unlike a reel
+  slide) and its place in the section's editorial split.
 
 ## Elevation & Depth
 
@@ -654,16 +691,16 @@ read by the wide plate.
 ## Shapes
 
 The form language is **square and cut**. Cinematic surfaces have no border radius
-at all: the CTA is a sharp-cornered rectangle, the About panel is a hard `3:4`
-frame, and media fills its container edge-to-edge. Corners are where the frame
-ends, not a softness to be sanded off.
+at all: the CTA is a sharp-cornered rectangle, the About panel is a hard-cornered
+plate (its aspect is the plate law's — ADMIN.ABOUT.2), and media fills its container
+edge-to-edge. Corners are where the frame ends, not a softness to be sanded off.
 
 Borders are hairlines and are usually *outlines*, not borders. The About panel
 uses `outline: 1px solid rgba(201,165,92,0.4)` with `outline-offset: -1px`
 specifically because an outline sits outside the box model — a real border would
-shrink the measured child by 1px per axis and break byte-identical framing
-between the editor canvas and the live panel. This is a parity constraint
-expressed as a shape decision.
+shrink the measured child by 1px per axis and break the framing parity between the
+editor canvas and the live panel. This is a parity constraint expressed as a shape
+decision.
 
 The `0.5rem` radius scale (`--radius`) belongs to the admin-exempt shadcn layer.
 
@@ -686,8 +723,8 @@ The `0.5rem` radius scale (`--radius`) belongs to the admin-exempt shadcn layer.
 ### Cards / Containers
 
 There are no cards on cinematic surfaces. The nearest equivalent is the **About
-panel**: a `3:4` framed media container with a gold inset outline, no background
-of its own, no shadow, and no radius. Media containers paint `#0b0a08` behind the
+panel**: a plate-shaped framed media container with a gold inset outline, no
+background of its own, no shadow, and no radius. Media containers paint `#0b0a08` behind the
 image so a sub-cover scale reveals brand-dark edges rather than transparency.
 
 ### Navigation

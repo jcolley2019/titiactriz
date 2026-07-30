@@ -560,7 +560,7 @@
         "heroDesc": "La imagen de apertura a pantalla completa.",
         "reelDesc": "Diapositiva destacada {{n}} del reel.",
         "about": "Sobre mí",
-        "aboutDesc": "Retrato 3:4 opcional junto al texto de Sobre mí."
+        "aboutDesc": "Foto opcional junto al texto de Sobre mí: encuadre por dispositivo, vertical u horizontal."
       },
       "reelLabel": "Reel {{n}}",
       "picker": {

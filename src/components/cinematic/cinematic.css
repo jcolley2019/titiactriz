@@ -95,8 +95,8 @@
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }
 
-/* ===== About portrait panel (ABOUT.MEDIA.1) =====
-   An OPT-IN 3:4 photo panel beside the About copy. When no About photo is
+/* ===== About photo panel (ABOUT.MEDIA.1, reshaped by ADMIN.ABOUT.2) =====
+   An OPT-IN photo panel beside the About copy. When no About photo is
    configured these rules never attach (the container isn't `.cine-about-grid`
    and the panel node isn't rendered), so the section stays single-column —
    byte-identical to its text-only original.
@@ -104,15 +104,20 @@
    Mobile: normal block flow, so source order places the panel BETWEEN the
    blockquote and the paragraphs. md+: a two-column editorial split via named
    grid areas — ONE panel node reflows from mid-column (mobile) to a full-height
-   right rail (desktop), with no duplicate DOM and no gap left in column 1. */
+   right rail (desktop), with no duplicate DOM and no gap left in column 1.
+
+   ADMIN.ABOUT.2 — the panel's ASPECT is no longer declared here. It is a
+   reel-class plate now, so its shape comes from the plate law (`plateLaw`) as an
+   inline aspect-ratio: the stylesheet must not hold a second opinion about the box
+   the framing is resolved against. What DOES live here is the layout's answer to
+   the shape — the rail's width, below. */
 .cine-about-panel {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
   /* Gold hairline as an INSET OUTLINE, not a border: an outline sits outside
-     the box model, so FramedImage still measures a clean 3:4 container box and
-     the editor-canvas ≡ live-panel data-hero-framing strings stay byte-identical
-     (a real border would shrink the measured child by 1px on each axis). */
+     the box model, so FramedImage still measures a clean plate box and the
+     editor-canvas ≡ live-panel framing resolves to the same rectangle (a real
+     border would shrink the measured child by 1px on each axis). */
   outline: 1px solid rgba(201, 165, 92, 0.4);
   outline-offset: -1px;
 }
@@ -120,7 +125,12 @@
 @media (min-width: 768px) {
   .cine-about-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 32vw, 400px);
+    /* ADMIN.ABOUT.2 — the rail is a function of the panel's shape. The portrait
+       rail is unchanged; a LANDSCAPE panel earns a wider one, for the same reason
+       the landscape plate takes 78% of the reel's photo page against portrait's
+       60% — a 3:2 photograph squeezed into a portrait rail reads as a strip. The
+       copy column keeps a true measure at both widths (~456px at 1440). */
+    grid-template-columns: minmax(0, 1fr) var(--cine-about-rail, clamp(300px, 32vw, 400px));
     column-gap: 3rem;
     grid-template-areas:
       "eyebrow panel"
@@ -130,15 +140,19 @@
       "cta     panel";
     align-items: start;
   }
+  .cine-about-grid[data-plate="landscape"] {
+    --cine-about-rail: clamp(340px, 42vw, 520px);
+  }
   .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; }
   .cine-about-grid > .cine-a-quote   { grid-area: quote; }
   .cine-about-grid > .cine-a-paras   { grid-area: paras; }
   .cine-about-grid > .cine-a-chips   { grid-area: chips; }
   .cine-about-grid > .cine-a-cta     { grid-area: cta; }
+  /* No max-width of its own: the rail above is the panel's width, so one
+     declaration governs the shape's size instead of two that can disagree. */
   .cine-about-grid > .cine-about-panel {
     grid-area: panel;
     align-self: center;
-    max-width: 400px;
   }
 }
 
