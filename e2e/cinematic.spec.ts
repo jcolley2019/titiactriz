@@ -60,24 +60,41 @@ test.describe("cinematic — desktop", () => {
       track.evaluate((el) => getComputedStyle(el as HTMLElement).transform);
 
     // Park the cursor well away from the marquee so nothing is paused, then
-    // prove the track advances on its own over a 2s window.
+    // prove the track advances on its own. The ledgered flake: a fixed 2s
+    // window read two identical frames whenever a loaded run starved RAF (and
+    // with it GSAP's ticker) for that stretch, and called a healthy marquee
+    // dead. Poll until advancement is OBSERVED instead of sampling a schedule.
     await page.mouse.move(5, 5);
     await page.waitForTimeout(150);
     const t0 = await readTransform();
-    await page.waitForTimeout(2000);
-    const t1 = await readTransform();
     expect(t0, "marquee should be transformed by GSAP").not.toBe("none");
-    expect(t1, "marquee transform should advance over 2s (self-driving)").not.toBe(t0);
+    await expect
+      .poll(readTransform, {
+        message: "marquee transform should advance (self-driving)",
+        timeout: 15_000,
+      })
+      .not.toBe(t0);
 
-    // Hover the marquee → it must pause: transform stays put over 500ms.
-    // Hover the viewport-sized wrapper (not the ~19k-px-wide track, whose
-    // centre is far off-screen and therefore not hoverable).
+    // Hover the marquee → it must pause. Hover the viewport-sized wrapper (not
+    // the ~19k-px-wide track, whose centre is far off-screen and therefore not
+    // hoverable). The pause is an instant tween.pause() on mouseenter, but the
+    // event pipeline can lag under load — so poll until the transform is
+    // observed stable across a 500ms sample rather than trusting a fixed delay.
     await page.locator('[data-qa="cinematic-marquee"]').hover();
-    await page.waitForTimeout(200); // let the pause take effect
-    const h0 = await readTransform();
-    await page.waitForTimeout(500);
-    const h1 = await readTransform();
-    expect(h1, "marquee transform should be stable while hovered (paused)").toBe(h0);
+    await expect
+      .poll(
+        async () => {
+          const a = await readTransform();
+          await page.waitForTimeout(500);
+          const b = await readTransform();
+          return a === b ? "stable" : "moving";
+        },
+        {
+          message: "marquee transform should go stable while hovered (paused)",
+          timeout: 10_000,
+        },
+      )
+      .toBe("stable");
   });
 });
 
