@@ -89,10 +89,28 @@ const SLOTS: SlotDesc[] = [
   { key: "reel-0", kind: "reel", reelIndex: 0, titleKey: REEL_TITLE_KEYS[0] },
   { key: "reel-1", kind: "reel", reelIndex: 1, titleKey: REEL_TITLE_KEYS[1] },
   { key: "reel-2", kind: "reel", reelIndex: 2, titleKey: REEL_TITLE_KEYS[2] },
-  // ABOUT.MEDIA.1 — fifth card: the opt-in About photo panel. ADMIN.ABOUT.2 made
-  // it a reel-class slot, so it takes the same class-split editor a slide does.
-  { key: "about", kind: "about", reelIndex: 0 },
+  // ABOUT.MEDIA.1 — fifth card: the opt-in About photo panel. ADMIN.ABOUT.4 — it
+  // carries a title key like a slide does, because it opens the slide's editor and
+  // that editor captions its compositions. A slot with no title would render one
+  // element fewer than a reel and the parity would be false at the DOM.
+  { key: "about", kind: "about", reelIndex: 0, titleKey: "about.eyebrow" },
 ];
+
+/**
+ * ADMIN.ABOUT.4 — THE ONE LINE WHERE "about" BECOMES "reel".
+ *
+ * A slot's kind is a STORAGE fact: which key it is written to, which copy names it,
+ * whether it is opt-in. What it looks like under the editor is a RENDER fact, and
+ * the About panel's answer to that is "a reel slide". ADMIN.ABOUT.2 tried to hold
+ * both facts in one value and let the render layer branch on it; three branches
+ * survived that audit and every one of them drew the wrong picture.
+ *
+ * So the two facts are separated here, once, and the render layer's `kind` union
+ * (SectionPreview, previewMediaFrame, FramingEditor) no longer contains "about" at
+ * all. A future About-shaped preview branch is not something to catch in review —
+ * it does not typecheck.
+ */
+const editorKind = (d: SlotDesc): "hero" | "reel" => (d.kind === "hero" ? "hero" : "reel");
 
 const HERO_SLOT = SLOTS[0];
 
@@ -699,7 +717,7 @@ const CinematicMediaManager = () => {
         <FramingEditor
           open={!!editor}
           slotLabel={editorSlotLabel(editor)}
-          kind={editor.slot.kind}
+          kind={editorKind(editor.slot)}
           reelIndex={editor.slot.reelIndex}
           reelTitle={editor.slot.titleKey ? t(editor.slot.titleKey) : undefined}
           photo={

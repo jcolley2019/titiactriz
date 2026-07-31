@@ -449,12 +449,20 @@ const normReelSlot = (raw: unknown): ReelSlotFraming =>
   normClassSlot(raw, REEL_DEFAULT_FOCAL, "fit", true);
 
 /**
- * ADMIN.RESET.1b — the About panel is always cover, so its zoom floor is 1.
- * ADMIN.ABOUT.2 — and its wide record carries a plate on the reel's exact terms:
- * the panel IS a plate now, so the shape is the wide composition's to choose.
+ * ADMIN.ABOUT.2 — the About panel's wide record carries a plate on the reel's exact
+ * terms: the panel IS a plate, so the shape is the wide composition's to choose.
+ *
+ * ADMIN.ABOUT.4 — and its zoom floor is the reel's too, because it is now literally
+ * the reel's editor writing this record. ADMIN.RESET.1b clamped it at cover ("fill")
+ * while the editor offered the reel's sub-cover slider; a saved sub-cover About zoom
+ * would have been clamped away on the next read, so the canvas and the published
+ * panel would disagree — an About-only divergence, which is the exact class of bug
+ * this brick exists to end. Both live surfaces render `fit="fill"` regardless (see
+ * previewFrame.ts: the reel's "fit" has never reached the geometry), so this is the
+ * slider's floor and nothing else.
  */
 const normAboutSlot = (raw: unknown): ClassSlotFraming =>
-  normClassSlot(raw, ABOUT_DEFAULT_FOCAL, "fill", true);
+  normClassSlot(raw, ABOUT_DEFAULT_FOCAL, "fit", true);
 
 /** FRAME.SPLIT.1 — an untouched reel slot: no photo, both classes default. */
 export const defaultReelSlot = (): ReelSlotFraming => ({

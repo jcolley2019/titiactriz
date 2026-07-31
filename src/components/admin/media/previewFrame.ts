@@ -41,11 +41,12 @@ import type { FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * hands back the slack that box implies — which is why the editor re-frames on the
  * toggle without a single geometry branch in the drag code.
  *
- * ADMIN.ABOUT.2 — the About panel is a reel-class surface, so it hangs a plate too,
- * and it hangs one at BOTH device classes: its phone panel is the portrait plate
- * (the phone class stores no shape, so it can only ever be that), its wide panel the
- * shape its wide record chose. The reel's PHONE act stays the one plated kind's
- * exception, because there the photograph IS the stage rather than a page hung in it.
+ * ADMIN.ABOUT.4 — and this function no longer knows what an About panel is.
+ * ADMIN.ABOUT.2 gave `kind === "about"` a plate on BOTH classes, which framed the
+ * About phone tab against a box the phone composition does not draw. The About slot
+ * reaches the editor as a reel now, so it takes the reel's answer here — full
+ * surface on the phone act, the plate on the wide one — and the "about" case is
+ * gone from the signature entirely.
  */
 export type PreviewFrame = {
   /** Width of the painted box, in the surface's own px. */
@@ -69,24 +70,24 @@ export type PreviewFrame = {
  * half of what this module exists to prevent.
  */
 export function previewMediaFrame(
-  kind: "hero" | "reel" | "about",
+  kind: "hero" | "reel",
   deviceWidth: number,
   surfaceW: number,
   surfaceH: number,
   /**
    * ADMIN.ASPECT.1 — which plate shape the edited record hangs in. Plated
-   * surfaces only; the reel's phone act and the hero have no plate and ignore it.
+   * surfaces only; the phone act and the hero have no plate and ignore it.
    * Defaults to portrait, so a caller that predates the field gets exactly the old
-   * geometry — and an About phone record, which can never store a shape, resolves
-   * to the portrait plate through this same default.
+   * geometry — and a phone record, which can never store a shape, resolves to the
+   * portrait plate through this same default.
    */
   plate: PlateAspect = "portrait",
 ): PreviewFrame {
-  // A reel-class surface crops into its plate. The reel's phone act is the one
-  // exception — it is edge-to-edge, the photograph IS the stage — and the test for
-  // it is the same width-derived one the live act and the class split use.
+  // A reel-class surface crops into its plate. The phone act is the one exception
+  // — it is edge-to-edge, the photograph IS the stage — and the test for it is the
+  // same width-derived one the live act and the class split use.
   const platedReel = kind === "reel" && !reelIsPhoneWidth(deviceWidth);
-  if (kind === "about" || platedReel) {
+  if (platedReel) {
     const box = plateBox(surfaceW, surfaceH, plate);
     return { w: box.w, h: box.h, aspect: plateLaw(plate).aspect, fit: "fill" };
   }

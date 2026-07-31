@@ -565,7 +565,7 @@ test.describe("ABOUT.MEDIA.1 — parity law (About photo panel)", () => {
     }
   });
 
-  test("a+b — About slot card + editor canvas (the plate, on every device tab)", async ({
+  test("a+b — About slot card + editor canvas (the reel's box, on every device tab)", async ({
     page,
   }) => {
     await openAdminMedia(page);
@@ -578,9 +578,11 @@ test.describe("ABOUT.MEDIA.1 — parity law (About photo panel)", () => {
     await assertParity(await measure(card), ABOUT_FRAMING, "slot card about");
 
     // ADMIN.RESET.1b — the About editor carries the SAME device tab row as every
-    // other slot. ADMIN.ABOUT.2 — and the same canvas law: the tab's DEVICE frame,
-    // with the plate hung inside it. So the box the parity law measures is the
-    // PLATE's, and it must be the plate law's shape on every tab.
+    // other slot. ADMIN.ABOUT.4 — and the same canvas law, which is the REEL's: the
+    // wide tabs hang the plate inside the device frame, the phone tab is the
+    // edge-to-edge act and hangs none. The parity law itself is unchanged and is
+    // asserted on every tab — whatever box a surface paints into, it must fill as
+    // its framing predicts.
     await page
       .locator('[data-qa="media-slot"][data-slot="about"] [data-qa="media-slot-edit"]')
       .click();
@@ -596,10 +598,12 @@ test.describe("ABOUT.MEDIA.1 — parity law (About photo panel)", () => {
       await page.waitForTimeout(300);
       await framingReady(canvas);
       const m = await measure(canvas);
-      // The measured container IS the portrait plate — the box that publishes.
+      // The measured container is the box that publishes for THAT tab's class: the
+      // portrait plate on the wide tabs, the device frame itself on the phone tab.
+      const want = tab === "iphone-17-pro" ? 402 / 874 : ABOUT_PLATE_ASPECT;
       expect(
-        Math.abs(m.box.w / m.box.h - ABOUT_PLATE_ASPECT),
-        `about canvas hangs the portrait plate on the ${tab} tab (got ${(m.box.w / m.box.h).toFixed(4)})`,
+        Math.abs(m.box.w / m.box.h - want),
+        `about canvas paints into the reel's own box on the ${tab} tab (got ${(m.box.w / m.box.h).toFixed(4)}, want ${want.toFixed(4)})`,
       ).toBeLessThan(0.01);
       // Both classes seed from the legacy single record in this fixture, so every
       // tab resolves the same framing — and the parity law holds on each.
@@ -607,6 +611,17 @@ test.describe("ABOUT.MEDIA.1 — parity law (About photo panel)", () => {
     }
   });
 
+  /**
+   * ADMIN.ABOUT.4 — this compares the WIDE class to the WIDE class, explicitly.
+   *
+   * It used to open the editor and measure whatever tab came up (the iPhone one),
+   * and that was only accidentally right: back then every About tab hung the same
+   * plate, so any tab agreed with the desktop panel. The About slot opens the reel's
+   * editor now, whose phone tab is the edge-to-edge act, so the tab must be named.
+   * The desktop panel's counterpart is the Desktop tab, and their equality is the
+   * law this test has always been about. (about2.spec.ts records what the PHONE
+   * class now does instead, and why.)
+   */
   test("c — About editor canvas resolves what the live panel paints", async ({ page }) => {
     // LIVE panel at 1440x900 — the desktop rail resolves the panel to a portrait
     // plate box (ADMIN.ABOUT.2), which is the shape the canvas must also hang.
@@ -634,8 +649,14 @@ test.describe("ABOUT.MEDIA.1 — parity law (About photo panel)", () => {
       .click();
     const canvas = page.locator(EDITOR_CANVAS_IMG).first();
     await expect(canvas).toBeVisible();
+    await page.locator('[data-qa="media-device-desktop"]').click();
+    await page.waitForTimeout(300);
     await framingReady(canvas);
     const editor = await measure(canvas);
+    expect(
+      Math.abs(editor.box.w / editor.box.h - ABOUT_PLATE_ASPECT),
+      "the Desktop tab's canvas hangs the portrait plate the live panel is",
+    ).toBeLessThan(0.01);
     expect(editor.attr, "editor About canvas resolves the same framing").toContain(
       attrPrefix(ABOUT_FRAMING),
     );

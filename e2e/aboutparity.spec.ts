@@ -30,6 +30,13 @@ import { shot } from "./_helpers";
  * choose the plate's shape. The two laws above are unchanged and still asserted
  * here; the canvas-shape assertion now reads the device frame, and about2.spec.ts
  * owns the plate/shape laws in full.
+ *
+ * ADMIN.ABOUT.4 amended WHICH plate. This file asserted a portrait plate on all
+ * three tabs — including the phone tab, whose composition hangs no plate at all —
+ * through an About-only `about-plate` hook. The About slot opens the reel's editor
+ * now, so the per-tab canvas law is the reel's (about4.spec.ts owns it end to end,
+ * against Reel 1's own rendered DOM) and what remains this file's business is the
+ * two laws above: the tab set is real, and the seeding law holds.
  */
 
 const CINE = "/cinematic";
@@ -182,8 +189,8 @@ test.describe("ADMIN.RESET.1b — About editor reaches reel parity", () => {
       await expect(page.locator(`[data-qa="media-device-${tab}"]`)).toBeVisible();
     }
 
-    // ADMIN.ABOUT.2 — each tab draws ITS OWN device frame, with the plate hung
-    // inside it. A tab is a device now, not just a record.
+    // ADMIN.ABOUT.2 — each tab draws ITS OWN device frame. A tab is a device now,
+    // not just a record.
     for (const tab of DEVICE_TABS) {
       await page.locator(`[data-qa="media-device-${tab}"]`).click();
       await page.waitForTimeout(300);
@@ -192,7 +199,16 @@ test.describe("ADMIN.RESET.1b — About editor reaches reel parity", () => {
         Math.abs(box.width / box.height - DEVICE_FRAMES[tab]),
         `${tab} tab draws its device frame (got ${(box.width / box.height).toFixed(4)})`,
       ).toBeLessThan(0.01);
-      const plate = (await page.locator(`${SURFACE} [data-qa="about-plate"]`).boundingBox())!;
+    }
+
+    // ADMIN.ABOUT.4 — and the WIDE tabs hang the reel's own plate, through the
+    // reel's own hook, at the reel's portrait aspect. The phone tab hangs none: its
+    // composition is the edge-to-edge act, which is the whole correction this brick
+    // made. (about4.spec.ts proves the equality against Reel 1 element by element.)
+    for (const tab of ["ipad-air", "desktop"] as const) {
+      await page.locator(`[data-qa="media-device-${tab}"]`).click();
+      await page.waitForTimeout(300);
+      const plate = (await page.locator(`${SURFACE} [data-qa="wide-plate"]`).boundingBox())!;
       expect(
         Math.abs(plate.width / plate.height - PORTRAIT_PLATE),
         `${tab} tab hangs the portrait plate (got ${(plate.width / plate.height).toFixed(4)})`,
