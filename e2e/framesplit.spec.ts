@@ -85,7 +85,7 @@ async function framingReady(page: Page, selector: string, nth = 0) {
  */
 async function wheelTo(page: Page, y: number) {
   await page.mouse.move(200, 300);
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 40; i++) {
     const at = await page.evaluate(() => window.scrollY);
     const delta = y - at;
     if (Math.abs(delta) < 8) break;
@@ -107,8 +107,15 @@ async function pinStartY(page: Page) {
 
 /** Drive to slide 1's dead-stop and confirm nothing is mid-tween before shooting. */
 async function toFirstSlideDeadStop(page: Page, viewportH: number) {
-  const y0 = await pinStartY(page);
-  await wheelTo(page, y0 + (0.5 / 3) * 3 * viewportH);
+  // The aim is derived from pinStartY, and pinStartY MOVES: images that finish
+  // decoding late change the document height above the pin, so a Y computed
+  // against the unsettled layout aims at the wrong plateau. Re-measure on
+  // every aim, never reuse a stored target.
+  const aim = async () => {
+    const y0 = await pinStartY(page);
+    await wheelTo(page, y0 + (0.5 / 3) * 3 * viewportH);
+  };
+  await aim();
   await page.waitForFunction(
     () =>
       [...document.querySelectorAll('[data-qa="cinematic-reel-img"]')].every(
@@ -119,6 +126,29 @@ async function toFirstSlideDeadStop(page: Page, viewportH: number) {
       ),
     { timeout: 30_000 },
   );
+  // The ledgered capture flake: a one-shot opacity read raced the scrub tween,
+  // which settles late under a loaded run, and Lenis momentum can drift past
+  // the wheel aim. Wait for the OBSERVED dead-stop state, re-aiming (against
+  // the settled layout) if the scroll drifted; the hard assertions below stay
+  // as the authoritative gate and now judge a settled carousel.
+  const atDeadStop = () =>
+    page
+      .waitForFunction(
+        () => {
+          const els = [...document.querySelectorAll('[data-qa="reel-slide"]')];
+          if (els.length !== 3) return false;
+          const op = els.map((el) => parseFloat(getComputedStyle(el).opacity));
+          return op[0] > 0.99 && op[1] < 0.01 && op[2] < 0.01;
+        },
+        { timeout: 6_000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+  let settled = await atDeadStop();
+  for (let attempt = 0; !settled && attempt < 2; attempt++) {
+    await aim();
+    settled = await atDeadStop();
+  }
   const op = await page
     .locator('[data-qa="reel-slide"]')
     .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).opacity)));
