@@ -47,8 +47,7 @@ for (const c of checks) {
 // allowlisted here — an entry means "staged material Joey intends to land";
 // remove entries once the material is committed or removed.
 const STRAY_ALLOW = [
-  "public/ventures/gw-ambient-land-4k.mp4",
-  "public/ventures/gw-ambient-port-4k.mp4",
+  // gw-ambient 4k masters moved to the private `masters` bucket (MASTERS.1).
   "public/ventures/seq/titans-1280/",
   "public/ventures/seq/titans-720/",
 ];

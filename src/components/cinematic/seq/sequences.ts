@@ -19,6 +19,11 @@
  * dead stops hold the master's true first and last frame. The logo is no longer
  * baked into the plate; it is layered in code.
  *
+ * The masters live in the PRIVATE `masters` Supabase Storage bucket at
+ * `masters/ventures/gw-ambient-{land,port}-4k.mp4` (MASTERS.1, byte-verified
+ * on upload). They are never committed and never served; fetch them from the
+ * bucket for any future re-cut.
+ *
  * One asymmetry in the census is deliberately preserved rather than smoothed
  * over, because pairing packs into device classes is NOT this brick's job:
  * `titans-720` is 720x406 — the same 16:9 as `titans-1280`. It is a RESOLUTION
