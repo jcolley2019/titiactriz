@@ -97,11 +97,14 @@ async function settle(page: Page, ms = 600) {
  */
 async function wheelTo(page: Page, y: number) {
   await page.mouse.move(200, 300);
-  for (let i = 0; i < 80; i++) {
+  // Steps capped at 900px: under a CPU-starved run every evaluate roundtrip
+  // stretches to seconds, so iteration count IS the time budget (FLAKE.3).
+  // Overshoot is safe — the caller polls the observed dead-stop and re-aims.
+  for (let i = 0; i < 40; i++) {
     const at = await page.evaluate(() => window.scrollY);
     const delta = y - at;
     if (Math.abs(delta) < 8) break;
-    await page.mouse.wheel(0, Math.max(-600, Math.min(600, Math.round(delta))));
+    await page.mouse.wheel(0, Math.max(-900, Math.min(900, Math.round(delta))));
     await page.waitForTimeout(90);
   }
   await page.waitForTimeout(500);
@@ -121,6 +124,55 @@ const opacities = (page: Page) =>
   page
     .locator('[data-qa="reel-slide"]')
     .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).opacity)));
+
+/**
+ * Drive to slide N's dead-stop and wait for the OBSERVED settled state — the
+ * FLAKE.1 treatment ported from framesplit.spec.ts. Two races lived here:
+ * a one-shot opacity read could catch the scrub tween mid-crossfade under a
+ * loaded run, and an aim computed from pinStartY BEFORE the images finish
+ * decoding goes stale (late decodes shift the layout above the pin), so
+ * re-aiming at a stored Y never converges. The aim re-measures every time;
+ * the caller's hard assertions remain the authoritative gate.
+ */
+async function toDeadStop(page: Page, slide: 1 | 2 | 3, viewportH: number) {
+  const aim = async () => {
+    const y0 = await pinStartY(page);
+    await wheelTo(page, y0 + DEAD_STOPS[slide] * 3 * viewportH);
+  };
+  await aim();
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('[data-qa="cinematic-reel-img"]')].every(
+        (i) =>
+          (i as HTMLImageElement).complete &&
+          (i as HTMLImageElement).naturalWidth > 0 &&
+          !(i.getAttribute("data-hero-framing") ?? "").includes("pending"),
+      ) &&
+      [...document.querySelectorAll('[data-qa="wide-backdrop"]')].every(
+        (i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0,
+      ),
+    { timeout: 30_000 },
+  );
+  const atDeadStop = () =>
+    page
+      .waitForFunction(
+        (target) => {
+          const els = [...document.querySelectorAll('[data-qa="reel-slide"]')];
+          if (els.length !== 3) return false;
+          const op = els.map((el) => parseFloat(getComputedStyle(el).opacity));
+          return op.every((v, idx) => (idx === target - 1 ? v > 0.99 : v < 0.01));
+        },
+        slide,
+        { timeout: 6_000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+  let settled = await atDeadStop();
+  for (let attempt = 0; !settled && attempt < 2; attempt++) {
+    await aim();
+    settled = await atDeadStop();
+  }
+}
 
 async function openWide(page: Page, lang: "es" | "en", reelChapters?: Record<string, string>) {
   await forceLanguage(page, lang);
@@ -256,6 +308,8 @@ test.describe("CINE.FLOW.6 — editorial spreads (wide)", () => {
   });
 
   test("phone 390 — the V1 act is untouched: no spread anywhere", async ({ page }) => {
+    // 300s is headroom for CPU-starved stress runs, not expectation (FLAKE.3).
+    test.setTimeout(300_000);
     await forceLanguage(page, "es");
     await routeSupabase(page, { photos: PHOTOS });
     await page.setViewportSize({ width: 390, height: 844 });
@@ -271,34 +325,19 @@ test.describe("CINE.FLOW.6 — editorial spreads (wide)", () => {
 
     // Photograph the ACT, not the page top: slide 1 at its dead-stop, exactly
     // the CINE.FLOW.5 phone frame.
-    const y0 = await pinStartY(page);
-    await wheelTo(page, y0 + DEAD_STOPS[1] * 3 * 844);
+    await toDeadStop(page, 1, 844);
     const op = await opacities(page);
     expect(op[0], "slide 1 opaque at its dead-stop").toBeGreaterThan(0.99);
     await page.screenshot({ path: shot("cineflow6-390-phone.png") });
   });
 
   test("1440 ES — dead-stop evidence: the three spreads", async ({ page }) => {
-    test.setTimeout(180_000);
+    // 300s is headroom for CPU-starved stress runs, not expectation (FLAKE.3).
+    test.setTimeout(300_000);
     await openWide(page, "es");
-    const y0 = await pinStartY(page);
 
     for (const slide of [1, 2, 3] as const) {
-      await wheelTo(page, y0 + DEAD_STOPS[slide] * 3 * 900);
-      await page.waitForFunction(
-        () =>
-          [...document.querySelectorAll('[data-qa="cinematic-reel-img"]')].every(
-            (i) =>
-              (i as HTMLImageElement).complete &&
-              (i as HTMLImageElement).naturalWidth > 0 &&
-              !(i.getAttribute("data-hero-framing") ?? "").includes("pending"),
-          ) &&
-          [...document.querySelectorAll('[data-qa="wide-backdrop"]')].every(
-            (i) =>
-              (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0,
-          ),
-        { timeout: 30_000 },
-      );
+      await toDeadStop(page, slide, 900);
 
       const op = await opacities(page);
       expect(op.length, "three slides").toBe(3);
