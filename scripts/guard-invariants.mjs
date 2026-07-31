@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 
 /**
  * PORT.1 — static invariant guard, mirroring the TitiLinks CROP-CORS pattern
@@ -38,6 +39,39 @@ for (const c of checks) {
   } else {
     console.log(`ok ${c.name}`);
   }
+}
+
+// PUBLIC-STRAYS: everything under public/ ships to titiactriz.com verbatim, so a
+// file sitting there untracked is one careless `git add` away from deploying
+// (precedent: four screen-issue screenshots, 7/31). Untracked files must be
+// allowlisted here — an entry means "staged material Joey intends to land";
+// remove entries once the material is committed or removed.
+const STRAY_ALLOW = [
+  "public/ventures/gw-ambient-land-4k.mp4",
+  "public/ventures/gw-ambient-port-4k.mp4",
+  "public/ventures/seq/titans-1280/",
+  "public/ventures/seq/titans-720/",
+];
+try {
+  const untracked = execSync("git ls-files --others --exclude-standard public/", {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const strays = untracked.filter(
+    (f) => !STRAY_ALLOW.some((a) => (a.endsWith("/") ? f.startsWith(a) : f === a)),
+  );
+  if (strays.length) {
+    failed++;
+    console.error(`x PUBLIC-STRAYS — untracked files in public/ (deploys publicly!):`);
+    strays.forEach((f) => console.error(`      ${f}`));
+    console.error(`      Delete them, or allowlist in scripts/guard-invariants.mjs if staged on purpose.`);
+  } else {
+    console.log("ok PUBLIC-STRAYS");
+  }
+} catch {
+  console.log("-- PUBLIC-STRAYS skipped (git unavailable)");
 }
 
 if (failed) {
