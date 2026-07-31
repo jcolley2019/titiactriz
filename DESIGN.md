@@ -360,9 +360,10 @@ by definition.
 **The editorial split.** At `md+`, the About act becomes a named-grid two-column
 layout (`minmax(0,1fr)` and a photo rail, `3rem` gap) in which a single panel node
 reflows from mid-column on mobile to a full-height right rail on desktop — one DOM
-node, no duplication, no gap left behind. The rail's width follows the panel's plate
-shape (ADMIN.ABOUT.2): `clamp(300px, 32vw, 400px)` portrait, `clamp(340px, 42vw,
-520px)` landscape.
+node, no duplication, no gap left behind. **The rail IS the plate** (ADMIN.ABOUT.3):
+its width is `plateBox`'s own output, not a clamp that approximates one, so an About
+plate and a reel plate at the same viewport are the same box. The copy column narrows
+to a `456px` floor before the container is allowed to grow past `64rem`.
 
 **The Full-Bleed Rule.** Cinematic acts are edge-to-edge and viewport-true. A
 max-width container, a visible gutter, or a card boundary on an act is a
@@ -600,11 +601,10 @@ from the code (`ABOUT_PANEL_ASPECT` is deleted, not deprecated).
   One law, and now four surfaces read it: the live act, the live About panel, the
   admin drag math (`previewMediaFrame`), and the admin CSS mirror.
 - **The layout adapts to the shape, never the shape to the layout.** The md+ rail is
-  a function of the panel's plate: `clamp(300px, 32vw, 400px)` for portrait
-  (unchanged) and `clamp(340px, 42vw, 520px)` for landscape, mirroring the plate
-  law's own reading that a landscape page is the wider one. The copy column keeps a
-  true measure at both (~456px at 1440). The act's grammar is untouched: same named
-  grid, same line-by-line reveal, same `+=120%` dwell.
+  a function of the panel's plate, and a landscape page is the wider one. *(The two
+  `clamp()` rails this brick shipped are superseded by ADMIN.ABOUT.3 below — the rail
+  is the plate's own width now.)* The act's grammar is untouched: same named grid,
+  same line-by-line reveal, same `+=120%` dwell.
 - **The panel keeps its own quiet frame.** It is the plate's *box*, not the reel
   act's plate *chrome*: no ambient backdrop, no W2 rules, no self-drawing gold line,
   no filigree, no lockup — one `rgba(201,165,92,0.4)` inset outline, as recorded
@@ -618,6 +618,45 @@ from the code (`ABOUT_PANEL_ASPECT` is deleted, not deprecated).
 - **What is still About's own** is the panel's *opt-in* nature (an absent or
   unresolvable `about` renders no panel at all — no pool fallback, unlike a reel
   slide) and its place in the section's editorial split.
+
+### Settled — the About plate is SIZED by the plate law (ADMIN.ABOUT.3, 2026-07-30)
+
+ABOUT.2 gave the panel the plate law's **shape** but left ABOUT.MEDIA.1's rail clamp
+holding its **size**. A clamp stops growing and the plate law does not, so the two
+surfaces drifted apart the wider the frame got: at `1920×1080` a reel portrait plate
+measured `462px` and the About plate `400px`; a landscape reel plate `842px` against
+`520px`. Joey's ruling: **About's plate takes the reel plate's sizing law — same
+height caps, same proportions — and the section's layout adapts around it.**
+
+- **The rail is the plate, not a clamp shaped like one.** `plateBox`'s two rules
+  reach the stylesheet as the plate WIDTH each implies — `--cine-plate-w-from-height`
+  (`heightVh × aspect`, in `svh`) and `--cine-plate-w-cap` (`maxWidthVw × 0.58`, in
+  `vw`) — both computed from `plateLaw` in `CinematicAbout`. CSS `min()` of the pair
+  IS the law's "smaller box wins" comparison, evaluated live against the viewport, so
+  the rail needs no measurement pass and no resize listener. **Both `clamp()` rails
+  are deleted, not deprecated.**
+- **The frame is the reel's frame, deliberately.** `svh` is what the reel's pinned
+  stage is declared at, and the width cap is taken against the act's PHOTO PAGE — the
+  frame minus the copy column, the same `CHAPTER_FIELD_FRACTION` split `CinematicReel`
+  feeds `plateBox`. Feed the law a different frame and the two plates stop matching,
+  which is the whole defect. Verified: at `1440×900` both plates measure `385.08 ×
+  684.00` portrait and `651.45 × 434.30` landscape, to the pixel.
+- **The height cap applies at BOTH classes; the width cap is a wide-class rule.** The
+  phone act is edge-to-edge and hangs no plate, so that class has no photo page for a
+  width cap to measure against — the panel fills its column, trimmed by the law's
+  height rule. At `390×844` this is today's panel unchanged (`342 × 607`); at
+  `390×667` the cap now binds and the plate no longer overruns the viewport.
+- **The layout adapts to the plate, never the plate to the layout.** The copy column
+  narrows first — down to a `456px` floor, the measure ABOUT.2 already ratified as
+  true — and only once it would go under does the container grow past `64rem`.
+  Without that second step a landscape plate at `1920` leaves the copy a `134px`
+  gutter. `min(100%, …)` keeps the whole container inside the act's `px-6` at every
+  frame. Act grammar and dwell are untouched.
+- **Reduced motion is the one place the two differ, and it is the reel that moves.**
+  The reel act collapses to `70svh` slides under reduced motion and its plate shrinks
+  with them — its own pre-existing law. About has no scrubbed stage to collapse, so
+  it stays at the law's declared frame. Parity is therefore asserted against
+  `plateBox` restated, and against the reel *under motion*.
 
 ## Elevation & Depth
 

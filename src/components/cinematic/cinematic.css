@@ -109,11 +109,34 @@
    ADMIN.ABOUT.2 — the panel's ASPECT is no longer declared here. It is a
    reel-class plate now, so its shape comes from the plate law (`plateLaw`) as an
    inline aspect-ratio: the stylesheet must not hold a second opinion about the box
-   the framing is resolved against. What DOES live here is the layout's answer to
-   the shape — the rail's width, below. */
+   the framing is resolved against.
+
+   ADMIN.ABOUT.3 — AND NEITHER IS ITS SIZE. The panel used to be sized by a rail
+   clamp of this stylesheet's own invention (`clamp(300px, 32vw, 400px)`), which is
+   why an About plate rendered visibly smaller than a reel plate at the same
+   viewport: the reel plate grows with the frame under the law's two rules, the
+   clamp stopped growing at 400px. Both numbers the law sizes with now arrive as
+   custom properties computed from `plateLaw` itself (CinematicAbout), and this file
+   only picks between them:
+
+     --cine-plate-w-from-height  the plate width the HEIGHT rule implies
+                                 (heightVh * aspect, in svh)
+     --cine-plate-w-cap          the plate width the WIDTH CAP implies, against the
+                                 act's photo page (maxWidthVw * 0.58, in vw)
+
+   `min()` of the two IS `plateBox`'s "smaller box wins" comparison, so an About
+   plate and a reel plate at the same viewport are the same box. */
 .cine-about-panel {
   position: relative;
-  width: 100%;
+  /* The plate law's HEIGHT CAP applies at BOTH classes — Joey's ruling: same
+     height caps, same proportions. On a phone the panel fills its column (the
+     phone act is edge-to-edge and hangs no plate, so there is no photo page for
+     the width cap to measure against) and the cap only binds on short phones,
+     where an uncapped portrait plate would run past the viewport. At md+ the
+     rail is ALREADY the smaller of the two, so `100%` always wins here and this
+     one declaration governs both classes without a branch. */
+  width: min(100%, var(--cine-plate-w-from-height));
+  margin-inline: auto;
   /* Gold hairline as an INSET OUTLINE, not a border: an outline sits outside
      the box model, so FramedImage still measures a clean plate box and the
      editor-canvas ≡ live-panel framing resolves to the same rectangle (a real
@@ -122,15 +145,38 @@
   outline-offset: -1px;
 }
 
+/* The container the act's copy has always sat in (Tailwind's `max-w-5xl`), moved
+   here so the md+ rule below can grow it when a plate demands it. Below md there
+   is no rail and no growth: the panel is a block in flow, exactly as before. */
+.cine-about-grid {
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+}
+
 @media (min-width: 768px) {
   .cine-about-grid {
+    /* ADMIN.ABOUT.3 — THE RAIL IS THE PLATE. Not a clamp that approximates one:
+       the same `min()` of the same two rules the reel's plate is sized by, so the
+       two surfaces cannot disagree about how big a plate is. Both shapes fall out
+       of it for free — the landscape plate is wider because the LAW says so
+       (78% of the photo page against portrait's 60%), not because this file holds
+       a second, wider clamp for it. */
+    --cine-about-rail: min(var(--cine-plate-w-from-height), var(--cine-plate-w-cap));
+    /* THE LAYOUT ADAPTS TO THE PLATE, NEVER THE PLATE TO THE LAYOUT. The copy
+       column narrows first — from ~591px down to this floor, the measure
+       ADMIN.ABOUT.2 already ratified as true — and only once it would go under
+       does the container itself grow past 64rem. Without that, a landscape plate
+       at 1920 would leave the copy a 134px gutter. `min(100%, …)` keeps the whole
+       thing inside the section's padding at every frame. */
+    --cine-about-copy-floor: 456px;
+    max-width: none;
+    width: min(
+      100%,
+      max(64rem, calc(var(--cine-about-rail) + 3rem + var(--cine-about-copy-floor)))
+    );
     display: grid;
-    /* ADMIN.ABOUT.2 — the rail is a function of the panel's shape. The portrait
-       rail is unchanged; a LANDSCAPE panel earns a wider one, for the same reason
-       the landscape plate takes 78% of the reel's photo page against portrait's
-       60% — a 3:2 photograph squeezed into a portrait rail reads as a strip. The
-       copy column keeps a true measure at both widths (~456px at 1440). */
-    grid-template-columns: minmax(0, 1fr) var(--cine-about-rail, clamp(300px, 32vw, 400px));
+    grid-template-columns: minmax(0, 1fr) var(--cine-about-rail);
     column-gap: 3rem;
     grid-template-areas:
       "eyebrow panel"
@@ -139,9 +185,6 @@
       "chips   panel"
       "cta     panel";
     align-items: start;
-  }
-  .cine-about-grid[data-plate="landscape"] {
-    --cine-about-rail: clamp(340px, 42vw, 520px);
   }
   .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; }
   .cine-about-grid > .cine-a-quote   { grid-area: quote; }

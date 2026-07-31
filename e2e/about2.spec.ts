@@ -41,9 +41,16 @@ import { shot } from "./_helpers";
 const PORTRAIT = { aspect: 0.563, heightVh: 76, maxWidthVw: 60 };
 /** src/components/cinematic/reelWide.tsx — the 3:2 landscape plate. */
 const LANDSCAPE = { aspect: 1.5, heightVh: 52, maxWidthVw: 78 };
-/** src/components/cinematic/cinematic.css — the md+ About rail, per shape. */
-const RAIL_PORTRAIT_MAX = 400;
-const RAIL_LANDSCAPE_MAX = 520;
+/**
+ * ADMIN.ABOUT.3 — the md+ About rail IS the plate: `plateBox` against the reel's own
+ * frame (the viewport's height, and a photo page that is the frame minus the copy
+ * column). The two `clamp()` rails this spec used to assert against are deleted;
+ * about3.spec.ts owns the sizing law in full. Restated here only so THIS spec's own
+ * shape assertions still have a size to check against.
+ */
+const CHAPTER_FIELD_FRACTION = 0.42;
+const railWidth = (vw: number, vh: number, law: { aspect: number; heightVh: number; maxWidthVw: number }) =>
+  Math.min(((vh * law.heightVh) / 100) * law.aspect, (vw * (1 - CHAPTER_FIELD_FRACTION) * law.maxWidthVw) / 100);
 /** The phone/wide line, mirroring src/components/cinematic/reelSpotlight.ts. */
 const PHONE_BREAKPOINT = 768;
 
@@ -394,9 +401,10 @@ test.describe("ADMIN.ABOUT.2 — the About shape round-trips to the live panel",
     const wideBefore = await liveAboutPanel(page, MEDIA, 1440, 900);
     expect(wideBefore.plate, "the panel starts on the portrait plate").toBe("portrait");
     expect(wideBefore.box.ratio, "…and measures it").toBeCloseTo(PORTRAIT.aspect, 2);
-    expect(wideBefore.box.w, "portrait rail caps at its clamp").toBeLessThanOrEqual(
-      RAIL_PORTRAIT_MAX + 1,
-    );
+    expect(
+      Math.abs(wideBefore.box.w - railWidth(1440, 900, PORTRAIT)),
+      "the portrait rail is the plate law's own width",
+    ).toBeLessThanOrEqual(1);
     const phoneBefore = await liveAboutPanel(page, MEDIA, 390, 844);
     expect(phoneBefore.framing.prefix, "the phone panel resolves the phone record").toBe(
       prefixOf(ABOUT_PHONE),
@@ -469,9 +477,10 @@ test.describe("ADMIN.ABOUT.2 — the About shape round-trips to the live panel",
     expect(wideAfter.box.w, "the landscape rail is wider than the portrait one").toBeGreaterThan(
       wideBefore.box.w + 1,
     );
-    expect(wideAfter.box.w, "…and still capped by its own clamp").toBeLessThanOrEqual(
-      RAIL_LANDSCAPE_MAX + 1,
-    );
+    expect(
+      Math.abs(wideAfter.box.w - railWidth(1440, 900, LANDSCAPE)),
+      "…and is the landscape plate's own width",
+    ).toBeLessThanOrEqual(1);
     expect(wideAfter.framing.prefix, "the panel resolves the wide record").toBe(
       prefixOf(ABOUT_WIDE),
     );

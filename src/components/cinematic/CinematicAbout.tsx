@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -6,7 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
 import { useReelIsPhone } from "./reelSpotlight";
-import { plateLaw } from "./reelWide";
+import { CHAPTER_FIELD_FRACTION, plateLaw } from "./reelWide";
 import type { CinematicPhoto } from "./useCinematicData";
 import { plateAspectOf, type ClassFraming } from "@/hooks/useCinematicMedia";
 
@@ -46,9 +46,19 @@ type Props = {
  * cannot — while the wide class paints whichever shape its record chose, the
  * portrait plate or the 3:2 landscape one. The ABOUT.MEDIA.1 fixed 3:4 frame is
  * SUPERSEDED; nothing else about the act moves (same grid, same dwell, same reveal).
- * The layout adapts to the shape rather than the shape to the layout: the md+ rail
- * widens for a landscape panel (see `.cine-about-grid[data-plate]`), because a 3:2
- * page squeezed into a portrait rail would read as a strip, not as a photograph.
+ * The layout adapts to the shape rather than the shape to the layout.
+ *
+ * ADMIN.ABOUT.3 — AND IT IS SIZED BY THE PLATE LAW TOO, not merely shaped by it.
+ * ABOUT.2 gave the panel the law's ASPECT but left ABOUT.MEDIA.1's rail clamp
+ * (`clamp(300px, 32vw, 400px)`) holding its WIDTH, so an About plate stopped
+ * growing at 400px while a reel plate at the same viewport kept going — visibly
+ * two different sizes on one page. The clamp is gone. Both of `plateBox`'s rules
+ * now reach the stylesheet as the widths they imply (below), so the About plate
+ * and the reel plate resolve to the SAME BOX at the same viewport, both shapes.
+ * The section's layout is what gives: the copy column narrows to its floor first,
+ * and only then does the container grow (see `.cine-about-grid`). The act's
+ * grammar — same named grid, same line-by-line reveal, same +=120% dwell — is
+ * untouched.
  */
 const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   const { t } = useTranslation();
@@ -69,7 +79,24 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   // never spells `?? "portrait"` for itself: on the phone class the field is parsed
   // away by the resolver and this is portrait by law, not by a branch here.
   const plate = plateAspectOf(framing);
-  const plateAspect = plateLaw(plate).aspect;
+  const { aspect: plateAspect, heightVh, maxWidthVw } = plateLaw(plate);
+
+  /**
+   * ADMIN.ABOUT.3 — `plateBox`'s two rules, handed to the stylesheet as the plate
+   * WIDTH each one implies. CSS `min()` of the pair is the law's "smaller box wins"
+   * comparison, evaluated live against the viewport — which is what lets a rail be
+   * the plate rather than an approximation of one, with no measurement pass and no
+   * resize listener.
+   *
+   * The frame is the reel's frame, deliberately: `svh` is the height its pinned
+   * stage is declared at (`.cine-h-full`) and the width cap is taken against the
+   * act's PHOTO PAGE — the frame minus the copy column — which is the same
+   * `CHAPTER_FIELD_FRACTION` split the wide reel feeds `plateBox`. Feed the law a
+   * different frame and the two plates stop matching, which is the whole defect
+   * this brick closes.
+   */
+  const wFromHeight = `${(heightVh * plateAspect).toFixed(4)}svh`;
+  const wCap = `${(maxWidthVw * (1 - CHAPTER_FIELD_FRACTION)).toFixed(4)}vw`;
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -108,10 +135,23 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
       className="relative px-6 py-24 md:py-32"
     >
       <div
-        className={hasPanel ? "mx-auto max-w-5xl cine-about-grid" : "mx-auto max-w-4xl"}
-        // The rail's width is a function of the panel's shape (md+ only, where the
-        // rail exists). Declared on the grid so the CSS owns the two widths.
-        data-plate={hasPanel ? plate : undefined}
+        // ADMIN.ABOUT.3 — the panelled container's width is the stylesheet's now
+        // (`.cine-about-grid` restates the 64rem it had here and grows past it only
+        // when the plate demands it). The text-only container is untouched.
+        className={hasPanel ? "cine-about-grid" : "mx-auto max-w-4xl"}
+        // ADMIN.ABOUT.3 — the grid's own `data-plate` is gone with the CSS rule that
+        // selected on it (`.cine-about-grid[data-plate="landscape"]`, the landscape
+        // rail clamp). The rail is a function of the two custom properties below
+        // now, and the SHAPE is still declared where every surface reads it: on the
+        // panel itself.
+        style={
+          hasPanel
+            ? ({
+                "--cine-plate-w-from-height": wFromHeight,
+                "--cine-plate-w-cap": wCap,
+              } as CSSProperties)
+            : undefined
+        }
       >
         <p className={`cine-about-line text-caps mb-8${area("eyebrow")}`} style={{ color: "#C9A55C" }}>
           {t("about.eyebrow")}
