@@ -155,6 +155,8 @@ const Header = () => {
     ? { textShadow: "0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)" }
     : undefined;
 
+  // 13px at lg is the ratified Nav-label step (DESIGN.md Typography), not an
+  // off-ramp literal: the nav must stay legible with no bar behind it.
   const linkBase =
     `text-xs lg:text-[13px] uppercase ${isGreenWorldPage ? "font-semibold" : "font-light"} leading-none link-underline transition-all duration-300 whitespace-nowrap`;
   const linkColor = (active: boolean) =>

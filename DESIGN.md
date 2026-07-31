@@ -294,6 +294,14 @@ serif never tips into period pastiche.
 - **Label** (500, `0.75rem`, tracking `0.25em`, uppercase, sans): the `.text-caps`
   utility. Eyebrows above headings (in gold), CTA text (tracking `0.2em`), and
   scroll cues (`0.625rem`, tracking `0.3em`).
+- **Nav label** (300, `0.75rem`, stepping to `13px` at `lg`, tracking `0.16em`,
+  uppercase, sans): the fixed header's links (Header.tsx `linkBase`). The one
+  pixel above **Label** on large screens is ratified, not drift: it predates the
+  ramp (shipped 2026-06-04, approved by exposure ever since), and the nav is the
+  ramp's one surface that must hold legibility with NO bar behind it over moving
+  photography (NAV.CLEAR.1's halo-not-panel law) at a wide `0.16em` track.
+  Ratified 2026-07-31, closing the design-detector advisory on Header's
+  `lg:text-[13px]`.
 
 **Reel lockup steps** (CINE.FLOW.5). The reel's two acts are different
 compositions, not one composition at two sizes, so each sets its own pair —
