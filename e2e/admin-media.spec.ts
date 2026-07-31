@@ -368,9 +368,9 @@ test.describe("ADMIN.MEDIA — hero controls live in Media, not Settings", () =>
   });
 });
 
-/* ---------- (c4) ADMIN.MOBILE.2: slot cards are camera+pencil only ---------- */
-test.describe("ADMIN.MEDIA — slot cards carry no destructive control", () => {
-  test("configured About card shows camera+pencil only; the editor's Reset clears nothing", async ({ page }) => {
+/* ---------- (c4) ADMIN.MOBILE.2 / ABOUT.REMOVE.1: destructive controls ---------- */
+test.describe("ADMIN.MEDIA — hero/reel cards carry no destructive control; About carries Remove", () => {
+  test("configured About card adds a labeled Remove that deletes the key; the editor's Reset still clears nothing", async ({ page }) => {
     const writes: Write[] = [];
     await injectAdminSession(page);
     await forceLanguage(page, "en");
@@ -401,13 +401,19 @@ test.describe("ADMIN.MEDIA — slot cards carry no destructive control", () => {
     await expect(aboutCard.locator("img")).toBeVisible();
     await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/custom/i);
 
-    // ADMIN.MOBILE.2 — the card's only controls are camera (change photo) and
-    // pencil (framing). No trash / Remove: the owner's workflow is swap, never
-    // empty, and a visible remove invites accidentally blank sections.
+    // ADMIN.MOBILE.2 — the THUMBNAIL's only controls are camera (change photo)
+    // and pencil (framing). ABOUT.REMOVE.1 — About is the one opt-in slot, so
+    // its card alone carries a labeled Remove BELOW the card text (off the
+    // thumbnail, so a stray tap on the photo can't blank the section). Hero and
+    // reel cards stay camera+pencil only: their workflow is swap, never empty.
     await expect(aboutCard.locator('[data-qa="media-slot-pick"]')).toBeVisible();
     await expect(aboutCard.locator('[data-qa="media-slot-edit"]')).toBeVisible();
-    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
-    await expect(aboutCard.locator("button")).toHaveCount(2);
+    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toBeVisible();
+    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveText(/remove/i);
+    await expect(aboutCard.locator("button")).toHaveCount(3);
+    const reelCard = page.locator('[data-qa="media-slot"][data-slot="reel-0"]');
+    await expect(reelCard.locator("button")).toHaveCount(2);
+    await expect(reelCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
 
     // ADMIN.RESET.1a — Reset is a TRANSFORM control now, so it is no longer a
     // slot-clearing path either: it neither writes nor closes. (The old law here
@@ -431,6 +437,28 @@ test.describe("ADMIN.MEDIA — slot cards carry no destructive control", () => {
     await expect(surface).toHaveCount(0);
     await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/custom/i);
     await expect(aboutCard.locator("img")).toBeVisible();
+
+    // ABOUT.REMOVE.1 — Remove unconfigures the panel back to text-only. Only
+    // About was configured, so the config resolves all-default and the write is
+    // the cinematic_media key DELETE (absent-is-default), never an upsert of a
+    // half-empty object.
+    writes.length = 0;
+    await aboutCard.locator('[data-qa="media-about-remove"]').click();
+    await expect
+      .poll(() => writes.filter((w) => /site_settings/.test(w.url)).length, { timeout: 10_000 })
+      .toBeGreaterThan(0);
+    const removal = writes.filter((w) => /site_settings/.test(w.url));
+    expect(
+      removal.every((w) => w.method === "DELETE" && /cinematic_media/.test(w.url)),
+      "removal is the key DELETE, not an upsert",
+    ).toBe(true);
+
+    // The card falls to the opt-in empty state: no photo, badge None, and the
+    // Remove control itself is gone — nothing destructive on an empty card.
+    await expect(aboutCard.locator("img")).toHaveCount(0);
+    await expect(aboutCard.locator('[data-qa="media-slot-badge"]')).toHaveText(/none/i);
+    await expect(aboutCard.locator('[data-qa="media-about-remove"]')).toHaveCount(0);
+    await expect(aboutCard.locator("button")).toHaveCount(2);
   });
 });
 

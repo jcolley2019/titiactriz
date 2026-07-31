@@ -553,7 +553,8 @@
       "slotEmpty": "Sin foto aún",
       "about": {
         "empty": "Sin foto seleccionada",
-        "none": "Ninguna"
+        "none": "Ninguna",
+        "removeLabel": "Quitar"
       },
       "slots": {
         "hero": "Hero",

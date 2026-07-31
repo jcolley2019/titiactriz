@@ -180,6 +180,16 @@ const writeAboutSlot = (
   about: ClassSlotFraming,
 ): CinematicMediaConfig => ({ ...cfg, about });
 
+/**
+ * ABOUT.REMOVE.1 — drop the About key entirely, returning the live section to
+ * its text-only original. About is the ONE opt-in slot (hero/reel always render
+ * media), so it is the one slot whose card carries a way back out.
+ */
+const stripAbout = (cfg: CinematicMediaConfig): CinematicMediaConfig => {
+  const { about: _about, ...rest } = cfg;
+  return rest;
+};
+
 /** FRAME.SPLIT.1 — replace one reel slot, leaving the other two untouched. */
 const writeReelSlot = (
   cfg: CinematicMediaConfig,
@@ -403,6 +413,13 @@ const CinematicMediaManager = () => {
   const saveVideoFraming = (video: HeroVideoFraming) => {
     setEditor(null);
     void persist(withHeroVideo(config, video), "hero");
+  };
+
+  // ABOUT.REMOVE.1 — unconfigure the About panel back to text-only. Same write
+  // path as every save; with hero/reel untouched this resolves all-default and
+  // deletes the key.
+  const removeAbout = () => {
+    void persist(stripAbout(config), "about");
   };
 
   /* ---------------- Hero video: upload / remove (VID.MODEL.1 — one video) ---------------- */
@@ -669,12 +686,13 @@ const CinematicMediaManager = () => {
                     </button>
                   </div>
 
-                  {/* ADMIN.MOBILE.2 — slot cards carry camera + pencil only. No
-                      destructive control here: the owner's workflow is swap,
-                      never empty, so a stray tap can't blank a section.
-                      ADMIN.RESET.1a — Reset inside the editor is a transform
-                      control and no longer clears a slot, so there is no
-                      slot-clearing path on this screen at all. */}
+                  {/* ADMIN.MOBILE.2 — the thumbnail carries camera + pencil only.
+                      Hero/reel have no destructive control at all: their workflow
+                      is swap, never empty, so a stray tap can't blank a section.
+                      ABOUT.REMOVE.1 — the opt-in About slot is the exception: its
+                      labeled Remove sits BELOW the card text, off the thumbnail,
+                      because since ADMIN.RESET.1a made Reset a pure transform
+                      there was no path back to text-only anywhere. */}
 
                   {savingKey === d.key && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/40">
@@ -708,6 +726,18 @@ const CinematicMediaManager = () => {
                           ? t("admin.media.slots.aboutDesc")
                           : t("admin.media.slots.reelDesc", { n: d.reelIndex + 1 })}
                   </p>
+                  {d.kind === "about" && custom && (
+                    <button
+                      type="button"
+                      data-qa="media-about-remove"
+                      onClick={removeAbout}
+                      disabled={savingKey === d.key}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {t("admin.media.about.removeLabel")}
+                    </button>
+                  )}
                 </div>
               </div>
             );
