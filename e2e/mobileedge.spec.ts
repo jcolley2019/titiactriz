@@ -291,3 +291,120 @@ test.describe("MOBILE.EDGE.1 B — Green World fills the phone viewport", () => 
     expect(phone!.blur, "and carries the same blur").toBe(desktop!.blur);
   });
 });
+
+/* ============ C. THE TITILINKS ACT DOES NOT OVERFLOW ITS OWN STAGE ============ */
+
+test.describe("MOBILE.EDGE.1 C — the TitiLinks act's foot is clean", () => {
+  test("nothing in the act is painted past the bottom of its stage", async ({ page }) => {
+    await openPhoneHome(page);
+
+    const act = await page.evaluate(() => {
+      const el = document.querySelector('[data-qa="cinematic-titilinks"]');
+      return el ? el.getBoundingClientRect().top + window.scrollY : null;
+    });
+    expect(act, "the TitiLinks act is on the page").not.toBeNull();
+    // Into the act, past the pin's start, where the phone composition is drawn.
+    await page.evaluate((y) => window.scrollTo(0, y), act! + 1200);
+    await page.waitForTimeout(1000);
+
+    const overflow = await page.evaluate(() => {
+      const stage = document.querySelector('[data-qa="cinematic-titilinks"] .cine-vh-full');
+      if (!stage) return null;
+      const s = stage.getBoundingClientRect();
+
+      // An element's VISIBLE rect: its own box, intersected with every clipping
+      // ancestor between it and the stage. The act legitimately contains scrolling
+      // mocks (the browser frame's viewport, the phone mockups) whose content is
+      // taller than they are and is clipped by them — that content is not
+      // "painted past the stage", and reading raw boxes would flag all of it.
+      // What this looks for is content the STAGE ITSELF has to clip.
+      const visibleRect = (el: Element) => {
+        const b = el.getBoundingClientRect();
+        let top = b.top;
+        let bottom = b.bottom;
+        let node = el.parentElement;
+        while (node && node !== stage) {
+          const cs = getComputedStyle(node);
+          if (cs.overflow !== "visible" || cs.overflowY !== "visible") {
+            const p = node.getBoundingClientRect();
+            top = Math.max(top, p.top);
+            bottom = Math.min(bottom, p.bottom);
+          }
+          node = node.parentElement;
+        }
+        return { top, bottom };
+      };
+
+      const worst: { tag: string; qa: string; cls: string; bottom: number; over: number }[] = [];
+      for (const el of Array.from(stage.querySelectorAll("*"))) {
+        const b = el.getBoundingClientRect();
+        if (b.width === 0 || b.height === 0) continue;
+        const v = visibleRect(el);
+        if (v.bottom <= v.top) continue; // already fully clipped by an ancestor
+        const over = v.bottom - s.bottom;
+        if (over > 1) {
+          worst.push({
+            tag: el.tagName.toLowerCase(),
+            qa: el.getAttribute("data-qa") ?? "",
+            cls: (typeof el.className === "string" ? el.className : "").slice(0, 60),
+            bottom: Math.round(v.bottom),
+            over: Math.round(over),
+          });
+        }
+      }
+      worst.sort((a, b) => b.over - a.over);
+      return {
+        stageTop: Math.round(s.top),
+        stageBottom: Math.round(s.bottom),
+        worst: worst.slice(0, 5),
+      };
+    });
+
+    expect(overflow, "the TitiLinks stage is rendered").not.toBeNull();
+    // THE DEFECT, stated exactly: a gold-bordered callout row began at the
+    // stage's bottom edge and ran 150px past it, so the clip sliced it into a
+    // pair of hairlines across the foot of the act. Any element painting past
+    // the stage's bottom is that bug, whatever it is.
+    expect(
+      overflow!.worst,
+      `nothing overflows the stage's bottom edge (worst: ${JSON.stringify(overflow!.worst)})`,
+    ).toEqual([]);
+
+    await page.screenshot({ path: shot("mobileedge-tl-390.png") });
+  });
+
+  test("the phone callout row is inside the stage, and still rendered", async ({ page }) => {
+    await openPhoneHome(page);
+    const act = await page.evaluate(() => {
+      const el = document.querySelector('[data-qa="cinematic-titilinks"]');
+      return el ? el.getBoundingClientRect().top + window.scrollY : null;
+    });
+    await page.evaluate((y) => window.scrollTo(0, y), act! + 1200);
+    await page.waitForTimeout(1000);
+
+    const row = await page.evaluate(() => {
+      const stage = document.querySelector('[data-qa="cinematic-titilinks"] .cine-vh-full');
+      if (!stage) return null;
+      const s = stage.getBoundingClientRect();
+      // The callouts are the gold-bordered pills; on the phone they are the ones
+      // that are actually laid out (the lg column is display:none).
+      const pills = Array.from(stage.querySelectorAll(".tl-callout")).filter((el) => {
+        const b = el.getBoundingClientRect();
+        return b.width > 0 && b.height > 0;
+      });
+      return {
+        count: pills.length,
+        top: Math.round(Math.min(...pills.map((p) => p.getBoundingClientRect().top))),
+        bottom: Math.round(Math.max(...pills.map((p) => p.getBoundingClientRect().bottom))),
+        stageTop: Math.round(s.top),
+        stageBottom: Math.round(s.bottom),
+      };
+    });
+
+    expect(row, "the stage is rendered").not.toBeNull();
+    // The fix must not have moved the row off the act instead of into it.
+    expect(row!.count, "the phone still gets its callout row").toBeGreaterThan(0);
+    expect(row!.top, "the row starts inside the stage").toBeGreaterThanOrEqual(row!.stageTop - 1);
+    expect(row!.bottom, "and ends inside it").toBeLessThanOrEqual(row!.stageBottom + 1);
+  });
+});

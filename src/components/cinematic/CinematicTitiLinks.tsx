@@ -395,12 +395,28 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
                 </p>
                 <Callouts refs={calloutRefs} />
               </div>
-            </div>
-          </div>
 
-          {/* Mobile callouts stack below the frame. */}
-          <div className="relative z-10 mx-auto -mt-2 max-w-2xl px-6 pb-6 lg:hidden">
-            <Callouts />
+              {/* MOBILE.EDGE.1 — the phone's callout row, INSIDE the stage's own
+                  centred column.
+
+                  It used to be a SIBLING of that column, placed after a block
+                  that is `h-full` — so it began at the stage's bottom edge and
+                  ran 150px past it. The stage clips (`overflow-hidden`), so what
+                  the phone actually rendered was the top few pixels of the first
+                  row of pills: two gold hairlines across the foot of the act,
+                  which is the artifact Joey saw. Nothing was leaking from the
+                  next act; the act was overflowing itself.
+
+                  As a grid child it shares the column's `items-center` centring
+                  and the `gap-8` that already separates the frame from the copy,
+                  so the row is inside the clip by construction rather than by a
+                  margin that has to be kept in sync with the frame's height.
+                  `lg:hidden` removes it from the grid entirely above the
+                  breakpoint, where the right-hand column carries the callouts. */}
+              <div className="mx-auto w-full max-w-2xl lg:hidden">
+                <Callouts />
+              </div>
+            </div>
           </div>
 
           {/* Announcement card irises in over the whole stage during scene 3. */}
