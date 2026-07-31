@@ -85,11 +85,15 @@ async function framingReady(page: Page, selector: string, nth = 0) {
  */
 async function wheelTo(page: Page, y: number) {
   await page.mouse.move(200, 300);
+  // Steps are capped at 900px: under a CPU-starved run every evaluate
+  // roundtrip here stretches to seconds, so iteration count IS the time
+  // budget. Overshoot from the bigger step doesn't matter — the caller polls
+  // the observed dead-stop state and re-aims.
   for (let i = 0; i < 40; i++) {
     const at = await page.evaluate(() => window.scrollY);
     const delta = y - at;
     if (Math.abs(delta) < 8) break;
-    await page.mouse.wheel(0, Math.max(-600, Math.min(600, Math.round(delta))));
+    await page.mouse.wheel(0, Math.max(-900, Math.min(900, Math.round(delta))));
     await page.waitForTimeout(90);
   }
   await page.waitForTimeout(500);
@@ -173,7 +177,10 @@ test.describe("FRAME.SPLIT.1 — legacy slots seed both classes (evidence)", () 
       test(`${phone ? "phone" : "wide"} ${frame.w} ${lang.toUpperCase()} renders the legacy record`, async ({
         page,
       }) => {
-        test.setTimeout(180_000);
+        // 300s is headroom, not expectation: serial runs finish in 3-6s, but
+        // under a loaded machine every protocol roundtrip stretches and the
+        // stress battery burned 180s on slowness alone (2026-07-31).
+        test.setTimeout(300_000);
         await forceLanguage(page, lang);
         await routeSupabase(page, { media: LEGACY_MEDIA, photos: PHOTOS });
         await page.setViewportSize({ width: frame.w, height: frame.h });
