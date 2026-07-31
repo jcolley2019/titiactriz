@@ -82,13 +82,31 @@
      writes px dimensions at refresh time; a URL-bar collapse fires a resize →
      refresh, so a `dvh` stage would be re-measured taller and JUMP mid-scrub —
      exactly when the chrome retracts. `svh` re-measures to the same number, so
-     the pin is immune. (Filling the collapsed-chrome viewport here would need
-     static `lvh`, which instead overflows while the chrome is shown — a design
-     trade, not a silent fix.)
+     the pin is immune.
+
+     MOBILE.EDGE.1 — and this is where the Green World act's BLACK BAND came
+     from. An `svh` stage stops ~12% short of the screen once the chrome has
+     collapsed, and by the time a reader is scrubbing the act the chrome IS
+     collapsed — so a strip of page ground sat under the plate for the whole
+     act. The parenthetical this note used to end on named the fix and declined
+     to take it; `.cine-stage-lvh` takes it. The reasoning it was declined for
+     does not apply: the pin's enemy is a height that MOVES, and `lvh` is as
+     static as `svh` — it is simply the larger of the two static numbers. So the
+     stage covers the collapsed-chrome viewport AND re-measures to the same
+     number on every refresh. The trade is the hero's trade, in the same
+     direction: while the chrome is shown the stage overflows behind it by the
+     chrome's height, and a centred composition sits that much lower until the
+     bar retracts.
    Desktop (md+) keeps `svh` throughout: there is no dynamic chrome. The hero
    needs no md+ override — with no dynamic chrome, lvh ≡ svh ≡ vh. */
 .cine-vh-full { min-height: 100vh; min-height: 100svh; }
 .cine-h-full  { height: 100vh; height: 100svh; }
+/* MOBILE.EDGE.1 — a pinned scrub stage that must COVER the screen rather than
+   merely be pin-safe. Static like `svh` (so the pin is equally immune to the
+   chrome-collapse refresh) but the larger of the two, so no page ground shows
+   under the plate once the bar has retracted. Desktop needs no override: with no
+   dynamic chrome, lvh ≡ svh ≡ vh. */
+.cine-stage-lvh { height: 100vh; height: 100lvh; }
 .cine-act-vh  { min-height: 100vh; min-height: 100dvh; }
 .cine-act-lvh { min-height: 100vh; min-height: 100lvh; }
 @media (min-width: 768px) {

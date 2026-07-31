@@ -161,3 +161,133 @@ test.describe("MOBILE.EDGE.1 A — the hero owns the first viewport", () => {
     expect(applied!.padLeft, "the gutter is unchanged at 0 insets").toBe("24px");
   });
 });
+
+/* ============ B. THE GREEN WORLD ACT IS PLATE ALL THE WAY DOWN ============ */
+
+/** Scroll to the middle of a pinned seq act's own scrub range and settle. */
+async function intoSeqAct(page: Page) {
+  const range = await page.evaluate(() => {
+    const el = document.querySelector('[data-qa="seq-act"]');
+    if (!el) return null;
+    const start = Number(el.getAttribute("data-seq-start") ?? NaN);
+    const end = Number(el.getAttribute("data-seq-end") ?? NaN);
+    return Number.isFinite(start) && Number.isFinite(end) ? { start, end } : null;
+  });
+  if (!range) throw new Error("MOBILE.EDGE.1: the seq act published no scrub bounds");
+  await page.evaluate((y) => window.scrollTo(0, y), range.start + (range.end - range.start) * 0.5);
+  await page.waitForTimeout(1100);
+}
+
+test.describe("MOBILE.EDGE.1 B — Green World fills the phone viewport", () => {
+  test("the plate is painted to the stage's bottom edge — no dead stripe", async ({ page }) => {
+    await openPhoneHome(page);
+    await intoSeqAct(page);
+
+    const geo = await page.evaluate(() => {
+      const stage = document.querySelector('[data-qa="seq-stage"]');
+      const canvas = document.querySelector('[data-qa="seq-canvas"]') as HTMLCanvasElement | null;
+      if (!stage || !canvas) return null;
+      const s = stage.getBoundingClientRect();
+      const c = canvas.getBoundingClientRect();
+      return {
+        viewport: window.innerHeight,
+        stageTop: Math.round(s.top),
+        stageBottom: Math.round(s.bottom),
+        canvasBottom: Math.round(c.bottom),
+        canvasTop: Math.round(c.top),
+      };
+    });
+    expect(geo, "the seq act is pinned and painting").not.toBeNull();
+
+    // The stage covers the visible viewport, and the canvas covers the stage.
+    expect(geo!.stageTop, "the pinned stage is at the top of the fold").toBeLessThanOrEqual(0);
+    expect(geo!.stageBottom, "the stage reaches the bottom of the fold").toBeGreaterThanOrEqual(
+      geo!.viewport,
+    );
+    expect(geo!.canvasTop, "the plate starts at the stage's top").toBeLessThanOrEqual(geo!.stageTop + 1);
+    expect(
+      geo!.canvasBottom,
+      "the plate is painted all the way to the stage's bottom",
+    ).toBeGreaterThanOrEqual(geo!.stageBottom - 1);
+
+    // THE CLAIM JOEY MADE: the bottom of the act is ARTWORK, not the backdrop.
+    // Read straight off the canvas that painted it. The Green World plates are
+    // bright water end to end (GW.BRIGHT.1 measured the brightest decile at
+    // 244/255 on this pack), so "not the #0b0a08 ground" is a wide margin, and
+    // the deepest sample sits one row off the very last pixel.
+    const samples = await page.evaluate(() => {
+      const c = document.querySelector('[data-qa="seq-canvas"]') as HTMLCanvasElement | null;
+      const ctx = c?.getContext("2d");
+      if (!c || !ctx) return null;
+      return [0.9, 0.95, 0.99].map((f) => {
+        const y = Math.min(c.height - 1, Math.round(c.height * f));
+        const d = ctx.getImageData(Math.round(c.width / 2), y, 1, 1).data;
+        return { at: f, r: d[0], g: d[1], b: d[2], lum: (d[0] + d[1] + d[2]) / 3 };
+      });
+    });
+    expect(samples, "the canvas is readable").not.toBeNull();
+    for (const s of samples!) {
+      // The act's own backdrop is #0b0a08 — mean 9. Anything near it at the foot
+      // of the act IS the dead stripe.
+      expect(
+        s.lum,
+        `at ${Math.round(s.at * 100)}% of the stage the plate is artwork, not ground`,
+      ).toBeGreaterThan(60);
+    }
+
+    await page.screenshot({ path: shot("mobileedge-gw-390.png") });
+  });
+
+  test("the seq stage is sized by the covering static unit", async ({ page }) => {
+    await openPhoneHome(page);
+    const rule = await ruleTextFor(page, ".cine-stage-lvh");
+    expect(rule, "the seq stage's height class is declared").not.toBe("");
+    expect(rule, "it covers the collapsed-chrome viewport").toContain("100lvh");
+
+    const cls = await page.evaluate(
+      () => document.querySelector('[data-qa="seq-stage"]')?.className ?? "",
+    );
+    expect(cls, "and the seq act's stage is on it").toContain("cine-stage-lvh");
+    expect(cls, "not on the svh stage class it used to share with the reel").not.toContain(
+      "cine-h-full",
+    );
+  });
+
+  test("the nav treatment over the act is the same on a phone as on a desktop", async ({ page }) => {
+    // The nav-grounding law (REVIEW.2b) is a SCROLL-POSITION law, not a
+    // per-act one: transparent over the hero, grounded past ~80vh. Joey asked
+    // for this to be verified rather than assumed — so it is read at both
+    // viewports over the same act and compared.
+    const readNav = async (w: number, h: number) => {
+      await page.setViewportSize({ width: w, height: h });
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+      await page.waitForTimeout(1200);
+      await intoSeqAct(page);
+      return page.evaluate(() => {
+        const el = document.querySelector("header");
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return { background: cs.backgroundColor, blur: cs.backdropFilter };
+      });
+    };
+
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("ta_lang", "en");
+      } catch {
+        /* noop */
+      }
+    });
+    const phone = await readNav(390, 844);
+    const desktop = await readNav(1440, 900);
+
+    expect(phone, "the phone renders a header").not.toBeNull();
+    expect(desktop, "the desktop renders a header").not.toBeNull();
+    expect(
+      phone!.background,
+      "over the Green World act the phone nav grounds exactly as the desktop nav does",
+    ).toBe(desktop!.background);
+    expect(phone!.blur, "and carries the same blur").toBe(desktop!.blur);
+  });
+});

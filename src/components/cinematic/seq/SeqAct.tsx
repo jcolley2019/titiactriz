@@ -158,7 +158,19 @@ const SeqAct = ({
 
   return (
     <section ref={sectionRef} data-qa="seq-act" data-seq-id={sequence.id} className="relative w-full">
-      <div ref={pinRef} className="cine-h-full relative w-full overflow-hidden">
+      {/* MOBILE.EDGE.1 — `.cine-stage-lvh`, not `.cine-h-full`: a frame pack is a
+          full-bleed plate and an `svh` stage leaves ~12% of page ground showing
+          under it once Safari's chrome has collapsed, which is the whole of the
+          act's black band on a phone. Still static, so the pin measures the same
+          number on every refresh. See the height law in cinematic.css. */}
+      {/* `data-qa` on the stage itself: once ScrollTrigger pins it, the act's
+          first child is the pin-spacer it inserts, so a structural selector
+          reads the wrapper rather than the stage. */}
+      <div
+        ref={pinRef}
+        data-qa="seq-stage"
+        className="cine-stage-lvh relative w-full overflow-hidden"
+      >
         <FrameScrubber
           ref={scrubberRef}
           sequence={sequence}
