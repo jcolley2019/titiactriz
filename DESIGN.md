@@ -716,8 +716,14 @@ exactly 0 (spec-asserted, mobileedge suite E). It renders on the phone
 composition only, split on the act's own breakpoint: a wide viewport has no
 mobile bottom chrome to guard against, so a skirt there is this law's own "cost
 with no benefit", and the wide section's gradient census stays exactly the
-three rooms' luminance light. No other boundary wears one without its own
-ruling.
+three rooms' luminance light. And it YIELDS on approach (MOBILE.EDGE.4, Joey's
+eye 2026-07-31: the static fade read as a very noticeable smudge on slide 01's
+sky): its opacity is scrubbed from full at the fold's rest position to zero
+before the seam passes the viewport's upper two-thirds — the chrome that needed
+it collapses on the first scroll, so past the window the photograph is bare and
+the slide's dwell shows unveiled art. No other boundary wears one without its
+own ruling; the Book→Green World case (audited at 204/211, the page's brightest
+boundary) was reviewed and ruled FINE as-is on-device.
 
 **Resolved — the reel veil.** The flat
 `linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))` wash —

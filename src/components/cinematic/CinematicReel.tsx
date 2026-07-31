@@ -405,6 +405,31 @@ const CinematicReel = ({ slides, reduced }: Props) => {
         frameDraw(i, i + 0.1, 0.4);
       }
       tl.to({}, { duration: 0.5 }); // dwell on the final slide before release
+
+      // MOBILE.EDGE.4 — the skirt YIELDS to the photograph. It exists for one
+      // scroll position: the rest, where Safari's expanded bar samples the
+      // act's first rows past the hero's lvh foot. The moment the reader
+      // scrolls, the chrome collapses and the need is gone — so the fade is
+      // scrubbed out as the seam climbs, bare before the seam passes the
+      // viewport's upper two-thirds. Slide 01's dwell never shows it (Joey's
+      // eye, 2026-07-31: the static fade was very noticeable on the sky).
+      const skirt = sectionRef.current?.querySelector('[data-qa="seam-skirt"]');
+      if (skirt) {
+        gsap.fromTo(
+          skirt,
+          { opacity: 1 },
+          {
+            opacity: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "top 65%",
+              scrub: true,
+            },
+          },
+        );
+      }
     }, sectionRef);
 
     // The wide rebuild (wideFrameCount) reverts and recreates this pinned
@@ -481,6 +506,9 @@ const CinematicReel = ({ slides, reduced }: Props) => {
           near-black at the rest position instead of the first slide's sky. A
           child of the SECTION, not the pinned stage — it rides the seam and has
           left the screen before the scrub plays, so no slide ever wears it.
+          MOBILE.EDGE.4 — and it YIELDS on approach: opacity scrubbed to zero
+          (effect above) before the seam passes the upper two-thirds, so the
+          photograph is never read through it.
           PHONE COMPOSITION ONLY, on the same line that splits the act: wide
           viewports have no mobile bottom chrome to guard against, and the wide
           census ("no veil at all on wide") keeps its exact three-rooms

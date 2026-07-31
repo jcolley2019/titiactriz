@@ -131,7 +131,11 @@
    The node renders on the PHONE composition only (CinematicReel, the same
    breakpoint that splits the act): wide viewports have no mobile bottom chrome,
    so a skirt there is the veil law's "cost with no benefit", and the wide
-   section's gradient census stays exactly the three rooms' luminance light. */
+   section's gradient census stays exactly the three rooms' luminance light.
+   MOBILE.EDGE.4 — the skirt YIELDS: CinematicReel scrubs its opacity from full
+   at the rest position to zero before the seam passes the viewport's upper
+   two-thirds, so the photograph is never read through it. This class states the
+   fade; the reel states when it is worn. */
 .cine-seam-skirt {
   position: absolute;
   top: 0;

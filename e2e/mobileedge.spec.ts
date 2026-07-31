@@ -516,6 +516,36 @@ test.describe("MOBILE.EDGE.3 E — the seam skirt guards the hero→reel boundar
     await page.screenshot({ path: shot("mobileedge-skirt-390.png") });
   });
 
+  test("the skirt yields once the reader is past the seam", async ({ page }) => {
+    await openPhoneHome(page);
+
+    // At the rest position the skirt is at full strength — this is the one
+    // scroll position it exists for, the expanded bar sampling the act's
+    // first rows.
+    const atRest = await page.evaluate(() => {
+      const el = document.querySelector('[data-qa="seam-skirt"]');
+      return el ? parseFloat(getComputedStyle(el).opacity) : null;
+    });
+    expect(atRest, "the skirt is on the page").not.toBeNull();
+    expect(atRest!, "full strength at the rest position").toBe(1);
+
+    // Past the fade window the photograph must be bare: the chrome that needed
+    // the skirt collapses on the first scroll.
+    await page.evaluate(() => window.scrollTo(0, 500));
+    await page.waitForTimeout(1100);
+    const scrolled = await page.evaluate(() => {
+      const el = document.querySelector('[data-qa="seam-skirt"]');
+      return {
+        scrollY: Math.round(window.scrollY),
+        opacity: el ? parseFloat(getComputedStyle(el).opacity) : null,
+      };
+    });
+    expect(scrolled.opacity, "the skirt is still on the page").not.toBeNull();
+    // Lenis law: assert against the OBSERVED position, not the aimed one.
+    expect(scrolled.scrollY, "the sweep actually left the fade window").toBeGreaterThan(350);
+    expect(scrolled.opacity!, "past the window the photograph is bare").toBe(0);
+  });
+
   test("the skirt is declared as the law writes it", async ({ page }) => {
     await openPhoneHome(page);
 
