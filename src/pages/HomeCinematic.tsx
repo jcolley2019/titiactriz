@@ -23,6 +23,7 @@ import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
 import CinematicContact from "@/components/cinematic/CinematicContact";
+import ViewportHud from "@/components/qa/ViewportHud";
 import "@/components/cinematic/cinematic.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -149,6 +150,14 @@ const HomeCinematic = () => {
         title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"
         description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio y Green World."
       />
+
+      {/* MOBILE.EDGE.2-DIAG — a live viewport readout, DEV ONLY. The hero's
+          `100lvh` cannot end above the fold in theory, and does on Joey's phone;
+          two fixes have been argued from that theory and neither landed, so the
+          next move is measurement rather than a third argument. Gated here so
+          the component is tree-shaken out of any production build. Delete this
+          block and the component together once the numbers have been read. */}
+      {import.meta.env.DEV && <ViewportHud />}
 
       <CinematicHero
         photo={hero.photo}
