@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "guard": "node scripts/guard-invariants.mjs",
+    "drift": "node scripts/check-deploy-drift.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,0 +1,16 @@
+{
+  "comment": "BUILD.GATE.3 — last-known-synced state of deployed edge functions. ezbr_sha256 comes from `npx supabase functions list`; it hashes the deployed bundle, so it cannot be recomputed from source — it changes on every deploy. `npm run drift` compares live values against this file: a mismatch means someone deployed (e.g. via dashboard) since the repo was last synced, i.e. the repo copy may be stale. After any intentional deploy or repo re-sync, update the sha here in the same commit.",
+  "projectRef": "nsmstwkjbjicpdclgecq",
+  "functions": {
+    "generate-alt-text": {
+      "ezbr_sha256": "83ba64d80b747f75ccdb75401b58e36f9bf382aef4092307f20b79273946e2bd",
+      "version": 2,
+      "verifiedInSync": "2026-07-31 — deployed source downloaded and diffed byte-identical against repo (ALT.SYNC.1, 430dd49)"
+    },
+    "send-contact": {
+      "ezbr_sha256": "59a4b31d29af025188d0682785379b3b27cb75347bdb670d1907702b0677b1e8",
+      "version": 2,
+      "verifiedInSync": "2026-07-31 — deployed source downloaded and diffed content-identical against repo (CRLF-only difference)"
+    }
+  }
+}
