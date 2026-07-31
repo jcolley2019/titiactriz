@@ -95,6 +95,40 @@
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }
 
+/* ===== MOBILE.EDGE.1 — the acts' safe-area padding =====
+   The page now declares `viewport-fit=cover` (index.html), so the layout
+   viewport is the WHOLE physical screen: the notch, the Dynamic Island and the
+   home indicator are all inside it. That is the point — a full-bleed act should
+   paint edge to edge — but it means every box that holds TYPE has to say how far
+   in from that edge its type starts, or the reader gets a headline under the
+   camera cutout.
+
+   The insets are ADDED to the act's existing padding rather than replacing it
+   (`calc`), because the padding is doing a second job the inset knows nothing
+   about: clearing the fixed header. `env()` resolves to its 0px fallback on every
+   non-notched device and in every browser that has no insets to report, so these
+   are byte-identical to `pt-24 pb-16 px-6` everywhere except the phones that
+   need them.
+
+   The horizontal pair is `max()`, not `+`: the 1.5rem gutter is already wider
+   than a portrait iPhone's side inset (0), and only landscape ever reports one
+   large enough to matter. Adding there would double-indent the copy on a phone
+   held sideways. */
+.cine-safe-x {
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+}
+.cine-hero-safe {
+  padding-top: calc(6rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+/* The hero's scroll cue is absolutely positioned against the act, so the act's
+   padding never reaches it. Its own 2rem is measured from the true screen edge
+   now, and a home indicator is ~2.1rem tall — the cue landed under it. */
+.cine-scrollcue-safe {
+  bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* ===== About photo panel (ABOUT.MEDIA.1, reshaped by ADMIN.ABOUT.2) =====
    An OPT-IN photo panel beside the About copy. When no About photo is
    configured these rules never attach (the container isn't `.cine-about-grid`

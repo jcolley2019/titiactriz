@@ -86,7 +86,13 @@ const CinematicHero = ({
     <section
       ref={sectionRef}
       data-qa="cinematic-section"
-      className="cine-act-lvh relative flex items-center justify-center overflow-hidden px-6 pt-24 pb-16 text-center"
+      // MOBILE.EDGE.1 — `lvh` is unchanged and deliberate (CINE.FLOW.5-FIX2): a
+      // static full-screen height is the only one that cannot let the next act
+      // into the strip behind Safari's floating bar. What changes is the PADDING:
+      // with `viewport-fit=cover` the act's box now reaches the physical screen
+      // edge, so the lockup's clearances are stated against the safe area rather
+      // than against a viewport that used to stop short of the notch.
+      className="cine-act-lvh cine-safe-x cine-hero-safe relative flex items-center justify-center overflow-hidden text-center"
     >
       <CinematicHeroMedia
         photo={photo}
@@ -139,7 +145,10 @@ const CinematicHero = ({
       </div>
 
       {/* Scroll cue */}
-      <div data-qa="cinematic-scrollcue" className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2">
+      <div
+        data-qa="cinematic-scrollcue"
+        className="cine-scrollcue-safe absolute left-1/2 z-10 -translate-x-1/2"
+      >
         <div className="flex flex-col items-center gap-2 text-[#f0e9da]/60">
           <span className="text-[10px] uppercase tracking-[0.3em]">{scrollLabel}</span>
           <span className="cine-scrollcue-line block h-10 w-px bg-gradient-to-b from-[#C9A55C]/80 to-transparent" />
