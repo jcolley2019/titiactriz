@@ -443,7 +443,14 @@ const CinematicReel = ({ slides, reduced }: Props) => {
 
   return (
     <section ref={sectionRef} data-qa="cinematic-section" className="relative">
-      <div ref={pinRef} className="cine-h-full relative w-full overflow-hidden">
+      {/* MOBILE.EDGE.3 — the reel takes Green World's fix, being the same defect:
+          an `svh` pinned stage stops ~12% short of the screen once Safari's
+          chrome has collapsed, and by the time a reader is scrubbing the act the
+          chrome IS collapsed, so a strip of page ground sat under the slide.
+          `.cine-stage-lvh` is static like `svh` — the pin measures the same
+          number on every refresh — and is the larger of the two. See the height
+          law in cinematic.css. */}
+      <div ref={pinRef} className="cine-stage-lvh relative w-full overflow-hidden">
         {slides.map((s, i) => (
           <div
             key={i}
