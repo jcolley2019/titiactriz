@@ -139,8 +139,19 @@ async function skeleton(page: Page): Promise<string[]> {
 /** The composition elements a tab must draw, by the hook the LIVE act uses. */
 const REQUIRED = {
   "iphone-17-pro": ['[data-qa="reel-veil"]', '[data-qa="reel-lockup"]', '[data-qa="reel-numeral"]'],
-  "ipad-air": ['[data-qa="wide-plate"]', '[data-qa="wide-rule"]', '[data-qa="wide-lockup"]'],
-  desktop: ['[data-qa="wide-plate"]', '[data-qa="wide-rule"]', '[data-qa="wide-lockup"]'],
+  // MIRROR.SYNC.1 — the wide tabs draw the CINE.FLOW.6 spread now: plate,
+  // chapter and seam, by the hooks the live act uses. The W2 chrome
+  // (wide-rule, wide-lockup) is superseded on this surface too.
+  "ipad-air": [
+    '[data-qa="wide-plate"]',
+    '[data-qa="wide-chapter"]',
+    '[data-qa="wide-chapter-seam"]',
+  ],
+  desktop: [
+    '[data-qa="wide-plate"]',
+    '[data-qa="wide-chapter"]',
+    '[data-qa="wide-chapter-seam"]',
+  ],
 } as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -152,8 +163,9 @@ type TabId = (typeof TABS)[number]["id"];
  */
 const CAPTION: Record<TabId, { numeral: string; lockup: string }> = {
   "iphone-17-pro": { numeral: '[data-qa="reel-numeral"]', lockup: '[data-qa="reel-lockup"]' },
-  "ipad-air": { numeral: '[data-qa="wide-numeral"]', lockup: '[data-qa="wide-lockup"]' },
-  desktop: { numeral: '[data-qa="wide-numeral"]', lockup: '[data-qa="wide-lockup"]' },
+  // MIRROR.SYNC.1 — on the spread the caption is the chapter eyebrow.
+  "ipad-air": { numeral: '[data-qa="wide-numeral"]', lockup: '[data-qa="chapter-eyebrow"]' },
+  desktop: { numeral: '[data-qa="wide-numeral"]', lockup: '[data-qa="chapter-eyebrow"]' },
 };
 
 /**

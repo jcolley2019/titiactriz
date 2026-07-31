@@ -473,7 +473,7 @@ test.describe("CINE.FLOW.5 — reel composition parity (editor device tabs)", ()
     await expect(preview.locator(LOCKUP), "the phone lockup is drawn").toHaveCount(1);
   });
 
-  test("wide tabs: W2 plate, unveiled, equal lockup rules — and none of the phone act", async ({
+  test("wide tabs: the CINE.FLOW.6 spread — plate in the photo page, chapter, seam — and none of the phone act", async ({
     page,
   }) => {
     await openAdminMedia(page);
@@ -493,11 +493,19 @@ test.describe("CINE.FLOW.5 — reel composition parity (editor device tabs)", ()
       await expect(preview.locator(LOCKUP), `${tab}: no phone lockup`).toHaveCount(0);
       await expect(preview.locator(RETIRED_SCRIM), `${tab}: no scrim`).toHaveCount(0);
 
-      // The plate composition is drawn.
-      await expect(preview.locator('[data-qa="wide-backdrop"]'), `${tab}: ambient backdrop`)
-        .toHaveCount(1);
-      await expect(preview.locator(WIDE_RULE), `${tab}: two vertical hairlines`).toHaveCount(2);
+      // MIRROR.SYNC.1 — the spread composition is drawn, and the frozen W2
+      // chrome it superseded is gone: no ambient backdrop (REVIEW.2's tonal
+      // room), no 18%/82% hairlines (the seam is the one vertical gold line).
+      await expect(preview.locator('[data-qa="wide-backdrop"]'), `${tab}: no ambient backdrop`)
+        .toHaveCount(0);
+      await expect(preview.locator(WIDE_RULE), `${tab}: no W2 hairlines`).toHaveCount(0);
+      await expect(preview.locator('[data-qa="wide-room"]'), `${tab}: the tonal room`).toHaveCount(1);
       await expect(preview.locator(PLATE), `${tab}: one plate`).toHaveCount(1);
+      await expect(preview.locator('[data-qa="wide-chapter"]'), `${tab}: one chapter`).toHaveCount(1);
+      await expect(
+        preview.locator('[data-qa="wide-chapter-seam"]'),
+        `${tab}: the chapter/plate seam`,
+      ).toHaveCount(1);
 
       // UNVEILED — nothing with a gradient paints inside the plate box.
       const veilsInPlate = await preview.locator(PLATE).evaluate((el) =>
@@ -518,12 +526,17 @@ test.describe("CINE.FLOW.5 — reel composition parity (editor device tabs)", ()
         `${tab}: plate aspect ${(plateBox.width / plateBox.height).toFixed(4)}`,
       ).toBeCloseTo(0.563, 2);
 
-      // The lockup's two rules are equal.
-      const rules = await preview
-        .locator(WIDE_LOCKUP_RULE)
-        .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-      expect(rules.length, `${tab}: two flanking rules`).toBe(2);
-      expect(rules[1], `${tab}: the numeral's rules are equal`).toBeCloseTo(rules[0], 1);
+      // W2's centred caption band is superseded: no flanking lockup rules; the
+      // caption is the chapter eyebrow (numeral · hairline · label).
+      await expect(preview.locator(WIDE_LOCKUP_RULE), `${tab}: no W2 lockup rules`).toHaveCount(0);
+      await expect(
+        preview.locator('[data-qa="chapter-eyebrow"]'),
+        `${tab}: the chapter eyebrow captions the spread`,
+      ).toHaveCount(1);
+      await expect(
+        preview.locator('[data-qa="chapter-eyebrow"] [data-qa="wide-numeral"]'),
+        `${tab}: the numeral rides in the eyebrow`,
+      ).toHaveCount(1);
     }
   });
 });

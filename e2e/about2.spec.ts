@@ -392,9 +392,11 @@ test.describe("ADMIN.ABOUT.2 — the About editor IS the reel editor", () => {
     expect((await canvasFraming(page)).prefix, "desktop tab shows the wide record").toBe(
       prefixOf(ABOUT_WIDE),
     );
-    // The W2 chrome is PRESENT — the About canvas is the wide act, entire.
-    await expect(page.locator(`${SURFACE} [data-qa="wide-lockup"]`)).toHaveCount(1);
-    await expect(page.locator(`${SURFACE} [data-qa="wide-rule"]`)).toHaveCount(2);
+    // The spread chrome is PRESENT — the About canvas is the wide act, entire
+    // (MIRROR.SYNC.1: the CINE.FLOW.6 chapter + seam, not W2's band and rules).
+    await expect(page.locator(`${SURFACE} [data-qa="wide-chapter"]`)).toHaveCount(1);
+    await expect(page.locator(`${SURFACE} [data-qa="wide-chapter-seam"]`)).toHaveCount(1);
+    await expect(page.locator(`${SURFACE} [data-qa="wide-rule"]`)).toHaveCount(0);
     await closeEditor(page);
 
     // And the reel slide it now shares that law with reads exactly the same.

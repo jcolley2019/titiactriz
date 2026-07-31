@@ -1,6 +1,9 @@
+import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import FramedImage from "@/components/cinematic/FramedImage";
 import FramedVideo from "@/components/cinematic/FramedVideo";
+import { CHAPTER_GROUNDS, FIELD_LIGHT, SEAM_GOLD } from "@/components/cinematic/FramedVideo";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
+import { REEL_CHAPTER_DEFAULTS } from "@/components/cinematic/reelChapters";
 import {
   GOLD,
   IVORY,
@@ -13,15 +16,12 @@ import {
   reelIsPhoneWidth,
 } from "@/components/cinematic/reelSpotlight";
 import {
-  AMBIENT_BLUR_PX,
-  AmbientBackdrop,
-  BAND_PAD_VH,
-  PLATE_OUTLINE,
+  CHAPTER_FIELD_FRACTION,
+  ORNAMENT_OPACITY,
   PLATE_TOP_VH,
-  WIDE_RULE_OPACITY,
-  WIDE_RULE_X,
+  PlateFrame,
+  chapterBodyPx,
   lockupNumeralPx,
-  lockupRulePx,
   lockupTitlePx,
   plateLaw,
 } from "@/components/cinematic/reelWide";
@@ -42,31 +42,36 @@ import type { Focal, FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * LOGICAL css width) decides which of the two compositions is drawn, through the
  * same `reelSpotlight` module the live act uses.
  *
- * CINE.FLOW.5 — both compositions were replaced by their bake-off winners, and
- * both mirrors follow:
+ * The two mirrors:
  *
  *  - PHONE mirrors V1 "Edge Veil": cover photo under one directional veil
  *    weighted to the foot of the frame, a 66px numeral over the title. The
  *    lockup-bound scrim and the numeral's flanking rules are gone with it.
- *  - WIDE mirrors W2 "Center Plate & Rules": an UNVEILED portrait plate in a
- *    gold hairline frame, hung between two vertical hairlines over an ambient
- *    backdrop, lockup captioned in the band beneath. `WIDE_VEIL` is deleted.
+ *  - WIDE mirrors the CINE.FLOW.6 STORY SPREAD (MIRROR.SYNC.1 — this branch was
+ *    the frozen W2 mirror through REEL.COPY.1's era, a recorded drift now
+ *    repaid): the plate hangs centred in the spread's PHOTO PAGE while the
+ *    story chapter occupies the other page — sides alternating per chapter
+ *    (even chapters plate→copy, odd flipped) — separated by the 1px gold seam.
+ *    REVIEW.2's tonal room comes with it: no ambient backdrop, one
+ *    uninterrupted field on the chapter's own ground shade under the
+ *    HERO.WIDE.1 luminance gradient, the plate's frame drawn by `PlateFrame`
+ *    in its finished markup state (this surface wires no timeline, so it
+ *    renders complete and static, exactly as reduced motion does live).
  *
  * The live act computes its wide geometry in px from its measured frame; a
  * preview has no fixed size, so the same laws are restated here in container
- * units — exact for everything that is a pure ratio (the plate box, the rules,
- * the band), and calibrated against the previewed device's own width for the
- * things the live act clamps in px (type sizes, the backdrop's blur radius).
+ * units — exact for everything that is a pure ratio (the plate box, the chapter
+ * column, the seam), and calibrated against the previewed device's own width
+ * for the things the live act clamps in px (type sizes, the chapter paddings).
+ * Chapter prose is the live act's own fallback law — `REEL_CHAPTER_DEFAULTS`
+ * modulo, ES primary — since this surface edits framing, never copy.
  *
  * ADMIN.ASPECT.1 — the wide mirror's plate takes the edited slide's SHAPE
  * (portrait or 3:2 landscape) from `plateLaw`, so the drag surface is genuinely
- * the box that publishes and the editor's pan slack is the live plate's slack. The
- * mirror keeps hanging the plate from `PLATE_TOP_VH` with the W2 caption band
- * beneath it in both shapes: this is the frozen W2 composition, whose plate
- * POSITION already differs from the CINE.FLOW.6 spread (a recorded drift, see
- * DESIGN.md). What must not drift — and does not — is the plate's SHAPE, because
- * that is what the framing is resolved against; a plate's SIZE already differs
- * between the live act (measured against the photo page) and this canvas.
+ * the box that publishes and the editor's pan slack is the live plate's slack.
+ * With MIRROR.SYNC.1 the plate's SIZE law matches too: the width cap is applied
+ * against the photo page (the frame minus the chapter column), exactly as the
+ * live `plateBox(zoneW, frameH)` call applies it.
  *
  * ADMIN.ABOUT.4 — AND THERE IS NO ABOUT COMPOSITION HERE. ADMIN.ABOUT.2 wrote a
  * third branch for the About panel — a bare plate, with the composition explicitly
@@ -82,6 +87,8 @@ import type { Focal, FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * About slot writes to no such record, so it passed the field's do-nothing default
  * and captioned itself "01", the first slide's numeral. The chapter it captions and
  * the record it saves are two facts; only the first one belongs to this component.
+ * The chapter eyebrow's LABEL is the slot's own `reelTitle` for the same reason —
+ * the About tab reads "04 · Sobre Mí", never a reel chapter's eyebrow.
  */
 const DISPLAY = "'Cinzel', 'Cormorant Garamond', Georgia, serif";
 
@@ -124,19 +131,20 @@ const numeral = (i: number) => String(i + 1).padStart(2, "0");
 
 /**
  * The wide plate box, as CSS. This IS `plateBox`'s "smaller box wins" rule: the
- * height rule is `heightVh`cqh, the width cap is `maxWidthVw`cqw — restated as the
- * height it implies (maxWidthVw / aspect cqw) so a single `min()` can pick the
- * smaller box, exactly as the live act's comparison does.
+ * height rule is `heightVh`cqh, the width cap is `maxWidthVw`cqw OF THE PHOTO
+ * PAGE — the live act sizes against `zoneW = frameW * (1 - CHAPTER_FIELD_FRACTION)`,
+ * so the cap is restated as that fraction of the whole frame, then as the height
+ * it implies, so a single `min()` can pick the smaller box exactly as the live
+ * comparison does.
  *
  * ADMIN.ASPECT.1 — a function of the plate's shape rather than two constants, and
  * the three numbers come from `plateLaw`, so this mirror cannot hold a second
- * opinion about what a landscape plate is. Portrait resolves to the identical
- * strings it did before this brick (`min(76cqh, 106.572cqw)`), which is what makes
- * a portrait slide's editor canvas byte-identical.
+ * opinion about what a landscape plate is.
  */
 const plateCss = (plate: PlateAspect) => {
   const { aspect, heightVh, maxWidthVw } = plateLaw(plate);
-  const h = `min(${heightVh}cqh, ${(maxWidthVw / aspect).toFixed(3)}cqw)`;
+  const pageCapVw = maxWidthVw * (1 - CHAPTER_FIELD_FRACTION);
+  const h = `min(${heightVh}cqh, ${(pageCapVw / aspect).toFixed(3)}cqw)`;
   return { h, w: `calc(${h} * ${aspect})` };
 };
 
@@ -146,7 +154,7 @@ const plateCss = (plate: PlateAspect) => {
  */
 const WIDE_PREVIEW_REF_W = 1440;
 
-/** A px constant from the live wide lockup, as a fraction of its own frame. */
+/** A px constant from the live wide composition, as a fraction of its own frame. */
 const asWideCqw = (px: number, refW: number) => `${((px / refW) * 100).toFixed(3)}cqw`;
 
 const SectionPreview = ({
@@ -167,8 +175,22 @@ const SectionPreview = ({
   const wideReel = kind === "reel" && !phoneReel;
   const wideRefW = deviceWidth ?? WIDE_PREVIEW_REF_W;
   // ADMIN.ASPECT.1 — the plate's box in container units. Computed for every kind
-  // (it is two string concatenations) and read only by the plated branches below.
+  // (it is two string concatenations) and read only by the plated branch below.
   const plateSize = plateCss(plate);
+
+  // MIRROR.SYNC.1 — the spread's own geometry, restated from WideSlide verbatim:
+  // even chapters read plate → copy, odd flipped; the plate hangs centred in the
+  // photo page, its top clamped to the header-clearing edge on short frames.
+  const copySide: "left" | "right" = captionIndex % 2 === 1 ? "left" : "right";
+  const zoneWVw = (1 - CHAPTER_FIELD_FRACTION) * 100;
+  const zoneXVw = copySide === "left" ? CHAPTER_FIELD_FRACTION * 100 : 0;
+  const plateLeftCss = `calc(${zoneXVw}cqw + (${zoneWVw}cqw - ${plateSize.w}) / 2)`;
+  const plateTopCss = `max(${PLATE_TOP_VH}cqh, calc((100cqh - ${plateSize.h}) / 2))`;
+  // Chapter prose: the live act's own fallback (`slide.chapter ?? DEFAULTS[i %]`,
+  // ES primary). The eyebrow LABEL stays the slot's own caption (ADMIN.ABOUT.5).
+  const chapterCopy = REEL_CHAPTER_DEFAULTS[captionIndex % REEL_CHAPTER_DEFAULTS.length].es;
+  const chapterPadX = Math.min(96, Math.max(28, wideRefW * 0.04));
+  const chapterMaxW = Math.min(wideRefW * CHAPTER_FIELD_FRACTION - 2 * chapterPadX, 420);
 
   const media = videoSrc ? (
     <FramedVideo
@@ -189,9 +211,7 @@ const SectionPreview = ({
       // edge-to-edge and its wide act crops to a portrait plate, so the
       // letterbox mode has no caller left anywhere.
       fit="fill"
-      // The wide act's ambient backdrop is an image element too, and it sits
-      // FIRST in DOM order. Naming the framed photo keeps the parity probes
-      // measuring the surface under test, not the blurred ground behind it.
+      // Named so the parity probes address the surface under test directly.
       imgDataQa="media-preview-img"
       fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
     />
@@ -204,30 +224,17 @@ const SectionPreview = ({
       style={{ containerType: "size", aspectRatio: aspect }}
     >
       {wideReel ? (
-        // W2: ambient ground, then the two rules, then the plate that holds the
-        // framed photo. DOM order is the live act's — the rules sit below the
-        // plate, and nothing paints over the photograph at all.
-        <>
-          {/* The SAME component the live act paints, so the ambient ground
-              cannot drift; only the blur radius is restated for the preview's
-              box, since the live 64px is measured against a real frame. */}
-          <AmbientBackdrop
-            src={photo?.image_url}
-            blur={asWideCqw(AMBIENT_BLUR_PX, wideRefW)}
-          />
-          {WIDE_RULE_X.map((x) => (
-            <div
-              key={x}
-              data-qa="wide-rule"
-              className="absolute inset-y-0"
-              style={{
-                left: `${x * 100}%`,
-                width: 1,
-                backgroundColor: GOLD,
-                opacity: WIDE_RULE_OPACITY,
-              }}
-            />
-          ))}
+        // CINE.FLOW.6 spread (MIRROR.SYNC.1): the tonal room, the plate in the
+        // photo page with its finished self-drawn frame, and the story chapter
+        // across the seam. DOM order is WideSlide's own.
+        <div
+          data-qa="wide-room"
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            backgroundColor: CHAPTER_GROUNDS[captionIndex % CHAPTER_GROUNDS.length],
+            backgroundImage: FIELD_LIGHT,
+          }}
+        >
           <div
             data-qa="wide-plate"
             // ADMIN.ASPECT.1 — the canvas declares the shape it drew, exactly as
@@ -235,17 +242,133 @@ const SectionPreview = ({
             data-plate={plate}
             className="absolute overflow-hidden"
             style={{
-              top: `${PLATE_TOP_VH}cqh`,
-              left: "50%",
-              transform: "translateX(-50%)",
+              left: plateLeftCss,
+              top: plateTopCss,
               width: plateSize.w,
               height: plateSize.h,
-              outline: PLATE_OUTLINE,
             }}
           >
+            {/* Unveiled: nothing paints over the photograph inside the plate.
+                The gold hairline is the self-drawing frame, complete at rest. */}
             {media}
+            <PlateFrame />
           </div>
-        </>
+
+          <div
+            data-qa="wide-chapter"
+            data-side={copySide}
+            className="absolute inset-y-0 overflow-hidden"
+            style={{ [copySide]: 0, width: `${CHAPTER_FIELD_FRACTION * 100}cqw` }}
+          >
+            {/* The 1px gold hairline seam at the chapter/plate junction. */}
+            <div
+              aria-hidden
+              data-qa="wide-chapter-seam"
+              className="absolute inset-y-0"
+              style={{
+                [copySide === "left" ? "right" : "left"]: 0,
+                width: 1,
+                backgroundColor: SEAM_GOLD,
+              }}
+            />
+            {/* Outer-corner law: one filigree per spread, at the copy column's
+                outer top corner, mirrored on a right-hand column. */}
+            <img
+              src={cornerOrn}
+              alt=""
+              aria-hidden
+              data-qa="chapter-ornament"
+              className={`absolute h-auto select-none${copySide === "right" ? " -scale-x-100" : ""}`}
+              style={{
+                top: asWideCqw(112, wideRefW),
+                [copySide]: asWideCqw(28, wideRefW),
+                width: `min(22%, ${asWideCqw(96, wideRefW)})`,
+                opacity: ORNAMENT_OPACITY,
+              }}
+              decoding="async"
+            />
+            <div
+              className="flex h-full flex-col justify-center"
+              style={{
+                paddingLeft: asWideCqw(chapterPadX, wideRefW),
+                paddingRight: asWideCqw(chapterPadX, wideRefW),
+              }}
+            >
+              <div style={{ maxWidth: asWideCqw(chapterMaxW, wideRefW) }}>
+                <div
+                  data-qa="chapter-eyebrow"
+                  className="flex items-center"
+                  style={{ gap: asWideCqw(12, wideRefW) }}
+                >
+                  <span
+                    aria-hidden
+                    data-qa="wide-numeral"
+                    className="block leading-none"
+                    style={{
+                      fontFamily: DISPLAY,
+                      color: GOLD,
+                      fontSize: asWideCqw(lockupNumeralPx(wideRefW), wideRefW),
+                      letterSpacing: "0.12em",
+                    }}
+                  >
+                    {numeral(captionIndex)}
+                  </span>
+                  <span
+                    aria-hidden
+                    data-qa="chapter-eyebrow-rule"
+                    className="block"
+                    style={{
+                      height: 1,
+                      width: asWideCqw(Math.round(lockupNumeralPx(wideRefW) * 1.2), wideRefW),
+                      backgroundColor: GOLD,
+                    }}
+                  />
+                  <span
+                    data-qa="chapter-eyebrow-label"
+                    className="block uppercase"
+                    style={{
+                      color: GOLD,
+                      fontSize: asWideCqw(12, wideRefW),
+                      fontWeight: 500,
+                      letterSpacing: "0.25em",
+                    }}
+                  >
+                    {reelTitle ?? chapterCopy.eyebrow}
+                  </span>
+                </div>
+                <h3
+                  data-qa="section-heading"
+                  className="uppercase"
+                  style={{
+                    fontFamily: DISPLAY,
+                    color: IVORY,
+                    fontSize: asWideCqw(lockupTitlePx(wideRefW), wideRefW),
+                    fontWeight: 400,
+                    lineHeight: 1.1,
+                    letterSpacing: "0.06em",
+                    marginTop: asWideCqw(18, wideRefW),
+                  }}
+                >
+                  {chapterCopy.title}
+                </h3>
+                <p
+                  data-qa="chapter-body"
+                  style={{
+                    color: "rgba(240,233,218,0.85)",
+                    fontSize: asWideCqw(chapterBodyPx(wideRefW), wideRefW),
+                    fontWeight: 300,
+                    lineHeight: 1.7,
+                    letterSpacing: "0.01em",
+                    marginTop: asWideCqw(18, wideRefW),
+                    maxWidth: "36ch",
+                  }}
+                >
+                  {chapterCopy.body}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="absolute inset-0">{media}</div>
       )}
@@ -329,75 +452,8 @@ const SectionPreview = ({
             )}
           </div>
         </>
-      ) : (
-        // CINE.FLOW.5 wide act (W2): the lockup, captioned in the band under the
-        // plate. The band's top is the plate's own bottom edge, so it tracks the
-        // `min()` above rather than restating it.
-        <div
-          data-qa="wide-lockup"
-          className="absolute inset-x-0 flex flex-col items-center justify-center text-center"
-          style={{
-            top: `calc(${PLATE_TOP_VH}cqh + ${plateSize.h})`,
-            bottom: 0,
-            paddingTop: `${BAND_PAD_VH}cqh`,
-            paddingBottom: `${BAND_PAD_VH}cqh`,
-          }}
-        >
-          <div
-            className="flex items-center"
-            style={{
-              gap: asWideCqw(12, wideRefW),
-              marginBottom: asWideCqw(10, wideRefW),
-            }}
-          >
-            <span
-              data-qa="wide-lockup-rule"
-              style={{
-                display: "block",
-                height: 1,
-                width: asWideCqw(lockupRulePx(wideRefW), wideRefW),
-                backgroundColor: GOLD,
-              }}
-            />
-            <span
-              data-qa="wide-numeral"
-              style={{
-                fontFamily: DISPLAY,
-                color: GOLD,
-                fontSize: asWideCqw(lockupNumeralPx(wideRefW), wideRefW),
-                lineHeight: 1,
-                letterSpacing: "0.12em",
-                textIndent: "0.12em",
-              }}
-            >
-              {numeral(captionIndex)}
-            </span>
-            <span
-              data-qa="wide-lockup-rule"
-              style={{
-                display: "block",
-                height: 1,
-                width: asWideCqw(lockupRulePx(wideRefW), wideRefW),
-                backgroundColor: GOLD,
-              }}
-            />
-          </div>
-          {reelTitle && (
-            <span
-              style={{
-                fontFamily: DISPLAY,
-                color: IVORY,
-                fontSize: asWideCqw(lockupTitlePx(wideRefW), wideRefW),
-                lineHeight: 1.1,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-              }}
-            >
-              {reelTitle}
-            </span>
-          )}
-        </div>
-      )}
+      ) : null /* MIRROR.SYNC.1 — the wide caption lives in the chapter above;
+                  W2's centred band beneath the plate is superseded here too. */}
     </div>
   );
 };

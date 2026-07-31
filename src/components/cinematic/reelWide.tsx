@@ -17,8 +17,9 @@ import type { Focal, PlateAspect } from "@/hooks/useCinematicMedia";
  * luminance gradient, restrained corner-ornament filigree, 1px gold hairline
  * seam at the junction with the plate), so the hero and the reel read as one
  * system. The centred caption band and the two symmetric 18%/82% hairlines of
- * W2 are superseded on the LIVE act; their constants remain exported below
- * because the admin SectionPreview still restates the frozen W2 mirror.
+ * W2 are superseded everywhere — MIRROR.SYNC.1 brought the admin SectionPreview
+ * onto this spread too, so their constants are deleted rather than exported
+ * (the bake-off harness keeps its own frozen copy).
  *
  * The chapter FIELD is not a veil. It is an opaque ground beside the
  * photograph — no type ever crosses the plate, which stays unveiled exactly as
@@ -31,8 +32,8 @@ import type { Focal, PlateAspect } from "@/hooks/useCinematicMedia";
  * gradient. The plate's gold hairline frame is no longer a static outline: it
  * DRAWS itself (PlateFrame, a stroke-dashoffset rect) on the slide's segment of
  * the pinned timeline, and the corner filigree blooms in after the line
- * completes. AmbientBackdrop remains exported below only because the admin
- * SectionPreview still restates the frozen W2 mirror.
+ * completes. The blurred AmbientBackdrop's last consumer was the admin
+ * SectionPreview's frozen W2 mirror; MIRROR.SYNC.1 retired both.
  *
  * CINE.FLOW.5 — the plate itself is unchanged from the promoted bake-off
  * variant W2 ("Center Plate & Rules") as it stood after CINE.FLOW.4B.
@@ -84,13 +85,6 @@ export const PLATE_ASPECT = 0.563;
  */
 export const PLATE_LANDSCAPE_ASPECT = 1.5;
 
-/** Ambient backdrop filter — a LAW: this filter NEVER animates. */
-export const AMBIENT_BLUR_PX = 64;
-export const AMBIENT_FILTER = `blur(${AMBIENT_BLUR_PX}px) brightness(0.35) saturate(0.9)`;
-
-/** Gold hairline for the plate outline. */
-export const PLATE_OUTLINE = "1px solid rgba(201,165,92,0.55)";
-
 /** W2's declared composition, as fractions of the frame. */
 export const PLATE_HEIGHT_VH = 76;
 export const PLATE_MAX_WIDTH_VW = 60;
@@ -117,16 +111,6 @@ export const PLATE_LANDSCAPE_MAX_WIDTH_VW = 78;
  * runs 14vh against a 3vh minimum padding.
  */
 export const PLATE_TOP_VH = 10;
-/**
- * The two vertical gold hairlines, at these fractions of the frame width, and
- * the caption band's breathing room. SUPERSEDED on the live act by the
- * CINE.FLOW.6 spread (the seam is the spread's one vertical gold line); still
- * exported because the admin SectionPreview restates the frozen W2 mirror.
- */
-export const WIDE_RULE_X = [0.18, 0.82] as const;
-export const WIDE_RULE_OPACITY = 0.35;
-export const BAND_PAD_VH = 3;
-
 /**
  * CINE.FLOW.6 — the spread's split: the chapter column takes this fraction of
  * the frame width, the plate hangs centred in the remainder. 0.42 keeps the
@@ -213,46 +197,7 @@ export function focalFractions(focal?: Focal): { fx: number; fy: number } {
 export const lockupTitlePx = (frameW: number) => clampNum(28, frameW * 0.032, 48);
 export const lockupNumeralPx = (frameW: number) => clampNum(22, frameW * 0.025, 38);
 
-/** The rules flanking the wide numeral scale with it, symmetrically. */
-export const lockupRulePx = (frameW: number) => Math.round(lockupNumeralPx(frameW) * 1.7);
-
 const numeral = (i: number) => String(i + 1).padStart(2, "0");
-
-/**
- * The full-frame ambient ground: the slide's own photograph, cover-fit,
- * blurred/darkened, scaled 1.1 so the blur never reveals its own edges.
- *
- * REVIEW.2 — RETIRED from the live act: the spread's ground is now the
- * chapter's tonal room (one uninterrupted field, see CHAPTER_GROUNDS). Still
- * exported because the admin SectionPreview restates the frozen W2 mirror,
- * which keeps its backdrop.
- */
-export const AmbientBackdrop = ({ src, blur }: { src?: string; blur?: string }) => (
-  <div aria-hidden className="absolute inset-0 overflow-hidden">
-    {src ? (
-      <img
-        src={src}
-        alt=""
-        data-qa="wide-backdrop"
-        loading="lazy"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          // `blur` overrides only the radius, never the brightness/saturate
-          // grade — the admin preview has no fixed size, so it restates 64px as
-          // a fraction of its own box rather than blurring a thumbnail to mud.
-          filter: blur ? `blur(${blur}) brightness(0.35) saturate(0.9)` : AMBIENT_FILTER,
-          transform: "scale(1.1)",
-        }}
-      />
-    ) : (
-      <div className="h-full w-full" style={{ backgroundColor: "#141210" }} />
-    )}
-  </div>
-);
 
 /**
  * REVIEW.2 — the plate's gold hairline frame as a SELF-DRAWING line. A single

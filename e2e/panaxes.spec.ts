@@ -228,8 +228,15 @@ test.describe("ADMIN.RESET.1c — both axes pan wherever slack exists", () => {
       ).toBeGreaterThan(100.5);
 
       // Short enough to land mid-range on every tab, so this asserts real
-      // proportional panning rather than a slam into the clamp.
-      await drag(page, -30, 0); // pure horizontal
+      // proportional panning rather than a slam into the clamp. MIRROR.SYNC.1
+      // sized the iPad tab's plate to its true live box (width-capped against
+      // the spread's photo page, ~40% narrower than the frozen W2 mirror drew
+      // it), so a fixed 30px can now cross a tab's whole slack — the drag is
+      // sized against the tab's OWN measured slack instead.
+      const img = (await page.locator(CANVAS_IMG).first().boundingBox())!;
+      const slackPx = img.width * (1 - 100 / before.widthPct);
+      const dx = -Math.min(30, (slackPx / 2) * 0.6);
+      await drag(page, dx, 0); // pure horizontal
       const after = await resolved(page);
 
       expect(after.posX, `${tab}: horizontal drag moves focal X`).not.toBeCloseTo(before.posX, 1);

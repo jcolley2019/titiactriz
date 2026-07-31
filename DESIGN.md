@@ -426,11 +426,12 @@ label), a headline at the wide title step, and one short paragraph.
 
 Three consequences:
 
-- W2's centred caption band and its two 18%/82% hairlines are **superseded on
-  the live act**; the seam is the spread's one vertical gold line. Their
-  constants remain exported only because the admin SectionPreview still
-  restates the frozen W2 mirror (an accepted, recorded drift owed to
-  REEL.COPY.1's era).
+- W2's centred caption band and its two 18%/82% hairlines are **superseded
+  everywhere**; the seam is the spread's one vertical gold line. (The admin
+  SectionPreview restated the frozen W2 mirror through REEL.COPY.1's era — a
+  recorded drift repaid by MIRROR.SYNC.1, 2026-07-31: the wide mirror now
+  restates this spread, the drag math sizes the plate against the photo page
+  exactly as the live act does, and the orphaned W2 constants are deleted.)
 - The chapter FIELD is **not a veil** — an opaque ground beside the
   photograph, never over it. The veil law is untouched: the wide plate still
   carries none.
@@ -447,8 +448,8 @@ Ratified on Joey's direction. Three decisions:
    retired from the live wide act: both sides of the seam sit on a single
    uninterrupted ground, edge to edge, under the HERO.WIDE.1 luminance
    gradient. The seam is a hairline on the room's wall, not the join of two
-   materials. (`AmbientBackdrop` stays exported solely for the admin
-   SectionPreview's frozen W2 mirror.)
+   materials. (`AmbientBackdrop` outlived the live act only for the admin
+   SectionPreview's frozen W2 mirror; MIRROR.SYNC.1 retired both.)
 
 2. **The three chapters carry sibling tonal shades.** `CHAPTER_GROUND_1..3`
    (`#0d0b08`, `#0b0b0a`, `#080706`), defined beside `FIELD_GROUND` in

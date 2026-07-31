@@ -1,4 +1,4 @@
-import { plateBox, plateLaw } from "@/components/cinematic/reelWide";
+import { CHAPTER_FIELD_FRACTION, plateBox, plateLaw } from "@/components/cinematic/reelWide";
 import { reelIsPhoneWidth } from "@/components/cinematic/reelSpotlight";
 import type { FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
 
@@ -88,7 +88,11 @@ export function previewMediaFrame(
   // same width-derived one the live act and the class split use.
   const platedReel = kind === "reel" && !reelIsPhoneWidth(deviceWidth);
   if (platedReel) {
-    const box = plateBox(surfaceW, surfaceH, plate);
+    // MIRROR.SYNC.1 — the live spread sizes its plate against the PHOTO PAGE
+    // (the frame minus the CINE.FLOW.6 chapter column), so the width cap here
+    // must run on that same zone or a landscape plate's drag slack drifts from
+    // the box the canvas actually draws.
+    const box = plateBox(surfaceW * (1 - CHAPTER_FIELD_FRACTION), surfaceH, plate);
     return { w: box.w, h: box.h, aspect: plateLaw(plate).aspect, fit: "fill" };
   }
   // Everything else paints the full surface: the phone reel act (inset-0) and the
