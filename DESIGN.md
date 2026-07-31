@@ -700,6 +700,25 @@ calm a busy picture. Two consequences, and both are now load-bearing:
   it earns none. Darkening a photograph that carries no type over it is a cost
   with no benefit.
 
+**Seam skirt (MOBILE.EDGE.3)** — a scoped second purpose of the veil law, ruled
+alongside GW.VEIL.2, not an exception to it: "Seam skirt: a short (~110px)
+#0b0a08→transparent fade at the top edge of an act, permitted solely where the
+successor's bright content can sit under mobile browser chrome at a rest
+position. It protects the seam, never the composition — it may not grow, darken
+mid-act, or migrate into a photographic veil." Ruled at exactly one boundary:
+hero→reel. The hero's foot paints near-black to its last pixel, but Safari's
+expanded bottom bar is taller than the hero's `lvh−svh` overflow, so at the rest
+position the bar's lower rows sampled the reel's first rows directly — sky at
+mean luminance ~190, glowing through the chrome. The skirt is a child of the
+reel SECTION, never of its pinned stage, so it rides the seam and has left the
+screen before the scrub plays; the GAP between hero.bottom and reel.top stays
+exactly 0 (spec-asserted, mobileedge suite E). It renders on the phone
+composition only, split on the act's own breakpoint: a wide viewport has no
+mobile bottom chrome to guard against, so a skirt there is this law's own "cost
+with no benefit", and the wide section's gradient census stays exactly the
+three rooms' luminance light. No other boundary wears one without its own
+ruling.
+
 **Resolved — the reel veil.** The flat
 `linear-gradient(180deg, rgba(11,10,8,0.5), rgba(11,10,8,0.8))` wash —
 undirected, squarely in the banned 50–80% range and outside the mandated

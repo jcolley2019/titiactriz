@@ -437,6 +437,11 @@ const CinematicReel = ({ slides, reduced }: Props) => {
             <Composition slide={s} i={i} />
           </div>
         ))}
+        {/* MOBILE.EDGE.3 — seam skirt: the hero seam and the browser chrome are
+            the same on this path; with no pin there is no scrub to leave with,
+            so it simply marks the act's top edge. Phone composition only, like
+            the motion path. */}
+        {phone && <div aria-hidden data-qa="seam-skirt" className="cine-seam-skirt" />}
       </section>
     );
   }
@@ -471,6 +476,16 @@ const CinematicReel = ({ slides, reduced }: Props) => {
           </div>
         ))}
       </div>
+      {/* MOBILE.EDGE.3 — seam skirt (DESIGN.md, veil grammar): darkens the reel's
+          first rows toward the hero seam, so Safari's expanded bar samples
+          near-black at the rest position instead of the first slide's sky. A
+          child of the SECTION, not the pinned stage — it rides the seam and has
+          left the screen before the scrub plays, so no slide ever wears it.
+          PHONE COMPOSITION ONLY, on the same line that splits the act: wide
+          viewports have no mobile bottom chrome to guard against, and the wide
+          census ("no veil at all on wide") keeps its exact three-rooms
+          enumeration. */}
+      {phone && <div aria-hidden data-qa="seam-skirt" className="cine-seam-skirt" />}
     </section>
   );
 };

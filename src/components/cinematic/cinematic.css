@@ -113,6 +113,36 @@
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }
 
+/* ===== MOBILE.EDGE.3 — the seam skirt =====
+   DESIGN.md (veil grammar): "Seam skirt: a short (~110px) #0b0a08→transparent
+   fade at the top edge of an act, permitted solely where the successor's bright
+   content can sit under mobile browser chrome at a rest position. It protects
+   the seam, never the composition — it may not grow, darken mid-act, or migrate
+   into a photographic veil."
+   The hero's lvh foot overhangs the fold by lvh−svh while Safari's bar is
+   expanded, but the bar is TALLER than that overhang, so its lower rows sample
+   the next act's first rows — the reel's sky glowed through the chrome at the
+   rest position. The skirt darkens exactly those rows.
+   The scoping is geometric, not conditional: the skirt is a child of the act's
+   SECTION, never of its pinned stage, so it rides the seam and has scrolled off
+   with the section top before the pinned scrub plays a frame — mid-act the
+   photograph never wears it. Absolute → zero layout shift: the hero.bottom ↔
+   reel.top GAP stays exactly 0 (spec-asserted, mobileedge suite E).
+   The node renders on the PHONE composition only (CinematicReel, the same
+   breakpoint that splits the act): wide viewports have no mobile bottom chrome,
+   so a skirt there is the veil law's "cost with no benefit", and the wide
+   section's gradient census stays exactly the three rooms' luminance light. */
+.cine-seam-skirt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 110px;
+  z-index: 20;
+  background: linear-gradient(to bottom, #0b0a08, rgba(11, 10, 8, 0));
+  pointer-events: none;
+}
+
 /* ===== MOBILE.EDGE.1 — the acts' safe-area padding =====
    The page now declares `viewport-fit=cover` (index.html), so the layout
    viewport is the WHOLE physical screen: the notch, the Dynamic Island and the

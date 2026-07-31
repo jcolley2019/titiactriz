@@ -458,3 +458,75 @@ test.describe("MOBILE.EDGE.1 D — the page is declared edge-to-edge", () => {
     expect(chrome.footerComputed, "and is unchanged at 0 insets").toBe("48px");
   });
 });
+
+/* ========== E. THE HERO→REEL SEAM WEARS THE SKIRT (MOBILE.EDGE.3) ========== */
+
+test.describe("MOBILE.EDGE.3 E — the seam skirt guards the hero→reel boundary", () => {
+  test("the skirt sits on the seam at zero layout cost", async ({ page }) => {
+    await openPhoneHome(page);
+
+    const geo = await page.evaluate(() => {
+      const hero = document.querySelector('[data-qa="cinematic-section"]');
+      if (!hero) return null;
+      // Same walk as suite A: the act that follows the hero, whatever it is.
+      let next: Element | null = hero.nextElementSibling;
+      while (next && next.getBoundingClientRect().height === 0) next = next.nextElementSibling;
+      if (!next) return null;
+      const h = hero.getBoundingClientRect();
+      const n = next.getBoundingClientRect();
+      const skirt = next.querySelector('[data-qa="seam-skirt"]');
+      if (!skirt) return { hasSkirt: false as const, gap: Math.round(n.top - h.bottom) };
+      const s = skirt.getBoundingClientRect();
+      const cs = getComputedStyle(skirt);
+      return {
+        hasSkirt: true as const,
+        gap: Math.round(n.top - h.bottom),
+        seamOffset: Math.round(s.top - n.top),
+        height: Math.round(s.height),
+        overhangLeft: Math.round(s.left - n.left),
+        overhangRight: Math.round(n.right - s.right),
+        position: cs.position,
+        pointer: cs.pointerEvents,
+        onSection: skirt.parentElement === next,
+        inStage: skirt.closest(".cine-stage-lvh") !== null,
+      };
+    });
+
+    expect(geo, "the hero and its successor are on the page").not.toBeNull();
+
+    // THE LAW THIS BRICK MAY NOT BEND: the skirt costs zero layout — the GAP
+    // between hero.bottom and reel.top stays exactly 0.
+    expect(geo!.gap, "hero.bottom ↔ reel.top GAP is exactly 0").toBe(0);
+
+    expect(geo!.hasSkirt, "the reel act wears the seam skirt").toBe(true);
+    if (geo!.hasSkirt) {
+      expect(geo!.seamOffset, "the skirt's top edge IS the seam").toBe(0);
+      expect(geo!.height, "a short skirt — the ruled ~110px, not a veil's reach").toBe(110);
+      expect(geo!.overhangLeft, "it spans the act, flush left").toBe(0);
+      expect(geo!.overhangRight, "and flush right").toBe(0);
+      expect(geo!.position, "absolute — zero layout shift by construction").toBe("absolute");
+      expect(geo!.pointer, "and it can never eat a tap").toBe("none");
+      // The mid-act clause is enforced by parentage: on the SECTION the skirt
+      // scrolls away with the seam as the pin engages; inside the pinned stage
+      // it would ride the whole scrub instead.
+      expect(geo!.onSection, "the skirt is the section's child").toBe(true);
+      expect(geo!.inStage, "and never the pinned stage's").toBe(false);
+    }
+
+    await page.screenshot({ path: shot("mobileedge-skirt-390.png") });
+  });
+
+  test("the skirt is declared as the law writes it", async ({ page }) => {
+    await openPhoneHome(page);
+
+    const rule = await ruleTextFor(page, ".cine-seam-skirt");
+    expect(rule, "the skirt class is declared").not.toBe("");
+    expect(rule, "a ~110px skirt").toContain("height: 110px");
+    expect(rule, "a fade, not a wash").toContain("linear-gradient");
+    // The CSSOM serializes #0b0a08 to its rgb triplet; asserting the triplet
+    // pins the fade to the ground colour at both ends of the gradient.
+    expect(rule, "from the page ground colour").toContain("11, 10, 8");
+    expect(rule, "absolute, so the seam GAP cannot move").toContain("position: absolute");
+    expect(rule, "and inert to the pointer").toContain("pointer-events: none");
+  });
+});
