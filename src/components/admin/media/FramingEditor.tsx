@@ -104,7 +104,11 @@ type Props = {
    * the call site, and this union is what makes an About branch below unwritable.
    */
   kind: "hero" | "reel";
-  reelIndex?: number;
+  /**
+   * ADMIN.ABOUT.5 — the chapter this slot captions (0-based: reels 0..2, About 3).
+   * Passed straight through to the composition; the editor never indexes with it.
+   */
+  captionIndex?: number;
   reelTitle?: string;
   photo?: CinematicPhoto;
   initialFocal: Focal;
@@ -133,7 +137,7 @@ const FramingEditor = ({
   open,
   slotLabel,
   kind,
-  reelIndex = 0,
+  captionIndex = 0,
   reelTitle,
   photo,
   initialFocal,
@@ -551,7 +555,7 @@ const FramingEditor = ({
                 >
                   <SectionPreview
                     kind={kind}
-                    reelIndex={reelIndex}
+                    captionIndex={captionIndex}
                     photo={photo}
                     focal={tabFraming.focal}
                     zoom={tabFraming.zoom}
@@ -599,7 +603,7 @@ const FramingEditor = ({
             >
               <SectionPreview
                 kind={kind}
-                reelIndex={reelIndex}
+                captionIndex={captionIndex}
                 photo={photo}
                 focal={isVideo ? vCur.focal : curFocal}
                 zoom={isVideo ? vCur.zoom : curZoom}

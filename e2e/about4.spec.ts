@@ -31,6 +31,14 @@ import { shot } from "./_helpers";
  * device tab the About surface's skeleton — every element's depth, tag and
  * data-qa hook, in order — must equal Reel 1's, through the SAME hooks, because
  * there are no About-specific hooks left to compare instead.
+ *
+ * ADMIN.ABOUT.5 — AND THE CAPTION IS ABOUT'S OWN. The skeleton reading above is
+ * deliberately blind to attribute and text VALUES, so it passed while every About
+ * tab captioned itself "01" — Reel 1's numeral, inherited from a storage index the
+ * About slot does not use. Section E below is the reading the skeleton cannot do:
+ * the caption's TEXT. About is the fourth chapter (04, with the About label in the
+ * active locale) and Reel 1 is still the first (01), asserted in both locales
+ * because the label is the one half of the caption that is translated.
  */
 
 const PHOTOS = [
@@ -77,9 +85,9 @@ async function framingReady(page: Page) {
     .not.toContain("pending");
 }
 
-async function openAdminMedia(page: Page) {
+async function openAdminMedia(page: Page, lng: "en" | "es" = "en") {
   await injectAdminSession(page);
-  await forceLanguage(page, "en");
+  await forceLanguage(page, lng);
   await routeSupabase(page, { media: MEDIA, photos: PHOTOS });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
@@ -134,6 +142,32 @@ const REQUIRED = {
   "ipad-air": ['[data-qa="wide-plate"]', '[data-qa="wide-rule"]', '[data-qa="wide-lockup"]'],
   desktop: ['[data-qa="wide-plate"]', '[data-qa="wide-rule"]', '[data-qa="wide-lockup"]'],
 } as const;
+
+type TabId = (typeof TABS)[number]["id"];
+
+/**
+ * ADMIN.ABOUT.5 — the caption, per tab: the numeral, and the lockup that holds it
+ * (numeral + label, whatever else the composition hangs between them). Two acts
+ * caption differently, so the hooks differ; the TEXT is read the same way.
+ */
+const CAPTION: Record<TabId, { numeral: string; lockup: string }> = {
+  "iphone-17-pro": { numeral: '[data-qa="reel-numeral"]', lockup: '[data-qa="reel-lockup"]' },
+  "ipad-air": { numeral: '[data-qa="wide-numeral"]', lockup: '[data-qa="wide-lockup"]' },
+  desktop: { numeral: '[data-qa="wide-numeral"]', lockup: '[data-qa="wide-lockup"]' },
+};
+
+/**
+ * The About label, exactly as `about.eyebrow` ships it per locale — the SAME key the
+ * live About act's eyebrow reads, which is why the caption cannot drift from the act
+ * it captions. (The compositions uppercase it in CSS; textContent is the stored form.)
+ */
+const ABOUT_LABEL = { en: "About", es: "Sobre Mí" } as const;
+
+async function caption(page: Page, tab: TabId) {
+  const read = async (sel: string) =>
+    ((await page.locator(`${SURFACE} ${sel}`).first().textContent()) ?? "").trim();
+  return { numeral: await read(CAPTION[tab].numeral), lockup: await read(CAPTION[tab].lockup) };
+}
 
 /* ============ A. PER-TAB SCREENSHOTS: the pairs are the evidence ============ */
 
@@ -281,4 +315,39 @@ test.describe("ADMIN.ABOUT.4 — About renders the reel editor's compositions", 
       about.portrait + 0.5,
     );
   });
+
+  /* ---- E. THE CAPTION: About is chapter 04, in every locale, on every tab ---- */
+
+  for (const lng of ["en", "es"] as const) {
+    test(`ADMIN.ABOUT.5 — About captions 04 + its own label (${lng}); Reel 1 still 01`, async ({
+      page,
+    }) => {
+      test.setTimeout(240_000);
+      await openAdminMedia(page, lng);
+
+      // Reel 1 is the control: the fix must not move the numbering it already owns.
+      await openEditor(page, REEL_CARD);
+      for (const tab of TABS) {
+        await selectTab(page, tab.id);
+        const { numeral } = await caption(page, tab.id);
+        expect(numeral, `${lng}/${tab.name}: Reel 1 is still the first chapter`).toBe("01");
+      }
+      await closeEditor(page);
+
+      await openEditor(page, ABOUT_CARD);
+      for (const tab of TABS) {
+        await selectTab(page, tab.id);
+        const { numeral, lockup } = await caption(page, tab.id);
+        expect(numeral, `${lng}/${tab.name}: About is the fourth chapter`).toBe("04");
+        // The label rides in the same lockup as the numeral, so reading the lockup
+        // whole asserts the pair: 04 AND About, not 04 beside a reel's role name.
+        expect(lockup, `${lng}/${tab.name}: About's caption carries the About label`).toContain(
+          ABOUT_LABEL[lng],
+        );
+        expect(lockup, `${lng}/${tab.name}: no first-slide numeral survives`).not.toContain("01");
+      }
+      await page.locator(SURFACE).screenshot({ path: shot(`about5-caption-${lng}.png`) });
+      await closeEditor(page);
+    });
+  }
 });

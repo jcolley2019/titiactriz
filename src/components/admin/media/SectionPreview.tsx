@@ -75,13 +75,24 @@ import type { Focal, FitMode, PlateAspect } from "@/hooks/useCinematicMedia";
  * value that reached it: this component renders a reel or a hero, and the About slot
  * arrives as a reel (see CinematicMediaManager's `editorKind`). An About-shaped
  * preview is now unspellable rather than merely absent.
+ *
+ * ADMIN.ABOUT.5 — the numeral is a CAPTION POSITION, not a storage index. It arrives
+ * as `captionIndex` because the last thing this prop held (`reelIndex`) was a
+ * storage fact — which record in `cinematic_media.reel[]` a slot writes to — and the
+ * About slot writes to no such record, so it passed the field's do-nothing default
+ * and captioned itself "01", the first slide's numeral. The chapter it captions and
+ * the record it saves are two facts; only the first one belongs to this component.
  */
 const DISPLAY = "'Cinzel', 'Cormorant Garamond', Georgia, serif";
 
 type Props = {
   kind: "hero" | "reel";
-  /** 0-based slot index — drives the reel numeral (01/02/03). */
-  reelIndex?: number;
+  /**
+   * ADMIN.ABOUT.5 — 0-based CHAPTER position, which is what the numeral reads:
+   * the reel's three slides are 0..2 (01/02/03) and the About panel is the fourth
+   * chapter, 3 (04). Nothing here indexes storage with it.
+   */
+  captionIndex?: number;
   photo?: CinematicPhoto;
   focal: Focal;
   zoom: number;
@@ -140,7 +151,7 @@ const asWideCqw = (px: number, refW: number) => `${((px / refW) * 100).toFixed(3
 
 const SectionPreview = ({
   kind,
-  reelIndex = 0,
+  captionIndex = 0,
   photo,
   focal,
   zoom,
@@ -297,7 +308,7 @@ const SectionPreview = ({
                 lineHeight: 1,
               }}
             >
-              {numeral(reelIndex)}
+              {numeral(captionIndex)}
             </span>
             {reelTitle && (
               <span
@@ -359,7 +370,7 @@ const SectionPreview = ({
                 textIndent: "0.12em",
               }}
             >
-              {numeral(reelIndex)}
+              {numeral(captionIndex)}
             </span>
             <span
               data-qa="wide-lockup-rule"

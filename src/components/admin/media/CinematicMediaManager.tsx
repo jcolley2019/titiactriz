@@ -62,7 +62,20 @@ import FramingEditor from "./FramingEditor";
  * the absent-is-default contract holds.
  */
 type SlotKind = "hero" | "reel" | "about";
-type SlotDesc = { key: string; kind: SlotKind; reelIndex: number; titleKey?: string };
+type SlotDesc = {
+  key: string;
+  kind: SlotKind;
+  /** STORAGE: which `cinematic_media.reel[]` record this slot writes. Reels only. */
+  reelIndex: number;
+  /**
+   * ADMIN.ABOUT.5 — RENDER: which chapter the editor's composition captions, 0-based.
+   * A second fact from `reelIndex`, split out for the same reason `editorKind` was:
+   * About stores no reel record, so its `reelIndex` is a do-nothing 0 — and the
+   * preview, reading that 0 as a numeral, captioned the About panel "01".
+   */
+  captionIndex: number;
+  titleKey?: string;
+};
 
 type EditorState =
   | {
@@ -85,15 +98,19 @@ type EditorState =
 const REEL_TITLE_KEYS = ["hero.roles.actress", "hero.roles.streamer", "hero.roles.entrepreneur"];
 
 const SLOTS: SlotDesc[] = [
-  { key: "hero", kind: "hero", reelIndex: 0 },
-  { key: "reel-0", kind: "reel", reelIndex: 0, titleKey: REEL_TITLE_KEYS[0] },
-  { key: "reel-1", kind: "reel", reelIndex: 1, titleKey: REEL_TITLE_KEYS[1] },
-  { key: "reel-2", kind: "reel", reelIndex: 2, titleKey: REEL_TITLE_KEYS[2] },
+  { key: "hero", kind: "hero", reelIndex: 0, captionIndex: 0 },
+  { key: "reel-0", kind: "reel", reelIndex: 0, captionIndex: 0, titleKey: REEL_TITLE_KEYS[0] },
+  { key: "reel-1", kind: "reel", reelIndex: 1, captionIndex: 1, titleKey: REEL_TITLE_KEYS[1] },
+  { key: "reel-2", kind: "reel", reelIndex: 2, captionIndex: 2, titleKey: REEL_TITLE_KEYS[2] },
   // ABOUT.MEDIA.1 — fifth card: the opt-in About photo panel. ADMIN.ABOUT.4 — it
   // carries a title key like a slide does, because it opens the slide's editor and
   // that editor captions its compositions. A slot with no title would render one
   // element fewer than a reel and the parity would be false at the DOM.
-  { key: "about", kind: "about", reelIndex: 0, titleKey: "about.eyebrow" },
+  //
+  // ADMIN.ABOUT.5 — and it is the FOURTH chapter, so its caption is 04. The title key
+  // (`about.eyebrow`) already names it per locale — EN "About", ES "Sobre Mí" — so the
+  // whole caption is now the slot's own: 04 · About, never Reel 1's 01.
+  { key: "about", kind: "about", reelIndex: 0, captionIndex: 3, titleKey: "about.eyebrow" },
 ];
 
 /**
@@ -718,7 +735,7 @@ const CinematicMediaManager = () => {
           open={!!editor}
           slotLabel={editorSlotLabel(editor)}
           kind={editorKind(editor.slot)}
-          reelIndex={editor.slot.reelIndex}
+          captionIndex={editor.slot.captionIndex}
           reelTitle={editor.slot.titleKey ? t(editor.slot.titleKey) : undefined}
           photo={
             editor.mode === "image" ? (editor.photo ?? undefined) : (resolved.hero.photo ?? undefined)
