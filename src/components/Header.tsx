@@ -196,6 +196,14 @@ const Header = () => {
 
   return (
     <header
+      // MOBILE.EDGE.1 D — the page now paints under Safari's bars
+      // (viewport-fit=cover), so a `top-0` fixed bar starts at the physical
+      // screen edge and its first row lands behind the notch / Dynamic Island.
+      // The inset is ADDED to the bar's own `py-3` (which is spacing, not
+      // clearance) and falls back to 0px on every device without a cutout, so
+      // the header is unchanged everywhere else. Ported from TitiLinks'
+      // PublicProfile header, which pads its fixed chrome the same way.
+      style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
         isTitansPage
           ? "bg-titans-dark/98 backdrop-blur-xl py-3"

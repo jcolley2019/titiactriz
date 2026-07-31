@@ -408,3 +408,53 @@ test.describe("MOBILE.EDGE.1 C — the TitiLinks act's foot is clean", () => {
     expect(row!.bottom, "and ends inside it").toBeLessThanOrEqual(row!.stageBottom + 1);
   });
 });
+
+/* ==================== D. EDGE-TO-EDGE CHROME ==================== */
+
+test.describe("MOBILE.EDGE.1 D — the page is declared edge-to-edge", () => {
+  test("the viewport covers the screen and the chrome has a brand colour", async ({ page }) => {
+    await openPhoneHome(page);
+
+    const head = await page.evaluate(() => {
+      const meta = (name: string) =>
+        document.querySelector(`meta[name="${name}"]`)?.getAttribute("content") ?? null;
+      return { viewport: meta("viewport"), themeColor: meta("theme-color") };
+    });
+
+    expect(head.viewport, "a viewport meta is declared").not.toBeNull();
+    expect(
+      head.viewport!,
+      "the layout viewport is the whole screen — notch and home indicator included",
+    ).toContain("viewport-fit=cover");
+    expect(head.viewport!, "at the device's own width").toContain("width=device-width");
+
+    // ONE static brand value, per what TitiLinks shipped rather than what its
+    // plan proposed. #121212 is `--background` and the TA.7e boot cover's own
+    // literal, so Safari's chrome, the first paint and the page ground agree.
+    expect(head.themeColor, "the chrome is painted a brand colour").toBe("#121212");
+  });
+
+  test("the fixed header and the footer state their insets", async ({ page }) => {
+    await openPhoneHome(page);
+
+    const chrome = await page.evaluate(() => {
+      const header = document.querySelector("header") as HTMLElement | null;
+      const footerBox = document.querySelector("footer .container-editorial") as HTMLElement | null;
+      return {
+        headerPadTop: header?.style.paddingTop ?? null,
+        headerComputedTop: header ? getComputedStyle(header).paddingTop : null,
+        footerPadBottom: footerBox?.style.paddingBottom ?? null,
+        footerComputed: footerBox ? getComputedStyle(footerBox).paddingBottom : null,
+      };
+    });
+
+    // The declaration is the law; env() is 0px on this machine, so the computed
+    // value is the base clearance the calc() adds to — unchanged from before.
+    expect(chrome.headerPadTop, "the header clears the notch").toContain("safe-area-inset-top");
+    expect(chrome.headerComputedTop, "and is unchanged at 0 insets").toBe("12px");
+    expect(chrome.footerPadBottom, "the footer clears the home indicator").toContain(
+      "safe-area-inset-bottom",
+    );
+    expect(chrome.footerComputed, "and is unchanged at 0 insets").toBe("48px");
+  });
+});

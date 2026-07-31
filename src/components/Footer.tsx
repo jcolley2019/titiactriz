@@ -30,7 +30,14 @@ const Footer = () => {
 
   return (
     <footer className="relative z-10 border-t border-border/30 bg-background/80 backdrop-blur-sm">
-      <div className="container-editorial py-12">
+      {/* MOBILE.EDGE.1 D — the last thing on the page, now ending at the true
+          screen edge. The home indicator overlays ~34px of it, which the py-12
+          gutter already clears — but "already clears" is an accident of one
+          value, so the inset is stated. 0px fallback everywhere else. */}
+      <div
+        className="container-editorial py-12"
+        style={{ paddingBottom: "calc(3rem + env(safe-area-inset-bottom, 0px))" }}
+      >
         {/* Gold accent line */}
         <div className="gold-line mb-8" />
 
