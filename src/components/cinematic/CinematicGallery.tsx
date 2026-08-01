@@ -104,32 +104,40 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
   );
 
   // Reduced motion: standard static vertical grid (no drift, no duplication).
+  // GALLERY.VCENTER.1 — same dwell-stage shape as the animated branch below,
+  // so both compositions clear the fixed nav and centre their content.
   if (reduced) {
     return (
-      <section ref={sectionRef} data-qa="cinematic-gallery" className="relative px-6 py-20">
-        {heading}
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 md:grid-cols-3">
-          {photos.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              data-qa="gallery-photo"
-              onClick={() => openLightbox(i)}
-              className="block aspect-[4/5] w-full overflow-hidden rounded-sm"
-            >
-              <img
-                src={p.image_url}
-                alt={altFor(p, i)}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-            </button>
-          ))}
+      <section
+        ref={sectionRef}
+        data-qa="cinematic-gallery"
+        className="relative flex min-h-[100svh] flex-col px-6 pb-8 pt-20"
+      >
+        <div className="my-auto w-full">
+          {heading}
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 md:grid-cols-3">
+            {photos.map((p, i) => (
+              <button
+                key={p.id}
+                type="button"
+                data-qa="gallery-photo"
+                onClick={() => openLightbox(i)}
+                className="block aspect-[4/5] w-full overflow-hidden rounded-sm"
+              >
+                <img
+                  src={p.image_url}
+                  alt={altFor(p, i)}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+          <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
+            {photos.length} · {t("gallery.title")}
+          </p>
         </div>
-        <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
-          {photos.length} · {t("gallery.title")}
-        </p>
         <PhotoLightbox
           photos={photos}
           open={lightbox.open}
@@ -139,65 +147,75 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
       </section>
     );
   }
+  // (GALLERY.VCENTER.1 note for both branches: `pt-20` > the fixed header's
+  // ~76px, so the eyebrow can never slide under the nav during the dwell; the
+  // `my-auto` wrapper centres the content on the 100svh dwell page and
+  // degrades to top-anchored when a short viewport can't fit it.)
 
   // Two copies of the photo list for a seamless wrap. The second copy is
   // aria-hidden so assistive tech doesn't announce every photo twice.
   const doubled = photos.length > 0 ? [...photos, ...photos] : [];
 
   return (
-    <section ref={sectionRef} data-qa="cinematic-gallery" className="relative overflow-hidden py-14 md:py-16">
-      {heading}
+    <section
+      ref={sectionRef}
+      data-qa="cinematic-gallery"
+      className="relative flex min-h-[100svh] flex-col overflow-hidden pb-8 pt-20"
+    >
+      <div className="my-auto w-full">
+        {heading}
 
-      <div
-        data-qa="cinematic-marquee"
-        className="relative overflow-hidden"
-        onMouseEnter={pause}
-        onMouseLeave={resume}
-        onTouchStart={pause}
-        onTouchEnd={resume}
-        onTouchCancel={resume}
-      >
         <div
-          ref={trackRef}
-          data-qa="cinematic-marquee-track"
-          className="flex w-max items-center"
-          style={{ willChange: "transform" }}
+          data-qa="cinematic-marquee"
+          className="relative overflow-hidden"
+          onMouseEnter={pause}
+          onMouseLeave={resume}
+          onTouchStart={pause}
+          onTouchEnd={resume}
+          onTouchCancel={resume}
         >
-          {doubled.map((p, i) => {
-            const isClone = i >= photos.length;
-            const originalIndex = i % photos.length;
-            return (
-              <figure
-                key={i}
-                aria-hidden={isClone}
-                className="relative mr-6 aspect-[4/5] h-[56svh] shrink-0 overflow-hidden rounded-sm md:mr-8"
-              >
-                {/* GALLERY.TOUCH.1: every tile (clones included, mapped back
-                    to the original index) opens the lightbox at that photo. */}
-                <button
-                  type="button"
-                  data-qa="gallery-photo"
-                  tabIndex={isClone ? -1 : undefined}
-                  onClick={() => openLightbox(originalIndex)}
-                  className="block h-full w-full"
+          <div
+            ref={trackRef}
+            data-qa="cinematic-marquee-track"
+            className="flex w-max items-center"
+            style={{ willChange: "transform" }}
+          >
+            {doubled.map((p, i) => {
+              const isClone = i >= photos.length;
+              const originalIndex = i % photos.length;
+              return (
+                <figure
+                  key={i}
+                  aria-hidden={isClone}
+                  className="relative mr-6 aspect-[4/5] h-[56svh] shrink-0 overflow-hidden rounded-sm md:mr-8"
                 >
-                  <img
-                    src={p.image_url}
-                    alt={isClone ? "" : altFor(p, originalIndex)}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              </figure>
-            );
-          })}
+                  {/* GALLERY.TOUCH.1: every tile (clones included, mapped back
+                      to the original index) opens the lightbox at that photo. */}
+                  <button
+                    type="button"
+                    data-qa="gallery-photo"
+                    tabIndex={isClone ? -1 : undefined}
+                    onClick={() => openLightbox(originalIndex)}
+                    className="block h-full w-full"
+                  >
+                    <img
+                      src={p.image_url}
+                      alt={isClone ? "" : altFor(p, originalIndex)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                </figure>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
-        {photos.length} · {t("gallery.title")}
-      </p>
+        <p className="mt-10 text-center text-caps" style={{ color: "rgba(240,233,218,0.7)" }}>
+          {photos.length} · {t("gallery.title")}
+        </p>
+      </div>
 
       <PhotoLightbox
         photos={photos}
