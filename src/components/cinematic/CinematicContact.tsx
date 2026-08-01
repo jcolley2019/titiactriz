@@ -96,10 +96,14 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
       ref={sectionRef}
       id="contact"
       data-qa="cinematic-section"
-      className="relative px-6 py-24 md:py-32"
+      // CONTACT.VCENTER.1 — Joey's 7/31 ruling: the act sat high with a dead
+      // band below. Same dwell-stage grammar as the gallery/About: 100svh flex
+      // stage, pt-20 clearing the fixed nav, auto margins centring the block
+      // (top-anchored fallback when a short viewport can't fit it).
+      className="relative flex min-h-[100svh] flex-col px-6 pb-8 pt-20"
       style={{ backgroundColor: "#0e0c09" }}
     >
-      <div className="mx-auto max-w-2xl text-center">
+      <div className="m-auto w-full max-w-2xl text-center">
         <p className="text-caps mb-4" style={{ color: "#C9A55C" }}>
           {t("contact.eyebrow")}
         </p>
