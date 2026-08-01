@@ -251,7 +251,12 @@ const WorkResume = () => {
             subtitle={t("work.bookings.subtitle")}
           />
 
-          <Button variant="editorial" size="xl" asChild>
+          {/* GOLD.BTN.1 — the bookings CTA is brand GOLD like every other call to
+              action on the site (Studio's two, the hero's outline). The
+              `editorial` variant paints cream-on-charcoal, which read as a
+              second, off-brand accent sitting under a gold eyebrow and a gold
+              rule. Same variant family, same size — only the colour moves. */}
+          <Button variant="gold" size="xl" asChild>
             <a href="mailto:hola@titiactriz.com?subject=Booking%20Inquiry">
               <Mail className="w-5 h-5" />
               {t("work.bookings.button")}
