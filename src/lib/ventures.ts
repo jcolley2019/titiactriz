@@ -14,6 +14,21 @@ export const GREEN_WORLD_SHOP_URL =
 
 export const TITANS_ROUTE = "/titans-agency";
 
+/**
+ * TL.LIVE.1 (2026-07-31) — TitiLinks is LIVE, with working payments.
+ *
+ * It is Cristyna's own product but a SEPARATE application on its own domain, so
+ * the nav treats it exactly as it treats the Green World storefront: an external
+ * destination, opened in a new tab with rel="noopener noreferrer". It is NOT a
+ * route of this site and must never be linked as one.
+ *
+ * This constant is the single source of truth for that address — the nav and the
+ * home page's TitiLinks act both read it, so the two cannot drift apart. It
+ * replaces the `path: null` "announced, not yet built" entry NAV.SOON.1 carried
+ * in the coming-soon disclosure while the product was unreleased.
+ */
+export const TITILINKS_URL = "https://titilinks.com";
+
 /** The internal Green World brand page — where the scroll-scrub act's CTA lands. */
 export const GREEN_WORLD_ROUTE = "/green-world";
 

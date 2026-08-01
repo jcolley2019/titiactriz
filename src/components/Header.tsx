@@ -7,11 +7,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { setLanguage } from "@/i18n";
 import LanguageToggle from "./LanguageToggle";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
-import { TITANS_ENABLED } from "@/lib/ventures";
+import { TITANS_ENABLED, TITILINKS_URL } from "@/lib/ventures";
 import monogram from "@/assets/cp-monogram-transparent.png";
 import monogramTwoTone from "@/assets/cp-monogram-twotone.png";
 
-type NavLink = { name: string; path: string; noTranslate?: boolean };
+/**
+ * TL.LIVE.1 — `external` marks a destination that is NOT a route of this site.
+ * The three navs render it as a plain <a target="_blank"> wearing the same
+ * classes as their <Link>s, so it reads and behaves like every other nav entry
+ * while still leaving the SPA correctly.
+ */
+type NavLink = {
+  name: string;
+  path: string;
+  noTranslate?: boolean;
+  external?: boolean;
+  /** Stable spec hook, so a test names the destination rather than its position. */
+  qa?: string;
+};
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -26,7 +39,9 @@ const Header = () => {
   // NAV.SOON.1 — the "coming soon" disclosure. A child with `path: null` is an
   // announcement, not a destination — rendered inert rather than as a dead link
   // a reader can click into a 404. Book shipped (BOOK.0) and carries its route;
-  // TitiLinks gets its `to` value the day it does.
+  // TitiLinks got its destination on TL.LIVE.1 and has LEFT this disclosure —
+  // it is a shipped product, not an announcement, so it is an ordinary nav link
+  // in all three navs now. Book is the disclosure's remaining child.
   const [soonOpen, setSoonOpen] = useState(false);
   const soonRef = useRef<HTMLLIElement>(null);
   const { board } = useEventsBoard();
@@ -62,12 +77,22 @@ const Header = () => {
   // browser auto-translate leaves them intact.
   // TITANS.OFF.1 — the Titans entry is spread in only while the venture is
   // live, so the nav closes up rather than leaving a hole where it was.
+  // TL.LIVE.1 — TitiLinks joins the LEFT rail, the slot the coming-soon
+  // disclosure already occupies, so the bar's left/right balance is the one
+  // NAV.FIT.1 ratified rather than a new one.
   const leftLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
     ...(TITANS_ENABLED
       ? [{ name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true }]
       : []),
+    {
+      name: t("nav.titilinks"),
+      path: TITILINKS_URL,
+      noTranslate: true,
+      external: true,
+      qa: "nav-titilinks",
+    },
   ];
   const rightLinks: NavLink[] = [
     { name: t("nav.portfolio"), path: "/work" },
@@ -85,6 +110,16 @@ const Header = () => {
       ? [{ name: t("nav.titansShort", "Titans"), path: "/titans-agency", noTranslate: true }]
       : []),
     { name: t("nav.portfolio"), path: "/work" },
+    // TL.LIVE.1 — the band carries it too; Joey's verification list names
+    // "tablet inline" explicitly, so the live product is not allowed to be the
+    // one destination this breakpoint cannot reach without opening the sheet.
+    {
+      name: t("nav.titilinks"),
+      path: TITILINKS_URL,
+      noTranslate: true,
+      external: true,
+      qa: "nav-band-titilinks",
+    },
   ];
   if (eventsVisible) {
     bandInlineLinks.push({ name: t("nav.events", "Events"), path: "/events" });
@@ -101,6 +136,16 @@ const Header = () => {
       : []),
     ...(eventsVisible ? [{ name: t("nav.events", "Events"), path: "/events", phoneOnly: true }] : []),
     { name: t("nav.portfolio"), path: "/work", phoneOnly: true },
+    // TL.LIVE.1 — `phoneOnly` because the band's inline bar now carries it, so
+    // above md the sheet would otherwise list it twice.
+    {
+      name: t("nav.titilinks"),
+      path: TITILINKS_URL,
+      noTranslate: true,
+      external: true,
+      phoneOnly: true,
+      qa: "nav-sheet-titilinks",
+    },
     { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
@@ -147,10 +192,18 @@ const Header = () => {
   // Route changes must not leave the panel hanging open over the new page.
   useEffect(() => setSoonOpen(false), [location.pathname]);
 
-  /** The disclosure's children. `path: null` means "announced, not yet built". */
+  /**
+   * The disclosure's children. `path: null` means "announced, not yet built".
+   *
+   * TL.LIVE.1 — TitiLinks left this list when it shipped. Book is what remains,
+   * and it stays here rather than being promoted alongside it: the book act is a
+   * coming-soon teaser until written publisher clearance (DESIGN.md publisher
+   * law), so "coming soon" is the true label for it and the disclosure is still
+   * doing its one job. The inert `path: null` branch below is kept for the next
+   * announcement, not for a current member.
+   */
   const soonItems: { name: string; path: string | null; qa: string }[] = [
     { name: t("nav.book"), path: "/book", qa: "book" },
-    { name: t("nav.titilinks"), path: null, qa: "titilinks" },
   ];
 
   const handleNavClick = (path: string) => {
@@ -189,6 +242,23 @@ const Header = () => {
   const renderLink = (link: NavLink) => {
     const active = location.pathname === link.path;
     const noTranslate = link.noTranslate ? "no" : undefined;
+    // TL.LIVE.1 — an external destination is never "active": it is not a route
+    // this router can be on, so it wears the resting colour at all times.
+    if (link.external) {
+      return (
+        <a
+          href={link.path}
+          target="_blank"
+          rel="noopener noreferrer"
+          translate={noTranslate}
+          data-qa={link.qa}
+          style={navHalo}
+          className={`${linkBase} ${linkColor(false)}`}
+        >
+          {link.name}
+        </a>
+      );
+    }
     if (link.path.includes("#")) {
       return (
         <a
@@ -362,25 +432,41 @@ const Header = () => {
 
         <ul className="hidden min-w-0 flex-1 items-center justify-center gap-4 md:flex lg:gap-6">
           {bandInlineLinks.map((link) => {
-            const active = location.pathname === link.path;
+            const active = !link.external && location.pathname === link.path;
+            const cls = `mobile-nav-link flex min-h-11 items-center uppercase font-light whitespace-nowrap transition-colors ${
+              isGreenWorldPage
+                ? active
+                  ? "text-gw-green"
+                  : "text-gw-green-dark hover:text-gw-green"
+                : active
+                  ? "text-gold-light"
+                  : "text-[#f0e9da] hover:text-gold-light"
+            }`;
             return (
               <li key={link.path} className="min-w-0">
-                <Link
-                  to={link.path}
-                  translate={link.noTranslate ? "no" : undefined}
-                  style={navHalo}
-                  className={`mobile-nav-link flex min-h-11 items-center uppercase font-light whitespace-nowrap transition-colors ${
-                    isGreenWorldPage
-                      ? active
-                        ? "text-gw-green"
-                        : "text-gw-green-dark hover:text-gw-green"
-                      : active
-                        ? "text-gold-light"
-                        : "text-[#f0e9da] hover:text-gold-light"
-                  }`}
-                >
-                  {link.name}
-                </Link>
+                {link.external ? (
+                  <a
+                    href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    translate={link.noTranslate ? "no" : undefined}
+                    data-qa={link.qa}
+                    style={navHalo}
+                    className={cls}
+                  >
+                    {link.name}
+                  </a>
+                ) : (
+                  <Link
+                    to={link.path}
+                    translate={link.noTranslate ? "no" : undefined}
+                    data-qa={link.qa}
+                    style={navHalo}
+                    className={cls}
+                  >
+                    {link.name}
+                  </Link>
+                )}
               </li>
             );
           })}
@@ -422,7 +508,25 @@ const Header = () => {
               className={`opacity-0 animate-fade-up${link.phoneOnly ? " md:hidden" : ""}`}
               style={{ animationDelay: `${index * 0.08}s`, animationFillMode: "forwards" }}
             >
-              {link.path.includes("#") ? (
+              {link.external ? (
+                <a
+                  href={link.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  translate={link.noTranslate ? "no" : undefined}
+                  data-qa={link.qa}
+                  onClick={closeMenu}
+                  className={`block py-2 text-lg font-serif transition-colors ${
+                    isTitansPage
+                      ? "text-white/90 hover:text-white"
+                      : isGreenWorldPage
+                        ? "text-gw-white/90 hover:text-gw-white"
+                        : "text-foreground/70 hover:text-gold-light"
+                  }`}
+                >
+                  {link.name}
+                </a>
+              ) : link.path.includes("#") ? (
                 <a
                   href={link.path}
                   onClick={() => handleNavClick(link.path)}

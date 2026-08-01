@@ -7,9 +7,13 @@ import { expect, test, type Page } from "@playwright/test";
  *
  * The disclosure is a button-plus-panel, not a nav link: its children are
  * announcements, and only the ones that have actually shipped carry a route.
- * Today that is Book (/book, BOOK.0); TitiLinks is rendered inert at reduced
- * opacity until it ships. These specs hold that line — the inert item must not
- * navigate anywhere, and the live one must land on a real page.
+ *
+ * TL.LIVE.1 (2026-07-31) — TitiLinks SHIPPED, so it left this panel entirely and
+ * is now an ordinary external nav link in all three navs (covered by the fit +
+ * destination assertions below). The disclosure's remaining child is Book, which
+ * is still a coming-soon teaser under the publisher law. The inert `path: null`
+ * rendering is therefore no longer exercised by any current member — that is the
+ * point, not a gap: the panel holds announcements, and there is one left.
  *
  * /book itself is asserted as what BOOK.0 is: a bilingual coming-soon page
  * with a real <title>, and copy that promises nothing that is not yet true
@@ -36,7 +40,7 @@ function clearStoredLang(page: Page) {
 test.describe("NAV.SOON.1 — the COMING SOON disclosure", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
-  test("opens, lists its items, and keeps TitiLinks inert", async ({ page }) => {
+  test("opens, lists Book, and no longer carries TitiLinks", async ({ page }) => {
     await clearStoredLang(page);
     // A quiet ordinary page, so the disclosure is measured without the
     // cinematic reel scrubbing underneath it.
@@ -53,8 +57,7 @@ test.describe("NAV.SOON.1 — the COMING SOON disclosure", () => {
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator(PANEL)).toBeVisible();
 
-    // Both announcements are present. Book is a real link; TitiLinks is an
-    // inert, visibly-dimmed span — not a dead link into a 404.
+    // Book is the panel's one remaining announcement, and it is a real link.
     const book = page.locator(ITEM_BOOK);
     await expect(book).toBeVisible();
     await expect(book).toHaveText("Book");
@@ -64,24 +67,22 @@ test.describe("NAV.SOON.1 — the COMING SOON disclosure", () => {
     ).toBe("a");
     await expect(book).toHaveAttribute("href", "/book");
 
-    const titilinks = page.locator(ITEM_TITILINKS);
-    await expect(titilinks).toBeVisible();
-    await expect(titilinks).toHaveText("TitiLinks");
-    expect(
-      await titilinks.evaluate((el) => el.tagName.toLowerCase()),
-      "TitiLinks is not a link",
-    ).not.toBe("a");
-    await expect(titilinks).toHaveAttribute("aria-disabled", "true");
-    expect(
-      await titilinks.evaluate((el) => Number(getComputedStyle(el).opacity)),
-      "TitiLinks is visibly dimmed",
-    ).toBeLessThan(0.75);
+    // TL.LIVE.1 — TitiLinks has LEFT the panel. Asserted as an absence, because
+    // a shipped product announced as "coming soon" is the exact defect this
+    // brick closed.
+    await expect(page.locator(ITEM_TITILINKS)).toHaveCount(0);
 
-    // Clicking the inert item goes nowhere — and, being an INSIDE pointer, it
-    // does not dismiss the panel either.
-    await titilinks.click();
-    await expect(page).toHaveURL(/\/green-world$/);
-    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    // ...and it is now a real external nav link on the bar itself.
+    const live = page.locator('nav.min-\\[1200px\\]\\:grid [data-qa="nav-titilinks"]');
+    await expect(live).toBeVisible();
+    await expect(live).toHaveText("TitiLinks");
+    expect(
+      await live.evaluate((el) => el.tagName.toLowerCase()),
+      "TitiLinks is a link now",
+    ).toBe("a");
+    await expect(live).toHaveAttribute("href", "https://titilinks.com");
+    await expect(live).toHaveAttribute("target", "_blank");
+    await expect(live).toHaveAttribute("rel", "noopener noreferrer");
 
     // Escape dismisses without navigating.
     await page.keyboard.press("Escape");

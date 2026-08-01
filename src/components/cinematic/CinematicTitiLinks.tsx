@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Instagram, Youtube, Music } from "lucide-react";
+// TL.LIVE.1 — one address for the product, shared with the nav (see ventures.ts).
+import { TITILINKS_URL } from "@/lib/ventures";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,7 +29,6 @@ gsap.registerPlugin(ScrollTrigger);
  * to a static, fully-functional stacked composition (no pin, no release anim).
  */
 
-const TITILINKS_URL = "https://titilinks.com";
 const TL_BG = "#0e0c09"; // warm near-black (TitiLinks landing background)
 const GOLD = "#C9A55C";
 const SURFACE = "hsl(30 12% 12%)";
