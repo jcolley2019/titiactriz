@@ -97,6 +97,16 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
    */
   const wFromHeight = `${(heightVh * plateAspect).toFixed(4)}svh`;
   const wCap = `${(maxWidthVw * (1 - CHAPTER_FIELD_FRACTION)).toFixed(4)}vw`;
+  /**
+   * ABOUT.CENTER.1 — the plate's HEIGHT under the same two rules ("smaller box
+   * wins", restated as the height each rule implies). The stylesheet uses it to
+   * centre the plate against the DWELL PAGE: the section pins top-top for its
+   * +=120% dwell (REVIEW.2b), and the About copy block is taller than a typical
+   * desktop viewport, so a plate centred against the GRID rides low on the
+   * pinned screen and loses its foot below the fold. Joey's ruling 7/31:
+   * "center the photo on the page vertically."
+   */
+  const plateH = `min(${heightVh}svh, ${((maxWidthVw * (1 - CHAPTER_FIELD_FRACTION)) / plateAspect).toFixed(4)}vw)`;
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -149,6 +159,7 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
             ? ({
                 "--cine-plate-w-from-height": wFromHeight,
                 "--cine-plate-w-cap": wCap,
+                "--cine-plate-h": plateH,
               } as CSSProperties)
             : undefined
         }

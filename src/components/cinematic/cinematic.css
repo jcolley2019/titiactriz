@@ -278,10 +278,25 @@
   .cine-about-grid > .cine-a-chips   { grid-area: chips; }
   .cine-about-grid > .cine-a-cta     { grid-area: cta; }
   /* No max-width of its own: the rail above is the panel's width, so one
-     declaration governs the shape's size instead of two that can disagree. */
+     declaration governs the shape's size instead of two that can disagree.
+
+     ABOUT.CENTER.1 — centred on the DWELL PAGE, not the grid. The section pins
+     top-top for its +=120% dwell (the uniform dwell law), and the copy block is
+     taller than a typical desktop viewport, so `align-self: center` (the old
+     rule) parked the plate low on the pinned screen with its foot below the
+     fold. During the dwell the section's top IS the viewport's top, so the
+     margin below places the plate's centre at the visible page's centre —
+     (100svh − plate height) / 2, less the section's own 8rem top padding —
+     and the max() clamp stops the plate ever rising above the padding. Where
+     the viewport is short the clamp binds and the plate simply tops out level
+     with the copy; under reduced motion (no pin) the same offset reads as the
+     plate sitting high beside the quote, which is the accepted trade for a
+     centred dwell. --cine-plate-h is plateBox's two rules as the heights they
+     imply (CinematicAbout computes it beside the width pair). */
   .cine-about-grid > .cine-about-panel {
     grid-area: panel;
-    align-self: center;
+    align-self: start;
+    margin-top: max(0px, calc((100svh - var(--cine-plate-h)) / 2 - 8rem));
   }
 }
 
