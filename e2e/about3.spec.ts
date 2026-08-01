@@ -348,24 +348,20 @@ test.describe("ADMIN.ABOUT.3 — the rail clamp is dead and the act still balanc
           continue;
         }
 
-        // THE LAYOUT ADAPTS TO THE PLATE. The copy column narrows to its floor
-        // before the container is allowed to grow past 64rem — so the copy always
-        // keeps a true measure, and the container only widens when it must.
+        // THE LAYOUT ADAPTS TO THE PLATE. The copy column keeps a true measure
+        // (its 456px floor), and under ABOUT.VCENTER.1 it may GROW to
+        // clamp(456px, 42vw, 700px) at the >=1200 desktop line so the stack
+        // fits — and centres on — the dwell page. The container is exactly
+        // rail + gap + that copy column, inside the section's padding.
         expect(seen.copyCol!, `${where}: the copy column keeps its floor`).toBeGreaterThanOrEqual(
           COPY_FLOOR - 1,
         );
-        const needed = seen.panel!.w + 48 + COPY_FLOOR;
-        if (needed <= CONTAINER_BASE) {
-          expect(
-            seen.container!.w,
-            `${where}: the plate fits 64rem, so the container does not grow`,
-          ).toBeCloseTo(CONTAINER_BASE, 0);
-        } else {
-          expect(
-            seen.container!.w,
-            `${where}: the container grew exactly to fit plate + gap + floor`,
-          ).toBeCloseTo(Math.min(vw - SECTION_PAD_X, needed), 0);
-        }
+        const copyExpected = Math.min(700, Math.max(COPY_FLOOR, 0.42 * vw));
+        const needed = seen.panel!.w + 48 + copyExpected;
+        expect(
+          seen.container!.w,
+          `${where}: the container is plate + gap + the VCENTER copy column`,
+        ).toBeCloseTo(Math.min(vw - SECTION_PAD_X, needed), 0);
       }
     }
   });

@@ -240,7 +240,39 @@
   margin-inline: auto;
 }
 
-@media (min-width: 768px) {
+/* ===== ABOUT.TABLET.1 — the 768–1199 band stacks (Candidate A, Joey 7/31) =====
+   Photo-led single column: eyebrow, plate, quote, paragraphs, chips, CTA. The
+   plate keeps the law's shape and width cap but hangs at the band's own height
+   budget (--cine-plate-w-band, computed in CinematicAbout from the plate law)
+   so the dwell's first screen is the portrait plus the opening of the belief
+   statement. The two-column editorial split begins at 1200px below. */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .cine-about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 48rem;
+    grid-template-areas:
+      "eyebrow"
+      "panel"
+      "quote"
+      "paras"
+      "chips"
+      "cta";
+  }
+  .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; }
+  .cine-about-grid > .cine-a-quote   { grid-area: quote; margin-top: 2.5rem; }
+  .cine-about-grid > .cine-a-paras   { grid-area: paras; max-width: 65ch; }
+  .cine-about-grid > .cine-a-chips   { grid-area: chips; }
+  .cine-about-grid > .cine-a-cta     { grid-area: cta; }
+  .cine-about-grid > .cine-about-panel {
+    grid-area: panel;
+    align-self: start;
+    width: var(--cine-plate-w-band);
+    margin: 0.5rem auto 0;
+  }
+}
+
+@media (min-width: 1200px) {
   .cine-about-grid {
     /* ADMIN.ABOUT.3 — THE RAIL IS THE PLATE. Not a clamp that approximates one:
        the same `min()` of the same two rules the reel's plate is sized by, so the
@@ -280,23 +312,13 @@
   /* No max-width of its own: the rail above is the panel's width, so one
      declaration governs the shape's size instead of two that can disagree.
 
-     ABOUT.CENTER.1 — centred on the DWELL PAGE, not the grid. The section pins
-     top-top for its +=120% dwell (the uniform dwell law), and the copy block is
-     taller than a typical desktop viewport, so `align-self: center` (the old
-     rule) parked the plate low on the pinned screen with its foot below the
-     fold. During the dwell the section's top IS the viewport's top, so the
-     margin below places the plate's centre at the visible page's centre —
-     (100svh − plate height) / 2, less the section's own 8rem top padding —
-     and the max() clamp stops the plate ever rising above the padding. Where
-     the viewport is short the clamp binds and the plate simply tops out level
-     with the copy; under reduced motion (no pin) the same offset reads as the
-     plate sitting high beside the quote, which is the accepted trade for a
-     centred dwell. --cine-plate-h is plateBox's two rules as the heights they
-     imply (CinematicAbout computes it beside the width pair). */
+     ABOUT.CENTER.1's pad-compensating offset is gone with the 768px two-column
+     band that needed it: the whole grid centres on the dwell page at >=1200
+     (ABOUT.VCENTER.1 below), so centring the plate within the grid IS centring
+     it on the page. */
   .cine-about-grid > .cine-about-panel {
     grid-area: panel;
-    align-self: start;
-    margin-top: max(0px, calc((100svh - var(--cine-plate-h)) / 2 - 8rem));
+    align-self: center;
   }
 }
 
@@ -315,10 +337,10 @@
       when the grid is taller than the stage, so short viewports degrade to
       exactly the old top-anchored render instead of clipping both ends.
 
-   The plate returns to `align-self: center` here: with the WHOLE grid centred
-   on the dwell page, centring the plate inside the grid IS centring it on the
-   page — ABOUT.CENTER.1's pad-compensating offset is superseded at ≥1200 (it
-   still governs 768–1199, where the grid stays top-anchored). */
+   The plate sits `align-self: center` (declared with the grid above): with
+   the WHOLE grid centred on the dwell page, centring the plate inside the
+   grid IS centring it on the page — ABOUT.CENTER.1's pad-compensating offset
+   is fully superseded (the 768–1199 band stacks per ABOUT.TABLET.1). */
 @media (min-width: 1200px) {
   .cine-about-section {
     display: flex;
@@ -337,10 +359,6 @@
       100%,
       calc(var(--cine-about-rail) + 3rem + clamp(456px, 42vw, 700px))
     );
-  }
-  .cine-about-grid > .cine-about-panel {
-    align-self: center;
-    margin-top: 0;
   }
   /* Tighter block rhythm on the dwell stage: the Tailwind mt-10/mt-12 steps
      were tuned for a flowing page; on a fixed 100svh stage they are the margin

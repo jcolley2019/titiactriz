@@ -98,15 +98,18 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   const wFromHeight = `${(heightVh * plateAspect).toFixed(4)}svh`;
   const wCap = `${(maxWidthVw * (1 - CHAPTER_FIELD_FRACTION)).toFixed(4)}vw`;
   /**
-   * ABOUT.CENTER.1 — the plate's HEIGHT under the same two rules ("smaller box
-   * wins", restated as the height each rule implies). The stylesheet uses it to
-   * centre the plate against the DWELL PAGE: the section pins top-top for its
-   * +=120% dwell (REVIEW.2b), and the About copy block is taller than a typical
-   * desktop viewport, so a plate centred against the GRID rides low on the
-   * pinned screen and loses its foot below the fold. Joey's ruling 7/31:
-   * "center the photo on the page vertically."
+   * ABOUT.TABLET.1 — the 768–1199 band stacks the act (Candidate A, ratified
+   * by Joey 7/31), so the plate hangs with no copy column beside it. Its box
+   * is still the law's SHAPE and the law's WIDTH CAP — against the full stack,
+   * the only photo page a stacked band has — but at the band's own height
+   * budget (58svh, the bake-off's number) so the dwell's first screen is the
+   * portrait plus the opening of the belief statement.
+   *
+   * (ABOUT.CENTER.1's --cine-plate-h is gone with the two-column band that
+   * needed it: at >=1200 the whole grid centres on the dwell page now —
+   * ABOUT.VCENTER.1 — and the plate simply centres within it.)
    */
-  const plateH = `min(${heightVh}svh, ${((maxWidthVw * (1 - CHAPTER_FIELD_FRACTION)) / plateAspect).toFixed(4)}vw)`;
+  const wBand = `min(${(58 * plateAspect).toFixed(4)}svh, ${maxWidthVw}vw)`;
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -163,7 +166,7 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
             ? ({
                 "--cine-plate-w-from-height": wFromHeight,
                 "--cine-plate-w-cap": wCap,
-                "--cine-plate-h": plateH,
+                "--cine-plate-w-band": wBand,
               } as CSSProperties)
             : undefined
         }
