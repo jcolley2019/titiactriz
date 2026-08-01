@@ -75,17 +75,35 @@ const Header = () => {
     { name: t("nav.contact"), path: "/#contact" },
   ];
 
-  // Mobile-only inline links: shorter "Titans" label, optionally Events
-  const mobileInlineLinks: NavLink[] = [
+  // NAV.FIT.1 (Joey's 7/31 ruling) — inline links for the 768–1199 band ONLY.
+  // The phone bar is logo + hamburger, nothing inline; Portafolio is surfaced
+  // inline in the band; Events joins when the board is visible.
+  const bandInlineLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
     ...(TITANS_ENABLED
       ? [{ name: t("nav.titansShort", "Titans"), path: "/titans-agency", noTranslate: true }]
       : []),
+    { name: t("nav.portfolio"), path: "/work" },
   ];
   if (eventsVisible) {
-    mobileInlineLinks.push({ name: t("nav.events", "Events"), path: "/events" });
+    bandInlineLinks.push({ name: t("nav.events", "Events"), path: "/events" });
   }
+
+  // NAV.FIT.1 — the sheet is the phone's WHOLE nav, so below md it lists every
+  // destination. In the 768–1199 band the inline bar already carries the
+  // `phoneOnly` entries, so those hide at md+ instead of duplicating.
+  const sheetLinks: (NavLink & { phoneOnly?: boolean })[] = [
+    { name: t("nav.home"), path: "/", phoneOnly: true },
+    { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true, phoneOnly: true },
+    ...(TITANS_ENABLED
+      ? [{ name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true, phoneOnly: true }]
+      : []),
+    ...(eventsVisible ? [{ name: t("nav.events", "Events"), path: "/events", phoneOnly: true }] : []),
+    { name: t("nav.portfolio"), path: "/work", phoneOnly: true },
+    { name: t("nav.socials"), path: "/socials" },
+    { name: t("nav.contact"), path: "/#contact" },
+  ];
 
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
@@ -220,9 +238,11 @@ const Header = () => {
                 : "bg-transparent py-3"
       }`}
     >
-      {/* Desktop nav — unchanged */}
+      {/* Desktop nav — three-column grid from 1200px (NAV.FIT.1): the grid
+          compressed under the Spanish labels below that, overlapping the
+          monogram by up to 82px at 768. */}
       <nav
-        className="hidden md:grid container-editorial grid-cols-3 items-center"
+        className="hidden min-[1200px]:grid container-editorial grid-cols-3 items-center"
         style={{ fontFamily: "'Jost', 'Outfit', system-ui, sans-serif", letterSpacing: "0.16em" }}
       >
         <ul className="flex items-center gap-5 lg:gap-7 justify-self-start">
@@ -320,12 +340,18 @@ const Header = () => {
         </ul>
       </nav>
 
-      {/* Mobile nav — logo + 4 inline links + single hamburger */}
+      {/* NAV.FIT.1 — the under-1200 bar. Phone: logo + hamburger ONLY (every
+          destination lives in the sheet). 768–1199 band: the inline-links
+          pattern, Portafolio included. */}
       <nav
-        className="md:hidden container-editorial flex items-center gap-2"
+        className="min-[1200px]:hidden container-editorial flex items-center justify-between gap-2"
         style={{ fontFamily: "'Jost', 'Outfit', system-ui, sans-serif", letterSpacing: "0.14em" }}
       >
-        <Link to="/" aria-label="Cristyna Polentino — Home" className="inline-flex shrink-0">
+        <Link
+          to="/"
+          aria-label="Cristyna Polentino — Home"
+          className="inline-flex min-h-11 shrink-0 items-center"
+        >
           <img
             src={isGreenWorldPage ? monogramTwoTone : monogram}
             alt="Cristyna Polentino CP monogram"
@@ -334,8 +360,8 @@ const Header = () => {
           />
         </Link>
 
-        <ul className="flex-1 flex items-center justify-center gap-2.5 xs:gap-3 min-w-0">
-          {mobileInlineLinks.map((link) => {
+        <ul className="hidden min-w-0 flex-1 items-center justify-center gap-4 md:flex lg:gap-6">
+          {bandInlineLinks.map((link) => {
             const active = location.pathname === link.path;
             return (
               <li key={link.path} className="min-w-0">
@@ -343,7 +369,7 @@ const Header = () => {
                   to={link.path}
                   translate={link.noTranslate ? "no" : undefined}
                   style={navHalo}
-                  className={`mobile-nav-link uppercase font-light whitespace-nowrap transition-colors ${
+                  className={`mobile-nav-link flex min-h-11 items-center uppercase font-light whitespace-nowrap transition-colors ${
                     isGreenWorldPage
                       ? active
                         ? "text-gw-green"
@@ -363,7 +389,7 @@ const Header = () => {
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           style={navHalo}
-          className={`shrink-0 p-2 transition-colors ${
+          className={`min-h-11 min-w-11 shrink-0 p-3 transition-colors ${
             isGreenWorldPage
               ? "text-gw-green-dark hover:text-gw-green"
               : "text-foreground/80 hover:text-gold-light"
@@ -374,9 +400,10 @@ const Header = () => {
         </button>
       </nav>
 
-      {/* Mobile Menu — overflow links + language + admin only */}
+      {/* The sheet — the phone's complete nav; band overflow (socials, contact,
+          coming-soon, language, admin) at 768–1199. */}
       <div
-        className={`md:hidden absolute top-full left-0 right-0 z-50 border-t transition-all duration-500 ${
+        className={`min-[1200px]:hidden absolute top-full left-0 right-0 z-50 border-t transition-all duration-500 ${
           isTitansPage
             ? "bg-[#1a1a1a] border-titans-red/30"
             : isGreenWorldPage
@@ -389,10 +416,10 @@ const Header = () => {
         }`}
       >
         <ul className="container-editorial py-6 space-y-3">
-          {rightLinks.map((link, index) => (
+          {sheetLinks.map((link, index) => (
             <li
               key={link.name}
-              className="opacity-0 animate-fade-up"
+              className={`opacity-0 animate-fade-up${link.phoneOnly ? " md:hidden" : ""}`}
               style={{ animationDelay: `${index * 0.08}s`, animationFillMode: "forwards" }}
             >
               {link.path.includes("#") ? (
@@ -412,6 +439,7 @@ const Header = () => {
               ) : (
                 <Link
                   to={link.path}
+                  translate={link.noTranslate ? "no" : undefined}
                   onClick={closeMenu}
                   className={`block py-2 text-lg font-serif transition-colors ${
                     location.pathname === link.path

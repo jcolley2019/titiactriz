@@ -444,23 +444,13 @@
   }
 }
 
-/* Mobile inline nav links — fit 4 within ~390px */
+/* NAV.FIT.1 — inline nav links now render only in the 768–1199 band (the
+   phone bar is logo + hamburger), so the label reads at the ratified 13px nav
+   step instead of the old fit-4-in-390px sizes. */
 .mobile-nav-link {
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: 13px;
+  letter-spacing: 0.14em;
   line-height: 1;
-}
-@media (max-width: 380px) {
-  .mobile-nav-link {
-    font-size: 10px;
-    letter-spacing: 0.06em;
-  }
-}
-@media (max-width: 340px) {
-  .mobile-nav-link {
-    font-size: 9.5px;
-    letter-spacing: 0.03em;
-  }
 }
 
 /* Titans Agency: react-phone-number-input dark theme styling */
