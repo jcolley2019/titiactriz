@@ -39,6 +39,7 @@ const PATH = "/qa/seq-lab";
 const PACKS = [
   { id: "gw-land-1920", count: 72 },
   { id: "gw-port-1080", count: 72 },
+  { id: "gw-port-1600", count: 72 },
   { id: "titans-1280", count: 72 },
   { id: "titans-720", count: 72 },
 ] as const;
