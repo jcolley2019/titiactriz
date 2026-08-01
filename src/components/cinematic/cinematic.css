@@ -240,17 +240,18 @@
   margin-inline: auto;
 }
 
-/* ===== ABOUT.TABLET.1 — the 768–1199 band stacks (Candidate A, Joey 7/31) =====
-   Photo-led single column: eyebrow, plate, quote, paragraphs, chips, CTA. The
-   plate keeps the law's shape and width cap but hangs at the band's own height
-   budget (--cine-plate-w-band, computed in CinematicAbout from the plate law)
-   so the dwell's first screen is the portrait plus the opening of the belief
-   statement. The two-column editorial split begins at 1200px below. */
+/* ===== ABOUT.TABLET.1/2 — the 768–1199 band stacks (Candidate A, Joey 7/31) =====
+   Photo-led single column: eyebrow, plate, quote, paragraphs, chips, CTA.
+   ABOUT.TABLET.2 (Joey, same evening): with the plate ABOVE the text there is
+   no copy column to share the frame with, so the plate goes WIDE — the law's
+   landscape shape (--cine-about-aspect-band, read from plateLaw in
+   CinematicAbout) at the full stack width, and the stack itself drops the
+   48rem cap so the plate fills the screen inside the section's px-6. The
+   two-column editorial split begins at 1200px below. */
 @media (min-width: 768px) and (max-width: 1199.98px) {
   .cine-about-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    max-width: 48rem;
     grid-template-areas:
       "eyebrow"
       "panel"
@@ -267,8 +268,11 @@
   .cine-about-grid > .cine-about-panel {
     grid-area: panel;
     align-self: start;
-    width: var(--cine-plate-w-band);
-    margin: 0.5rem auto 0;
+    /* The panel's own var declaration beats the grid's inherited inline value,
+       which is exactly the override channel ABOUT.TABLET.2 built. */
+    --cine-about-aspect: var(--cine-about-aspect-band);
+    width: 100%;
+    margin: 0.5rem 0 0;
   }
 }
 

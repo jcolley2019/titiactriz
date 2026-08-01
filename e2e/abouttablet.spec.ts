@@ -2,10 +2,11 @@ import { test, expect } from "@playwright/test";
 import { forceLanguage } from "./_admin";
 
 /**
- * ABOUT.TABLET.1 — the 768–1199 band stacks the About act (Candidate A,
+ * ABOUT.TABLET.1/2 — the 768–1199 band stacks the About act (Candidate A,
  * ratified by Joey 7/31): photo-led single column (eyebrow, plate, quote,
- * paras, chips, CTA), plate at the band's height budget (58svh) in the law's
- * shape, capped by the law's 60vw. The two-column editorial split begins at
+ * paras, chips, CTA). ABOUT.TABLET.2 (same evening): the plate goes WIDE —
+ * the law's landscape shape at the full stack width, the stack uncapped so it
+ * fills the screen inside px-6. The two-column editorial split begins at
  * 1200px (ABOUT.VCENTER.1's centred dwell stage).
  */
 
@@ -18,7 +19,7 @@ for (const vp of [
   { w: 820, h: 1180 },
   { w: 1024, h: 1366 },
 ]) {
-  test(`band ${vp.w} — the act stacks and the plate is the band's budget in the law's shape`, async ({
+  test(`band ${vp.w} — the act stacks and the wide plate fills the screen`, async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -37,21 +38,23 @@ for (const vp of [
       const aspect = panel.getBoundingClientRect().width / panel.getBoundingClientRect().height;
       return {
         cols,
+        gridW: Math.round(grid.getBoundingClientRect().width),
         panelW: Math.round(panel.getBoundingClientRect().width),
         aspect: Math.round(aspect * 1000) / 1000,
         // Candidate A order: plate between the eyebrow and the quote.
         plateBelowEyebrow: panel.getBoundingClientRect().top >= eyebrow.getBoundingClientRect().bottom,
         plateAboveQuote: panel.getBoundingClientRect().bottom <= quote.getBoundingClientRect().top + 1,
-        svh: window.innerHeight,
       };
     });
     expect(r, "About grid + panel must exist (an About photo is configured)").not.toBeNull();
     expect(r!.cols, "band grid is a single column").toBe(1);
     expect(r!.plateBelowEyebrow, "Candidate A: plate under the eyebrow").toBe(true);
     expect(r!.plateAboveQuote, "Candidate A: plate above the quote").toBe(true);
-    // Plate box = min(58svh * aspect, 60vw) at the panel's own aspect.
-    const expected = Math.min(0.58 * r!.svh * (r!.aspect >= 1 ? 1.5 : 0.563), 0.6 * vp.w);
-    expect(Math.abs(r!.panelW - expected), "plate width follows the band budget in the law's shape").toBeLessThan(4);
+    // ABOUT.TABLET.2 — the plate fills the stack (which fills the screen inside
+    // px-6) at the law's landscape shape.
+    expect(r!.gridW, "the stack fills the screen inside px-6").toBe(vp.w - 48);
+    expect(r!.panelW, "the plate spans the full stack").toBe(r!.gridW);
+    expect(Math.abs(r!.aspect - 1.5), "the plate paints the law's landscape shape").toBeLessThan(0.02);
   });
 }
 

@@ -98,18 +98,21 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
   const wFromHeight = `${(heightVh * plateAspect).toFixed(4)}svh`;
   const wCap = `${(maxWidthVw * (1 - CHAPTER_FIELD_FRACTION)).toFixed(4)}vw`;
   /**
-   * ABOUT.TABLET.1 — the 768–1199 band stacks the act (Candidate A, ratified
-   * by Joey 7/31), so the plate hangs with no copy column beside it. Its box
-   * is still the law's SHAPE and the law's WIDTH CAP — against the full stack,
-   * the only photo page a stacked band has — but at the band's own height
-   * budget (58svh, the bake-off's number) so the dwell's first screen is the
-   * portrait plus the opening of the belief statement.
+   * ABOUT.TABLET.2 — Joey's ruling 7/31 evening: on the stacked band the
+   * plate sits ABOVE the text, so there is no copy column to share the frame
+   * with — "the image [gets] a wider aspect ratio and fill[s] the screen".
+   * The band therefore paints the LAW'S LANDSCAPE SHAPE at the full stack
+   * width, whatever shape the admin's wide record chose: the shape override
+   * travels as --cine-about-aspect-band (the law's landscape aspect, read
+   * from plateLaw, never restated in CSS), and the band stylesheet points the
+   * panel's aspect variable at it. Phone and >=1200 still paint the record's
+   * own shape via --cine-about-aspect.
    *
    * (ABOUT.CENTER.1's --cine-plate-h is gone with the two-column band that
    * needed it: at >=1200 the whole grid centres on the dwell page now —
    * ABOUT.VCENTER.1 — and the plate simply centres within it.)
    */
-  const wBand = `min(${(58 * plateAspect).toFixed(4)}svh, ${maxWidthVw}vw)`;
+  const bandAspect = plateLaw("landscape").aspect;
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -166,7 +169,8 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
             ? ({
                 "--cine-plate-w-from-height": wFromHeight,
                 "--cine-plate-w-cap": wCap,
-                "--cine-plate-w-band": wBand,
+                "--cine-about-aspect": String(plateAspect),
+                "--cine-about-aspect-band": String(bandAspect),
               } as CSSProperties)
             : undefined
         }
@@ -198,9 +202,11 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
             data-qa="cinematic-about-panel"
             data-plate={plate}
             className="cine-about-line cine-about-panel mt-10 md:mt-0"
-            // The plate law's shape, inline: the box the framing is resolved
-            // against must be the law's answer, never a CSS restatement of it.
-            style={{ aspectRatio: plateAspect }}
+            // The plate law's shape, via the variable set beside the width
+            // pair above: the box the framing is resolved against is still the
+            // law's answer — the variable only exists so the 768–1199 band can
+            // point it at the law's landscape shape (ABOUT.TABLET.2).
+            style={{ aspectRatio: "var(--cine-about-aspect)" }}
           >
             <FramedImage
               src={photo!.image_url}
