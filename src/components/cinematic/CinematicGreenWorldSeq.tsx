@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
@@ -189,17 +189,51 @@ const LOGO_SIZE = "h-[11%] md:h-[23%]";
 const PLATE_GRADE = "brightness(1.03) saturate(1.35)";
 
 /**
- * Pack selection. The phone/wide line is `reelSpotlight`'s 768px — the same one
- * the reel splits on and the same one `useIsMobile` uses — so a viewport that is
- * a phone for the reel is a phone here too. It is read SYNCHRONOUSLY on first
- * render: swapping packs after mount would throw away a warm decode cache and
- * restart the sequence under the reader.
+ * Pack selection.
+ *
+ * GW.TABLET.1 — the pack is keyed on the STAGE'S SHAPE first, and the reel's
+ * 768px class line only picks the resolution within a shape. The defect this
+ * closes: a portrait tablet stage (iPad, 820x1180) used to take the landscape
+ * pack and cover-crop it to its middle ~39% slice — the composition's dullest
+ * region, since the landscape master keeps its ribbon motion at the frame's
+ * edges. Joey, 7/31: "its missing a lot of the animation." A portrait stage
+ * now gets the portrait COMPOSITION at the resolution its class earns: phones
+ * the 1080 cut, larger portrait stages the 1600 tablet cut (GW.TABLET.1b —
+ * same master, same 72-frame treatment, q72 like the landscape pack). A
+ * landscape stage keeps gw-land-1920 at every width.
+ *
+ * Both keys are read SYNCHRONOUSLY on first render (the orientation hook
+ * below mirrors `useReelIsPhone`): swapping packs after mount throws away a
+ * warm decode cache, so it happens only when the stage itself changes shape —
+ * a rotation — where the reflow already restarts the act's world anyway.
  */
-function packFor(isPhone: boolean): FrameSequence {
-  const id = isPhone ? "gw-port-1080" : "gw-land-1920";
+function packFor(isPhone: boolean, portraitStage: boolean): FrameSequence {
+  const id = !portraitStage ? "gw-land-1920" : isPhone ? "gw-port-1080" : "gw-port-1600";
   const pack = SEQ_PACKS.find((p) => p.id === id);
   if (!pack) throw new Error(`SEQ.2: pack ${id} is missing from the census`);
   return pack;
+}
+
+/**
+ * GW.TABLET.1 — is the stage portrait? Same synchronous-first-read shape as
+ * `useReelIsPhone`, tracked live so a rotated tablet swaps to the composition
+ * that fits its new frame.
+ */
+function useStagePortrait(): boolean {
+  const [portrait, setPortrait] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !!window.matchMedia &&
+      window.matchMedia("(orientation: portrait)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(orientation: portrait)");
+    setPortrait(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPortrait(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return portrait;
 }
 
 type Props = { reduced: boolean };
@@ -207,7 +241,8 @@ type Props = { reduced: boolean };
 const CinematicGreenWorldSeq = ({ reduced }: Props) => {
   const { t } = useTranslation();
   const isPhone = useReelIsPhone();
-  const sequence = useMemo(() => packFor(isPhone), [isPhone]);
+  const portraitStage = useStagePortrait();
+  const sequence = useMemo(() => packFor(isPhone, portraitStage), [isPhone, portraitStage]);
 
   // The entrance is animated on a WRAPPER, never on the link itself: GSAP owns
   // the wrapper's inline `transform`, and the link keeps its own hover lift —

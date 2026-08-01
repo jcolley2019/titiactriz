@@ -103,6 +103,23 @@ export const SEQ_PACKS: FrameSequence[] = [
     label: "Green World — portrait 1080",
   },
   {
+    // GW.TABLET.1b — the tablet cut of the SAME portrait master
+    // (masters/ventures/gw-ambient-port-4k.mp4): a portrait tablet stage
+    // upscaling the 1080 pack ~1.9x at iPad device resolution read soft, so
+    // this pack carries the composition at tablet-native sharpness. Same
+    // 72-frame both-ends treatment; q72 (the landscape pack's factor),
+    // ~103 KB/frame, ~7.2 MB total — deliberately above the phone byte band
+    // and far under the ratified 80 MB budget cap (Joey, 7/31).
+    id: "gw-port-1600",
+    dir: "/ventures/seq/gw-port-1600",
+    count: 72,
+    ext: ".webp",
+    pad: 3,
+    width: 1600,
+    height: 2844,
+    label: "Green World — portrait 1600 (tablet)",
+  },
+  {
     id: "titans-1280",
     dir: "/ventures/seq/titans-1280",
     count: 72,
