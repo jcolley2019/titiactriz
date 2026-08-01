@@ -454,20 +454,15 @@
     "dance": {
       "eyebrow": "Performance",
       "title": "Professional Dance",
-      "performances": {
-        "p1": { "title": "Contemporary Showcase 2024", "venue": "Teatro Nacional, Bogotá" },
-        "p2": { "title": "Latin Rhythms Festival", "venue": "Centro Cultural, Medellín" },
-        "p3": { "title": "Dance Evolution Tour", "venue": "Multiple Venues, Colombia" }
-      }
+      "soon": "Dance credits coming soon."
     },
     "acting": {
       "eyebrow": "Screen & Stage",
       "title": "Acting",
       "credits": {
-        "resume": "Acting Resume",
-        "dramatic": "Acting Reel — Dramatic Scenes",
-        "commercial": "Acting Reel — Commercial Work"
-      }
+        "resume": "Acting Resume"
+      },
+      "reelSoon": "Reel coming soon."
     },
     "reel": {
       "eyebrow": "Featured",

@@ -454,20 +454,15 @@
     "dance": {
       "eyebrow": "Actuación",
       "title": "Danza Profesional",
-      "performances": {
-        "p1": { "title": "Showcase Contemporáneo 2024", "venue": "Teatro Nacional, Bogotá" },
-        "p2": { "title": "Festival de Ritmos Latinos", "venue": "Centro Cultural, Medellín" },
-        "p3": { "title": "Tour Evolución de la Danza", "venue": "Múltiples Venues, Colombia" }
-      }
+      "soon": "Créditos de danza próximamente."
     },
     "acting": {
       "eyebrow": "Pantalla y Escenario",
       "title": "Actuación",
       "credits": {
-        "resume": "Currículum de Actuación",
-        "dramatic": "Reel de Actuación — Escenas Dramáticas",
-        "commercial": "Reel de Actuación — Trabajo Comercial"
-      }
+        "resume": "Currículum de Actuación"
+      },
+      "reelSoon": "Reel próximamente."
     },
     "reel": {
       "eyebrow": "Destacado",

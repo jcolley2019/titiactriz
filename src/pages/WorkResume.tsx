@@ -13,16 +13,12 @@ import danceImage from "@/assets/cristyna-dance.webp";
 const WorkResume = () => {
   const { t } = useTranslation();
 
-  const dancePerformances = [
-    { title: t("work.dance.performances.p1.title"), venue: t("work.dance.performances.p1.venue") },
-    { title: t("work.dance.performances.p2.title"), venue: t("work.dance.performances.p2.venue") },
-    { title: t("work.dance.performances.p3.title"), venue: t("work.dance.performances.p3.venue") },
-  ];
-
+  // STRIP.FAKE.1 — the three dance performances and the two acting reels were
+  // placeholder content: invented venues and tours, every row an `href="#"`
+  // going nowhere. They are gone. What is left is what is true: the résumé row
+  // and the EL CASTING reel embedded further down, which is a real, live piece.
   const actingCredits = [
     { title: t("work.acting.credits.resume"), type: "document", href: "#" },
-    { title: t("work.acting.credits.dramatic"), type: "video", href: "#" },
-    { title: t("work.acting.credits.commercial"), type: "video", href: "#" },
   ];
 
   return (
@@ -147,25 +143,11 @@ const WorkResume = () => {
               className="text-left"
             />
 
-            <div className="space-y-4">
-              {dancePerformances.map((performance, index) => (
-                <a
-                  key={index}
-                  href="#"
-                  className="group flex items-center justify-between p-4 rounded-xl bg-card border border-border/50 hover:border-accent/50 transition-colors"
-                >
-                  <div>
-                    <h4 className="font-serif text-lg text-foreground group-hover:text-accent transition-colors">
-                      {performance.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      {performance.venue}
-                    </p>
-                  </div>
-                  <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-                </a>
-              ))}
-            </div>
+            {/* An honest empty state: a quiet line on the card surface, with no
+                chevron and no hover, so nothing reads as a link to press. */}
+            <p className="p-4 rounded-xl bg-card border border-border/50 text-sm text-muted-foreground">
+              {t("work.dance.soon")}
+            </p>
           </div>
         </div>
       </Section>
@@ -205,6 +187,12 @@ const WorkResume = () => {
                   <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
                 </a>
               ))}
+
+              {/* Same honest empty state as the dance column: the two reel rows
+                  that used to sit here pointed at nothing. */}
+              <p className="p-4 rounded-xl bg-card border border-border/50 text-sm text-muted-foreground">
+                {t("work.acting.reelSoon")}
+              </p>
             </div>
           </div>
 
