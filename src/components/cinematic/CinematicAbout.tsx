@@ -101,18 +101,24 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
    * ABOUT.TABLET.2 — Joey's ruling 7/31 evening: on the stacked band the
    * plate sits ABOVE the text, so there is no copy column to share the frame
    * with — "the image [gets] a wider aspect ratio and fill[s] the screen".
-   * The band therefore paints the LAW'S LANDSCAPE SHAPE at the full stack
-   * width, whatever shape the admin's wide record chose: the shape override
-   * travels as --cine-about-aspect-band (the law's landscape aspect, read
-   * from plateLaw, never restated in CSS), and the band stylesheet points the
-   * panel's aspect variable at it. Phone and >=1200 still paint the record's
-   * own shape via --cine-about-aspect.
+   * The band therefore paints a WIDE slice at the full stack width, whatever
+   * shape the admin's wide record chose: the shape override travels as
+   * --cine-about-aspect-band (declared HERE, never restated in CSS), and the
+   * band stylesheet points the panel's aspect variable at it. Phone and
+   * >=1200 still paint the record's own shape via --cine-about-aspect.
+   *
+   * ABOUT.TABLET.4 — the slice is PANORAMIC (1.85:1), ratified from the
+   * candidate D bake-off: at the law's landscape 1.5 the stack ran 259-368px
+   * past the dwell screen and the chips + View Portfolio CTA were hidden
+   * below the pin. 1.85 is a composition constant of this act's stacked band
+   * — deliberately wider than any plate-law shape — chosen so the FULL stack
+   * fits 820x1180 and 1024x1366 with the photo still the layout's hero.
    *
    * (ABOUT.CENTER.1's --cine-plate-h is gone with the two-column band that
    * needed it: at >=1200 the whole grid centres on the dwell page now —
    * ABOUT.VCENTER.1 — and the plate simply centres within it.)
    */
-  const bandAspect = plateLaw("landscape").aspect;
+  const bandAspect = 1.85;
 
   useLayoutEffect(() => {
     if (reduced) return;

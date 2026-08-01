@@ -249,6 +249,16 @@
    48rem cap so the plate fills the screen inside the section's px-6. The
    two-column editorial split begins at 1200px below. */
 @media (min-width: 768px) and (max-width: 1199.98px) {
+  /* ABOUT.TABLET.4 (candidate D, Joey's pick 7/31) — the FULL stack, chips
+     and View Portfolio included, fits the dwell screen at 820x1180 and
+     1024x1366. Four levers, ratified together from the bake-off: the band's
+     own padding (the py-32 flow padding was 128px of the overflow), a tighter
+     vertical rhythm, the wider text column below, and the panoramic plate
+     slice (declared in CinematicAbout). The quote keeps its full size — that
+     is what distinguishes D from the rejected C. */
+  .cine-about-section {
+    padding-block: 5rem 2rem;
+  }
   .cine-about-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -260,23 +270,27 @@
       "chips"
       "cta";
   }
-  .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; }
-  .cine-about-grid > .cine-a-quote   { grid-area: quote; margin-top: 2.5rem; }
-  .cine-about-grid > .cine-a-paras   { grid-area: paras; }
-  .cine-about-grid > .cine-a-chips   { grid-area: chips; }
-  .cine-about-grid > .cine-a-cta     { grid-area: cta; }
+  .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; margin-bottom: 1rem; }
+  .cine-about-grid > .cine-a-quote   { grid-area: quote; margin-top: 1.25rem; }
+  .cine-about-grid > .cine-a-paras   { grid-area: paras; margin-top: 1.25rem; }
+  .cine-about-grid > .cine-a-chips   { grid-area: chips; margin-top: 1.25rem; }
+  .cine-about-grid > .cine-a-cta     { grid-area: cta; margin-top: 1.5rem; }
+  .cine-about-grid > .cine-a-paras > p + p { margin-top: 0.75rem; }
   /* ABOUT.TABLET.3 — Joey: "the text is not centered on the page — there is
      less space on the left margin and more on the right." The old 65ch
      paragraph cap sat left-flushed inside the full-width stack. Every text
      block now shares ONE centred column, so all the left edges align and the
-     page margins are symmetric; only the plate spans the full stack. */
+     page margins are symmetric; only the plate spans the full stack.
+     ABOUT.TABLET.4 widened the column 40rem -> 47rem (Joey's "make the
+     margins a little smaller on the left and right"): the quote drops a
+     wrapped line and the chips hold a single row. */
   .cine-about-grid > .cine-a-eyebrow,
   .cine-about-grid > .cine-a-quote,
   .cine-about-grid > .cine-a-paras,
   .cine-about-grid > .cine-a-chips,
   .cine-about-grid > .cine-a-cta {
     width: 100%;
-    max-width: 40rem;
+    max-width: 47rem;
     margin-inline: auto;
   }
   .cine-about-grid > .cine-about-panel {

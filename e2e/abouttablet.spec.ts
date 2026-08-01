@@ -13,6 +13,17 @@ import { forceLanguage } from "./_admin";
 const settle = async (page: import("@playwright/test").Page) => {
   await page.locator("#cinematic-about").waitFor({ state: "attached", timeout: 30_000 });
   await page.waitForTimeout(2500);
+  // Measure the act AT ITS DWELL, with the line-reveal played out: off-screen,
+  // every .cine-about-line still carries the reveal's y:28 from-offset, which
+  // is wider than ABOUT.TABLET.4's tightened gaps and reorders naive
+  // top/bottom comparisons.
+  await page.evaluate(() => {
+    const sec = document.querySelector("#cinematic-about") as HTMLElement;
+    const spacer = sec.closest(".pin-spacer") as HTMLElement | null;
+    const top = (spacer ?? sec).getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, top + 100);
+  });
+  await page.waitForTimeout(3000);
 };
 
 for (const vp of [
@@ -50,11 +61,23 @@ for (const vp of [
     expect(r!.cols, "band grid is a single column").toBe(1);
     expect(r!.plateBelowEyebrow, "Candidate A: plate under the eyebrow").toBe(true);
     expect(r!.plateAboveQuote, "Candidate A: plate above the quote").toBe(true);
-    // ABOUT.TABLET.2 — the plate fills the stack (which fills the screen inside
-    // px-6) at the law's landscape shape.
+    // ABOUT.TABLET.2/4 — the plate fills the stack (which fills the screen
+    // inside px-6) at the band's panoramic slice (1.85:1, candidate D).
     expect(r!.gridW, "the stack fills the screen inside px-6").toBe(vp.w - 48);
     expect(r!.panelW, "the plate spans the full stack").toBe(r!.gridW);
-    expect(Math.abs(r!.aspect - 1.5), "the plate paints the law's landscape shape").toBeLessThan(0.02);
+    expect(Math.abs(r!.aspect - 1.85), "the plate paints the band's panoramic slice").toBeLessThan(0.02);
+
+    // ABOUT.TABLET.4 acceptance — the FULL stack fits the dwell screen: the
+    // View Portfolio CTA's bottom sits inside one viewport of the section top,
+    // so chips + CTA are visible during the pin, not hidden below it.
+    const fit = await page.evaluate(() => {
+      const sec = document.querySelector("#cinematic-about") as HTMLElement;
+      const cta = sec.querySelector(".cine-a-cta") as HTMLElement;
+      return Math.round(
+        cta.getBoundingClientRect().bottom - sec.getBoundingClientRect().top,
+      );
+    });
+    expect(fit, "chips + View Portfolio fit the dwell screen").toBeLessThanOrEqual(vp.h);
 
     // ABOUT.TABLET.3 — the text column is centred on the page: symmetric
     // margins and one shared left edge for quote and paragraphs.
