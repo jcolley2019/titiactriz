@@ -262,9 +262,23 @@
   }
   .cine-about-grid > .cine-a-eyebrow { grid-area: eyebrow; }
   .cine-about-grid > .cine-a-quote   { grid-area: quote; margin-top: 2.5rem; }
-  .cine-about-grid > .cine-a-paras   { grid-area: paras; max-width: 65ch; }
+  .cine-about-grid > .cine-a-paras   { grid-area: paras; }
   .cine-about-grid > .cine-a-chips   { grid-area: chips; }
   .cine-about-grid > .cine-a-cta     { grid-area: cta; }
+  /* ABOUT.TABLET.3 — Joey: "the text is not centered on the page — there is
+     less space on the left margin and more on the right." The old 65ch
+     paragraph cap sat left-flushed inside the full-width stack. Every text
+     block now shares ONE centred column, so all the left edges align and the
+     page margins are symmetric; only the plate spans the full stack. */
+  .cine-about-grid > .cine-a-eyebrow,
+  .cine-about-grid > .cine-a-quote,
+  .cine-about-grid > .cine-a-paras,
+  .cine-about-grid > .cine-a-chips,
+  .cine-about-grid > .cine-a-cta {
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+  }
   .cine-about-grid > .cine-about-panel {
     grid-area: panel;
     align-self: start;

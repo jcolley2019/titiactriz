@@ -55,6 +55,23 @@ for (const vp of [
     expect(r!.gridW, "the stack fills the screen inside px-6").toBe(vp.w - 48);
     expect(r!.panelW, "the plate spans the full stack").toBe(r!.gridW);
     expect(Math.abs(r!.aspect - 1.5), "the plate paints the law's landscape shape").toBeLessThan(0.02);
+
+    // ABOUT.TABLET.3 — the text column is centred on the page: symmetric
+    // margins and one shared left edge for quote and paragraphs.
+    const c = await page.evaluate(() => {
+      const q = document.querySelector("#cinematic-about .cine-a-quote")!.getBoundingClientRect();
+      const p = document.querySelector("#cinematic-about .cine-a-paras")!.getBoundingClientRect();
+      return {
+        quoteLeft: q.left,
+        parasLeft: p.left,
+        parasRightGap: window.innerWidth - p.right,
+      };
+    });
+    expect(Math.abs(c.quoteLeft - c.parasLeft), "quote and paragraphs share a left edge").toBeLessThan(1);
+    expect(
+      Math.abs(c.parasLeft - c.parasRightGap),
+      "the text column's page margins are symmetric",
+    ).toBeLessThan(2);
   });
 }
 
