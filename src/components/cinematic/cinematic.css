@@ -300,6 +300,60 @@
   }
 }
 
+/* ===== ABOUT.VCENTER.1 — desktop About centres on the dwell page =====
+   Joey's ruling 7/31: "in desktop the about information needs to be centered."
+   Root cause of the old top-anchored overflow: the grid capped its copy column
+   at the 456px floor even at 1914px viewports, so the quote wrapped ~9 lines
+   and the column ran ~1200px tall — taller than every desktop viewport, with
+   huge dead space either side. Two moves, ≥1200px only (the 768–1199 band
+   belongs to the tablet stack ruling):
+
+   1. The copy column may GROW (456px floor → 42vw, capped 700px), which shrinks
+      the stack until it fits a desktop viewport.
+   2. The section becomes a full-viewport dwell stage (min-height 100svh, flex)
+      and the grid centres via auto block margins — auto margins resolve to 0
+      when the grid is taller than the stage, so short viewports degrade to
+      exactly the old top-anchored render instead of clipping both ends.
+
+   The plate returns to `align-self: center` here: with the WHOLE grid centred
+   on the dwell page, centring the plate inside the grid IS centring it on the
+   page — ABOUT.CENTER.1's pad-compensating offset is superseded at ≥1200 (it
+   still governs 768–1199, where the grid stays top-anchored). */
+@media (min-width: 1200px) {
+  .cine-about-section {
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    /* Asymmetric on purpose: the fixed header overlays the top ~76px of the
+       dwell page, so the stage reserves more headroom than footroom — the grid
+       can never slide under the nav even when the auto margins collapse to 0. */
+    padding-block: 5rem 2rem;
+  }
+  .cine-about-section > div {
+    margin-block: auto;
+  }
+  .cine-about-grid {
+    width: min(
+      100%,
+      calc(var(--cine-about-rail) + 3rem + clamp(456px, 42vw, 700px))
+    );
+  }
+  .cine-about-grid > .cine-about-panel {
+    align-self: center;
+    margin-top: 0;
+  }
+  /* Tighter block rhythm on the dwell stage: the Tailwind mt-10/mt-12 steps
+     were tuned for a flowing page; on a fixed 100svh stage they are the margin
+     between "fits centred" and "top-anchored fallback". */
+  .cine-about-grid > .cine-a-paras,
+  .cine-about-grid > .cine-a-chips {
+    margin-top: 1.5rem;
+  }
+  .cine-about-grid > .cine-a-cta {
+    margin-top: 2rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cine-kenburns { animation: none !important; transform: none !important; }
   .cine-scrollcue-line { animation: none !important; }

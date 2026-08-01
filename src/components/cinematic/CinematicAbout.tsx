@@ -142,7 +142,11 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
       ref={sectionRef}
       id="cinematic-about"
       data-qa="cinematic-section"
-      className="relative px-6 py-24 md:py-32"
+      // ABOUT.VCENTER.1 — `cine-about-section` carries the ≥1200px dwell-stage
+      // centering (see cinematic.css): the act fills the dwell page and the
+      // whole grid centres on it, per Joey's 7/31 ruling "in desktop the about
+      // information needs to be centered".
+      className="cine-about-section relative px-6 py-24 md:py-32"
     >
       <div
         // ADMIN.ABOUT.3 — the panelled container's width is the stylesheet's now
@@ -174,7 +178,12 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
           style={{
             fontFamily: "var(--font-display)",
             color: "#f4ecdb",
-            fontSize: "clamp(1.75rem, 4vw, 3.25rem)",
+            // ABOUT.VCENTER.1 — the svh term lets the quote compress on short
+            // desktop viewports (laptops), where the un-scaled stack ran ~1.5×
+            // the viewport and made the centred dwell impossible. At Joey's
+            // 994px-tall window and above it resolves within a pixel of the
+            // old 4vw/3.25rem value, so tall desktops are untouched.
+            fontSize: "clamp(1.75rem, min(4vw, 5.2svh), 3.25rem)",
             lineHeight: 1.22,
           }}
         >
