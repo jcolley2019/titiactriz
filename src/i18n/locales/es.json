@@ -209,9 +209,9 @@
         "ecommerce": "Lista para e-commerce",
         "luxury": "Diseño de lujo"
       },
-      "comingSoon": "¡MUY PRONTO!",
-      "announce": "El lanzamiento completo está muy cerca.",
-      "cta": "Conoce TitiLinks →"
+      "badge": "YA DISPONIBLE",
+      "announce": "TitiLinks ya está en línea. Reclama tu enlace.",
+      "cta": "Visita TitiLinks →"
     }
   },
   "titans": {

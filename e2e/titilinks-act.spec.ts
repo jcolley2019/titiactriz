@@ -3,12 +3,12 @@ import { attachDiagnostics, shot, BRICK } from "./_helpers";
 
 /**
  * TA.8 / TA.8a — TitiLinks act. A pinned product tour (browser-frame arrival →
- * tour with fly-in callouts → coming-soon announcement) followed by a CLEAN FADE
+ * tour with fly-in callouts → launch announcement) followed by a CLEAN FADE
  * RELEASE (TA.8a): the act's content fades + scales to 0.96 while a single thin
  * gold line sweeps once, then normal scroll continues into About.
  *
  * TA.8a replaced the old logo-mask exit (a body-portalled SVG overlay that
- * leaked opaque gold arcs over the coming-soon card and persisted into About).
+ * leaked opaque gold arcs over the launch card and persisted into About).
  * These specs now GUARANTEE the opposite: at every scroll position, top→bottom
  * and back, no exit element exists outside the act's own section and the About
  * pull-quote is never obstructed by an overlay.
@@ -18,7 +18,7 @@ const SECTION = '[data-qa="cinematic-titilinks"]';
 const FRAME = '[data-qa="tl-frame"]';
 const LANDING = '[data-qa="tl-landing"]';
 const CALLOUT = '[data-qa="tl-callout"]:visible';
-const CARD = '[data-qa="tl-comingsoon"]';
+const CARD = '[data-qa="tl-launch"]';
 const CTA = '[data-qa="tl-cta"]';
 const MASK = '[data-qa="tl-exit-mask"]'; // removed in TA.8a — must NEVER exist
 const ABOUT = "#cinematic-about";
@@ -134,7 +134,7 @@ async function assertCleanAt(page: Page, label: string) {
 test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
-  test("pinned tour → coming-soon → clean fade release → About", async ({ page }) => {
+  test("pinned tour → launch card → clean fade release → About", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await clearStoredLang(page);
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
@@ -177,7 +177,7 @@ test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
       "all six callouts flown in (opacity ~1)",
     ).toBe(6);
 
-    // Coming-soon card irises open (clip-path circle radius grows well past 0).
+    // Launch card irises open (clip-path circle radius grows well past 0).
     const cardRadius = async () => {
       const cp = await page
         .locator(CARD)
@@ -192,15 +192,15 @@ test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
       delta: 500,
       pause: 160,
     });
-    expect(await cardRadius(), "coming-soon card irised open").toBeGreaterThan(20);
-    await page.screenshot({ path: shot(`TA.${BRICK}-comingsoon.png`) });
+    expect(await cardRadius(), "launch card irised open").toBeGreaterThan(20);
+    await page.screenshot({ path: shot(`TA.${BRICK}-launchcard.png`) });
 
     // CTA points at the live product, new tab, noopener.
     const cta = page.locator(CTA);
     expect(await cta.getAttribute("href"), "CTA → titilinks.com").toBe("https://titilinks.com");
     await expect(cta).toHaveAttribute("target", "_blank");
     await expect(cta).toHaveAttribute("rel", /noopener/);
-    await expect(page.locator(CARD)).toContainText("COMING SOON");
+    await expect(page.locator(CARD)).toContainText("NOW LIVE");
 
     // Release: NO overlay ever mounts on the body. Finish scrolling into About.
     await wheelUntil(
@@ -279,10 +279,10 @@ test.describe("TA.8 — TitiLinks act (Spanish copy)", () => {
     // Scroll to the announcement and check the Spanish CTA.
     await wheelUntil(
       page,
-      async () => (await page.locator(CTA).textContent())?.includes("Conoce") ?? false,
+      async () => (await page.locator(CTA).textContent())?.includes("Visita") ?? false,
       { maxSteps: 24, delta: 450, pause: 150 },
     );
-    await expect(page.locator(CTA)).toContainText("Conoce TitiLinks");
+    await expect(page.locator(CTA)).toContainText("Visita TitiLinks");
     expect(await page.locator(CTA).getAttribute("href")).toBe("https://titilinks.com");
   });
 });
@@ -290,7 +290,7 @@ test.describe("TA.8 — TitiLinks act (Spanish copy)", () => {
 test.describe("TA.8 — reduced motion (static fallback)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
-  test("no pin, no mask; frame + callouts + coming-soon card all functional", async ({ page }) => {
+  test("no pin, no mask; frame + callouts + launch card all functional", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await clearStoredLang(page);
@@ -303,7 +303,7 @@ test.describe("TA.8 — reduced motion (static fallback)", () => {
     // No exit mask ever exists under reduced motion.
     await expect(page.locator(MASK)).toHaveCount(0);
 
-    // Frame, all callouts, and the coming-soon card + CTA are statically present.
+    // Frame, all callouts, and the launch card + CTA are statically present.
     await expect(page.locator(FRAME)).toBeVisible();
     await expect(page.locator(CALLOUT)).toHaveCount(6);
     await expect(page.locator(SECTION)).toContainText("One link. All of you.");
@@ -313,7 +313,7 @@ test.describe("TA.8 — reduced motion (static fallback)", () => {
     expect(await cta.getAttribute("href")).toBe("https://titilinks.com");
     await expect(cta).toHaveAttribute("target", "_blank");
     await expect(cta).toHaveAttribute("rel", /noopener/);
-    await expect(page.locator(CARD)).toContainText("COMING SOON");
+    await expect(page.locator(CARD)).toContainText("NOW LIVE");
 
     // About still reachable directly below (no scroll-jacking).
     await page.locator(ABOUT).scrollIntoViewIfNeeded();
@@ -340,7 +340,7 @@ test.describe("TA.8 — mobile 390×844", () => {
     await expect(page.locator(FRAME)).toBeVisible();
     await expect(page.locator(CALLOUT), "callouts stack on mobile").toHaveCount(6);
 
-    // Advance to the coming-soon CTA.
+    // Advance to the launch CTA.
     await wheelUntil(
       page,
       async () => {

@@ -209,9 +209,9 @@
         "ecommerce": "E-commerce ready",
         "luxury": "Luxury design"
       },
-      "comingSoon": "COMING SOON",
-      "announce": "The full launch is almost here.",
-      "cta": "Discover TitiLinks →"
+      "badge": "NOW LIVE",
+      "announce": "TitiLinks is live. Claim your link.",
+      "cta": "Visit TitiLinks →"
     }
   },
   "titans": {

@@ -16,8 +16,15 @@ gsap.registerPlugin(ScrollTrigger);
  *   1. Arrival — a floating browser-window frame settles as scroll begins.
  *   2. Tour — a native mini-recreation of the TitiLinks hero translates upward
  *      INSIDE the frame while phones parallax and gold feature chips fly in.
- *   3. Announcement — the frame recedes/blurs; a gold "COMING SOON" card irises
- *      in via an expanding circular clip-path with a CTA to titilinks.com.
+ *   3. Announcement — the frame recedes/blurs; a gold launch card irises in via
+ *      an expanding circular clip-path with a CTA to titilinks.com.
+ *
+ *      TL.LIVE.2 — that card used to read "¡MUY PRONTO!" / "COMING SOON". The
+ *      product shipped, so it now reads "YA DISPONIBLE" / "NOW LIVE" and the CTA
+ *      says visit rather than discover. The act already sent people to the real
+ *      titilinks.com; only the promise around it was stale. This matches the nav,
+ *      where TL.LIVE.1 moved TitiLinks out of the coming-soon disclosure and made
+ *      it a plain external destination.
  *   Release (TA.8a) — as the pin ends, the act's content fades and scales down
  *      slightly (~0.96) while a single thin gold line sweeps once horizontally;
  *      normal scroll then continues into About. The release lives ENTIRELY inside
@@ -156,13 +163,13 @@ const MiniLanding = ({ innerRef }: { innerRef?: React.Ref<HTMLDivElement> }) => 
   );
 };
 
-/* ---------------- Coming-soon card ---------------- */
-const ComingSoonCard = ({ cardRef, clipped }: { cardRef?: React.Ref<HTMLDivElement>; clipped: boolean }) => {
+/* ---------------- Launch card ---------------- */
+const LaunchCard = ({ cardRef, clipped }: { cardRef?: React.Ref<HTMLDivElement>; clipped: boolean }) => {
   const { t } = useTranslation();
   return (
     <div
       ref={cardRef}
-      data-qa="tl-comingsoon"
+      data-qa="tl-launch"
       className="pointer-events-auto absolute left-1/2 top-1/2 z-30 w-[min(90vw,30rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl px-8 py-10 text-center"
       style={{
         backgroundColor: "rgba(14,12,9,0.92)",
@@ -175,7 +182,7 @@ const ComingSoonCard = ({ cardRef, clipped }: { cardRef?: React.Ref<HTMLDivEleme
         className="inline-block rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em]"
         style={{ backgroundColor: GOLD, color: TL_BG }}
       >
-        {t("cinematic.titilinks.comingSoon")}
+        {t("cinematic.titilinks.badge")}
       </span>
       <p className="mt-6 font-display text-2xl font-semibold text-white" style={{ fontFamily: "var(--font-display)" }}>
         {t("cinematic.titilinks.announce")}
@@ -368,7 +375,7 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
           <Callouts />
         </div>
         <div className="relative mx-auto mt-12 h-[22rem] max-w-3xl">
-          <ComingSoonCard clipped={false} />
+          <LaunchCard clipped={false} />
         </div>
       </section>
     );
@@ -421,7 +428,7 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
           </div>
 
           {/* Announcement card irises in over the whole stage during scene 3. */}
-          <ComingSoonCard cardRef={cardRef} clipped />
+          <LaunchCard cardRef={cardRef} clipped />
         </div>
 
         {/* Release sweep — a single thin gold line, wiped once across on exit.
