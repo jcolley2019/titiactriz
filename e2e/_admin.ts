@@ -82,6 +82,8 @@ type RouteOpts = {
   heroVideoPortrait?: string | null; // cinematic_hero_video_portrait value, or null/absent
   /** CINE.FLOW.6 — reel.chapter<N> overrides, keyed "1".."3"; absent → seeds. */
   reelChapters?: Record<string, string>;
+  /** PORT.ACT.3 — rows served for `acting_credits`; absent → an empty table. */
+  actingCredits?: unknown[];
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -135,6 +137,7 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
       });
     }
     if (url.includes("gallery_photos")) return asJson(photos);
+    if (url.includes("acting_credits")) return asJson(opts.actingCredits ?? []);
     if (url.includes("site_settings")) {
       if (url.includes("cinematic_media")) return media === null ? asNull() : asJson({ value: media });
       if (url.includes("home_variant")) return asJson({ value: homeVariant });
