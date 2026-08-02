@@ -18,7 +18,8 @@ import { resolveReelChapter } from "@/components/cinematic/reelChapters";
 import CinematicBook from "@/components/cinematic/CinematicBook";
 import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
-import { TITANS_ENABLED } from "@/lib/ventures";
+import CinematicActing from "@/components/cinematic/CinematicActing";
+import { ACTING_ACT_ENABLED, TITANS_ENABLED } from "@/lib/ventures";
 import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
@@ -193,6 +194,12 @@ const HomeCinematic = () => {
           },
         ]}
       />
+
+      {/* PORT.ACT.2 — the Acting act sits immediately after the reel, because it
+          is built in the reel's own grammar (it literally renders WideChapter)
+          and the adjacency is what makes the two read as one system. Dark until
+          ACTING_ACT_ENABLED flips: see the note on the flag in ventures.ts. */}
+      {ACTING_ACT_ENABLED && <CinematicActing reduced={prefersReduced} />}
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
 

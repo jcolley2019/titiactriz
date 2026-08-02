@@ -195,6 +195,16 @@
       "sub": "Growth, monetization and brands for LATAM creators.",
       "cta": "JOIN TITANS →"
     },
+    "acting": {
+      "eyebrow": "Screen & Stage",
+      "title": "Acting",
+      "body": "A selection of work on screen and on stage.",
+      "creditsLabel": "Credits",
+      "view": "View",
+      "soon": "Coming soon",
+      "empty": "Credits coming soon.",
+      "photoAlt": "Cristyna Polentino, acting portrait"
+    },
     "titilinks": {
       "brand": "TitiLinks",
       "domain": "titilinks.com",
@@ -661,8 +671,7 @@
       "updateFailed": "Update failed",
       "failedFallback": "Failed to update"
     },
-    "settings": {
-    },
+    "settings": {},
     "cinematicHero": {
       "title": "Cinematic hero photo",
       "subtitle": "Which published photo leads the cinematic home page.",
@@ -747,7 +756,6 @@
       "bulletsSectionLabel": "Bullet points",
       "addBullet": "Add bullet",
       "removeBullet": "Remove",
-      "addVideo": "Add video",
       "removeVideo": "Remove video",
       "iconLabel": "Icon",
       "iconAuto": "Auto",

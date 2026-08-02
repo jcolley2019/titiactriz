@@ -195,6 +195,16 @@
       "sub": "Crecimiento, monetización y marcas para creadores de LATAM.",
       "cta": "ÚNETE A TITANS →"
     },
+    "acting": {
+      "eyebrow": "Pantalla y Escenario",
+      "title": "Actuación",
+      "body": "Una selección de trabajos en pantalla y en escena.",
+      "creditsLabel": "Créditos",
+      "view": "Ver",
+      "soon": "Próximamente",
+      "empty": "Créditos próximamente.",
+      "photoAlt": "Cristyna Polentino, retrato de actuación"
+    },
     "titilinks": {
       "brand": "TitiLinks",
       "domain": "titilinks.com",
@@ -661,8 +671,7 @@
       "updateFailed": "Error al actualizar",
       "failedFallback": "No se pudo actualizar"
     },
-    "settings": {
-    },
+    "settings": {},
     "cinematicHero": {
       "title": "Foto principal cinemática",
       "subtitle": "Qué foto publicada encabeza la página de inicio cinemática.",
@@ -747,7 +756,6 @@
       "bulletsSectionLabel": "Viñetas",
       "addBullet": "Agregar viñeta",
       "removeBullet": "Quitar",
-      "addVideo": "Agregar video",
       "removeVideo": "Quitar video",
       "iconLabel": "Ícono",
       "iconAuto": "Automático",

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import { GOLD, IVORY, spotlightCentre } from "./reelSpotlight";
 import { SEAM_GOLD } from "./FramedVideo";
@@ -274,6 +274,7 @@ export const WideChapter = ({
   labelRef,
   titleRef,
   ornRef,
+  after,
 }: {
   index: number;
   copy: ReelChapterCopy;
@@ -282,6 +283,14 @@ export const WideChapter = ({
   labelRef?: (el: HTMLDivElement | null) => void;
   titleRef?: (el: HTMLElement | null) => void;
   ornRef?: (el: HTMLImageElement | null) => void;
+  /**
+   * PORT.ACT.2 — an optional block below the body, inside the same measured
+   * `maxWidth` box the eyebrow, headline and paragraph share. The Acting act's
+   * credits index hangs here so it inherits the column's width, padding and
+   * centring rather than re-deriving them and drifting. Undefined for the three
+   * reel spreads, which render exactly as before.
+   */
+  after?: ReactNode;
 }) => {
   const colW = frameW * CHAPTER_FIELD_FRACTION;
   const padX = clampNum(28, frameW * 0.04, 96);
@@ -397,6 +406,7 @@ export const WideChapter = ({
               {copy.body}
             </p>
           </div>
+          {after}
         </div>
       </div>
     </div>

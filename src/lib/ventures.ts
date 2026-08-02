@@ -120,3 +120,24 @@ export const GW_LOGO_SRC: string | null = "/ventures/green-world-lockup.png";
  * and the JSON-LD block in index.html. Reviving means uncommenting both.
  */
 export const TITANS_ENABLED = false;
+
+/**
+ * PORT.ACT.2 (2026-08-01) — the Acting act, built and gated OFF.
+ *
+ * Candidate C (editorial split) won the bakeoff: the photograph is the page,
+ * full-bleed to the frame edges with the gold seam at the junction, and the
+ * frame language survives as an engraved panel around a numbered credits index.
+ * It was picked because it is the only one of the three that fills a tall
+ * portrait tablet frame without new levers — and Dance clones whatever wins.
+ *
+ * The act is finished code reading real rows from `acting_credits`. It is dark
+ * because the table currently holds exactly ONE honest credit (El Casting); an
+ * act whose index is a single line is not an act yet. Flip this to `true` when
+ * Titi has supplied enough verified credits to fill it — that is the whole
+ * revive, there is no second switch.
+ *
+ * What this gates: the act's registration in the cinematic home page. NOT gated
+ * — the component, its data hook and its i18n strings, none of which render on
+ * their own, and deleting the strings would break locale parity for nothing.
+ */
+export const ACTING_ACT_ENABLED = false;
