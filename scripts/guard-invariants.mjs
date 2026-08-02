@@ -73,6 +73,29 @@ try {
   console.log("-- PUBLIC-STRAYS skipped (git unavailable)");
 }
 
+// UNFURL-JWT: the unfurl function is a server-side fetcher of user-supplied
+// URLs, so the only thing standing between it and the open internet is the
+// platform's default `verify_jwt=true`. Its own header says never to give it a
+// config.toml entry; this makes that a gate rather than a comment. A
+// `[functions.unfurl]` block, or any `verify_jwt = false` anywhere in the file,
+// fails the build.
+try {
+  const toml = readFileSync("supabase/config.toml", "utf8");
+  const broken = [];
+  if (/^\s*\[functions\.unfurl\]/m.test(toml)) broken.push("[functions.unfurl] block present");
+  if (/verify_jwt\s*=\s*false/i.test(toml)) broken.push("verify_jwt = false");
+  if (broken.length) {
+    failed++;
+    console.error("x UNFURL-JWT — supabase/config.toml weakens edge-function auth:");
+    broken.forEach((b) => console.error(`      ${b}`));
+    console.error("      unfurl must keep the platform default verify_jwt=true (SSRF surface).");
+  } else {
+    console.log("ok UNFURL-JWT");
+  }
+} catch {
+  console.log("-- UNFURL-JWT skipped (supabase/config.toml unreadable)");
+}
+
 if (failed) {
   console.error(`\nGUARD FAILED - ${failed} invariant(s) broken.`);
   process.exit(1);
