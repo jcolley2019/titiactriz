@@ -467,11 +467,19 @@ const CinematicActing = ({ reduced }: Props) => {
         tl.from(indexRef.current, { opacity: 0, y: 12, duration: 0.5, ease: "power3.out" }, 0.5);
       }
 
-      // A short dwell so the index can be read before the page moves on.
+      // PORT.ACT.4 — the act joins the UNIFORM DWELL LAW (REVIEW.3a) rather
+      // than keeping the shorter dwell it was built with. Every single-frame
+      // story act on this page holds for `+=120%` — gallery, book, About,
+      // contact — and law 2 of that spec is that the distances are the SAME
+      // number, not four that happen to sit near each other. A fifth act
+      // dwelling for 80% would be the page's only outlier, and the reader would
+      // feel the chapter that hurries. (The +=300% scrubs — reel, Green World,
+      // TitiLinks — are showcases with their own timelines and are not this
+      // law's business; this act is a chapter, not a scrub.)
       ScrollTrigger.create({
         trigger: stage,
         start: "top top",
-        end: "+=80%",
+        end: "+=120%",
         pin: true,
         anticipatePin: 1,
       });

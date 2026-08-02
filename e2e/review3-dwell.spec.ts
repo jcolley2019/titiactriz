@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { shot } from "./_helpers";
 import { routeSupabase } from "./_admin";
+import { ACTING_ACT_ENABLED } from "../src/lib/ventures";
 
 /**
  * REVIEW.3a — the UNIFORM dwell law.
@@ -9,6 +10,11 @@ import { routeSupabase } from "./_admin";
  * `end: "+=120%"` — before it releases: the gallery, the Book announcement
  * (BOOK.ACT.2), About, and contact. The scrub showcases (Green World and
  * TitiLinks) keep their own `+=300%` timelines and are not this file's business.
+ *
+ * PORT.ACT.4 — the Acting act is a story act too, so it joins this list the
+ * moment `ACTING_ACT_ENABLED` flips and is measured by exactly the same laws.
+ * It is FIRST in the sweep because it sits above the gallery in the flow; the
+ * sweep only ever wheels downward.
  *
  * Laws, each falsifiable on the live render:
  *
@@ -33,12 +39,15 @@ const VH = 900;
 const DWELL = 1.2 * VH;
 
 /** Document order, so the sweep below only ever wheels downward. */
-const ACTS = [
+const ACTS: ReadonlyArray<{ name: string; sel: string }> = [
+  // The Acting act pins its STAGE, not its section — the section is the pin
+  // spacer's ancestor, so it is the stage that carries the dwell.
+  ...(ACTING_ACT_ENABLED ? [{ name: "acting", sel: '[data-qa="acting-stage"]' }] : []),
   { name: "gallery", sel: '[data-qa="cinematic-gallery"]' },
   { name: "book", sel: '[data-qa="cinematic-book"]' },
   { name: "about", sel: "#cinematic-about" },
   { name: "contact", sel: "#contact" },
-] as const;
+];
 
 const spacerOf = (page: Page, sel: string) =>
   page.locator(sel).locator("xpath=ancestor::*[contains(@class,'pin-spacer')]");
@@ -162,8 +171,8 @@ test.describe("REVIEW.3a — the uniform dwell law", () => {
       expect(await topOf(page, act.sel), `${act.name} released after the dwell`).toBeLessThan(-200);
     }
 
-    // Law 2 — ONE dwell, not four: every act's pin distance is +=120% of the
-    // viewport, and all four are the SAME number.
+    // Law 2 — ONE dwell, however many acts there are: every act's pin distance
+    // is +=120% of the viewport, and they are all the SAME number.
     for (const act of ACTS) {
       expect(
         Math.abs(distances[act.name] - DWELL),
@@ -173,7 +182,7 @@ test.describe("REVIEW.3a — the uniform dwell law", () => {
     const values = ACTS.map((a) => distances[a.name]);
     expect(
       Math.max(...values) - Math.min(...values),
-      `the four dwells are one distance (${values.join(", ")})`,
+      `the ${values.length} dwells are one distance (${values.join(", ")})`,
     ).toBeLessThanOrEqual(4);
 
     // Law 5 — the dwell law stops at the footer.
