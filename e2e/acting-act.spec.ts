@@ -30,7 +30,6 @@ const HEADING = `${ACT} [data-qa="section-heading"]`;
 const EYEBROW = `${ACT} [data-qa="chapter-eyebrow"]`;
 const ORNAMENT = `${ACT} [data-qa="chapter-ornament"]`;
 const SEAM = `${ACT} [data-qa="wide-chapter-seam"]`;
-const PAGE_PHOTO = '[data-qa="acting-page"]';
 
 /** Wheel until the index is observed inside the viewport, or give up. */
 async function scrollToIndex(page: Page, viewportH: number) {
@@ -74,9 +73,10 @@ test.describe("PORT.ACT.2 — the Acting act composition", () => {
   test.skip(!ACTING_ACT_ENABLED, "ACTING_ACT_ENABLED is false — the act is dark by design");
 
   for (const vp of [
-    { name: "desktop", width: 1440, height: 900 },
-    { name: "tablet-portrait", width: 1024, height: 1366 },
-    { name: "phone", width: 390, height: 844 },
+    { name: "desktop", width: 1440, height: 900, shape: "wide" },
+    { name: "tablet-portrait", width: 1024, height: 1366, shape: "wide" },
+    { name: "phone-390", width: 390, height: 844, shape: "phone" },
+    { name: "phone-360", width: 360, height: 780, shape: "phone" },
   ]) {
     test(`renders candidate C at ${vp.name}`, async ({ page }) => {
       test.setTimeout(120_000);
@@ -90,32 +90,96 @@ test.describe("PORT.ACT.2 — the Acting act composition", () => {
       expect(await scrollToIndex(page, vp.height), "credits index reached").toBe(true);
       await page.waitForTimeout(700);
 
-      // The chapter is present and PAINTED — opacity, not just existence. The
-      // first build of this act rendered a fully-populated DOM at opacity 0.
-      for (const sel of [EYEBROW, HEADING, INDEX, ORNAMENT]) {
+      // The act picks a SHAPE, it does not squeeze one composition into every
+      // frame. At 390 the wide split left a ~164px copy column, which clipped
+      // the headline and buried the index under the photograph.
+      await expect(page.locator('[data-qa="acting-stage"]')).toHaveAttribute("data-shape", vp.shape);
+
+      // Present and PAINTED — opacity, not just existence. The first build of
+      // this act rendered a fully-populated DOM at opacity 0.
+      for (const sel of [EYEBROW, HEADING, INDEX]) {
         await expect(page.locator(sel)).toBeVisible();
         const opacity = await page.locator(sel).evaluate((el) => getComputedStyle(el).opacity);
         expect(Number(opacity), `${sel} is painted`).toBeGreaterThan(0.1);
       }
       await expect(page.locator(HEADING)).toHaveText("Actuación");
 
-      // Candidate C: the photograph is the PAGE, full-bleed — it must reach the
-      // frame's right edge and its full height, which is what a plate cannot do.
       const geo = await page.evaluate(() => {
-        const photo = document.querySelector('[data-qa="acting-page"]')!.getBoundingClientRect();
-        const stage = document
-          .querySelector('[data-qa="cinematic-acting"] .cine-vh-full')!
-          .getBoundingClientRect();
-        return { photo, stage: { w: stage.width, h: stage.height, right: stage.right, top: stage.top } };
+        const q = (s: string) => document.querySelector(s)!;
+        const stage = q('[data-qa="acting-stage"]').getBoundingClientRect();
+        const photo = q('[data-qa="acting-page"]').getBoundingClientRect();
+        const panel = q('[data-qa="acting-index"]').getBoundingClientRect();
+        const heading = q('[data-qa="cinematic-acting"] [data-qa="section-heading"]');
+        const eyebrow = q('[data-qa="cinematic-acting"] [data-qa="chapter-eyebrow"]').getBoundingClientRect();
+        const hr = heading.getBoundingClientRect();
+        const within = (r: DOMRect) => r.left >= stage.left - 1 && r.right <= stage.right + 1;
+        return {
+          stage: { w: stage.width, h: stage.height, left: stage.left, right: stage.right },
+          photo: { w: photo.width, h: photo.height, left: photo.left, right: photo.right, bottom: photo.bottom },
+          panel: { top: panel.top, left: panel.left, right: panel.right },
+          headingClipped: heading.scrollWidth > heading.clientWidth + 1,
+          headingWithin: within(hr),
+          eyebrowWithin: within(eyebrow),
+        };
       });
-      expect(Math.abs(geo.photo.right - geo.stage.right), "photo bleeds to the right edge").toBeLessThan(2);
-      expect(geo.photo.height / geo.stage.h, "photo fills the frame height").toBeGreaterThan(0.98);
-      // ...and it occupies the room beside the 0.42 copy column.
-      expect(geo.photo.width / geo.stage.w).toBeGreaterThan(0.55);
-      expect(geo.photo.width / geo.stage.w).toBeLessThan(0.60);
+
+      // Nothing runs off the frame or gets swallowed by an overflow-hidden.
+      expect(geo.headingClipped, "headline is not clipped").toBe(false);
+      expect(geo.headingWithin, "headline is inside the stage").toBe(true);
+      expect(geo.eyebrowWithin, "eyebrow is inside the stage").toBe(true);
+
+      if (vp.shape === "wide") {
+        // Candidate C: the photograph is the PAGE, full-bleed — it reaches the
+        // frame's right edge and its full height, which a plate cannot do.
+        expect(Math.abs(geo.photo.right - geo.stage.right), "photo bleeds to the right edge").toBeLessThan(2);
+        expect(geo.photo.h / geo.stage.h, "photo fills the frame height").toBeGreaterThan(0.98);
+        expect(geo.photo.w / geo.stage.w).toBeGreaterThan(0.55);
+        expect(geo.photo.w / geo.stage.w).toBeLessThan(0.6);
+        // The copy column and the photograph share the frame side by side.
+        expect(geo.panel.right).toBeLessThanOrEqual(geo.photo.left + 1);
+      } else {
+        // PHONE: the photograph is a BAND across the top and the stack sits
+        // beneath it. The index must never be behind the photograph again.
+        expect(Math.abs(geo.photo.w - geo.stage.w), "band spans the full width").toBeLessThan(2);
+        expect(geo.photo.h / geo.stage.h, "band takes a share, not the frame").toBeLessThan(0.55);
+        expect(geo.panel.top, "index sits below the band").toBeGreaterThanOrEqual(geo.photo.bottom - 1);
+      }
 
       await expect(page.locator(SEAM)).toBeVisible();
+      // The corner filigree belongs to the wide spread's outer corner. The
+      // reel's phone act omits it and so does this one.
+      await expect(page.locator(ORNAMENT)).toHaveCount(vp.shape === "wide" ? 1 : 0);
       expect(errors, "no page errors").toEqual([]);
+    });
+
+    test(`the action label never overlaps the title at ${vp.name}`, async ({ page }) => {
+      test.setTimeout(120_000);
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await forceLanguage(page, "es");
+      await page.goto(PATH, { waitUntil: "domcontentloaded" });
+      await page.waitForTimeout(1500);
+      expect(await scrollToIndex(page, vp.height)).toBe(true);
+      await page.waitForTimeout(500);
+
+      // The defect Joey caught at 390 on 2026-08-02: the title's box shrank
+      // below its own text, the text overflowed rather than wrapping, and the
+      // action label painted through the middle of it — "EL VER CASTING".
+      const rows = await page.locator(CREDIT).evaluateAll((els) =>
+        els.map((row) => {
+          const t = row.querySelector('[data-qa="acting-title"]')!.getBoundingClientRect();
+          const s = row.querySelector('[data-qa="acting-state"]')!.getBoundingClientRect();
+          const title = row.querySelector('[data-qa="acting-title"]')! as HTMLElement;
+          return {
+            gap: s.left - t.right,
+            titleOverflows: title.scrollWidth > title.clientWidth + 1,
+          };
+        }),
+      );
+      expect(rows.length).toBeGreaterThan(0);
+      for (const r of rows) {
+        expect(r.gap, "action label clears the title").toBeGreaterThan(0);
+        expect(r.titleOverflows, "title wraps rather than overflowing its box").toBe(false);
+      }
     });
   }
 
