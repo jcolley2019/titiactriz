@@ -459,10 +459,8 @@
     "acting": {
       "eyebrow": "Screen & Stage",
       "title": "Acting",
-      "credits": {
-        "resume": "Acting Resume"
-      },
-      "reelSoon": "Reel coming soon."
+      "reelSoon": "Reel coming soon.",
+      "resumeSoon": "Résumé coming soon."
     },
     "reel": {
       "eyebrow": "Featured",

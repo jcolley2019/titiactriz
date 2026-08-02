@@ -1,5 +1,5 @@
 import SEO from "@/components/SEO";
-import { Download, ExternalLink, Play, Mail, Sparkles, Heart, Target, Zap } from "lucide-react";
+import { ExternalLink, Mail, Sparkles, Heart, Target, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
@@ -13,14 +13,11 @@ import danceImage from "@/assets/cristyna-dance.webp";
 const WorkResume = () => {
   const { t } = useTranslation();
 
-  // STRIP.FAKE.1 — the three dance performances and the two acting reels were
-  // placeholder content: invented venues and tours, every row an `href="#"`
-  // going nowhere. They are gone. What is left is what is true: the résumé row
-  // and the EL CASTING reel embedded further down, which is a real, live piece.
-  const actingCredits = [
-    { title: t("work.acting.credits.resume"), type: "document", href: "#" },
-  ];
-
+  // STRIP.FAKE.1 — the three dance performances, the two acting reels and the
+  // résumé row were all placeholder content: invented venues and tours, and
+  // every row an `href="#"` going nowhere (there is no résumé PDF anywhere in
+  // the repo). They are gone. What is left is what is true: the EL CASTING reel
+  // embedded further down, which is a real, live piece.
   return (
     <>
       <SEO
@@ -163,35 +160,15 @@ const WorkResume = () => {
               className="text-left"
             />
 
+            {/* Same honest empty state as the dance column. One line per thing
+                that does not exist yet, so each can be replaced on its own the
+                day the real asset lands. */}
             <div className="space-y-4">
-              {actingCredits.map((credit, index) => (
-                <a
-                  key={index}
-                  href={credit.href}
-                  className="group flex items-center justify-between p-4 rounded-xl bg-card border border-border/50 hover:border-accent/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {credit.type === "video" ? (
-                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                        <Play className="w-5 h-5 text-accent" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                        <Download className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
-                    <h4 className="font-serif text-lg text-foreground group-hover:text-accent transition-colors">
-                      {credit.title}
-                    </h4>
-                  </div>
-                  <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-                </a>
-              ))}
-
-              {/* Same honest empty state as the dance column: the two reel rows
-                  that used to sit here pointed at nothing. */}
               <p className="p-4 rounded-xl bg-card border border-border/50 text-sm text-muted-foreground">
                 {t("work.acting.reelSoon")}
+              </p>
+              <p className="p-4 rounded-xl bg-card border border-border/50 text-sm text-muted-foreground">
+                {t("work.acting.resumeSoon")}
               </p>
             </div>
           </div>

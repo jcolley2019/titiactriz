@@ -459,10 +459,8 @@
     "acting": {
       "eyebrow": "Pantalla y Escenario",
       "title": "Actuación",
-      "credits": {
-        "resume": "Currículum de Actuación"
-      },
-      "reelSoon": "Reel próximamente."
+      "reelSoon": "Reel próximamente.",
+      "resumeSoon": "Currículum próximamente."
     },
     "reel": {
       "eyebrow": "Destacado",
