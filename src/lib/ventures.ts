@@ -141,3 +141,33 @@ export const TITANS_ENABLED = false;
  * their own, and deleting the strings would break locale parity for nothing.
  */
 export const ACTING_ACT_ENABLED = false;
+
+/**
+ * PORT.SOC.8 (2026-08-02) — the Socials act, gated OFF.
+ *
+ * The act itself arrives in brick 9; this constant lands with the admin Links
+ * tab because the tab has to be able to say, honestly, that saved links are not
+ * on the site yet. Same shape as ACTING_ACT_ENABLED and TITANS_ENABLED: one
+ * constant gates the act's registration in the cinematic home, nothing else,
+ * and flipping it is the whole switch-on.
+ *
+ * The Socials act is a DIRECTORY, not a chapter — it is deliberately unnumbered
+ * and sits after the TitiLinks act, because TitiLinks sells the link-in-bio
+ * idea and this act is Cristyna's own instance of it. Claim, then proof.
+ */
+export const SOCIALS_ACT_ENABLED = false;
+
+/**
+ * PORT.SOC.8 (2026-08-02) — is the `unfurl` edge function LIVE on the project?
+ *
+ * The function is written and committed (supabase/functions/unfurl) but has not
+ * been deployed: law 5 says repo state is not deployed state, and deploying is
+ * a supervised step that ends with the slug entering deploy-ledger.json and
+ * `npm run drift` going green. Until then the admin Links tab still renders its
+ * "refresh preview" control — it is the real control, not a mock — but says
+ * plainly above it that the service is not live yet, so a failed refresh reads
+ * as "not deployed" rather than "broken".
+ *
+ * Flip this to `true` in the SAME commit that adds `unfurl` to the ledger.
+ */
+export const UNFURL_DEPLOYED = false;

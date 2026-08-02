@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreVertical, ChevronUp, ChevronDown, ChevronRight, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, Drama, CalendarDays, Settings2, Inbox } from "lucide-react";
+import { GripVertical, MoreVertical, ChevronUp, ChevronDown, ChevronRight, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, Drama, Link2, CalendarDays, Settings2, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   BUCKET,
@@ -69,6 +69,7 @@ import AdminShell, { type AdminSection } from "@/components/admin/AdminShell";
 import AdminSubmissionsSection from "@/components/admin/AdminSubmissionsSection";
 import CinematicMediaManager from "@/components/admin/media/CinematicMediaManager";
 import PortfolioManager from "@/components/admin/PortfolioManager";
+import LinksManager from "@/components/admin/LinksManager";
 
 type Photo = {
   id: string;
@@ -1400,6 +1401,13 @@ const adminSections = (t: (key: string) => string): AdminSection[] => [
     label: t("admin.shell.sections.portfolio"),
     icon: <Drama />,
     content: <PortfolioManager />,
+  },
+  {
+    // PORT.SOC.8 — social_links, on the ported TitiLinks catalog.
+    id: "links",
+    label: t("admin.shell.sections.links"),
+    icon: <Link2 />,
+    content: <LinksManager />,
   },
   {
     id: "events",

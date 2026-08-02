@@ -84,6 +84,8 @@ type RouteOpts = {
   reelChapters?: Record<string, string>;
   /** PORT.ACT.3 — rows served for `acting_credits`; absent → an empty table. */
   actingCredits?: unknown[];
+  /** PORT.SOC.8 — rows served for `social_links`; absent → an empty table. */
+  socialLinks?: unknown[];
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -138,6 +140,7 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
     }
     if (url.includes("gallery_photos")) return asJson(photos);
     if (url.includes("acting_credits")) return asJson(opts.actingCredits ?? []);
+    if (url.includes("social_links")) return asJson(opts.socialLinks ?? []);
     if (url.includes("site_settings")) {
       if (url.includes("cinematic_media")) return media === null ? asNull() : asJson({ value: media });
       if (url.includes("home_variant")) return asJson({ value: homeVariant });
