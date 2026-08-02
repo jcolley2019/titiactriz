@@ -10,10 +10,64 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
+      acting_credits: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          order_index: number
+          poster_url: string | null
+          production: string | null
+          role_en: string | null
+          role_es: string | null
+          title_en: string
+          title_es: string
+          updated_at: string
+          url: string | null
+          video_id: string | null
+          year: number | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          order_index?: number
+          poster_url?: string | null
+          production?: string | null
+          role_en?: string | null
+          role_es?: string | null
+          title_en: string
+          title_es: string
+          updated_at?: string
+          url?: string | null
+          video_id?: string | null
+          year?: number | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          order_index?: number
+          poster_url?: string | null
+          production?: string | null
+          role_en?: string | null
+          role_es?: string | null
+          title_en?: string
+          title_es?: string
+          updated_at?: string
+          url?: string | null
+          video_id?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -47,6 +101,54 @@ export type Database = {
           phone?: string | null
           tiktok_handle?: string | null
           type?: string
+        }
+        Relationships: []
+      }
+      dance_credits: {
+        Row: {
+          city: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          order_index: number
+          poster_url: string | null
+          title_en: string
+          title_es: string
+          updated_at: string
+          url: string | null
+          venue_en: string | null
+          venue_es: string | null
+          year: number | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          order_index?: number
+          poster_url?: string | null
+          title_en: string
+          title_es: string
+          updated_at?: string
+          url?: string | null
+          venue_en?: string | null
+          venue_es?: string | null
+          year?: number | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          order_index?: number
+          poster_url?: string | null
+          title_en?: string
+          title_es?: string
+          updated_at?: string
+          url?: string | null
+          venue_en?: string | null
+          venue_es?: string | null
+          year?: number | null
         }
         Relationships: []
       }
@@ -98,6 +200,57 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      social_links: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          handle: string | null
+          id: string
+          og_description: string | null
+          og_fetched_at: string | null
+          og_image: string | null
+          og_title: string | null
+          order_index: number
+          platform: string
+          title_en: string | null
+          title_es: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          handle?: string | null
+          id?: string
+          og_description?: string | null
+          og_fetched_at?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          order_index?: number
+          platform: string
+          title_en?: string | null
+          title_es?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          handle?: string | null
+          id?: string
+          og_description?: string | null
+          og_fetched_at?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          order_index?: number
+          platform?: string
+          title_en?: string | null
+          title_es?: string | null
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
