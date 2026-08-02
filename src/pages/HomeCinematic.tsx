@@ -19,7 +19,13 @@ import CinematicBook from "@/components/cinematic/CinematicBook";
 import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
 import CinematicActing from "@/components/cinematic/CinematicActing";
-import { ACTING_ACT_ENABLED, TITANS_ENABLED } from "@/lib/ventures";
+import CinematicSocials from "@/components/cinematic/CinematicSocials";
+import {
+  ACTING_ACT_ENABLED,
+  SOCIALS_ACT_ENABLED,
+  SOCIALS_ACT_VARIANT,
+  TITANS_ENABLED,
+} from "@/lib/ventures";
 import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
@@ -222,6 +228,16 @@ const HomeCinematic = () => {
 
       {/* TA.8: TitiLinks act — pinned product tour → coming-soon → clean fade release. */}
       <CinematicTitiLinks reduced={prefersReduced} />
+
+      {/* PORT.SOC.9 — the Socials act, immediately after TitiLinks: that act
+          sells the link-in-bio idea and this one is Cristyna's own instance of
+          it. Claim, then proof. Unnumbered, because it is a directory rather
+          than a chapter. TWO constants gate it, and both are unset: the flag,
+          and the composition — three candidates are built and Joey has not
+          picked one, so the act cannot mount by default. See ventures.ts. */}
+      {SOCIALS_ACT_ENABLED && SOCIALS_ACT_VARIANT && (
+        <CinematicSocials reduced={prefersReduced} variant={SOCIALS_ACT_VARIANT} />
+      )}
 
       {/* ABOUT.MEDIA.1 — the About photo panel is opt-in: resolved.about is null
           unless an admin picked a photo, in which case the section renders the

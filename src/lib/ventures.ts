@@ -158,6 +158,22 @@ export const ACTING_ACT_ENABLED = false;
 export const SOCIALS_ACT_ENABLED = false;
 
 /**
+ * PORT.SOC.9 (2026-08-02) — WHICH Socials composition, once it is switched on.
+ *
+ * The PORT.ACT.1 proposal settled the act's room, its material and its place in
+ * the flow, but not what a tile SAYS: a mark alone, a mark with its platform's
+ * name, and a mark with a name and a handle are three different acts at three
+ * different densities. All three are built (see CinematicSocials); none is
+ * chosen, and this is `null` until Joey picks one from the evidence sheet.
+ *
+ * `null` is a real state, not a placeholder: the act does not mount at all
+ * while it is unset, so the flag can be flipped on without a composition being
+ * chosen by default. Both this and SOCIALS_ACT_ENABLED have to be set before a
+ * reader sees anything.
+ */
+export const SOCIALS_ACT_VARIANT: "A" | "B" | "C" | null = null;
+
+/**
  * PORT.SOC.8 (2026-08-02) — is the `unfurl` edge function LIVE on the project?
  *
  * The function is written and committed (supabase/functions/unfurl) but has not

@@ -205,6 +205,11 @@
       "empty": "Credits coming soon.",
       "photoAlt": "Cristyna Polentino, acting portrait"
     },
+    "socials": {
+      "eyebrow": "Where to find me",
+      "title": "Socials",
+      "body": "Every profile of mine, in one place."
+    },
     "titilinks": {
       "brand": "TitiLinks",
       "domain": "titilinks.com",
