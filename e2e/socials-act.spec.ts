@@ -223,7 +223,9 @@ test.describe("PORT.SOC.9 — the Socials act composition", () => {
         target: e.getAttribute("target"),
         platform: e.getAttribute("data-platform"),
         label: e.getAttribute("aria-label"),
-        marks: e.querySelectorAll("svg").length,
+        // A mark is an SVG glyph OR an artwork <img> — Bigo Live publishes no
+        // official SVG of its icon, so it draws the brand's own 512x512 PNG.
+        marks: e.querySelectorAll("svg, img").length,
       })),
     );
     expect(tiles.length).toBeGreaterThan(0);

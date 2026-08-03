@@ -228,6 +228,14 @@ test.describe("PORT.SOC.8 — the admin links tab", () => {
     expect(bodyOf(w)).toEqual({ platform: "Bigo Live" });
     await expect(page.locator(`${ROW}[data-id="s2"]`)).toHaveAttribute("data-platform", "Bigo Live");
 
+    // PORT.SOC.10 — Bigo Live draws the brand's OWN artwork, not the generic
+    // gold link glyph it fell back to before. It is the one raster mark on the
+    // site because no official SVG of the icon exists (see PlatformIcon).
+    const mark = page.locator(`${ROW}[data-id="s2"] [data-qa="links-mark"] img`);
+    await expect(mark, "the official artwork is drawn").toBeVisible();
+    await expect(mark).toHaveJSProperty("naturalWidth", 512);
+    await page.screenshot({ path: shot("PORT.SOC.10-bigo-mark.png"), fullPage: true });
+
     expect(pageErrors, "no page errors").toEqual([]);
   });
 
