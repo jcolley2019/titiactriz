@@ -140,7 +140,16 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
     }
     if (url.includes("gallery_photos")) return asJson(photos);
     if (url.includes("acting_credits")) return asJson(opts.actingCredits ?? []);
-    if (url.includes("social_links")) return asJson(opts.socialLinks ?? []);
+    if (url.includes("social_links")) {
+      // FB.TILE.1 — honour `enabled=eq.true`, because `enabled` is the act's
+      // only visibility switch and a fixture that ignores it cannot prove the
+      // hook still asks for it. Every other caller passes enabled rows, so this
+      // is a no-op for them.
+      const rows = (opts.socialLinks ?? []) as { enabled?: boolean }[];
+      return asJson(
+        url.includes("enabled=eq.true") ? rows.filter((r) => r.enabled !== false) : rows,
+      );
+    }
     if (url.includes("site_settings")) {
       if (url.includes("cinematic_media")) return media === null ? asNull() : asJson({ value: media });
       if (url.includes("home_variant")) return asJson({ value: homeVariant });

@@ -83,7 +83,26 @@ const nameStyle: React.CSSProperties = {
   letterSpacing: "0.14em",
 };
 
-/** A tile is an anchor or it is nothing — there is no inert tile. */
+/** The Próximamente line, in the Acting act's inert-row grammar. */
+const soonStyle: React.CSSProperties = {
+  fontFamily: "var(--font-sans)",
+  color: "rgba(240,233,218,0.4)",
+  fontSize: 9,
+  fontWeight: 400,
+  letterSpacing: "0.16em",
+};
+
+/** True when this row has somewhere to go. */
+const isLive = (l: SocialLink) => Boolean(l.url && l.url.trim());
+
+/**
+ * FB.TILE.1 — a tile is an anchor when it has an address and a <div> when it
+ * does not. It is never an anchor to nowhere: no href, no `#`, no pointer, no
+ * hover lift. The platform is still announced — the brand's own mark and its
+ * name, dimmed, over "Próximamente" — because a platform Cristyna is on but has
+ * not sent a URL for is coming, not absent. Same law as the Acting act's inert
+ * credit rows.
+ */
 const Tile = ({
   link,
   label,
@@ -94,31 +113,44 @@ const Tile = ({
   label: string;
   className: string;
   children: React.ReactNode;
-}) => (
-  <a
-    data-qa="socials-tile"
-    data-platform={link.platform}
-    href={link.url}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label={label}
-    className={`${TILE_BASE} ${className}`}
-    style={tileStyle}
-  >
-    {children}
-  </a>
-);
+}) => {
+  const live = isLive(link);
+  const shared = {
+    "data-qa": "socials-tile",
+    "data-platform": link.platform,
+    "data-live": String(live),
+    style: live ? tileStyle : { ...tileStyle, opacity: 0.45 },
+  } as const;
+
+  return live ? (
+    <a
+      {...shared}
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className={`${TILE_BASE} ${className}`}
+    >
+      {children}
+    </a>
+  ) : (
+    <div {...shared} className={`${TILE_BASE} cursor-default hover:translate-y-0 ${className}`}>
+      {children}
+    </div>
+  );
+};
 
 /* ───────────────────────── the three candidates ───────────────────────── */
 
 type GridProps = {
   links: SocialLink[];
   labelOf: (l: SocialLink) => string;
+  soonLabel: string;
   gridRef: React.Ref<HTMLDivElement>;
 };
 
 /** A — THE MARK WALL. Mark only; the name is read, not seen, until hover. */
-const MarkWall = ({ links, labelOf, gridRef }: GridProps) => (
+const MarkWall = ({ links, labelOf, soonLabel, gridRef }: GridProps) => (
   <div
     ref={gridRef}
     data-qa="socials-grid"
@@ -128,20 +160,34 @@ const MarkWall = ({ links, labelOf, gridRef }: GridProps) => (
     {links.map((l) => (
       <Tile key={l.id} link={l} label={labelOf(l)} className="aspect-square">
         <PlatformIcon label={l.platform} size={26} />
-        <span
-          data-qa="socials-name"
-          className="pointer-events-none absolute inset-x-0 bottom-2 text-center uppercase opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
-          style={{ ...nameStyle, fontSize: 9, letterSpacing: "0.16em" }}
-        >
-          {labelOf(l)}
-        </span>
+        {/* This candidate hides the name behind a hover, so an inert tile spends
+            that one slot on the state instead — a mark alone announces nothing,
+            and the name still reaches a screen reader through the label. */}
+        {isLive(l) ? (
+          <span
+            data-qa="socials-name"
+            className="pointer-events-none absolute inset-x-0 bottom-2 text-center uppercase opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+            style={{ ...nameStyle, fontSize: 9, letterSpacing: "0.16em" }}
+          >
+            {labelOf(l)}
+          </span>
+        ) : (
+          <span
+            data-qa="socials-soon"
+            className="pointer-events-none absolute inset-x-0 bottom-2 text-center uppercase"
+            style={soonStyle}
+          >
+            <span className="sr-only">{labelOf(l)} — </span>
+            {soonLabel}
+          </span>
+        )}
       </Tile>
     ))}
   </div>
 );
 
 /** B — THE NAMED ROW. Mark over its name; nothing hides. */
-const NamedRow = ({ links, labelOf, gridRef }: GridProps) => (
+const NamedRow = ({ links, labelOf, soonLabel, gridRef }: GridProps) => (
   <div
     ref={gridRef}
     data-qa="socials-grid"
@@ -163,13 +209,24 @@ const NamedRow = ({ links, labelOf, gridRef }: GridProps) => (
         >
           {labelOf(l)}
         </span>
+        {/* The state sits under the name it belongs to, pulled up against the
+            tile's own gap so the two read as one block rather than two rows. */}
+        {!isLive(l) && (
+          <span
+            data-qa="socials-soon"
+            className="-mt-1.5 block max-w-full truncate text-center uppercase"
+            style={soonStyle}
+          >
+            {soonLabel}
+          </span>
+        )}
       </Tile>
     ))}
   </div>
 );
 
 /** C — THE HANDLE CARD. Mark, name and handle; the only one that spends it. */
-const HandleCard = ({ links, labelOf, gridRef }: GridProps) => (
+const HandleCard = ({ links, labelOf, soonLabel, gridRef }: GridProps) => (
   <div
     ref={gridRef}
     data-qa="socials-grid"
@@ -195,20 +252,31 @@ const HandleCard = ({ links, labelOf, gridRef }: GridProps) => (
             {labelOf(l)}
           </span>
           {/* The handle is the one thing this candidate exists to show, so an
-              absent one leaves a quiet line rather than a collapsed card. */}
-          <span
-            data-qa="socials-handle"
-            className="mt-1 block truncate"
-            style={{
-              fontFamily: "var(--font-sans)",
-              color: l.handle ? "rgba(240,233,218,0.55)" : "rgba(240,233,218,0.28)",
-              fontSize: 11,
-              fontWeight: 300,
-              letterSpacing: "0.04em",
-            }}
-          >
-            {l.handle ?? "—"}
-          </span>
+              absent one leaves a quiet line rather than a collapsed card — and
+              on an inert row that same line carries the state instead. */}
+          {isLive(l) ? (
+            <span
+              data-qa="socials-handle"
+              className="mt-1 block truncate"
+              style={{
+                fontFamily: "var(--font-sans)",
+                color: l.handle ? "rgba(240,233,218,0.55)" : "rgba(240,233,218,0.28)",
+                fontSize: 11,
+                fontWeight: 300,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {l.handle ?? "—"}
+            </span>
+          ) : (
+            <span
+              data-qa="socials-soon"
+              className="mt-1 block truncate uppercase"
+              style={{ ...soonStyle, fontSize: 10 }}
+            >
+              {soonLabel}
+            </span>
+          )}
         </span>
       </Tile>
     ))}
@@ -369,7 +437,12 @@ const CinematicSocials = ({ reduced, variant }: Props) => {
           </div>
 
           <div className="mt-12 w-full">
-            <Grid links={links} labelOf={labelOf} gridRef={gridRef} />
+            <Grid
+              links={links}
+              labelOf={labelOf}
+              soonLabel={t("cinematic.socials.soon")}
+              gridRef={gridRef}
+            />
           </div>
         </div>
       </div>

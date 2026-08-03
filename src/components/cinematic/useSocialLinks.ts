@@ -13,9 +13,15 @@ import { supabase } from "@/integrations/supabase/client";
  * whether any candidate composition actually paints them is an open question
  * (see the note in CinematicSocials).
  *
- * A row with no address is dropped HERE rather than in the act. That is
- * STRIP.FAKE.1's law applied at the source: nothing is ever drawn as a link
- * that goes nowhere, and a tile is nothing but a link.
+ * FB.TILE.1 — a row with no address is KEPT and drawn as an inert tile, not
+ * dropped. STRIP.FAKE.1's law is that nothing is ever drawn as a LINK that goes
+ * nowhere; it is not that an announced platform must be hidden until its URL
+ * arrives. So the act says "Próximamente" over the brand's own mark and the
+ * tile is a <div> with no href — the same shape the Acting act's credit rows
+ * carry, and the reason the old href="#" pattern is banned outright.
+ *
+ * `enabled` is still the only visibility switch: an enabled row appears with or
+ * without a URL, a disabled row never appears either way.
  */
 
 export type SocialLink = {
@@ -46,8 +52,7 @@ export function useSocialLinks() {
         .order("order_index", { ascending: true });
 
       if (cancelled) return;
-      const rows = (data ?? []) as SocialLink[];
-      setLinks(rows.filter((r) => typeof r.url === "string" && r.url.trim().length > 0));
+      setLinks((data ?? []) as SocialLink[]);
       setLoading(false);
     })();
 

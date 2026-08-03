@@ -223,6 +223,7 @@ test.describe("PORT.SOC.9 — the Socials act composition", () => {
         target: e.getAttribute("target"),
         platform: e.getAttribute("data-platform"),
         label: e.getAttribute("aria-label"),
+        live: e.getAttribute("data-live"),
         // A mark is an SVG glyph OR an artwork <img> — Bigo Live publishes no
         // official SVG of its icon, so it draws the brand's own 512x512 PNG.
         marks: e.querySelectorAll("svg, img").length,
@@ -231,8 +232,11 @@ test.describe("PORT.SOC.9 — the Socials act composition", () => {
     expect(tiles.length).toBeGreaterThan(0);
 
     for (const t of tiles) {
-      // STRIP.FAKE.1's law: a tile is an anchor with somewhere to go, or it is
-      // not drawn at all. There is no inert tile in this act.
+      // FB.TILE.1 — STRIP.FAKE.1's law is that nothing is drawn as a LINK that
+      // goes nowhere, not that a platform without a URL must be hidden. Every
+      // row in THIS fixture has an address, so every tile here must be a real
+      // anchor; the inert shape is proved by its own test below.
+      expect(t.live, "the fixture is all-live").toBe("true");
       expect(t.tag).toBe("A");
       expect(t.href).toBeTruthy();
       expect(t.href).not.toBe("#");
@@ -290,14 +294,19 @@ test.describe("PORT.SOC.9 — the Socials act composition", () => {
     await openHome(page, { width: 1440, height: 900, links: [] });
     await paintsNothing();
 
-    // A row that is enabled but has no address is the same case: it never
-    // reaches the act, so a lone empty row leaves the act blank.
-    await openHome(page, { width: 1440, height: 900, links: [{ ...LINKS[0], url: "" }] });
-    await paintsNothing();
-
     // …and the page it sits in is still whole: the act BELOW an empty Socials
     // still pins, which is the crash this shape exists to prevent.
     await expect(spacerOf(page, ABOUT)).toHaveCount(1);
+
+    // FB.TILE.1 moved the boundary of "nothing to point at". It used to include
+    // an enabled row with no address — that row was dropped at the hook, so a
+    // lone empty row left the act blank. Joey's ruling is that such a platform
+    // is announced, not hidden, so the act now HAS something to draw: the mark
+    // and "Próximamente", inert. Only a genuinely empty table paints nothing.
+    await openHome(page, { width: 1440, height: 900, links: [{ ...LINKS[0], url: "" }] });
+    await expect(page.locator(ACT)).not.toHaveAttribute("data-empty", "true");
+    await expect(page.locator(TILE)).toHaveCount(1);
+    await expect(page.locator(TILE)).toHaveAttribute("data-live", "false");
   });
 
   test("the page survives the act arriving after its rows load", async ({ page }) => {
@@ -357,5 +366,97 @@ test.describe("PORT.SOC.9 — the Socials act composition", () => {
       const opacity = await page.locator(sel).evaluate((el) => getComputedStyle(el).opacity);
       expect(Number(opacity), `${sel} painted under reduced motion`).toBeGreaterThan(0.9);
     }
+  });
+});
+
+/* ────────────────── FB.TILE.1 — the announced-but-inert tile ────────────────── */
+
+/**
+ * Joey's ruling: a platform Cristyna IS on, whose URL has not arrived yet, is
+ * announced rather than hidden — the brand's own mark, dimmed, over
+ * "Próximamente". The banned shape is the old `href="#"`: an anchor that goes
+ * nowhere. So the row survives the hook and the ACT decides how to draw it.
+ *
+ * Fixture: one live row and one URL-less row, both `enabled`. The URL-less row
+ * carries `url: ""` because that is what the admin Links tab writes for a row
+ * saved without an address — an empty string, not null.
+ */
+const MIXED = [
+  { id: "m1", platform: "TikTok", url: "https://www.tiktok.com/@titi", handle: "@titi", title_es: null, title_en: null, og_title: null, og_image: null, order_index: 1, enabled: true },
+  { id: "m2", platform: "Facebook", url: "", handle: null, title_es: null, title_en: null, og_title: null, og_image: null, order_index: 2, enabled: true },
+];
+
+const SOON = { es: "Próximamente", en: "Coming soon" } as const;
+
+test.describe("FB.TILE.1 — a row with no URL is announced, never linked", () => {
+  test.skip(
+    !SOCIALS_ACT_ENABLED || SOCIALS_ACT_VARIANT === null,
+    "the act is dark, or no composition has been picked yet",
+  );
+
+  for (const lang of ["es", "en"] as const) {
+    test(`the inert tile is a non-anchor and says so in ${lang.toUpperCase()}`, async ({
+      page,
+    }) => {
+      test.setTimeout(240_000);
+      await openHome(page, { width: 1440, height: 900, lang, links: MIXED });
+      await engage(page, STAGE);
+
+      // The row is KEPT, not dropped at the hook — both platforms are drawn.
+      await expect(page.locator(TILE)).toHaveCount(MIXED.length);
+
+      const inert = page.locator(`${TILE}[data-platform="Facebook"]`);
+      const live = page.locator(`${TILE}[data-platform="TikTok"]`);
+
+      // ZERO anchor elements in the inert tile — not the tile itself, and
+      // nothing nested inside it either.
+      await expect(inert).toHaveAttribute("data-live", "false");
+      expect(await inert.evaluate((el) => el.tagName)).toBe("DIV");
+      expect(await inert.evaluate((el) => el.hasAttribute("href"))).toBe(false);
+      expect(
+        await inert.evaluate((el) => el.querySelectorAll("a").length),
+        "no anchor anywhere inside an inert tile",
+      ).toBe(0);
+      // The banned shape, asserted by name so it cannot creep back.
+      expect(
+        await inert.evaluate((el) => el.innerHTML.includes('href="#"')),
+        'no href="#"',
+      ).toBe(false);
+      expect(await inert.evaluate((el) => getComputedStyle(el).cursor)).toBe("default");
+
+      // It still announces the platform: the brand's own mark, and the state.
+      expect(
+        await inert.evaluate((el) => el.querySelectorAll("svg, img").length),
+        "the inert tile still draws its mark",
+      ).toBeGreaterThan(0);
+      await expect(inert.locator('[data-qa="socials-soon"]')).toHaveText(
+        new RegExp(SOON[lang], "i"),
+      );
+
+      // And the live row beside it is untouched: still a real, safe link.
+      await expect(live).toHaveAttribute("data-live", "true");
+      expect(await live.evaluate((el) => el.tagName)).toBe("A");
+      await expect(live).toHaveAttribute("href", MIXED[0].url);
+      await expect(live).toHaveAttribute("target", "_blank");
+      await expect(live).toHaveAttribute("rel", /noopener/);
+      await expect(live.locator('[data-qa="socials-soon"]')).toHaveCount(0);
+    });
+  }
+
+  test("an enabled URL-less row survives the hook — the act, not the query, decides", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    // The disabled row is the control: `enabled` is still the ONLY visibility
+    // switch, so a hidden row stays hidden whether or not it has an address.
+    const withDisabled = [
+      ...MIXED,
+      { id: "m3", platform: "Instagram", url: "https://instagram.com/titi", handle: null, title_es: null, title_en: null, og_title: null, og_image: null, order_index: 3, enabled: false },
+    ];
+    await openHome(page, { width: 1440, height: 900, links: withDisabled });
+    await engage(page, STAGE);
+
+    await expect(page.locator(TILE)).toHaveCount(2);
+    await expect(page.locator(`${TILE}[data-platform="Instagram"]`)).toHaveCount(0);
   });
 });
