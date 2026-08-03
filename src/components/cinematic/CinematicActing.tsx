@@ -57,6 +57,23 @@ gsap.registerPlugin(ScrollTrigger);
  * gsap.from(), so if the timeline never runs, nothing was ever hidden.
  */
 
+/**
+ * PORT.ACT.5 — the act's place in the page's ONE chapter spine.
+ *
+ * Joey's ruling, 2026-08-02: the proposal's primary option wins. The reel owns
+ * 01 · 02 · 03 and this act continues the same sequence rather than starting a
+ * private one — a reader who has just passed three numbered chapters must not
+ * meet a fourth that says 01 again. Dance takes 05 when brick 5 builds it.
+ *
+ * This is an INDEX, zero-based, because that is what WideChapter takes and it
+ * prints `index + 1` padded. Both compositions read it, so the numeral cannot
+ * drift between the phone stack and the wide spread.
+ */
+export const ACTING_CHAPTER_INDEX = 3;
+
+/** The numeral both compositions print — "04". */
+const ACTING_NUMERAL = String(ACTING_CHAPTER_INDEX + 1).padStart(2, "0");
+
 /* ───────────────────────────── credits index ───────────────────────────── */
 
 /**
@@ -257,7 +274,7 @@ const WideActing = (p: CompositionProps) => {
       </div>
 
       <WideChapter
-        index={0}
+        index={ACTING_CHAPTER_INDEX}
         copy={p.copy}
         frameW={p.frameW}
         side="left"
@@ -332,7 +349,7 @@ const PhoneActing = (p: CompositionProps) => {
               letterSpacing: "0.12em",
             }}
           >
-            01
+            {ACTING_NUMERAL}
           </span>
           <span
             aria-hidden

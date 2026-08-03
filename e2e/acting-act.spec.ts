@@ -104,6 +104,13 @@ test.describe("PORT.ACT.2 — the Acting act composition", () => {
       }
       await expect(page.locator(HEADING)).toHaveText("Actuación");
 
+      // PORT.ACT.5 — ONE chapter spine. The reel owns 01 · 02 · 03 and this act
+      // continues it at 04; it does not start a private sequence that says 01
+      // again three chapters in. Asserted on BOTH compositions, because the
+      // phone stack draws its own numeral rather than going through
+      // WideChapter, and the two could otherwise drift apart.
+      await expect(page.locator(`${ACT} [data-qa="wide-numeral"]`)).toHaveText("04");
+
       const geo = await page.evaluate(() => {
         const q = (s: string) => document.querySelector(s)!;
         const stage = q('[data-qa="acting-stage"]').getBoundingClientRect();
