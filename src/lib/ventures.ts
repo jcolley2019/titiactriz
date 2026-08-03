@@ -143,19 +143,24 @@ export const TITANS_ENABLED = false;
 export const ACTING_ACT_ENABLED = false;
 
 /**
- * PORT.SOC.8 (2026-08-02) — the Socials act, gated OFF.
+ * PORT.SOC.12 (2026-08-03) — the Socials act is LIVE.
  *
- * The act itself arrives in brick 9; this constant lands with the admin Links
- * tab because the tab has to be able to say, honestly, that saved links are not
- * on the site yet. Same shape as ACTING_ACT_ENABLED and TITANS_ENABLED: one
- * constant gates the act's registration in the cinematic home, nothing else,
- * and flipping it is the whole switch-on.
+ * Flipped on after the walk: composition B, walked and confirmed by Joey on
+ * iPhone + PC — "tested and looks good and the links work" — with the real rows
+ * entered through the admin Links tab beforehand (TikTok, Instagram and YouTube
+ * on Cristyna's own addresses; Facebook present and inert until its URL
+ * arrives, which is what FB.TILE.1 draws). This is the campaign's first new
+ * public act.
+ *
+ * One constant gates the act's registration in the cinematic home, nothing
+ * else. It reads real rows, so turning it OFF again is a complete revert and
+ * an empty `social_links` table paints nothing on its own.
  *
  * The Socials act is a DIRECTORY, not a chapter — it is deliberately unnumbered
  * and sits after the TitiLinks act, because TitiLinks sells the link-in-bio
  * idea and this act is Cristyna's own instance of it. Claim, then proof.
  */
-export const SOCIALS_ACT_ENABLED = false;
+export const SOCIALS_ACT_ENABLED = true;
 
 /**
  * PORT.SOC.9 (2026-08-02) — WHICH Socials composition.
