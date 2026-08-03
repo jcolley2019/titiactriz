@@ -38,3 +38,7 @@ _qa/
 /playwright-report/
 /blob-report/
 /.playwright/
+
+# unlaunched venture footage — publish deliberately with the Titans act, never by accident
+/public/ventures/seq/titans-1280/
+/public/ventures/seq/titans-720/
