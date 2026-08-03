@@ -9,8 +9,17 @@ import { PLATFORM_LABELS } from "../src/lib/platform-catalog";
  *
  * The act is built in THREE candidate compositions and none is chosen: the
  * PORT.ACT.1 proposal settled the room, the material and the placement but not
- * what a tile says, so `SOCIALS_ACT_VARIANT` is null until Joey picks one. Two
- * constants therefore gate the act, and this file has two halves:
+ * what a tile says, so `SOCIALS_ACT_VARIANT` is null until Joey picks one.
+ *
+ * PORT.SOC.9a — while that pick is outstanding the act is not merely gated, it
+ * is NOT WIRED: HomeCinematic does not import it, because importing it costs
+ * the home page measurable first-paint budget in dev for an act that cannot
+ * render (see the comment where the mount will go). So the dark gate below is
+ * currently proving an absence that is structural rather than conditional. The
+ * brick that picks a variant adds the import and the mount, and turns the rest
+ * of this file on.
+ *
+ * Two constants gate the act once it IS wired, and this file has two halves:
  *
  *   · The DARK gate runs always. While either constant is unset the act must
  *     not exist on the page at any scroll offset — asserted as an ABSENCE.
