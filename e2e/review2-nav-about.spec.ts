@@ -45,6 +45,81 @@ async function wheelTo(page: Page, y: number) {
 const headerBg = (page: Page) =>
   page.locator("header").evaluate((el) => getComputedStyle(el).backgroundColor);
 
+/**
+ * REVIEW.2b's dwell thresholds — the LAW, and untouched by the FLAKE work
+ * below. `PINNED_PX` is "holding the top of the frame" and `RELEASED_PX` is
+ * "gone from the frame"; they are named once so the waiter and the assertion
+ * cannot drift apart into a tolerance that quietly does a retry's job.
+ */
+const PINNED_PX = 2;
+const RELEASED_PX = -200;
+
+const aboutTop = (page: Page) =>
+  page.locator("#cinematic-about").evaluate((el) => el.getBoundingClientRect().top);
+
+const aboutSpacer = (page: Page) =>
+  page.locator("#cinematic-about").locator("xpath=ancestor::*[contains(@class,'pin-spacer')]");
+
+/** Document Y at which About's dwell begins — the pin-spacer's top. */
+const pinStartY = (page: Page) =>
+  aboutSpacer(page).evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+
+/**
+ * FLAKE.1 — every act above About decodes its photography late, and each late
+ * decode changes the document height ABOVE the pin. A Y measured once and
+ * reused is therefore an aim at a plateau that has since moved, which is how
+ * this test drifted 9px short of its target and read an unpinned frame.
+ */
+async function reelImagesSettled(page: Page) {
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('[data-qa="cinematic-reel-img"]')].every(
+        (i) => (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0,
+      ),
+    { timeout: 30_000 },
+  );
+}
+
+/**
+ * Drive `offset` px into About's dwell and return the section's OBSERVED top.
+ *
+ * The FLAKE.1–4 shape: the aim is re-measured against the CURRENT layout on
+ * every attempt rather than computed once, and the state is waited for rather
+ * than sampled once — Lenis carries momentum past a wheel aim, so a one-shot
+ * read can catch the frame before ScrollTrigger has applied the pin. Re-aims
+ * are bounded at three; if the state is never observed the caller's assertion
+ * still runs and still reports the real number, so a genuinely broken pin
+ * fails here rather than being retried into a pass.
+ */
+async function toDwellOffset(page: Page, offset: number, want: "pinned" | "released") {
+  const aim = async () => {
+    await wheelTo(page, (await pinStartY(page)) + offset);
+  };
+
+  const observed = () =>
+    page
+      .waitForFunction(
+        ({ mode, pinnedPx, releasedPx }) => {
+          const el = document.querySelector("#cinematic-about");
+          if (!el) return false;
+          const top = el.getBoundingClientRect().top;
+          return mode === "pinned" ? Math.abs(top) <= pinnedPx : top < releasedPx;
+        },
+        { mode: want, pinnedPx: PINNED_PX, releasedPx: RELEASED_PX },
+        { timeout: 6_000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+
+  await aim();
+  let settled = await observed();
+  for (let attempt = 0; !settled && attempt < 2; attempt += 1) {
+    await aim();
+    settled = await observed();
+  }
+  return aboutTop(page);
+}
+
 test.describe("REVIEW.2b — nav ground and the About dwell", () => {
   test("1440 — the nav is transparent over the hero and grounded past it", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -72,15 +147,18 @@ test.describe("REVIEW.2b — nav ground and the About dwell", () => {
   test("1440 — About pins for +=120% and then releases; contact never pins", async ({
     page,
   }) => {
-    test.setTimeout(180_000);
+    // FLAKE.3 — stress headroom: the re-aims are bounded, but a CPU-starved
+    // run pays for each of them, and a budget that fits only the happy path is
+    // itself a source of red.
+    test.setTimeout(300_000);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 900);
+    await reelImagesSettled(page);
 
     // The pin exists: ScrollTrigger wraps About in a spacer sized for the
     // dwell. The footer has none — the dwell law stops at the footer.
-    const spacer = page.locator("#cinematic-about").locator("xpath=ancestor::*[contains(@class,'pin-spacer')]");
-    await expect(spacer, "About sits in a pin spacer under motion").toHaveCount(1);
+    await expect(aboutSpacer(page), "About sits in a pin spacer under motion").toHaveCount(1);
     await expect(
       page.locator("footer").locator("xpath=ancestor-or-self::*[contains(@class,'pin-spacer')]"),
       "the footer never pins",
@@ -89,26 +167,16 @@ test.describe("REVIEW.2b — nav ground and the About dwell", () => {
     // Engage: just past the spacer's top (wheelTo converges within ±8px, so
     // aiming a hair beyond keeps the check deterministic) the section holds
     // the top of the frame…
-    const pinStart = await spacer.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-    await wheelTo(page, pinStart + 60);
-    const topAtEngage = await page
-      .locator("#cinematic-about")
-      .evaluate((el) => el.getBoundingClientRect().top);
-    expect(Math.abs(topAtEngage), "About pinned at engage").toBeLessThanOrEqual(2);
+    const topAtEngage = await toDwellOffset(page, 60, "pinned");
+    expect(Math.abs(topAtEngage), "About pinned at engage").toBeLessThanOrEqual(PINNED_PX);
 
     // …and half a dwell later (60% of 120%) it is STILL holding the frame.
-    await wheelTo(page, pinStart + 0.6 * 1.2 * 900);
-    const topMidDwell = await page
-      .locator("#cinematic-about")
-      .evaluate((el) => el.getBoundingClientRect().top);
-    expect(Math.abs(topMidDwell), "About still pinned mid-dwell").toBeLessThanOrEqual(2);
+    const topMidDwell = await toDwellOffset(page, 0.6 * 1.2 * 900, "pinned");
+    expect(Math.abs(topMidDwell), "About still pinned mid-dwell").toBeLessThanOrEqual(PINNED_PX);
 
     // Release: past the +=120% dwell the section scrolls away normally.
-    await wheelTo(page, pinStart + 1.2 * 900 + 300);
-    const topAfterRelease = await page
-      .locator("#cinematic-about")
-      .evaluate((el) => el.getBoundingClientRect().top);
-    expect(topAfterRelease, "About released after the dwell").toBeLessThan(-200);
+    const topAfterRelease = await toDwellOffset(page, 1.2 * 900 + 300, "released");
+    expect(topAfterRelease, "About released after the dwell").toBeLessThan(RELEASED_PX);
   });
 
   test("1440 reduced motion — About renders unpinned, in flow", async ({ page }) => {
