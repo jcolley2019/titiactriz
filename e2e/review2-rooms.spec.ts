@@ -238,8 +238,14 @@ test.describe("REVIEW.2a — tonal rooms and the self-drawing frame", () => {
       ),
     );
 
+    // Scoped to the REEL, like every other locator in this spec. WideChapter
+    // draws the filigree for whichever act mounts it, so a page-wide count is a
+    // count of the whole page's filigree and reads 4 the moment the Acting act
+    // draws its own — a REVIEW.2a law failing on a change it does not govern.
+    // The reduced-motion path renders no `reel-slide`, so the anchor is the
+    // reel's section, identified as `pinStartY` above identifies it.
     const ornOpacities = await page
-      .locator('[data-qa="chapter-ornament"]')
+      .locator('[data-qa="cinematic-section"]:has([data-qa="cinematic-reel-img"]) [data-qa="chapter-ornament"]')
       .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).opacity)));
     expect(ornOpacities.length).toBe(3);
     ornOpacities.forEach((o, i) =>
