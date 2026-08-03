@@ -158,20 +158,26 @@ export const ACTING_ACT_ENABLED = false;
 export const SOCIALS_ACT_ENABLED = false;
 
 /**
- * PORT.SOC.9 (2026-08-02) — WHICH Socials composition, once it is switched on.
+ * PORT.SOC.9 (2026-08-02) — WHICH Socials composition.
  *
  * The PORT.ACT.1 proposal settled the act's room, its material and its place in
  * the flow, but not what a tile SAYS: a mark alone, a mark with its platform's
  * name, and a mark with a name and a handle are three different acts at three
- * different densities. All three are built (see CinematicSocials); none is
- * chosen, and this is `null` until Joey picks one from the evidence sheet.
+ * different densities. All three were built and rendered at four viewports in
+ * both languages, and Joey picked **B — THE NAMED ROW** on 2026-08-02: mark
+ * over its platform name, 2/3/4 across, nothing hidden behind a hover.
  *
- * `null` is a real state, not a placeholder: the act does not mount at all
- * while it is unset, so the flag can be flipped on without a composition being
- * chosen by default. Both this and SOCIALS_ACT_ENABLED have to be set before a
- * reader sees anything.
+ * The two it beat are still in CinematicSocials rather than deleted, because
+ * this is a taste call that can be revisited by changing one letter — and
+ * because the measured fit table is part of the record: A and B hold all four
+ * frames, C runs 21px off the bottom of a 360x780 phone with six links, and the
+ * act is pinned so that overflow can never be scrolled to.
+ *
+ * `null` remains a legal value and still means "do not mount", so the flag can
+ * be flipped without a composition being chosen. Both constants must be set
+ * before a reader sees anything.
  */
-export const SOCIALS_ACT_VARIANT: "A" | "B" | "C" | null = null;
+export const SOCIALS_ACT_VARIANT: "A" | "B" | "C" | null = "B";
 
 /**
  * PORT.SOC.8 (2026-08-02) — is the `unfurl` edge function LIVE on the project?

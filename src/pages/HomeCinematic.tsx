@@ -19,7 +19,13 @@ import CinematicBook from "@/components/cinematic/CinematicBook";
 import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
 import CinematicActing from "@/components/cinematic/CinematicActing";
-import { ACTING_ACT_ENABLED, TITANS_ENABLED } from "@/lib/ventures";
+import CinematicSocials from "@/components/cinematic/CinematicSocials";
+import {
+  ACTING_ACT_ENABLED,
+  SOCIALS_ACT_ENABLED,
+  SOCIALS_ACT_VARIANT,
+  TITANS_ENABLED,
+} from "@/lib/ventures";
 import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
@@ -223,29 +229,26 @@ const HomeCinematic = () => {
       {/* TA.8: TitiLinks act — pinned product tour → coming-soon → clean fade release. */}
       <CinematicTitiLinks reduced={prefersReduced} />
 
-      {/* PORT.SOC.9 — the SOCIALS ACT GOES HERE, immediately after TitiLinks:
-          that act sells the link-in-bio idea and this one is Cristyna's own
-          instance of it. Claim, then proof. Unnumbered, because it is a
-          directory rather than a chapter.
+      {/* PORT.SOC.11 — the Socials act, immediately after TitiLinks: that act
+          sells the link-in-bio idea and this one is Cristyna's own instance of
+          it. Claim, then proof. Unnumbered, because it is a directory rather
+          than a chapter.
 
-          It is deliberately NOT imported yet. The component is built and
-          committed in three candidate compositions (CinematicSocials), but
-          nobody has picked one — and importing it here costs this page real
-          first-paint budget for an act that cannot render: PlatformIcon pulls
-          the `react-icons` barrels, which Vite's DEV server serves whole and
-          un-tree-shaken, and the measured result was the TA.7d first-paint gate
-          failing (the cinematic root never mounted inside its 30s budget under
-          6x CPU throttle). Production is unaffected — the built bundle is
-          byte-identical either way, 3072 KB of JS with the import and without,
-          because the build tree-shakes to the ~45 marks the catalog uses and
-          the admin chunk carries them regardless.
+          Composition B (the named row) — Joey's pick, 2026-08-02.
 
-          So the wiring lands in the same brick as the pick: choose a variant,
-          set both constants in ventures.ts, add the import and the mount here,
-          and re-run e2e/firstpaint.spec.ts as part of that brick. If the gate
-          goes red with the act live, the answer is to stop importing the
-          barrels on a public page — PlatformIcon already has the machinery to
-          inline a mark (makeBrandIcon) and only ~45 are reachable. */}
+          Importing this used to cost the home page its first-paint budget,
+          because PlatformIcon pulled the react-icons BARRELS and Vite's dev
+          server serves those whole; the TA.7d gate went red the first time the
+          act was wired. The marks are now inlined as data
+          (brandMarks.generated.ts) and react-icons is a devDependency, so this
+          import is cheap and the gate is green with the act live.
+
+          BOTH constants still gate the mount. The act is shipped DARK — it goes
+          public when Joey sets SOCIALS_ACT_ENABLED, and the composition is
+          already chosen so that flip is the whole switch-on. */}
+      {SOCIALS_ACT_ENABLED && SOCIALS_ACT_VARIANT && (
+        <CinematicSocials reduced={prefersReduced} variant={SOCIALS_ACT_VARIANT} />
+      )}
 
       {/* ABOUT.MEDIA.1 — the About photo panel is opt-in: resolved.about is null
           unless an admin picked a photo, in which case the section renders the
