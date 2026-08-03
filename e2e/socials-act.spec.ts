@@ -161,24 +161,47 @@ test.describe("PORT.SOC.9 — the Socials act composition", () => {
 
       await expect(page.locator(TILE)).toHaveCount(LINKS.length);
 
-      // Nothing runs off the frame, and the whole act fits the held frame.
+      /**
+       * The whole act fits the VIEWPORT, header included — not merely "inside
+       * the stage".
+       *
+       * Measuring against the stage was the first version of this check and it
+       * was worthless: the stage is `min-height:100vh`, so content taller than
+       * the screen makes the STAGE taller too, and every tile is dutifully
+       * "inside" a box that runs off the screen. Candidate C sailed through it
+       * at 390 and 360 while its eyebrow was pushed off the top of the frame and
+       * its last tile off the bottom.
+       *
+       * And on a PINNED act that is not a cosmetic problem — the pin holds the
+       * frame still, so whatever is outside the viewport cannot be scrolled to.
+       * It is simply gone. So the viewport is the frame that matters.
+       */
       const geo = await page.evaluate(
         (sel) => {
-          const stage = document.querySelector(sel.stage)!.getBoundingClientRect();
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
           const tiles = [...document.querySelectorAll(sel.tile)].map((t) =>
             t.getBoundingClientRect(),
           );
+          const header = document.querySelector(sel.header)!.getBoundingClientRect();
+          const parts = [...tiles, header];
+          const off = parts.filter(
+            (r) => r.top < -1 || r.bottom > vh + 1 || r.left < -1 || r.right > vw + 1,
+          );
           return {
-            stage: { top: stage.top, bottom: stage.bottom, left: stage.left, right: stage.right },
-            overflowX: tiles.some((r) => r.left < stage.left - 1 || r.right > stage.right + 1),
-            overflowY: tiles.some((r) => r.top < stage.top - 1 || r.bottom > stage.bottom + 1),
+            offCount: off.length,
+            worst: off.length
+              ? { top: Math.round(Math.min(...off.map((r) => r.top))), bottom: Math.round(Math.max(...off.map((r) => r.bottom))), vh }
+              : null,
             minTile: Math.min(...tiles.map((r) => Math.min(r.width, r.height))),
           };
         },
-        { stage: STAGE, tile: TILE },
+        { stage: STAGE, tile: TILE, header: '[data-qa="socials-header"]' },
       );
-      expect(geo.overflowX, "no tile escapes the frame sideways").toBe(false);
-      expect(geo.overflowY, "every tile is inside the held frame").toBe(false);
+      expect(
+        geo.offCount,
+        `everything the act draws is inside the held frame — ${JSON.stringify(geo.worst)}`,
+      ).toBe(0);
       // A tile below ~44px is under the tap-target floor on a phone.
       expect(geo.minTile, "tiles stay tappable").toBeGreaterThanOrEqual(44);
 
