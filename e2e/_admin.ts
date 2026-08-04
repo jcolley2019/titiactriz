@@ -86,6 +86,13 @@ type RouteOpts = {
   actingCredits?: unknown[];
   /** PORT.SOC.8 — rows served for `social_links`; absent → an empty table. */
   socialLinks?: unknown[];
+  /**
+   * EVENTS.1 — the `events_board` site_settings VALUE. Absent → the row is
+   * absent, which is NOT an empty board: the hook's parser falls back to
+   * EVENTS_BOARD_DEFAULT (one seeded card, main banner on), exactly as it does
+   * in the app. Pass `{ items: [] }` to serve a genuinely card-less board.
+   */
+  eventsBoard?: unknown;
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -162,7 +169,9 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
         const value = opts.reelChapters?.[chapter];
         return value ? asJson({ value }) : asNull();
       }
-      return asNull(); // cinematic_hero_photo / events keys → absent
+      if (url.includes("events_board"))
+        return opts.eventsBoard === undefined ? asNull() : asJson({ value: opts.eventsBoard });
+      return asNull(); // cinematic_hero_photo / any other key → absent
     }
     return asJson([]); // events tables, user_roles, anything else
   });

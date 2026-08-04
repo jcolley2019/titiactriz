@@ -744,6 +744,7 @@
       "pageVisibleHelp": "Cuando está desactivado, la página no se muestra al público.",
       "bannerText": "Texto del banner",
       "bannerHelp": "Este es el mensaje que se desplaza en el banner superior. Déjalo vacío para ocultar el banner.",
+      "bannerEsRequired": "Escribe el texto en español antes de activar el banner. El inglés es opcional.",
       "addEvent": "Agregar evento",
       "addVideo": "Agregar video",
       "addLink": "Agregar enlace",

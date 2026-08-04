@@ -96,30 +96,77 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs text-muted-foreground">{children}</Label>
 );
 
+/**
+ * EVENTS.1 — the ES banner trap.
+ *
+ * Spanish is the site's primary language, so a banner enabled with empty ES text
+ * scrolls a BLANK marquee at most of the audience while looking perfectly correct
+ * to whoever filled the English field in. EN stays optional and still falls back
+ * per the existing behaviour — this guard is about ES and only ES.
+ *
+ * The trap closes on BOTH doors, and the second one is not redundant: the toggle
+ * refuses to turn on, and the save refuses to write. ES text can be deleted AFTER
+ * a banner was legitimately enabled, and only the save is standing there when it
+ * happens.
+ */
+const bannerEsMissing = (b: PageBanner) => !(b.text?.es ?? "").trim();
+const bannerBlocked = (b: PageBanner) => !!b.enabled && bannerEsMissing(b);
+
 const BannerEditor = ({
   name,
+  qa,
   banner,
   editLang,
   loading,
   colorOptions,
+  showErrors,
   onChange,
 }: {
   name: string;
+  qa: string;
   banner: PageBanner;
   editLang: Lang;
   loading: boolean;
   colorOptions: { label: string; value: string }[];
+  /** Forced on by a refused save, so the offending banner names itself. */
+  showErrors: boolean;
   onChange: (patch: Partial<PageBanner>) => void;
-}) => (
-  <div className="space-y-3 border border-border rounded-lg p-4">
+}) => {
+  const { t } = useTranslation();
+  const [attempted, setAttempted] = useState(false);
+  const esMissing = bannerEsMissing(banner);
+  // Shown after a refused toggle, after a refused save, or whenever an already
+  // enabled banner has had its ES text emptied out from under it.
+  const invalid = esMissing && (attempted || showErrors || !!banner.enabled);
+
+  return (
+  <div className="space-y-3 border border-border rounded-lg p-4" data-qa="banner-editor" data-banner={qa}>
     <div className="flex items-center gap-3">
       <Switch
         checked={!!banner.enabled}
-        onCheckedChange={(v) => onChange({ enabled: v })}
+        onCheckedChange={(v) => {
+          if (v && esMissing) {
+            setAttempted(true);
+            return; // refused — the banner stays off
+          }
+          setAttempted(false);
+          onChange({ enabled: v });
+        }}
         disabled={loading}
+        data-qa="banner-enabled"
       />
       <Label className="text-foreground text-sm font-medium">{name}</Label>
     </div>
+
+    {invalid && (
+      <p
+        data-qa="banner-es-required"
+        role="alert"
+        className="text-xs text-destructive"
+      >
+        {t("admin.eventsBoard.bannerEsRequired")}
+      </p>
+    )}
 
     <div className="space-y-1">
       <FieldLabel>Label (pill text, e.g. EVENTS / SALE!)</FieldLabel>
@@ -137,6 +184,7 @@ const BannerEditor = ({
     <div className="space-y-1">
       <FieldLabel>Banner text</FieldLabel>
       <Input
+        data-qa="banner-text"
         maxLength={160}
         value={banner.text?.[editLang] ?? ""}
         onChange={(e) =>
@@ -214,7 +262,8 @@ const BannerEditor = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const ImageUploader = ({
   value,
@@ -693,6 +742,7 @@ const EventsBoardManager = () => {
   const [saving, setSaving] = useState(false);
   const [editLang, setEditLang] = useState<Lang>("es");
   const [open, setOpen] = useState(false);
+  const [bannerErrors, setBannerErrors] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -748,6 +798,27 @@ const EventsBoardManager = () => {
   };
 
   const onSave = async () => {
+    // EVENTS.1 — the save-side half of the ES trap.
+    //
+    // TITANS.OFF.1 keeps the Titans editor off screen, so its stored banner is
+    // NOT guarded here: an old row left enabled with empty ES would otherwise
+    // block every save from a field the owner cannot see to fix. Only banners
+    // with a visible editor can refuse a save.
+    const guarded: PageBanner[] = [
+      board.mainBanner,
+      board.greenWorldBanner,
+      ...(TITANS_ENABLED ? [board.titansBanner] : []),
+    ];
+    if (guarded.some(bannerBlocked)) {
+      setBannerErrors(true);
+      toast({
+        title: t("admin.eventsBoard.bannerEsRequired"),
+        variant: "destructive",
+      });
+      return;
+    }
+    setBannerErrors(false);
+
     setSaving(true);
     try {
       await setEventsBoard(board);
@@ -770,6 +841,7 @@ const EventsBoardManager = () => {
     <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
       <button
         type="button"
+        data-qa="events-board-toggle"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
         aria-expanded={open}
@@ -815,9 +887,11 @@ const EventsBoardManager = () => {
         <div className="space-y-3">
           <BannerEditor
             name="Main banner"
+            qa="main"
             banner={board.mainBanner}
             editLang={editLang}
             loading={loading}
+            showErrors={bannerErrors}
             colorOptions={[
               { label: "Gold", value: "#C9A55C" },
               { label: "Light gold", value: "#F0D78C" },
@@ -832,9 +906,11 @@ const EventsBoardManager = () => {
           />
           <BannerEditor
             name="Green World banner"
+            qa="greenWorld"
             banner={board.greenWorldBanner}
             editLang={editLang}
             loading={loading}
+            showErrors={bannerErrors}
             colorOptions={[
               { label: "White", value: "#FFFFFF" },
               { label: "Light gold", value: "#FFE08A" },
@@ -849,9 +925,11 @@ const EventsBoardManager = () => {
           {TITANS_ENABLED && (
             <BannerEditor
               name="Titans banner"
+              qa="titans"
               banner={board.titansBanner}
               editLang={editLang}
               loading={loading}
+              showErrors={bannerErrors}
               colorOptions={[
                 { label: "White", value: "#FFFFFF" },
                 { label: "Red", value: "#AD1F1F" },
