@@ -29,6 +29,8 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   fetchEventsBoard,
   setEventsBoard,
+  localizedText,
+  setLocalizedText,
   EVENTS_BOARD_DEFAULT,
   type EventsBoard,
   type PageBanner,
@@ -37,13 +39,12 @@ import {
   type Localized,
   type EventButton,
 } from "@/hooks/useEventsBoard";
+import { syncBoardTranslations } from "@/lib/translate-copy";
 import EventsGrid from "@/components/events/EventsGrid";
 import { TITANS_ENABLED } from "@/lib/ventures";
 
 const PREVIEW_BG = "#0e0c09";
 const BUCKET = "gallery";
-
-type Lang = "es" | "en";
 
 const emptyLocalized = (): Localized => ({ es: "", en: "" });
 
@@ -63,12 +64,6 @@ const makeEvent = (): EventCardItem => ({
   buttons: [],
 });
 
-
-const setLocalized = (
-  current: Localized,
-  lang: Lang,
-  value: string,
-): Localized => ({ ...current, [lang]: value });
 
 const uploadEventImage = async (file: File): Promise<string> => {
   let blob: Blob = file;
@@ -98,26 +93,30 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => (
 );
 
 /**
- * EVENTS.1 — the ES banner trap.
+ * EVENTS.I18N.1 — the banner trap, restated.
  *
- * Spanish is the site's primary language, so a banner enabled with empty ES text
- * scrolls a BLANK marquee at most of the audience while looking perfectly correct
- * to whoever filled the English field in. EN stays optional and still falls back
- * per the existing behaviour — this guard is about ES and only ES.
+ * EVENTS.1 guarded the Spanish slot specifically: Spanish is the site's primary
+ * language, and a banner enabled with empty ES text scrolled a BLANK marquee at
+ * most of the audience while looking perfectly correct to whoever filled in the
+ * English field. That failure needed an ES-shaped guard because ES and EN were
+ * two fields and either could be left empty.
  *
- * The trap closes on BOTH doors, and the second one is not redundant: the toggle
- * refuses to turn on, and the save refuses to write. ES text can be deleted AFTER
- * a banner was legitimately enabled, and only the save is standing there when it
- * happens.
+ * They are one field now, and saving fills both slots — so the guard's purpose is
+ * served by asking the same question of the one field: is there any text at all?
+ * A banner with text can enable, whichever language the owner typed it in.
+ *
+ * The trap still closes on BOTH doors, and the second is still not redundant: the
+ * toggle refuses to turn on, and the save refuses to write. The text can be
+ * deleted AFTER a banner was legitimately enabled, and only the save is standing
+ * there when it happens.
  */
-const bannerEsMissing = (b: PageBanner) => !(b.text?.es ?? "").trim();
-const bannerBlocked = (b: PageBanner) => !!b.enabled && bannerEsMissing(b);
+const bannerTextMissing = (b: PageBanner) => !localizedText(b.text ?? emptyLocalized()).trim();
+const bannerBlocked = (b: PageBanner) => !!b.enabled && bannerTextMissing(b);
 
 const BannerEditor = ({
   name,
   qa,
   banner,
-  editLang,
   loading,
   colorOptions,
   showErrors,
@@ -126,7 +125,6 @@ const BannerEditor = ({
   name: string;
   qa: string;
   banner: PageBanner;
-  editLang: Lang;
   loading: boolean;
   colorOptions: { label: string; value: string }[];
   /** Forced on by a refused save, so the offending banner names itself. */
@@ -135,10 +133,10 @@ const BannerEditor = ({
 }) => {
   const { t } = useTranslation();
   const [attempted, setAttempted] = useState(false);
-  const esMissing = bannerEsMissing(banner);
+  const textMissing = bannerTextMissing(banner);
   // Shown after a refused toggle, after a refused save, or whenever an already
-  // enabled banner has had its ES text emptied out from under it.
-  const invalid = esMissing && (attempted || showErrors || !!banner.enabled);
+  // enabled banner has had its text emptied out from under it.
+  const invalid = textMissing && (attempted || showErrors || !!banner.enabled);
 
   return (
   <div className="space-y-3 border border-border rounded-lg p-4" data-qa="banner-editor" data-banner={qa}>
@@ -146,7 +144,7 @@ const BannerEditor = ({
       <Switch
         checked={!!banner.enabled}
         onCheckedChange={(v) => {
-          if (v && esMissing) {
+          if (v && textMissing) {
             setAttempted(true);
             return; // refused — the banner stays off
           }
@@ -161,11 +159,11 @@ const BannerEditor = ({
 
     {invalid && (
       <p
-        data-qa="banner-es-required"
+        data-qa="banner-text-required"
         role="alert"
         className="text-xs text-destructive"
       >
-        {t("admin.eventsBoard.bannerEsRequired")}
+        {t("admin.eventsBoard.bannerTextRequired")}
       </p>
     )}
 
@@ -173,9 +171,9 @@ const BannerEditor = ({
       <FieldLabel>Label (pill text, e.g. EVENTS / SALE!)</FieldLabel>
       <Input
         maxLength={40}
-        value={banner.label?.[editLang] ?? ""}
+        value={localizedText(banner.label ?? emptyLocalized())}
         onChange={(e) =>
-          onChange({ label: setLocalized(banner.label ?? { es: "", en: "" }, editLang, e.target.value) })
+          onChange({ label: setLocalizedText(banner.label ?? emptyLocalized(), e.target.value) })
         }
         disabled={loading}
         placeholder="EVENTS"
@@ -187,9 +185,9 @@ const BannerEditor = ({
       <Input
         data-qa="banner-text"
         maxLength={160}
-        value={banner.text?.[editLang] ?? ""}
+        value={localizedText(banner.text ?? emptyLocalized())}
         onChange={(e) =>
-          onChange({ text: setLocalized(banner.text ?? { es: "", en: "" }, editLang, e.target.value) })
+          onChange({ text: setLocalizedText(banner.text ?? emptyLocalized(), e.target.value) })
         }
         disabled={loading}
       />
@@ -359,11 +357,9 @@ const ImageUploader = ({
 
 const EventFields = ({
   item,
-  editLang,
   onChange,
 }: {
   item: EventCardItem;
-  editLang: Lang;
   onChange: (patch: Partial<EventCardItem>) => void;
 }) => {
   const { t } = useTranslation();
@@ -371,7 +367,7 @@ const EventFields = ({
   const bullets = item.bullets ?? [];
   const setBullet = (idx: number, value: string) => {
     const next = bullets.map((b, i) =>
-      i === idx ? setLocalized(b, editLang, value) : b,
+      i === idx ? setLocalizedText(b, value) : b,
     );
     onChange({ bullets: next });
   };
@@ -384,9 +380,7 @@ const EventFields = ({
     onChange({ buttons: next });
   };
   const setButtonLabel = (idx: number, value: string) => {
-    setButton(idx, {
-      label: setLocalized(item.buttons[idx].label, editLang, value),
-    });
+    setButton(idx, { label: setLocalizedText(item.buttons[idx].label, value) });
   };
   const addButton = () => {
     if (item.buttons.length >= 3) return;
@@ -408,19 +402,16 @@ const EventFields = ({
       <div className="space-y-1">
         <FieldLabel>{t("admin.eventsBoard.titleLabel")}</FieldLabel>
         <Input
-          value={item.title[editLang]}
-          onChange={(e) =>
-            onChange({ title: setLocalized(item.title, editLang, e.target.value) })
-          }
+          data-qa="event-title"
+          value={localizedText(item.title)}
+          onChange={(e) => onChange({ title: setLocalizedText(item.title, e.target.value) })}
         />
       </div>
       <div className="space-y-1">
         <FieldLabel>{t("admin.eventsBoard.badgeLabel")}</FieldLabel>
         <Input
-          value={item.badge[editLang]}
-          onChange={(e) =>
-            onChange({ badge: setLocalized(item.badge, editLang, e.target.value) })
-          }
+          value={localizedText(item.badge)}
+          onChange={(e) => onChange({ badge: setLocalizedText(item.badge, e.target.value) })}
         />
       </div>
 
@@ -482,11 +473,9 @@ const EventFields = ({
         <FieldLabel>{t("admin.eventsBoard.descriptionLabel")}</FieldLabel>
         <Textarea
           rows={3}
-          value={item.description[editLang]}
+          value={localizedText(item.description)}
           onChange={(e) =>
-            onChange({
-              description: setLocalized(item.description, editLang, e.target.value),
-            })
+            onChange({ description: setLocalizedText(item.description, e.target.value) })
           }
         />
       </div>
@@ -508,7 +497,7 @@ const EventFields = ({
               {bullets.map((b, idx) => (
                 <div key={idx} className="flex gap-2">
                   <Input
-                    value={b[editLang]}
+                    value={localizedText(b)}
                     onChange={(e) => setBullet(idx, e.target.value)}
                   />
                   <Button
@@ -541,10 +530,8 @@ const EventFields = ({
         <FieldLabel>{t("admin.eventsBoard.noteLabel")}</FieldLabel>
         <Textarea
           rows={2}
-          value={item.note[editLang]}
-          onChange={(e) =>
-            onChange({ note: setLocalized(item.note, editLang, e.target.value) })
-          }
+          value={localizedText(item.note)}
+          onChange={(e) => onChange({ note: setLocalizedText(item.note, e.target.value) })}
         />
       </div>
 
@@ -560,7 +547,7 @@ const EventFields = ({
                 {t("admin.eventsBoard.buttonTextLabel")}
               </Label>
               <Input
-                value={b.label[editLang]}
+                value={localizedText(b.label)}
                 onChange={(e) => setButtonLabel(idx, e.target.value)}
               />
             </div>
@@ -671,12 +658,11 @@ const EventFields = ({
 
 type SortableCardProps = {
   item: EventItem;
-  editLang: Lang;
   onChange: (patch: Partial<EventItem>) => void;
   onDelete: () => void;
 };
 
-const SortableCard = ({ item, editLang, onChange, onDelete }: SortableCardProps) => {
+const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
   const { t } = useTranslation();
   const {
     attributes,
@@ -755,7 +741,6 @@ const SortableCard = ({ item, editLang, onChange, onDelete }: SortableCardProps)
 
       <EventFields
         item={eventItem}
-        editLang={editLang}
         onChange={(p) => onChange(p as Partial<EventItem>)}
       />
     </li>
@@ -767,9 +752,10 @@ const EventsBoardManager = () => {
   const [board, setBoard] = useState<EventsBoard>(EVENTS_BOARD_DEFAULT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editLang, setEditLang] = useState<Lang>("es");
   const [open, setOpen] = useState(false);
   const [bannerErrors, setBannerErrors] = useState(false);
+  /** Set when a save wrote the typed text into both slots because translation failed. */
+  const [translationFailed, setTranslationFailed] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -825,10 +811,10 @@ const EventsBoardManager = () => {
   };
 
   const onSave = async () => {
-    // EVENTS.1 — the save-side half of the ES trap.
+    // EVENTS.I18N.1 — the save-side half of the banner trap.
     //
     // TITANS.OFF.1 keeps the Titans editor off screen, so its stored banner is
-    // NOT guarded here: an old row left enabled with empty ES would otherwise
+    // NOT guarded here: an old row left enabled with empty text would otherwise
     // block every save from a field the owner cannot see to fix. Only banners
     // with a visible editor can refuse a save.
     const guarded: PageBanner[] = [
@@ -839,7 +825,7 @@ const EventsBoardManager = () => {
     if (guarded.some(bannerBlocked)) {
       setBannerErrors(true);
       toast({
-        title: t("admin.eventsBoard.bannerEsRequired"),
+        title: t("admin.eventsBoard.bannerTextRequired"),
         variant: "destructive",
       });
       return;
@@ -848,8 +834,24 @@ const EventsBoardManager = () => {
 
     setSaving(true);
     try {
-      await setEventsBoard(board);
-      toast({ title: t("admin.eventsBoard.saved") });
+      // Whatever the owner typed is the source. Detect its language and fill the
+      // other slot. A field that could not be translated keeps the typed text in
+      // BOTH slots — never a stale mismatch, and never a blocked save.
+      const { board: translated, failed } = await syncBoardTranslations(board);
+      setBoard(translated);
+      setTranslationFailed(failed > 0);
+
+      await setEventsBoard(translated);
+
+      if (failed > 0) {
+        toast({
+          title: t("admin.eventsBoard.translationFailed"),
+          description: t("admin.eventsBoard.translationFailedHelp"),
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: t("admin.eventsBoard.saved") });
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
       toast({
@@ -916,7 +918,6 @@ const EventsBoardManager = () => {
             name="Main banner"
             qa="main"
             banner={board.mainBanner}
-            editLang={editLang}
             loading={loading}
             showErrors={bannerErrors}
             colorOptions={[
@@ -935,7 +936,6 @@ const EventsBoardManager = () => {
             name="Green World banner"
             qa="greenWorld"
             banner={board.greenWorldBanner}
-            editLang={editLang}
             loading={loading}
             showErrors={bannerErrors}
             colorOptions={[
@@ -954,7 +954,6 @@ const EventsBoardManager = () => {
               name="Titans banner"
               qa="titans"
               banner={board.titansBanner}
-              editLang={editLang}
               loading={loading}
               showErrors={bannerErrors}
               colorOptions={[
@@ -971,27 +970,21 @@ const EventsBoardManager = () => {
         </div>
 
 
-        <div className="flex items-center gap-3">
-          <Label className="text-xs text-muted-foreground">
-            {t("admin.eventsBoard.editLangLabel")}
-          </Label>
-          <div className="flex rounded-md border border-border overflow-hidden">
-            {(["es", "en"] as const).map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => setEditLang(l)}
-                className={`px-3 py-1 text-xs uppercase ${
-                  editLang === l
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-transparent text-muted-foreground hover:bg-accent/10"
-                }`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* EVENTS.I18N.1 — one field per thing. Type in whichever language you
+            think in; the other side is written for you on save. */}
+        <p className="text-xs text-muted-foreground">
+          {t("admin.eventsBoard.autoTranslateHelp")}
+        </p>
+
+        {translationFailed && (
+          <p
+            data-qa="translation-failed"
+            role="alert"
+            className="text-xs text-destructive"
+          >
+            {t("admin.eventsBoard.translationFailedHelp")}
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -1030,7 +1023,6 @@ const EventsBoardManager = () => {
                   <SortableCard
                     key={item.id}
                     item={item}
-                    editLang={editLang}
                     onChange={(patch) => updateItem(item.id, patch)}
                     onDelete={() => deleteItem(item.id)}
                   />
@@ -1053,7 +1045,7 @@ const EventsBoardManager = () => {
                 {t("admin.eventsBoard.emptyState")}
               </p>
             ) : (
-              <EventsGrid items={board.items} lang={editLang} />
+              <EventsGrid items={board.items} />
             )}
           </div>
         </div>

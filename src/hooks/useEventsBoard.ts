@@ -1,7 +1,49 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Localized = { es: string; en: string };
+export type Lang = "es" | "en";
+
+/**
+ * EVENTS.I18N.1 — the storage shape stays {es,en}: every public reader keeps
+ * asking for the locale it wants and gets it. What the admin adds is bookkeeping
+ * the public site never looks at:
+ *
+ *   src     — which slot the owner actually typed. The admin's single field
+ *             shows this one back, so re-opening a card shows your own words,
+ *             not a translation of them.
+ *   pending — the other slot is a copy of the source, not a translation of it
+ *             (the owner just typed, or the translation failed). The next
+ *             successful save clears it.
+ *
+ * Both are optional: every row written before this brick parses unchanged.
+ */
+export type Localized = { es: string; en: string; src?: Lang; pending?: boolean };
+
+/**
+ * Which slot the owner typed. Rows written before `src` existed fall back to
+ * whichever slot has text, Spanish first — the site is ES-primary.
+ */
+export const localizedSource = (v: Localized): Lang =>
+  v.src === "es" || v.src === "en"
+    ? v.src
+    : (v.es ?? "").trim()
+      ? "es"
+      : (v.en ?? "").trim()
+        ? "en"
+        : "es";
+
+/** The one string the admin shows for this field. */
+export const localizedText = (v: Localized): string => v[localizedSource(v)] ?? "";
+
+/**
+ * The owner typed. Language is unknown until save, so both slots take the text
+ * verbatim and the field is marked `pending`: nothing on the public site can
+ * read a stale mismatch in the meantime, and save knows there is work to do.
+ */
+export const setLocalizedText = (v: Localized, text: string): Localized =>
+  text.trim()
+    ? { es: text, en: text, src: v.src, pending: true }
+    : { es: "", en: "" };
 
 export type ButtonIcon =
   | "auto" | "website" | "instagram" | "tiktok"
@@ -129,10 +171,13 @@ const isObj = (v: unknown): v is Record<string, unknown> =>
 
 const coerceLocalized = (v: unknown): Localized => {
   if (!isObj(v)) return { es: "", en: "" };
-  return {
+  const out: Localized = {
     es: typeof v.es === "string" ? v.es : "",
     en: typeof v.en === "string" ? v.en : "",
   };
+  if (v.src === "es" || v.src === "en") out.src = v.src;
+  if (v.pending === true) out.pending = true;
+  return out;
 };
 
 const VALID_ICONS: ButtonIcon[] = [
@@ -236,6 +281,56 @@ export const parseBoard = (value: unknown): EventsBoard => {
     titansBanner,
     items,
   };
+};
+
+/**
+ * Every localized field on a board, in one place. Both walkers below drive off
+ * this list, so a new localized field is wired into detection and translation by
+ * adding it here once — not in two places that can drift apart.
+ */
+const mapBannerLocalized = (
+  b: PageBanner,
+  fn: (v: Localized) => Localized,
+): PageBanner => ({ ...b, label: fn(b.label), text: fn(b.text) });
+
+const mapItemLocalized = (
+  it: EventItem,
+  fn: (v: Localized) => Localized,
+): EventItem => ({
+  ...it,
+  title: fn(it.title),
+  badge: fn(it.badge),
+  description: fn(it.description),
+  note: fn(it.note),
+  bullets: (it.bullets ?? []).map(fn),
+  buttons: it.buttons.map((btn) => ({ ...btn, label: fn(btn.label) })),
+});
+
+/** Rewrite every localized field on the board. `bannerText` stays a true mirror. */
+export const mapBoardLocalized = (
+  board: EventsBoard,
+  fn: (v: Localized) => Localized,
+): EventsBoard => {
+  const mainBanner = mapBannerLocalized(board.mainBanner, fn);
+  return {
+    ...board,
+    mainBanner,
+    greenWorldBanner: mapBannerLocalized(board.greenWorldBanner, fn),
+    titansBanner: mapBannerLocalized(board.titansBanner, fn),
+    items: board.items.map((it) => mapItemLocalized(it, fn)),
+    bannerText: mainBanner.text,
+  };
+};
+
+/** Visit every localized field on the board without changing it. */
+export const forEachBoardLocalized = (
+  board: EventsBoard,
+  fn: (v: Localized) => void,
+): void => {
+  mapBoardLocalized(board, (v) => {
+    fn(v);
+    return v;
+  });
 };
 
 export const fetchEventsBoard = async (): Promise<EventsBoard> => {

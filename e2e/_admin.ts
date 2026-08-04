@@ -93,6 +93,14 @@ type RouteOpts = {
    * in the app. Pass `{ items: [] }` to serve a genuinely card-less board.
    */
   eventsBoard?: unknown;
+  /**
+   * EVENTS.I18N.1 — how the mocked `translate-text` edge function answers one
+   * request. Return `null` to make the function fail (500), which is how the
+   * "saved but not translated" path is driven. Absent → a deterministic stub
+   * that reports Spanish and prefixes the echo, so a spec that never asked
+   * about translation still saves offline.
+   */
+  translate?: (text: string) => { source: "es" | "en"; translation: string } | null;
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -113,6 +121,39 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
     const url = route.request().url();
     if (url.includes("/logout")) return route.fulfill({ status: 204, body: "" });
     return route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
+  });
+
+  // EVENTS.I18N.1 — the admin's single field is filled out to both locales by
+  // this function, so the gate has to be able to make it succeed AND fail.
+  const translate =
+    opts.translate ?? ((text: string) => ({ source: "es" as const, translation: `EN ${text}` }));
+  await page.route("**/functions/v1/translate-text", (route: Route) => {
+    const req = route.request();
+    const body = req.postData();
+    opts.writes?.push({ method: req.method(), url: req.url(), body });
+    let text = "";
+    try {
+      text = JSON.parse(body ?? "{}").text ?? "";
+    } catch {
+      /* malformed body → treated as empty, same as the real function */
+    }
+    const answer = translate(text);
+    if (!answer) {
+      return route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "AI error" }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        source: answer.source,
+        target: answer.source === "es" ? "en" : "es",
+        translation: answer.translation,
+      }),
+    });
   });
 
   await page.route("**/storage/v1/**", (route: Route) => {
