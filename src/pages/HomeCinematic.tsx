@@ -15,7 +15,7 @@ import {
 import CinematicHero from "@/components/cinematic/CinematicHero";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import { resolveReelChapter } from "@/components/cinematic/reelChapters";
-import CinematicBook from "@/components/cinematic/CinematicBook";
+import CinematicEvents from "@/components/cinematic/CinematicEvents";
 import CinematicGreenWorldSeq from "@/components/cinematic/CinematicGreenWorldSeq";
 import CinematicTitans from "@/components/cinematic/CinematicTitans";
 import CinematicActing from "@/components/cinematic/CinematicActing";
@@ -209,11 +209,21 @@ const HomeCinematic = () => {
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
 
-      {/* BOOK.ACT.1 — the coming-soon book teaser, immediately before Green
-          World in the scroll order. Publisher law: it reuses the /book page's
-          bilingual coming-soon strings only — no title, date, cover, or
-          purchase language until Cristyna confirms them. */}
-      <CinematicBook reduced={prefersReduced} />
+      {/* EVENTS.1 — the Events act HAS THIS SLOT, replacing the BOOK.ACT.1
+          coming-soon teaser that held it (CinematicBook stays in the repo,
+          unmounted, with the swap recorded on it). Same position: after the
+          gallery, immediately before Green World.
+
+          Mounted UNCONDITIONALLY, unlike the flagged acts above and below. The
+          flag lives INSIDE the component and gates its CONTENTS only, because
+          this act's section must be in the DOM at every paint for ScrollTrigger
+          order to hold — see the late-mount law in CinematicEvents. A
+          `{FLAG && ...}` wrapper here would be the bug that law exists to
+          prevent.
+
+          Ships dark: zero enabled cards exist, and lighting it with none still
+          paints nothing. */}
+      <CinematicEvents reduced={prefersReduced} />
 
       {/* TA.7: ventures acts — full-viewport cinematic sections that replaced
           the old TA.6b split-panel (archived).

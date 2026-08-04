@@ -143,6 +143,38 @@ export const TITANS_ENABLED = false;
 export const ACTING_ACT_ENABLED = false;
 
 /**
+ * EVENTS.1 (2026-08-04) — the Events act takes the Book slot, and ships DARK.
+ *
+ * Owner ruling: the cinematic Book coming-soon act is REPLACED in the flow by an
+ * Events act — the same slot, position 5, after the gallery and immediately
+ * before Green World. Book was a teaser for something with no date; Events is a
+ * window on what Cristyna is actually doing this month, and it earns that slot by
+ * being the only act on the page whose content changes on its own.
+ *
+ * What this gates: the CONTENTS of the Events act, not its mount. The act's
+ * <section> is in the DOM at every paint whether this is true or false — that is
+ * the late-mount law (CinematicSocials), and it is load-bearing: GSAP pins by
+ * wrapping an element in a pin-spacer, so a section that arrives late is inserted
+ * against a DOM React no longer recognises and takes the whole page down with an
+ * insertBefore error. Flipping this flag must never change the page's DOM order.
+ *
+ * Why it ships dark: ZERO enabled cards exist. The act reads the live
+ * `events_board` row, and an act with nothing to show is not an act — the same
+ * standard that keeps the Acting act dark on one honest credit. Flipping this to
+ * `true` lights the act; it does NOT invent content, because zero cards still
+ * paints nothing (honest emptiness) by design.
+ *
+ * NOT gated, and deliberately: the /events page, EventCard, EventsGrid,
+ * EventsBoardManager and the sitewide marquee. The events feature family is kept
+ * everywhere — this flag is about one act on one page.
+ *
+ * v1 behind this flag is SCAFFOLD, not composition. The act's real design comes
+ * from the EVENTS.2 bake-off, which also brings the uniform dwell wiring (a dark
+ * act has nothing to dwell on).
+ */
+export const EVENTS_ACT_ENABLED = false;
+
+/**
  * PORT.SOC.12 (2026-08-03) — the Socials act is LIVE.
  *
  * Flipped on after the walk: composition B, walked and confirmed by Joey on

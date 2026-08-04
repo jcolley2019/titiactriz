@@ -3,6 +3,22 @@ import { shot } from "./_helpers";
 import { routeSupabase } from "./_admin";
 
 /**
+ * SKIPPED (EVENTS.1, 2026-08-04) — this gate has no subject.
+ *
+ * Owner ruling: the Book act is UNMOUNTED from the cinematic home; the Events
+ * act took its slot (position 5, after the gallery, before Green World). Every
+ * law below is measured on a live render of an act that no longer paints, so
+ * the file would fail for a reason that is not a defect.
+ *
+ * It is SKIPPED rather than deleted, to match the component: CinematicBook.tsx
+ * stays in the repo with the swap and the publisher-law status recorded on it,
+ * and re-mounting it in HomeCinematic is the whole revive. This gate is what
+ * would prove that revive, so it is kept intact and waiting — not rewritten,
+ * because the act it describes has not changed a line.
+ */
+test.skip(true, "EVENTS.1 — the Book act is unmounted; the Events act holds its slot");
+
+/**
  * BOOK.ACT.2 — the Book act holds, fills its stage, and seals its seam.
  *
  * The act shipped (BOOK.ACT.1) at `min-h-[80svh]` with no pin. Two defects

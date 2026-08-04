@@ -2,6 +2,24 @@ import { expect, test, type Page } from "@playwright/test";
 import { shot } from "./_helpers";
 
 /**
+ * SKIPPED (EVENTS.1, 2026-08-04) — this gate has no subject.
+ *
+ * Owner ruling: the Book act is UNMOUNTED from the cinematic home; the Events
+ * act took its slot (position 5, after the gallery, before Green World). The
+ * laws below are measured on a live render of an act that no longer paints.
+ *
+ * Kept, not deleted — CinematicBook.tsx is still in the repo and re-mounting it
+ * is the whole revive, which this gate is what would prove.
+ *
+ * PUBLISHER LAW is NOT suspended by this skip. It never depended on this file:
+ * it binds the /book PAGE, which is untouched and still covered by its own
+ * gates, and it binds the act itself the moment it is ever re-mounted. Nothing
+ * about the swap clears the book to name a title, a date, a cover, a price, or
+ * to capture an email — that still takes written publisher clearance.
+ */
+test.skip(true, "EVENTS.1 — the Book act is unmounted; the Events act holds its slot");
+
+/**
  * BOOK.ACT.1 — the coming-soon book teaser act on the cinematic home.
  *
  * PUBLISHER LAW (strict): the act is a teaser ONLY — it may not name a title,

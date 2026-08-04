@@ -12,6 +12,25 @@ gsap.registerPlugin(ScrollTrigger);
  * BOOK.ACT.1 — the book teaser, between the gallery and Green World.
  * BOOK.ACT.2 — it now holds, fills its stage, and seals its seam.
  *
+ * ## UNMOUNTED (EVENTS.1, 2026-08-04)
+ *
+ * Owner ruling: this act is REPLACED in the cinematic home flow by the Events
+ * act, which now holds this exact slot (position 5, after the gallery and
+ * immediately before Green World) — see CinematicEvents and the flag note in
+ * ventures.ts. Book was a teaser for something with no date; Events is a window
+ * on what Cristyna is actually doing.
+ *
+ * The ruling was UNMOUNT, not delete. This component, its styles and its locale
+ * keys all stay exactly as they were, and re-mounting it in HomeCinematic is the
+ * whole revive. Its own gates (bookact2.spec.ts, review3-bookact.spec.ts) are
+ * skipped rather than deleted, and point back here.
+ *
+ * PUBLISHER LAW STATUS — UNCHANGED and still binding. Nothing about this swap
+ * relaxes it: the act remains a coming-soon teaser only, naming no title, date,
+ * cover, or way to buy, and carrying no email capture, until written publisher
+ * clearance exists. If it is ever re-mounted it re-enters under that law, with
+ * the same /book locale keys and no new claims. The /book page is untouched.
+ *
  * PUBLISHER LAW (strict): this act is a coming-soon teaser ONLY. It names no
  * title, no date, no cover, and no way to buy — none of that is settled, and
  * PRODUCT.md's owner-truth rule means the copy cannot run ahead of what

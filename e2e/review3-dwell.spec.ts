@@ -7,9 +7,17 @@ import { ACTING_ACT_ENABLED } from "../src/lib/ventures";
  * REVIEW.3a — the UNIFORM dwell law.
  *
  * Every story act pins with the About standard — `start: "top top"`,
- * `end: "+=120%"` — before it releases: the gallery, the Book announcement
- * (BOOK.ACT.2), About, and contact. The scrub showcases (Green World and
- * TitiLinks) keep their own `+=300%` timelines and are not this file's business.
+ * `end: "+=120%"` — before it releases: the gallery, About, and contact. The
+ * scrub showcases (Green World and TitiLinks) keep their own `+=300%` timelines
+ * and are not this file's business.
+ *
+ * EVENTS.1 — the Book announcement (BOOK.ACT.2) was on this list and is OFF it,
+ * because the act is unmounted: the Events act took its slot and ships dark, and
+ * a dark act renders an empty section with no stage to pin and nothing to hold
+ * the frame for. The dwell law is not being relaxed for it — it does not apply
+ * yet. The Events act joins this list in EVENTS.2, when its composition lands
+ * and it has content worth a beat of stillness, and it will be measured by
+ * exactly these laws.
  *
  * PORT.ACT.4 — the Acting act is a story act too, so it joins this list the
  * moment `ACTING_ACT_ENABLED` flips and is measured by exactly the same laws.
@@ -20,8 +28,8 @@ import { ACTING_ACT_ENABLED } from "../src/lib/ventures";
  *
  *  1. EACH STORY ACT DWELLS — engages at the top of the frame, holds through
  *     the dwell, releases after +=120%.
- *  2. THE DWELL IS UNIFORM — the four acts' pin distances are the SAME
- *     distance, not four numbers that happen to be near each other.
+ *  2. THE DWELL IS UNIFORM — the story acts' pin distances are the SAME
+ *     distance, not several numbers that happen to be near each other.
  *  3. THE GALLERY STAYS ALIVE WHILE PINNED — hover still pauses the marquee,
  *     and a click still opens the lightbox, mid-dwell.
  *  4. THE FORM STAYS USABLE WHILE PINNED — an input can be clicked, focused
@@ -29,7 +37,7 @@ import { ACTING_ACT_ENABLED } from "../src/lib/ventures";
  *  5. THE FOOTER NEVER PINS — the dwell law stops at the footer.
  *  6. REDUCED MOTION SKIPS EVERY PIN.
  *
- * Evidence: _qa/review3-dwell-{gallery,book,about,contact}.png — each act held
+ * Evidence: _qa/review3-dwell-{gallery,about,contact}.png — each act held
  * mid-dwell.
  */
 
@@ -44,7 +52,6 @@ const ACTS: ReadonlyArray<{ name: string; sel: string }> = [
   // spacer's ancestor, so it is the stage that carries the dwell.
   ...(ACTING_ACT_ENABLED ? [{ name: "acting", sel: '[data-qa="acting-stage"]' }] : []),
   { name: "gallery", sel: '[data-qa="cinematic-gallery"]' },
-  { name: "book", sel: '[data-qa="cinematic-book"]' },
   { name: "about", sel: "#cinematic-about" },
   { name: "contact", sel: "#contact" },
 ];

@@ -94,7 +94,11 @@ const MARKERS: ReadonlyArray<{ name: string; sel: string }> = [
   { name: "reel", sel: '[data-qa="reel-slide"]' },
   { name: "acting", sel: '[data-qa="cinematic-acting"]' },
   { name: "gallery", sel: '[data-qa="cinematic-gallery"]' },
-  { name: "book", sel: '[data-qa="cinematic-book"]' },
+  // EVENTS.1 — the Events act holds slot 5, where the Book act used to. It is
+  // UNCONDITIONAL here, unlike `acting` below: the act is dark, but the late-
+  // mount law puts its (empty) section in the DOM at every paint, and this
+  // census is exactly the thing that would catch it going missing.
+  { name: "events", sel: '[data-qa="cinematic-events"]' },
   { name: "greenworld", sel: '[data-qa="cinematic-greenworld-seq"]' },
   { name: "titilinks", sel: '[data-qa="cinematic-titilinks"]' },
   { name: "about", sel: "#cinematic-about" },
