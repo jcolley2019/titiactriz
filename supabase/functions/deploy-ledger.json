@@ -1,7 +1,7 @@
 {
   "comment": "BUILD.GATE.3 — last-known-synced state of deployed edge functions. ezbr_sha256 comes from `npx supabase functions list`; it hashes the deployed bundle, so it cannot be recomputed from source — it changes on every deploy. `npm run drift` compares live values against this file: a mismatch means someone deployed (e.g. via dashboard) since the repo was last synced, i.e. the repo copy may be stale. After any intentional deploy or repo re-sync, update the sha here in the same commit.",
-  "pendingDeployComment": "PORT.SOC.7 — `unfurl` exists in supabase/functions/ but is NOT deployed and deliberately NOT listed under `functions` below: the drift gate fails a ledgered function that is not live. Deploying it is a supervised step — deploy, read its ezbr_sha256 from `npx supabase functions list`, move the slug into `functions` in the SAME commit, then `npm run drift` must go green.",
-  "pendingDeploy": ["unfurl"],
+  "pendingDeployComment": "A function that is written and committed but NOT yet deployed goes here, not in `functions` below: the drift gate fails a ledgered function that is not live, and it equally fails a live function that is not ledgered. Deploying is a supervised step — deploy, read its ezbr_sha256 from `npx supabase functions list`, move the slug into `functions` in the SAME commit, then `npm run drift` must go green. (Emptied 2026-08-03 by UNFURL.DEPLOY.1, which walked `unfurl` through exactly that path.)",
+  "pendingDeploy": [],
   "projectRef": "nsmstwkjbjicpdclgecq",
   "functions": {
     "generate-alt-text": {
@@ -13,6 +13,11 @@
       "ezbr_sha256": "59a4b31d29af025188d0682785379b3b27cb75347bdb670d1907702b0677b1e8",
       "version": 2,
       "verifiedInSync": "2026-07-31 — deployed source downloaded and diffed content-identical against repo (CRLF-only difference)"
+    },
+    "unfurl": {
+      "ezbr_sha256": "37b359b9cbc99df985f6edf6032a0efff8f227002ec476e31bb820a6f18ff1bb",
+      "version": 1,
+      "verifiedInSync": "2026-08-03 — first deploy (UNFURL.DEPLOY.1), supervised by Joey; sha read from `npx supabase functions list` immediately after `supabase functions deploy unfurl`. Live verify_jwt=true, i.e. the UNFURL-JWT invariant holds on the deployed function, not just in config.toml."
     }
   }
 }

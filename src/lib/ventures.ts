@@ -187,14 +187,16 @@ export const SOCIALS_ACT_VARIANT: "A" | "B" | "C" | null = "B";
 /**
  * PORT.SOC.8 (2026-08-02) — is the `unfurl` edge function LIVE on the project?
  *
- * The function is written and committed (supabase/functions/unfurl) but has not
- * been deployed: law 5 says repo state is not deployed state, and deploying is
- * a supervised step that ends with the slug entering deploy-ledger.json and
- * `npm run drift` going green. Until then the admin Links tab still renders its
- * "refresh preview" control — it is the real control, not a mock — but says
- * plainly above it that the service is not live yet, so a failed refresh reads
- * as "not deployed" rather than "broken".
+ * UNFURL.DEPLOY.1 (2026-08-03): yes. Deployed to nsmstwkjbjicpdclgecq, supervised
+ * by Joey, and ledgered in the same commit — ezbr_sha256
+ * 37b359b9cbc99df985f6edf6032a0efff8f227002ec476e31bb820a6f18ff1bb, read from
+ * `npx supabase functions list` after the deploy (law 5: the sha comes from the
+ * live project, never from a local hash). `npm run drift` is green with the slug
+ * in deploy-ledger.json, which is the proof it is live rather than merely
+ * committed. The live function reports verify_jwt=true, so its only door is still
+ * the platform default that UNFURL-JWT guards.
  *
- * Flip this to `true` in the SAME commit that adds `unfurl` to the ledger.
+ * With this true, the admin Links tab drops its "not live yet" notice and the
+ * refresh control's failures mean a real failure again.
  */
-export const UNFURL_DEPLOYED = false;
+export const UNFURL_DEPLOYED = true;
