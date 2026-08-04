@@ -5,6 +5,7 @@ import type {
   EventItem,
   EventButton,
   ButtonIcon,
+  ImageAspect,
   Localized,
 } from "@/hooks/useEventsBoard";
 
@@ -268,6 +269,66 @@ const VideoBlock = ({
 };
 
 
+/* ---------- Image ---------- */
+
+/**
+ * The image well. Landscape art keeps the historic treatment — full width, a
+ * horizontal band cropped to 420px. Portrait art is never cropped: it is fitted
+ * whole inside its own intrinsic ratio and capped in height, so a 9:16 poster
+ * reads tall without swallowing the page.
+ *
+ * "auto" asks the file. Until the browser has decoded it there is nothing to
+ * ask, so the well starts landscape — which is what every row written before
+ * this field carried anyway — and switches the moment `naturalHeight` is known.
+ */
+const PORTRAIT_MAX_H = "max-h-[min(560px,70vh)]";
+const LANDSCAPE_MAX_H = "max-h-[420px]";
+
+type ResolvedAspect = "landscape" | "portrait";
+
+const EventImage = ({
+  src,
+  alt,
+  isFull,
+  aspect,
+}: {
+  src: string;
+  alt: string;
+  isFull: boolean;
+  aspect: ImageAspect;
+}) => {
+  const [measured, setMeasured] = useState<ResolvedAspect | null>(null);
+
+  const resolved: ResolvedAspect =
+    aspect === "auto" ? (measured ?? "landscape") : aspect;
+  const isPortrait = resolved === "portrait";
+
+  return (
+    <div className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        data-qa="event-card-image"
+        data-aspect={resolved}
+        data-aspect-source={aspect}
+        onLoad={(e) => {
+          if (aspect !== "auto") return;
+          const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+          if (!w || !h) return;
+          setMeasured(h > w ? "portrait" : "landscape");
+        }}
+        className={
+          isPortrait
+            ? `mx-auto w-auto h-auto max-w-full ${PORTRAIT_MAX_H} object-contain rounded-md`
+            : `w-full h-auto ${LANDSCAPE_MAX_H} object-cover rounded-md`
+        }
+        style={{ border: `1px solid ${GOLD}` }}
+      />
+    </div>
+  );
+};
+
 /* ---------- Icons ---------- */
 
 const IconWebsite = ({ className }: { className?: string }) => (
@@ -358,6 +419,7 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
     note?: Localized;
     imageUrl?: string;
     imagePosition?: "above" | "below";
+    imageAspect?: ImageAspect;
     bulletsOn?: boolean;
     bullets?: Localized[];
     videoUrl?: string;
@@ -372,6 +434,10 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
 
   const imageUrl = (v.imageUrl || "").trim();
   const imagePosition = v.imagePosition === "below" ? "below" : "above";
+  const imageAspect: ImageAspect =
+    v.imageAspect === "landscape" || v.imageAspect === "portrait"
+      ? v.imageAspect
+      : "auto";
   const videoUrl = (v.videoUrl || "").trim();
 
   const bulletList = (v.bullets ?? [])
@@ -389,15 +455,12 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
 
 
   const Image = imageUrl ? (
-    <div className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
-      <img
-        src={imageUrl}
-        alt={title || ""}
-        loading="lazy"
-        className="w-full h-auto max-h-[420px] object-cover rounded-md"
-        style={{ border: `1px solid ${GOLD}` }}
-      />
-    </div>
+    <EventImage
+      src={imageUrl}
+      alt={title || ""}
+      isFull={isFull}
+      aspect={imageAspect}
+    />
   ) : null;
 
   return (

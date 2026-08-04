@@ -9,6 +9,16 @@ export type ButtonIcon =
 
 export type EventButton = { label: Localized; url: string; icon?: ButtonIcon };
 
+/**
+ * How a card's image well treats the artwork it is given.
+ *   landscape — the historic well: full width, cropped to a horizontal band.
+ *   portrait  — tall art, shown whole, capped so a 9:16 poster cannot own the page.
+ *   auto      — the shape is read off the image itself (the default; rows written
+ *               before this field existed keep their landscape rendering because
+ *               their art is landscape, not because the field says so).
+ */
+export type ImageAspect = "landscape" | "portrait" | "auto";
+
 type BaseItem = { id: string; size: "full" | "half"; title: Localized };
 
 export type EventCardItem = BaseItem & {
@@ -18,6 +28,7 @@ export type EventCardItem = BaseItem & {
   buttons: EventButton[];
   imageUrl?: string;
   imagePosition?: "above" | "below";
+  imageAspect?: ImageAspect;
   bulletsOn?: boolean;
   bullets?: Localized[];
   videoUrl?: string;
@@ -98,6 +109,7 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
       },
       imageUrl: "",
       imagePosition: "above",
+      imageAspect: "auto",
       bulletsOn: false,
       bullets: [],
       videoUrl: "",
@@ -141,6 +153,11 @@ const coerceButton = (v: unknown): EventButton | null => {
 const coerceSize = (v: unknown): "full" | "half" => (v === "half" ? "half" : "full");
 const coercePosition = (v: unknown): "above" | "below" => (v === "below" ? "below" : "above");
 
+// Anything a stored row does not say — including every row written before the
+// field existed — means "auto". No migration, no rewrite of live JSON.
+const coerceAspect = (v: unknown): ImageAspect =>
+  v === "landscape" || v === "portrait" ? v : "auto";
+
 const coerceItem = (v: unknown): EventItem | null => {
   if (!isObj(v)) return null;
   const id = typeof v.id === "string" && v.id ? v.id : null;
@@ -158,6 +175,7 @@ const coerceItem = (v: unknown): EventItem | null => {
     note: coerceLocalized(v.note),
     imageUrl: typeof v.imageUrl === "string" ? v.imageUrl : "",
     imagePosition: coercePosition(v.imagePosition),
+    imageAspect: coerceAspect(v.imageAspect),
     bulletsOn: v.bulletsOn === true,
     bullets,
     videoUrl: typeof v.videoUrl === "string" ? v.videoUrl : "",

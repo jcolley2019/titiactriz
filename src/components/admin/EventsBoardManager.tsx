@@ -56,6 +56,7 @@ const makeEvent = (): EventCardItem => ({
   note: emptyLocalized(),
   imageUrl: "",
   imagePosition: "above",
+  imageAspect: "auto",
   bulletsOn: false,
   bullets: [],
   videoUrl: "",
@@ -448,6 +449,32 @@ const EventFields = ({
               )}
             </button>
           ))}
+        </div>
+        <div className="space-y-1">
+          <FieldLabel>{t("admin.eventsBoard.imageAspectLabel")}</FieldLabel>
+          <div className="flex rounded-md border border-border overflow-hidden w-fit">
+            {(["auto", "landscape", "portrait"] as const).map((aspect) => (
+              <button
+                key={aspect}
+                type="button"
+                data-qa={`event-aspect-${aspect}`}
+                onClick={() => onChange({ imageAspect: aspect })}
+                className={`px-3 py-1 text-xs ${
+                  (item.imageAspect ?? "auto") === aspect
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-transparent text-muted-foreground hover:bg-accent/10"
+                }`}
+              >
+                {t(
+                  aspect === "auto"
+                    ? "admin.eventsBoard.imageAspectAuto"
+                    : aspect === "landscape"
+                      ? "admin.eventsBoard.imageAspectLandscape"
+                      : "admin.eventsBoard.imageAspectPortrait",
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
