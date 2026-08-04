@@ -18,6 +18,11 @@
       "ezbr_sha256": "37b359b9cbc99df985f6edf6032a0efff8f227002ec476e31bb820a6f18ff1bb",
       "version": 1,
       "verifiedInSync": "2026-08-03 — first deploy (UNFURL.DEPLOY.1), supervised by Joey; sha read from `npx supabase functions list` immediately after `supabase functions deploy unfurl`. Live verify_jwt=true, i.e. the UNFURL-JWT invariant holds on the deployed function, not just in config.toml."
+    },
+    "translate-text": {
+      "ezbr_sha256": "cf551a9950c0dc10c6b531c3227afc737b6a5261d28ae500835dab0f94486d1f",
+      "version": 1,
+      "verifiedInSync": "2026-08-04 — first deploy (EVENTS.I18N.1), walked through the UNFURL.DEPLOY.1 recipe: deployed, sha read from `npx supabase functions list` immediately after, slug ledgered in the SAME commit. Live verify_jwt=true, so the admin's own session token is what authorises it — the function then re-checks has_role('admin') itself, exactly as generate-alt-text does."
     }
   }
 }
