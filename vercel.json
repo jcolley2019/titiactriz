@@ -1,4 +1,9 @@
 {
+  "redirects": [
+    { "source": "/work", "destination": "/", "statusCode": 301 },
+    { "source": "/socials", "destination": "/", "statusCode": 301 },
+    { "source": "/cinematic", "destination": "/", "statusCode": 301 }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
