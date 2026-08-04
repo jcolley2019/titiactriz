@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import webeditConnect from "./webedit-connect.plugin";
 
 // CLEAN.LOVABLE.1 — the site left Lovable; its build plugins are gone with it.
 // `componentTagger` annotated the DOM for Lovable's visual editor, which nothing
@@ -15,7 +16,7 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
   },
-  plugins: [react()],
+  plugins: [react(), webeditConnect()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
