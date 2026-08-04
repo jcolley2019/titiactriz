@@ -328,14 +328,17 @@ test.describe("ADMIN.ABOUT.3 — the rail clamp is dead and the act still balanc
           page.locator('#cinematic-about [data-qa="section-heading"]'),
           `${where}: the belief statement`,
         ).toBeVisible();
-        await expect(
-          page.locator('#cinematic-about a[href="/work"]'),
-          `${where}: the CTA`,
-        ).toBeVisible();
+        // PORT.ACT.10 — the /work CTA that used to close the stack is gone
+        // with the page it pointed at, so the chips are now the act's last
+        // element and carry this check on their own.
         expect(
           await page.locator("#cinematic-about .cine-a-chips span").count(),
           `${where}: the four strength chips`,
         ).toBe(4);
+        await expect(
+          page.locator('#cinematic-about a[href="/work"]'),
+          `${where}: no link survives to the deleted /work page`,
+        ).toHaveCount(0);
 
         // Nothing overflows the act's own padding, at any frame.
         expect(

@@ -12,8 +12,6 @@
     "titansAgency": "Titans Agency",
     "titansShort": "Titans",
     "greenWorld": "Green World",
-    "portfolio": "Portafolio",
-    "socials": "Redes Sociales",
     "contact": "Contacto",
     "comingSoon": "¡Próximamente!!!",
     "book": "El Libro",
@@ -35,16 +33,14 @@
     },
     "buttons": {
       "titans": "Titans Agency",
-      "greenWorld": "Green World",
-      "portfolio": "Portafolio"
+      "greenWorld": "Green World"
     },
     "guidedBy": "Guiada por el deseo de...",
     "guidedByText": "despertar curiosidad, creatividad y conexión.",
     "cta": "Trabaja con Cristyna",
     "rolesLine": "ACTRIZ · TIKTOKER · EMPRESARIA",
     "tagline": "Creo impacto con presencia, actuación y propósito.",
-    "subtitle": "Doy vida a las historias a través del movimiento y la emoción — cada papel es un viaje, cada actuación una conexión.",
-    "ctaPortfolio": "Ver portafolio"
+    "subtitle": "Doy vida a las historias a través del movimiento y la emoción — cada papel es un viaje, cada actuación una conexión."
   },
   "about": {
     "eyebrow": "Sobre Mí",
@@ -57,28 +53,6 @@
       "discipline": "Disciplina escénica",
       "creative": "Dirección creativa",
       "brand": "Construcción de marca"
-    },
-    "viewWork": "Ver Portafolio"
-  },
-  "strengths": {
-    "eyebrow": "Fortalezas",
-    "title": "Lo Que Aporto",
-    "subtitle": "Las cualidades que definen mi trabajo e impulsan cada actuación.",
-    "presence": {
-      "title": "Presencia",
-      "description": "Cada momento en el escenario o la pantalla es una oportunidad para cautivar. Comando atención a través de la autenticidad e intención."
-    },
-    "creativity": {
-      "title": "Creatividad",
-      "description": "El arte vive en lo inesperado. Traigo perspectivas frescas y elecciones audaces a cada papel y proyecto que emprendo."
-    },
-    "discipline": {
-      "title": "Disciplina",
-      "description": "Años de entrenamiento en danza me enseñaron que la maestría viene de la dedicación. Me presento preparada, enfocada y lista para entregar."
-    },
-    "adaptability": {
-      "title": "Adaptabilidad",
-      "description": "Desde roles dramáticos hasta coreografías dinámicas y emprendimientos—prospero en nuevos entornos y abrazo cada desafío."
     }
   },
   "featured": {
@@ -92,10 +66,6 @@
     "greenWorld": {
       "title": "Green World",
       "description": "Una muestra curada de productos de bienestar con enlaces de compra limpios."
-    },
-    "work": {
-      "title": "Trabajo / Currículum",
-      "description": "Portafolio de actuación, presentaciones de danza y currículum profesional."
     }
   },
   "contact": {
@@ -459,58 +429,6 @@
       "subtitle": "Contacta a Cristyna Polentino para recomendaciones personalizadas de productos y oportunidades de negocio.",
       "shop": "Comprar Green World",
       "contact": "Contactar para Info"
-    }
-  },
-  "work": {
-    "hero": {
-      "eyebrow": "Portafolio",
-      "subtitle": "Actuación • Danza • Medios",
-      "youtubeChannel": "Canal de YouTube"
-    },
-    "dance": {
-      "eyebrow": "Actuación",
-      "title": "Danza Profesional",
-      "soon": "Créditos de danza próximamente."
-    },
-    "acting": {
-      "eyebrow": "Pantalla y Escenario",
-      "title": "Actuación",
-      "reelSoon": "Reel próximamente.",
-      "resumeSoon": "Currículum próximamente."
-    },
-    "reel": {
-      "eyebrow": "Destacado",
-      "title": "Video Reel",
-      "subtitle": "Una muestra de trabajos y actuaciones recientes."
-    },
-    "bookings": {
-      "eyebrow": "Reservas",
-      "title": "Trabajemos Juntos",
-      "subtitle": "Disponible para roles de actuación, presentaciones de danza y colaboraciones creativas.",
-      "button": "Email para Reservas"
-    }
-  },
-  "socials": {
-    "eyebrow": "Conecta",
-    "title": "Sígueme",
-    "subtitle": "Mantente conectado y sigue mi trayectoria en todas las plataformas sociales.",
-    "tiktok": {
-      "description": "Contenido diario, videos de baile y momentos detrás de cámaras."
-    },
-    "instagram": {
-      "description": "Fotos, historias y actualizaciones de mi vida y trabajo."
-    },
-    "youtube": {
-      "description": "Videos completos, vlogs y proyectos creativos."
-    },
-    "facebook": {
-      "comingSoon": "Próximamente",
-      "description": "Página de Facebook próximamente. ¡Mantente atento!"
-    },
-    "cta": {
-      "eyebrow": "Mantente Informado",
-      "title": "No Te Pierdas Nada",
-      "subtitle": "Sígueme en tu plataforma favorita para estar al día con mis últimos proyectos y contenido."
     }
   },
   "events": {

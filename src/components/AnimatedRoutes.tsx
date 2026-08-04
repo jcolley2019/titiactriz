@@ -10,8 +10,6 @@ import { TITANS_ENABLED } from "@/lib/ventures";
 const HomeCinematic = lazy(() => import("@/pages/HomeCinematic"));
 const TitansAgency = lazy(() => import("@/pages/TitansAgency"));
 const GreenWorld = lazy(() => import("@/pages/GreenWorld"));
-const WorkResume = lazy(() => import("@/pages/WorkResume"));
-const Socials = lazy(() => import("@/pages/Socials"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Events = lazy(() => import("@/pages/Events"));
@@ -52,16 +50,31 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
-        <Route
-          path="/cinematic"
-          element={
-            <PageTransition>
-              <Suspense fallback={<RouteFallback />}>
-                <HomeCinematic />
-              </Suspense>
-            </PageTransition>
-          }
-        />
+        {/* PORT.ACT.10 — /cinematic was a public duplicate of `/`: the same
+            HomeCinematic component the home already serves whenever
+            home_variant is "cinematic" (the live value). Google indexed both,
+            so vercel.json now 301s /cinematic → / at the edge and the route is
+            gone from every production build.
+
+            It survives under `import.meta.env.DEV` — the same gating the two
+            QA harnesses below use — because the e2e battery is built on it:
+            27 specs navigate to /cinematic precisely because it mounts the
+            cinematic surface DETERMINISTICALLY, with no home_variant fetch to
+            race. Pointing them at `/` would make every one of them wait on
+            that fetch. Absent from public/sitemap.xml, unreachable in
+            production, and the edge redirect answers the indexed URL. */}
+        {import.meta.env.DEV && (
+          <Route
+            path="/cinematic"
+            element={
+              <PageTransition>
+                <Suspense fallback={<RouteFallback />}>
+                  <HomeCinematic />
+                </Suspense>
+              </PageTransition>
+            }
+          />
+        )}
         {/* TITANS.OFF.1 — unregistered while TITANS_ENABLED is false, so the
             path falls through to the `*` route and gets the site's ordinary
             404 rather than a bespoke "gone" page. The component above is still
@@ -88,26 +101,11 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
-        <Route
-          path="/work"
-          element={
-            <PageTransition>
-              <Suspense fallback={<RouteFallback />}>
-                <WorkResume />
-              </Suspense>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/socials"
-          element={
-            <PageTransition>
-              <Suspense fallback={<RouteFallback />}>
-                <Socials />
-              </Suspense>
-            </PageTransition>
-          }
-        />
+        {/* PORT.ACT.10 — /work (WorkResume) and /socials (Socials) are gone.
+            Both were standalone pages the home's acts replaced: the Socials
+            act ships the 4-up grid /socials used to carry, and the Acting act
+            is the portfolio's home now. vercel.json 301s both to / at the
+            edge, so the URLs Google indexed still answer. */}
         {/* BOOK.0 — the slug is English like every other route here; the page
             itself is bilingual, which is this site's convention (see SEO.tsx:
             "routes are language-neutral"). Worth revisiting to /libro before it

@@ -1,7 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
@@ -251,16 +249,11 @@ const CinematicAbout = ({ reduced, photo, phone, wide }: Props) => {
           ))}
         </div>
 
-        <div className={`cine-about-line mt-12${area("cta")}`}>
-          <Link
-            to="/work"
-            className="inline-flex items-center gap-2 border px-7 py-3 text-xs uppercase tracking-[0.2em] transition-transform duration-300 hover:-translate-y-0.5"
-            style={{ borderColor: "#C9A55C", color: "#f4ecdb" }}
-          >
-            {t("about.viewWork")}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        {/* PORT.ACT.10 — the "ver mi trabajo" CTA that stood here pointed at
+            /work, a page this very scroll replaced. With /work deleted it
+            would have been a link from the home to the home (via a 301), so
+            it is gone rather than repointed: the acts above and below the
+            About panel already ARE the work. */}
       </div>
     </section>
   );

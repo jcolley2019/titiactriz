@@ -9,22 +9,12 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  <url>
-    <loc>https://titiactriz.com/work</loc>
-    <xhtml:link rel="alternate" hreflang="es" href="https://titiactriz.com/work" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://titiactriz.com/work" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://titiactriz.com/work" />
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://titiactriz.com/socials</loc>
-    <xhtml:link rel="alternate" hreflang="es" href="https://titiactriz.com/socials" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://titiactriz.com/socials" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://titiactriz.com/socials" />
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
+  <!-- PORT.ACT.10 (2026-08-03) — /work and /socials were listed here until the
+       home's own acts replaced them. Both pages are deleted and both URLs now
+       301 to / at the edge (vercel.json), so listing them would advertise a
+       redirect as a destination. Unlike the Titans entry below, these are not
+       parked for a return: the pages are gone. /cinematic was never listed.
+  -->
   <!-- TITANS.OFF.1 (2026-07-27) — Titans Agency is hidden behind TITANS_ENABLED
        in src/lib/ventures.ts. This file is static and cannot read that flag, so
        the entry is parked here instead of deleted: uncomment it when the flag

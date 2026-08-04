@@ -94,22 +94,24 @@ const Header = () => {
       qa: "nav-titilinks",
     },
   ];
+  // PORT.ACT.10 — Portafolio and Redes Sociales left the rail with the pages
+  // they pointed at. The home's own acts carry both now, and the two URLs 301
+  // to / at the edge, so a nav entry would only be a link from the home back
+  // to the home.
   const rightLinks: NavLink[] = [
-    { name: t("nav.portfolio"), path: "/work" },
-    { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
 
   // NAV.FIT.1 (Joey's 7/31 ruling) — inline links for the 768–1199 band ONLY.
-  // The phone bar is logo + hamburger, nothing inline; Portafolio is surfaced
-  // inline in the band; Events joins when the board is visible.
+  // The phone bar is logo + hamburger, nothing inline; Events joins when the
+  // board is visible. PORT.ACT.10 retired the Portafolio entry the original
+  // ruling named, with the /work page it pointed at.
   const bandInlineLinks: NavLink[] = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
     ...(TITANS_ENABLED
       ? [{ name: t("nav.titansShort", "Titans"), path: "/titans-agency", noTranslate: true }]
       : []),
-    { name: t("nav.portfolio"), path: "/work" },
     // TL.LIVE.1 — the band carries it too; Joey's verification list names
     // "tablet inline" explicitly, so the live product is not allowed to be the
     // one destination this breakpoint cannot reach without opening the sheet.
@@ -135,7 +137,6 @@ const Header = () => {
       ? [{ name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true, phoneOnly: true }]
       : []),
     ...(eventsVisible ? [{ name: t("nav.events", "Events"), path: "/events", phoneOnly: true }] : []),
-    { name: t("nav.portfolio"), path: "/work", phoneOnly: true },
     // TL.LIVE.1 — `phoneOnly` because the band's inline bar now carries it, so
     // above md the sheet would otherwise list it twice.
     {
@@ -146,7 +147,6 @@ const Header = () => {
       phoneOnly: true,
       qa: "nav-sheet-titilinks",
     },
-    { name: t("nav.socials"), path: "/socials" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
 

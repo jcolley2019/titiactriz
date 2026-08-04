@@ -68,16 +68,19 @@ for (const vp of [
     expect(Math.abs(r!.aspect - 1.85), "the plate paints the band's panoramic slice").toBeLessThan(0.02);
 
     // ABOUT.TABLET.4 acceptance — the FULL stack fits the dwell screen: the
-    // View Portfolio CTA's bottom sits inside one viewport of the section top,
-    // so chips + CTA are visible during the pin, not hidden below it.
+    // last element's bottom sits inside one viewport of the section top, so
+    // nothing at the end of the stack is hidden below the pin.
+    // PORT.ACT.10 — that last element used to be the View Portfolio CTA,
+    // deleted with the /work page it pointed at. The chips inherit the role,
+    // so the acceptance still measures the true end of the stack.
     const fit = await page.evaluate(() => {
       const sec = document.querySelector("#cinematic-about") as HTMLElement;
-      const cta = sec.querySelector(".cine-a-cta") as HTMLElement;
+      const last = sec.querySelector(".cine-a-chips") as HTMLElement;
       return Math.round(
-        cta.getBoundingClientRect().bottom - sec.getBoundingClientRect().top,
+        last.getBoundingClientRect().bottom - sec.getBoundingClientRect().top,
       );
     });
-    expect(fit, "chips + View Portfolio fit the dwell screen").toBeLessThanOrEqual(vp.h);
+    expect(fit, "the chips close the stack inside the dwell screen").toBeLessThanOrEqual(vp.h);
 
     // ABOUT.TABLET.3 — the text column is centred on the page: symmetric
     // margins and one shared left edge for quote and paragraphs.

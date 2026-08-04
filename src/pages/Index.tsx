@@ -1,7 +1,6 @@
 import { useState } from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +17,6 @@ import Gallery from "@/components/Gallery";
 // Images
 const heroImage = "/cristyna-hero.webp";
 import aboutImage from "@/assets/cristyna-meet.webp";
-import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import { TITANS_ENABLED } from "@/lib/ventures";
@@ -191,8 +189,11 @@ const Index = () => {
 
               {/* Quick Link Buttons — TITANS.OFF.1 drops the Titans button, so
                   the column count follows the flag rather than stranding an
-                  empty third cell. */}
-              <div className={`grid grid-cols-1 ${TITANS_ENABLED ? "xs:grid-cols-3 sm:grid-cols-3" : "xs:grid-cols-2 sm:grid-cols-2"} gap-3 sm:gap-4 md:gap-6 w-full xs:max-w-none mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]`}>
+                  empty cell. PORT.ACT.10 dropped the Portafolio button with
+                  the /work page, on the same principle: with Titans off, one
+                  button remains and the grid is a single capped column rather
+                  than a lone cell stretched across two. */}
+              <div className={`grid grid-cols-1 ${TITANS_ENABLED ? "xs:grid-cols-2 sm:grid-cols-2 xs:max-w-none" : "xs:max-w-sm"} gap-3 sm:gap-4 md:gap-6 w-full mx-auto px-4 xs:px-0 opacity-0 animate-[fadeIn_0.8s_ease-out_0.6s_forwards]`}>
                 {TITANS_ENABLED && (
                   <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                     <Link to="/titans-agency">{t("hero.buttons.titans")}</Link>
@@ -200,9 +201,6 @@ const Index = () => {
                 )}
                 <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
                   <a href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ==" target="_blank" rel="noopener noreferrer">{t("hero.buttons.greenWorld")}</a>
-                </Button>
-                <Button variant="outline" size="lg" className="w-full text-xs sm:text-sm md:text-base font-medium border-2 border-gold/60 text-gold-light bg-gold/10 hover:bg-gold/25 hover:border-gold-light hover:text-foreground hover:shadow-glow transition-all duration-300" asChild>
-                  <Link to="/work">{t("hero.buttons.portfolio")}</Link>
                 </Button>
               </div>
 
@@ -323,12 +321,9 @@ const Index = () => {
               ))}
             </div>
 
-            <Button variant="editorial-outline" size="lg" asChild>
-              <Link to="/work">
-                {t("about.viewWork")}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
+            {/* PORT.ACT.10 — the "ver mi trabajo" CTA pointed at /work, now
+                deleted. Nothing replaces it here: this variant's own Featured
+                strip below is where a visitor goes next. */}
           </ScrollReveal>
         </div>
       </Section>
@@ -346,7 +341,10 @@ const Index = () => {
           subtitle={t("featured.subtitle")}
         />
 
-        <StaggerContainer className={`grid ${TITANS_ENABLED ? "md:grid-cols-3" : "md:grid-cols-2 md:max-w-4xl md:mx-auto"} gap-8`}>
+        {/* PORT.ACT.10 — the Portafolio card left with /work, so the strip is
+            Green World plus Titans-when-live. The column count follows the
+            surviving card count, the same way TITANS.OFF.1 set it. */}
+        <StaggerContainer className={`grid ${TITANS_ENABLED ? "md:grid-cols-2 md:max-w-4xl md:mx-auto" : "md:max-w-md md:mx-auto"} gap-8`}>
           {TITANS_ENABLED && (
             <StaggerItem>
               <LinkCard
@@ -368,17 +366,6 @@ const Index = () => {
               image={greenworldLogo}
               imageBackground="dark"
               hoverColor="green"
-            />
-          </StaggerItem>
-
-          <StaggerItem>
-            <LinkCard
-              title={t("featured.work.title")}
-              description={t("featured.work.description")}
-              href="/work"
-              image={danceImage}
-              imageFit="cover"
-              hoverColor="gold"
             />
           </StaggerItem>
         </StaggerContainer>

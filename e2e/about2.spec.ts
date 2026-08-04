@@ -591,10 +591,13 @@ test.describe("ADMIN.ABOUT.2 — the About shape round-trips to the live panel",
       const seen = await liveAboutPanel(page, vp.media, vp.w, vp.h);
       const cls = vp.w < PHONE_BREAKPOINT ? "phone" : "wide";
       expect(seen.plate, `${vp.w}px (${cls} class) draws the ${vp.want} plate`).toBe(vp.want);
-      // The section still reads: its copy, its chips and its CTA all rendered
-      // beside/around the panel, with the act's own heading intact.
+      // The section still reads: its copy and its chips rendered beside/around
+      // the panel, with the act's own heading intact. PORT.ACT.10 removed the
+      // /work CTA that used to close the stack (the page it pointed at is
+      // gone), so the chips are the last element the act owns — asserting on
+      // them keeps this check measuring "the whole stack rendered".
       await expect(page.locator('#cinematic-about [data-qa="section-heading"]')).toBeVisible();
-      await expect(page.locator('#cinematic-about a[href="/work"]')).toBeVisible();
+      await expect(page.locator("#cinematic-about .cine-a-chips span")).toHaveCount(4);
       await page.evaluate(() => document.fonts.ready.then(() => undefined));
       await page.locator('#cinematic-about').scrollIntoViewIfNeeded();
       await page.waitForTimeout(300);

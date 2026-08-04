@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +15,6 @@ import ParallaxImage from "@/components/ParallaxImage";
 import Gallery from "@/components/Gallery";
 
 import aboutImage from "@/assets/cristyna-meet.webp";
-import danceImage from "@/assets/cristyna-dance.webp";
 import titansLogo from "@/assets/titans-logo.webp";
 import titansLogoRed from "@/assets/titans-logo-red.webp";
 import { TITANS_ENABLED } from "@/lib/ventures";
@@ -337,13 +335,9 @@ const HomeEditorial = () => {
                   className="editorial-cta flex flex-wrap items-center justify-center gap-3 sm:gap-4"
                   style={{ fontFamily: "var(--font-sans)" }}
                 >
-                  <Link
-                    to="/work"
-                    className="inline-flex items-center justify-center px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:-translate-y-0.5"
-                    style={{ backgroundColor: GOLD, color: "#0e0c09" }}
-                  >
-                    {t("hero.ctaPortfolio")}
-                  </Link>
+                  {/* PORT.ACT.10 — the gold Portafolio CTA that led this row
+                      pointed at /work, now deleted. Green World inherits the
+                      lead slot; the row is flex-wrap, so nothing else moves. */}
                   <a
                     href="https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ=="
                     target="_blank"
@@ -462,12 +456,8 @@ const HomeEditorial = () => {
                   </span>
                 ))}
               </div>
-              <Button variant="editorial-outline" size="lg" asChild>
-                <Link to="/work">
-                  {t("about.viewWork")}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
+              {/* PORT.ACT.10 — the "ver mi trabajo" CTA pointed at /work, now
+                  deleted. The Featured strip below carries the next step. */}
             </div>
           </ScrollReveal>
         </div>
@@ -481,7 +471,9 @@ const HomeEditorial = () => {
           title={t("featured.title")}
           subtitle={t("featured.subtitle")}
         />
-        <StaggerContainer className={`grid ${TITANS_ENABLED ? "md:grid-cols-3" : "md:grid-cols-2 md:max-w-4xl md:mx-auto"} gap-8`}>
+        {/* PORT.ACT.10 — Portafolio card retired with /work; column count
+            follows the surviving cards, as TITANS.OFF.1 set it. */}
+        <StaggerContainer className={`grid ${TITANS_ENABLED ? "md:grid-cols-2 md:max-w-4xl md:mx-auto" : "md:max-w-md md:mx-auto"} gap-8`}>
           {TITANS_ENABLED && (
             <StaggerItem>
               <LinkCard
@@ -503,16 +495,6 @@ const HomeEditorial = () => {
               image={greenworldLogo}
               imageBackground="dark"
               hoverColor="green"
-            />
-          </StaggerItem>
-          <StaggerItem>
-            <LinkCard
-              title={t("featured.work.title")}
-              description={t("featured.work.description")}
-              href="/work"
-              image={danceImage}
-              imageFit="cover"
-              hoverColor="gold"
             />
           </StaggerItem>
         </StaggerContainer>
