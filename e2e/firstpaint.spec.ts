@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { shot } from "./_helpers";
+import { routeSupabase } from "./_admin";
 
 /**
  * TA.7d — first-paint layout gate. Proves the bottom-of-page "footer flash" is
@@ -141,7 +142,23 @@ test.describe("TA.7d — first-paint flash (desktop 1440×900)", () => {
  * ADDENDUM — mobile hero sizing. 390×844 = URL-bar-collapsed; 390×740 simulates
  * the URL-bar-expanded (smaller) visual viewport. The cinematic hero must own
  * the whole small viewport at first paint with nothing of the reel bleeding in.
+ *
+ * FIX.BANNER.SPEC.1 — served a fixed, banner-less `events_board`. An enabled
+ * events banner mounts a 38px spacer above the routed page (EventsBanner.tsx),
+ * which pushes the hero down by exactly that much: a legitimate live state that
+ * turned "the hero starts at the top edge" red the morning a banner went up.
+ * The claim this addendum makes is about the HERO'S OWN SIZING, so it is made
+ * against a page with nothing stacked above it. The banner's own effect on the
+ * fold belongs to events-act.spec.ts.
  */
+const BOARD_NO_BANNER = {
+  pageVisible: true,
+  mainBanner: { enabled: false, pages: { home: false, greenWorld: false, titans: false } },
+  greenWorldBanner: { enabled: false },
+  titansBanner: { enabled: false },
+  items: [],
+};
+
 for (const vp of [
   { w: 390, h: 844, label: "urlbar-collapsed", shotName: "TA.7d-mobile-hero.png" },
   { w: 390, h: 740, label: "urlbar-expanded", shotName: "TA.7d-mobile-hero-740.png" },
@@ -150,6 +167,7 @@ for (const vp of [
     test.use({ viewport: { width: vp.w, height: vp.h } });
 
     test("hero covers the viewport, reel below the fold, scroll cue unclipped", async ({ page }) => {
+      await routeSupabase(page, { eventsBoard: BOARD_NO_BANNER });
       await page.goto("/cinematic", { waitUntil: "domcontentloaded" });
       await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
       await page.waitForTimeout(700);

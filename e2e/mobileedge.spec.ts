@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { shot } from "./_helpers";
+import { routeSupabase } from "./_admin";
 
 /**
  * MOBILE.EDGE.1 — PHONE VIEWPORT TRUTH.
@@ -29,7 +30,33 @@ import { shot } from "./_helpers";
 
 const PHONE = { width: 390, height: 844 };
 
-async function openPhoneHome(page: Page) {
+/**
+ * FIX.BANNER.SPEC.1 — THE LAYOUT BASELINE. An enabled events banner is a
+ * legitimate live state, and it mounts a 38px spacer above the routed page
+ * (EventsBanner.tsx) — so every act on the page starts 38px lower than it does
+ * without one. A geometry gate that reads the LIVE `events_board` row therefore
+ * measures whatever Titi typed this morning, and goes red the day she turns a
+ * banner on. That is the gate lying about the app: the hero did not move, the
+ * content above it did.
+ *
+ * So the geometry suites below are served this fixed board — no banner, no
+ * cards — and what they assert is LAYOUT. Whether the banner itself renders,
+ * and what it does to the fold when it does, is events-act.spec.ts's business.
+ */
+const BOARD_NO_BANNER = {
+  pageVisible: true,
+  mainBanner: { enabled: false, pages: { home: false, greenWorld: false, titans: false } },
+  greenWorldBanner: { enabled: false },
+  titansBanner: { enabled: false },
+  items: [],
+};
+
+/**
+ * `mockBoard` opts into the layout baseline above. It is opt-IN rather than the
+ * default because the other suites in this file read live content on purpose and
+ * pass against it; only the fold-geometry suite is banner-sensitive.
+ */
+async function openPhoneHome(page: Page, opts: { mockBoard?: boolean } = {}) {
   await page.addInitScript(() => {
     try {
       localStorage.setItem("ta_lang", "en");
@@ -37,6 +64,7 @@ async function openPhoneHome(page: Page) {
       /* noop */
     }
   });
+  if (opts.mockBoard) await routeSupabase(page, { eventsBoard: BOARD_NO_BANNER });
   await page.setViewportSize(PHONE);
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
@@ -71,7 +99,7 @@ async function ruleTextFor(page: Page, selector: string): Promise<string> {
 
 test.describe("MOBILE.EDGE.1 A — the hero owns the first viewport", () => {
   test("at 390 the hero covers the fold and no successor pixels are visible", async ({ page }) => {
-    await openPhoneHome(page);
+    await openPhoneHome(page, { mockBoard: true });
 
     const geo = await page.evaluate(() => {
       const hero = document.querySelector('[data-qa="cinematic-section"]');
