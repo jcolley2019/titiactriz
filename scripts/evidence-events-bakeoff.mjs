@@ -66,7 +66,8 @@ async function capture(browser, { room, lang, w, h }) {
   if (!lit) {
     throw new Error(
       `room ${room} ${w}x${h} ${lang}: the act did not light — the LIVE events_board has no cards, ` +
-        `or the dev server is not the DEV build. Evidence needs the real birthday card on the board.`,
+        `its "Mostrar eventos en portada" toggle is off (EVENTS.2b: the preview honors the real ` +
+        `board conditions), or the dev server is not the DEV build.`,
     );
   }
 

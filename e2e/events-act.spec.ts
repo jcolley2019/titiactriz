@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { forceLanguage, routeSupabase } from "./_admin";
+import { shot } from "./_helpers";
+import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./_admin";
 import { EVENTS_ACT_ENABLED } from "../src/lib/ventures";
 
 /**
@@ -30,13 +31,29 @@ import { EVENTS_ACT_ENABLED } from "../src/lib/ventures";
  *  5. THE DWELL — the lit act pins for the uniform +=120% (the story acts'
  *     one price) and the acts below still engage at their own spacer tops:
  *     the late pin is sort()ed and refreshed, never staling a neighbor.
- *  6. DIVISION OF LABOR — with the act enabled (or previewed), the sitewide
- *     marquee suppresses on HOME ONLY; every subpage keeps it. Flag false,
- *     no preview → today's behavior, unchanged.
+ *  6. DIVISION OF LABOR — the sitewide marquee suppresses on HOME ONLY, and
+ *     only when the act ACTUALLY RENDERS; every subpage keeps it. An act
+ *     hidden for any reason leaves the banner exactly as it is today.
+ *
+ * EVENTS.2b adds the owner's ONE switch:
+ *
+ *  7. THREE DOORS — the act renders only when EVENTS_ACT_ENABLED (engineering)
+ *     AND board.homeVisible (the owner's "Mostrar eventos en portada" toggle)
+ *     AND at least one card all hold. Every other combination is the empty
+ *     section. The DEV preview stands in for the FLAG ONLY — the board
+ *     conditions stay real under preview, which is what lets every
+ *     board-driven combination be asserted at the shipping state.
+ *  8. ONE TOGGLE, HOME SURFACE, NOT LAYOUTS — the admin switch round-trips to
+ *     `homeVisible` on the saved board, defaults OFF for boards that predate
+ *     it, and there are no per-layout controls anywhere.
+ *  9. THE PAGE LIVES ITS OWN LIFE — /events is reachable at every board state:
+ *     zero enabled cards renders the honest "más eventos próximamente" line,
+ *     never a 404 and never fake urgency, and `homeVisible` has no effect on
+ *     it in either direction.
  *
  * Compile-time flag states are asserted with the skip pattern (a gate that
  * lies about which state it measured is worse than one that says it skipped);
- * the preview switch lets laws 4-6 run NOW, at the shipping state, because the
+ * the preview switch lets laws 4-7 run NOW, at the shipping state, because the
  * e2e battery runs against the dev server where the switch exists.
  */
 
@@ -66,12 +83,17 @@ const CARD = {
   buttons: [],
 };
 
-const BOARD_WITH_CARD = { pageVisible: true, items: [CARD] };
+// EVENTS.2b — the canonical "every door open" board: home surface ON.
+const BOARD_WITH_CARD = { pageVisible: true, homeVisible: true, items: [CARD] };
+
+// The same board with the owner's switch OFF — one door closed, act dark.
+const BOARD_HOME_OFF = { pageVisible: true, homeVisible: false, items: [CARD] };
 
 /** A board whose main marquee is ON for every page — the division-of-labor
  *  subject. Text differs per locale so language is also observable. */
 const BOARD_BANNER_ON = {
   pageVisible: true,
+  homeVisible: true,
   mainBanner: {
     enabled: true,
     label: { es: "EVENTOS", en: "EVENTS" },
@@ -228,8 +250,9 @@ test.describe("EVENTS.1 — lit, with zero cards", () => {
   test("an empty board still paints nothing", async ({ page }) => {
     test.setTimeout(90_000);
     // A board that EXISTS and is genuinely card-less — not an absent row, which
-    // the parser would fill with its seeded default.
-    await openAt(page, PATH, { board: { pageVisible: true, items: [] } });
+    // the parser would fill with its seeded default. homeVisible is ON so that
+    // emptiness, not the owner's switch, is what keeps the act dark.
+    await openAt(page, PATH, { board: { pageVisible: true, homeVisible: true, items: [] } });
 
     await expect(page.locator(SECTION)).toHaveCount(1);
     await expect(page.locator(SECTION)).toHaveAttribute("data-empty", "true");
@@ -239,12 +262,48 @@ test.describe("EVENTS.1 — lit, with zero cards", () => {
     expect(box?.height ?? 0, "a lit act with no cards has no height").toBeLessThanOrEqual(1);
   });
 
-  test("a board with cards lights the slot", async ({ page }) => {
+  test("a board with cards and the home toggle on lights the slot", async ({ page }) => {
     test.setTimeout(90_000);
     await openAt(page, PATH, { board: BOARD_WITH_CARD });
 
     await expect(page.locator(STAGE)).toHaveCount(1);
     await expect(page.locator(STAGE)).toHaveAttribute("data-cards", "1");
+  });
+
+  test("the owner's toggle off keeps the act dark even with the flag on", async ({ page }) => {
+    test.setTimeout(90_000);
+    await openAt(page, PATH, { board: BOARD_HOME_OFF });
+
+    await expect(page.locator(SECTION)).toHaveAttribute("data-empty", "true");
+    await expect(page.locator(STAGE)).toHaveCount(0);
+  });
+});
+
+/* ─────── law 7 — three doors, every closed combination is the empty section ─────── */
+
+test.describe("EVENTS.2b — one toggle, three doors", () => {
+  test("the toggle alone cannot light the act (flag off, no preview)", async ({ page }) => {
+    test.skip(EVENTS_ACT_ENABLED, "flag on — this combination no longer exists");
+    test.setTimeout(120_000);
+    await openAt(page, PATH, { board: BOARD_WITH_CARD });
+    await expect(page.locator(SECTION)).toHaveAttribute("data-empty", "true");
+    await expect(page.locator(STAGE)).toHaveCount(0);
+  });
+
+  test("preview without the toggle previews a dark act — the board conditions stay real", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await openAt(page, `${PATH}?events=A`, { board: BOARD_HOME_OFF });
+    await expect(page.locator(SECTION)).toHaveAttribute("data-empty", "true");
+    await expect(page.locator(STAGE)).toHaveCount(0);
+  });
+
+  test("all three doors open — the act renders", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openAt(page, `${PATH}?events=A`, { board: BOARD_WITH_CARD });
+    await expect(page.locator(STAGE)).toHaveCount(1);
+    await page.screenshot({ path: shot("events-2b-home-act-on.png") });
   });
 });
 
@@ -377,11 +436,46 @@ test.describe("EVENTS.2 — marquee division of labor", () => {
     await expect(page.locator(BANNER)).toHaveCount(0);
   });
 
+  test("act hidden by the owner's toggle — the banner behaves normally, even in preview", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    // EVENTS.2b — suppression follows the RENDER. Same preview, same banner
+    // board, but homeVisible off: the act is dark, so the marquee keeps home.
+    await openAt(page, `${PATH}?events=A`, {
+      board: { ...BOARD_BANNER_ON, homeVisible: false },
+    });
+    await expect(page.locator(STAGE)).toHaveCount(0);
+    await expect(page.locator(BANNER)).toBeVisible();
+    await page.screenshot({ path: shot("events-2b-home-act-off-banner-on.png") });
+  });
+
+  test("act hidden by an empty board — the banner behaves normally, even in preview", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await openAt(page, `${PATH}?events=A`, {
+      board: { ...BOARD_BANNER_ON, items: [] },
+    });
+    await expect(page.locator(STAGE)).toHaveCount(0);
+    await expect(page.locator(BANNER)).toBeVisible();
+  });
+
   test("flag on — home is suppressed with no query at all", async ({ page }) => {
     test.skip(!EVENTS_ACT_ENABLED, "flag off — armed the day the act is lit");
     test.setTimeout(120_000);
     await openAt(page, PATH, { board: BOARD_BANNER_ON });
     await expect(page.locator(BANNER)).toHaveCount(0);
+    // The canonical post-flip home: the act lit by the REAL flag, marquee gone.
+    await expect(page.locator(STAGE)).toHaveCount(1);
+    await page.screenshot({ path: shot("events-2b-home-act-on-real-flag.png") });
+  });
+
+  test("flag on with the toggle off — the banner still runs on home", async ({ page }) => {
+    test.skip(!EVENTS_ACT_ENABLED, "flag off — armed the day the act is lit");
+    test.setTimeout(120_000);
+    await openAt(page, PATH, { board: { ...BOARD_BANNER_ON, homeVisible: false } });
+    await expect(page.locator(BANNER)).toBeVisible();
   });
 
   test("subpages keep the marquee at every flag state", async ({ page }) => {
@@ -389,5 +483,122 @@ test.describe("EVENTS.2 — marquee division of labor", () => {
     await openAt(page, "/book", { board: BOARD_BANNER_ON });
     await expect(page.locator(BANNER)).toBeVisible();
     await expect(page.locator(BANNER)).toContainText("GRAN EVENTO");
+  });
+});
+
+/* ────────── law 9 — the /events page lives its own life, at every state ────────── */
+
+test.describe("EVENTS.2b — the /events page lifecycle", () => {
+  test("zero enabled cards — reachable, honest 'próximamente', never 404", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openAt(page, "/events", {
+      board: { pageVisible: true, homeVisible: false, items: [] },
+    });
+
+    // The page is itself, not the 404 route.
+    await expect(page.locator("h1")).toHaveText(/Eventos/i);
+    // The honest empty line — a quiet fact, not fake urgency.
+    await expect(page.getByText(/más eventos próximamente/i)).toBeVisible();
+    // And genuinely empty: no cards.
+    await expect(page.locator("article")).toHaveCount(0);
+    await page.screenshot({ path: shot("events-2b-page-empty.png") });
+  });
+
+  test("with cards the grid grows to fit — and homeVisible has no say here", async ({ page }) => {
+    test.setTimeout(120_000);
+    // homeVisible OFF on purpose: the owner's home switch governs the home
+    // surface only, and must not reach into the /events page in either
+    // direction.
+    await openAt(page, "/events", {
+      board: { pageVisible: true, homeVisible: false, items: [CARD] },
+    });
+
+    await expect(page.locator("h1")).toHaveText(/Eventos/i);
+    await expect(page.locator("article")).toHaveCount(1);
+    await expect(page.locator("article")).toContainText("Cumpleaños de Titi");
+    await page.screenshot({ path: shot("events-2b-page-populated.png") });
+  });
+
+  test("the page speaks English too", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openAt(page, "/events", {
+      board: { pageVisible: true, homeVisible: false, items: [CARD] },
+      lang: "en",
+    });
+    await expect(page.locator("h1")).toHaveText(/Events/i);
+    await expect(page.locator("article")).toContainText("Titi's Birthday");
+  });
+});
+
+/* ───────── law 8 — the admin's one switch, round-tripped to the saved board ───────── */
+
+test.describe("EVENTS.2b — the admin toggle", () => {
+  const NAV = '[data-qa="admin-nav-events"]';
+  const BOARD_TOGGLE = '[data-qa="events-board-toggle"]';
+  const HOME_SWITCH = '[data-qa="home-visible"]';
+
+  async function openBoardAdmin(page: Page, board: unknown) {
+    const writes: Write[] = [];
+    await injectAdminSession(page);
+    await forceLanguage(page, "en"); // the save button is matched by its EN name
+    await routeSupabase(page, { eventsBoard: board, writes });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(800);
+    await page.locator(NAV).click();
+    await page.locator(BOARD_TOGGLE).click(); // the board ships collapsed
+    await expect(page.locator(HOME_SWITCH)).toBeVisible();
+    // Let the manager's initial board fetch land BEFORE interacting: a click
+    // that races it gets repainted by the arriving row, and a screenshot taken
+    // in that window shows a state the save never carried.
+    await page.waitForTimeout(700);
+    return { writes };
+  }
+
+  const savedHomeVisible = (writes: Write[]) => {
+    const sent = writes
+      .filter((w) => w.method !== "GET" && w.url.includes("site_settings") && w.body)
+      .map((w) => JSON.parse(w.body as string));
+    expect(sent, "exactly one save went through").toHaveLength(1);
+    const payload = Array.isArray(sent[0]) ? sent[0][0] : sent[0];
+    return (payload.value as { homeVisible?: unknown }).homeVisible;
+  };
+
+  test("a board that predates the field shows the switch OFF, and saving keeps it off", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    // No homeVisible key at all — the live rows written before EVENTS.2b.
+    const { writes } = await openBoardAdmin(page, { pageVisible: true, items: [CARD] });
+
+    await expect(page.locator(HOME_SWITCH)).toHaveAttribute("data-state", "unchecked");
+    await page.locator(HOME_SWITCH).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: shot("events-2b-admin-toggle-off.png") });
+
+    await page.getByRole("button", { name: /save changes/i }).click();
+    await page.waitForTimeout(600);
+    expect(savedHomeVisible(writes), "an untouched old board saves homeVisible false").toBe(false);
+  });
+
+  test("one click turns the home surface on, and the save carries it", async ({ page }) => {
+    test.setTimeout(120_000);
+    const { writes } = await openBoardAdmin(page, { pageVisible: true, items: [CARD] });
+
+    await page.locator(HOME_SWITCH).click();
+    await expect(page.locator(HOME_SWITCH)).toHaveAttribute("data-state", "checked");
+    // …and it HOLDS: the state survives any late repaint before the shot.
+    await page.waitForTimeout(700);
+    await expect(page.locator(HOME_SWITCH)).toHaveAttribute("data-state", "checked");
+    await page.screenshot({ path: shot("events-2b-admin-toggle-on.png") });
+
+    await page.getByRole("button", { name: /save changes/i }).click();
+    await page.waitForTimeout(600);
+    expect(savedHomeVisible(writes), "the save writes homeVisible true").toBe(true);
+  });
+
+  test("a board saved with the switch on reopens with it on", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openBoardAdmin(page, { pageVisible: true, homeVisible: true, items: [CARD] });
+    await expect(page.locator(HOME_SWITCH)).toHaveAttribute("data-state", "checked");
   });
 });
