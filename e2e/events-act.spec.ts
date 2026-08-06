@@ -31,9 +31,11 @@ import { EVENTS_ACT_ENABLED } from "../src/lib/ventures";
  *  5. THE DWELL — the lit act pins for the uniform +=120% (the story acts'
  *     one price) and the acts below still engage at their own spacer tops:
  *     the late pin is sort()ed and refreshed, never staling a neighbor.
- *  6. DIVISION OF LABOR — the sitewide marquee suppresses on HOME ONLY, and
- *     only when the act ACTUALLY RENDERS; every subpage keeps it. An act
- *     hidden for any reason leaves the banner exactly as it is today.
+ *  6. DIVISION OF LABOR — REWRITTEN BY BANNER.EVENTS.1 (see that block below).
+ *     EVENTS.2b had the marquee suppress itself on home whenever the act
+ *     rendered. The owner reversed it: the banner shows everywhere, yields the
+ *     frame only while the act is on screen, and its click scrolls to the act
+ *     on the page that has one instead of leaving for /events.
  *
  * EVENTS.2b adds the owner's ONE switch:
  *
@@ -64,6 +66,10 @@ const STAGE = '[data-qa="events-stage"]';
 const HEADING = '[data-qa="events-heading"]';
 const CARDS = '[data-qa="events-cards"]';
 const BANNER = '[data-qa="events-banner"]';
+/** The whole fixed chrome block — the thing that fades when the act is up. */
+const CHROME = '[data-qa="events-chrome"]';
+/** The marquee's own click target (the scrolling window between the caps). */
+const BANNER_WINDOW = '[data-qa="events-banner-window"]';
 const SCROLLCUE = '[data-qa="cinematic-scrollcue"]'; // hero-only
 const REEL_SLIDE = '[data-qa="reel-slide"]'; // reel-only (act 01)
 const GALLERY = '[data-qa="cinematic-gallery"]';
@@ -413,12 +419,65 @@ test.describe("EVENTS.2 — the dwell", () => {
   });
 });
 
-/* ─────────── law 6 — the marquee's division of labor, both states ─────────── */
+/* ─────────── law 6 — BANNER.EVENTS.1: the banner stays, and it travels ─────────── */
 
-test.describe("EVENTS.2 — marquee division of labor", () => {
-  test("flag off, no preview — the marquee still runs on home (today, unchanged)", async ({
-    page,
-  }) => {
+/**
+ * BANNER.EVENTS.1 — the owner's reversal of the EVENTS.2b division of labor.
+ *
+ * Verbatim: "I wanted the banner to show and when someone clicks it on the home
+ * page it scrolls down to the events section on the cinematic page. on the other
+ * pages it can lead the viewer to that page." Clarified in full: "I want the
+ * banner to be active on the hero page and then when you scroll down to the
+ * events page it fades and disappears then as you pass the events page it
+ * reappears. but whenever a view clicks the banner/marquee while on the
+ * cinematic page it should automatically scroll up or down to the events
+ * section. that banner is an immediate scroll to that page section. On the other
+ * pages, the editorial and the classic web pages, when that banner is clicked it
+ * keeps the current behavior and takes the viewer to the /events page and then
+ * to return to the main site again they click <-Back."
+ *
+ * Four laws, and the one they replace:
+ *
+ *  6a. NO HOME SUPPRESSION. The bar shows wherever its board allows — home
+ *      included, act lit or dark. The EVENTS.2b "act renders ⇒ banner gone on
+ *      home" rule is dead, and these specs fail if it ever returns.
+ *  6b. THE YIELD. It fades out for exactly as long as the act holds the frame
+ *      (the whole dwell, because the observed section spans the pin-spacer) and
+ *      comes back below it. Opacity only: the flow spacer never moves.
+ *  6c. THE TRAVEL. Clicked on a page that CARRIES the lit act, it scrolls to it
+ *      — up or down — and never leaves the page. It lands on the act's own pin
+ *      start, so the click cannot fight the GSAP pins or Lenis's momentum.
+ *  6d. THE DOOR, UNCHANGED. Clicked anywhere with no act on the page — every
+ *      subpage, and the editorial and classic homes — it goes to /events. The
+ *      admin's custom link still wins over both.
+ */
+test.describe("BANNER.EVENTS.1 — the banner stays on home, and travels to the act", () => {
+  /** Where the act's pin-spacer starts in the document — its `top top` mark. */
+  const actTopDoc = (page: Page) => spacerTopOf(page, STAGE);
+
+  const yielded = (page: Page) =>
+    page.locator(CHROME).evaluate((el) => el.getAttribute("data-yielded") === "true");
+
+  test("law 6a — the act lit in preview, and the banner is still on home", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openAt(page, `${PATH}?events=A`, { board: BOARD_BANNER_ON });
+    // Both on the page at once — this is the line EVENTS.2b forbade.
+    await expect(page.locator(STAGE)).toHaveCount(1);
+    await expect(page.locator(BANNER)).toBeVisible();
+    await expect(page.locator(BANNER)).toContainText("GRAN EVENTO");
+  });
+
+  test("law 6a — flag on, no query at all: the banner is on home", async ({ page }) => {
+    test.skip(!EVENTS_ACT_ENABLED, "flag off — armed the day the act is lit");
+    test.setTimeout(120_000);
+    await openAt(page, PATH, { board: BOARD_BANNER_ON });
+    // The canonical shipping home: act lit by the REAL flag, marquee present.
+    await expect(page.locator(STAGE)).toHaveCount(1);
+    await expect(page.locator(BANNER)).toBeVisible();
+    await page.screenshot({ path: shot("banner-events-1-home-act-and-banner.png") });
+  });
+
+  test("law 6a — flag off, no preview: unchanged, the marquee runs on home", async ({ page }) => {
     test.skip(EVENTS_ACT_ENABLED, "flag on — this is the other state's spec");
     test.setTimeout(120_000);
     await openAt(page, PATH, { board: BOARD_BANNER_ON });
@@ -426,63 +485,132 @@ test.describe("EVENTS.2 — marquee division of labor", () => {
     await expect(page.locator(BANNER)).toContainText("GRAN EVENTO");
   });
 
-  test("previewing a room suppresses the home marquee — the post-flip state, visible now", async ({
+  test("law 6a — a dark act (toggle off, or no cards) still leaves the banner alone", async ({
     page,
   }) => {
     test.setTimeout(120_000);
-    await openAt(page, `${PATH}?events=A`, { board: BOARD_BANNER_ON });
-    // The act carries the events story on home; the marquee yields the page.
-    await expect(page.locator(STAGE)).toHaveCount(1);
-    await expect(page.locator(BANNER)).toHaveCount(0);
-  });
-
-  test("act hidden by the owner's toggle — the banner behaves normally, even in preview", async ({
-    page,
-  }) => {
-    test.setTimeout(120_000);
-    // EVENTS.2b — suppression follows the RENDER. Same preview, same banner
-    // board, but homeVisible off: the act is dark, so the marquee keeps home.
     await openAt(page, `${PATH}?events=A`, {
       board: { ...BOARD_BANNER_ON, homeVisible: false },
     });
     await expect(page.locator(STAGE)).toHaveCount(0);
     await expect(page.locator(BANNER)).toBeVisible();
-    await page.screenshot({ path: shot("events-2b-home-act-off-banner-on.png") });
-  });
 
-  test("act hidden by an empty board — the banner behaves normally, even in preview", async ({
-    page,
-  }) => {
-    test.setTimeout(120_000);
-    await openAt(page, `${PATH}?events=A`, {
-      board: { ...BOARD_BANNER_ON, items: [] },
-    });
+    await openAt(page, `${PATH}?events=A`, { board: { ...BOARD_BANNER_ON, items: [] } });
     await expect(page.locator(STAGE)).toHaveCount(0);
     await expect(page.locator(BANNER)).toBeVisible();
   });
 
-  test("flag on — home is suppressed with no query at all", async ({ page }) => {
-    test.skip(!EVENTS_ACT_ENABLED, "flag off — armed the day the act is lit");
-    test.setTimeout(120_000);
-    await openAt(page, PATH, { board: BOARD_BANNER_ON });
-    await expect(page.locator(BANNER)).toHaveCount(0);
-    // The canonical post-flip home: the act lit by the REAL flag, marquee gone.
+  test("law 6b — the bar yields while the act holds the frame, and returns below it", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await openAt(page, `${PATH}?events=A`, { board: BOARD_BANNER_ON });
     await expect(page.locator(STAGE)).toHaveCount(1);
-    await page.screenshot({ path: shot("events-2b-home-act-on-real-flag.png") });
+
+    // At the hero the act is below the fold: the bar is up and opaque.
+    expect(await yielded(page), "hero — the bar is up").toBe(false);
+    await expect(page.locator(CHROME)).toHaveCSS("opacity", "1");
+
+    // Scroll into the act. The observed section spans the pin-spacer, so the
+    // yield holds for the whole +=120% dwell, not just the entrance.
+    await engage(page, STAGE);
+    expect(await yielded(page), "in the act — the bar has yielded").toBe(true);
+    await expect(page.locator(CHROME)).toHaveCSS("opacity", "0");
+    await page.screenshot({ path: shot("banner-events-1-yielded-in-act.png") });
+
+    // Past it. Computed from the section's own live geometry, then asserted on
+    // the OBSERVED state — Lenis's momentum makes any aimed position a lie.
+    const belowAct = await page.evaluate((sel) => {
+      const el = document.querySelector(sel)!;
+      return el.getBoundingClientRect().bottom + window.scrollY;
+    }, SECTION);
+    await wheelTo(page, belowAct + 60);
+    expect(await yielded(page), "below the act — the bar is back").toBe(false);
+    await expect(page.locator(CHROME)).toHaveCSS("opacity", "1");
+    await page.screenshot({ path: shot("banner-events-1-returned-below-act.png") });
   });
 
-  test("flag on with the toggle off — the banner still runs on home", async ({ page }) => {
-    test.skip(!EVENTS_ACT_ENABLED, "flag off — armed the day the act is lit");
-    test.setTimeout(120_000);
-    await openAt(page, PATH, { board: { ...BOARD_BANNER_ON, homeVisible: false } });
-    await expect(page.locator(BANNER)).toBeVisible();
+  test("law 6c — clicking on home travels to the act and never leaves the page", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await openAt(page, `${PATH}?events=A`, { board: BOARD_BANNER_ON });
+    await expect(page.locator(STAGE)).toHaveCount(1);
+
+    const target = await actTopDoc(page);
+    expect(target, "the act has a pin-spacer to aim at").toBeGreaterThan(0);
+
+    await page.locator(BANNER_WINDOW).click();
+    await page.waitForTimeout(2500); // Lenis duration 1.1s, plus settle
+
+    // Still the cinematic page — no navigation to /events.
+    expect(new URL(page.url()).pathname).toBe(PATH);
+    // And landed on the act's own `top top` mark, which is where the pin
+    // engages: the travel cannot desync ScrollTrigger from the scroller.
+    const landed = await page.evaluate(() => window.scrollY);
+    expect(Math.abs(landed - target), `landed ${landed} vs act top ${target}`).toBeLessThan(24);
+    // Observed proof the pin took it: the stage is at the top of the frame.
+    expect(Math.abs(await topOf(page, STAGE))).toBeLessThan(24);
+    await page.screenshot({ path: shot("banner-events-1-click-landed-on-act.png") });
   });
 
-  test("subpages keep the marquee at every flag state", async ({ page }) => {
+  test("law 6c — the travel runs UPWARD too, from below the act", async ({ page }) => {
+    test.setTimeout(180_000);
+    await openAt(page, `${PATH}?events=A`, { board: BOARD_BANNER_ON });
+    await expect(page.locator(STAGE)).toHaveCount(1);
+
+    const target = await actTopDoc(page);
+    const belowAct = await page.evaluate((sel) => {
+      const el = document.querySelector(sel)!;
+      return el.getBoundingClientRect().bottom + window.scrollY;
+    }, SECTION);
+    await wheelTo(page, belowAct + 60);
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(target);
+    // The bar is back down here — which is what makes it clickable at all.
+    expect(await yielded(page)).toBe(false);
+
+    await page.locator(BANNER_WINDOW).click();
+    await page.waitForTimeout(2500);
+
+    expect(new URL(page.url()).pathname).toBe(PATH);
+    const landed = await page.evaluate(() => window.scrollY);
+    expect(Math.abs(landed - target), `landed ${landed} vs act top ${target}`).toBeLessThan(24);
+  });
+
+  test("law 6d — a subpage keeps the marquee, and its click goes to /events", async ({ page }) => {
     test.setTimeout(120_000);
     await openAt(page, "/book", { board: BOARD_BANNER_ON });
     await expect(page.locator(BANNER)).toBeVisible();
     await expect(page.locator(BANNER)).toContainText("GRAN EVENTO");
+
+    await page.locator(BANNER_WINDOW).click();
+    await page.waitForURL(/\/events$/, { timeout: 15_000 });
+    await expect(page.locator("h1")).toHaveText(/Eventos/i);
+  });
+
+  test("law 6d — a home with no lit act sends the click to /events as well", async ({ page }) => {
+    test.setTimeout(120_000);
+    // The act dark by the owner's toggle stands in for every home variant that
+    // has no act to scroll to — the editorial and classic homes included.
+    await openAt(page, PATH, { board: { ...BOARD_BANNER_ON, homeVisible: false } });
+    await expect(page.locator(STAGE)).toHaveCount(0);
+    await expect(page.locator(BANNER)).toBeVisible();
+
+    await page.locator(BANNER_WINDOW).click();
+    await page.waitForURL(/\/events$/, { timeout: 15_000 });
+  });
+
+  test("law 6d — the admin's custom link wins over the travel", async ({ page }) => {
+    test.setTimeout(120_000);
+    await openAt(page, `${PATH}?events=A`, {
+      board: {
+        ...BOARD_BANNER_ON,
+        mainBanner: { ...BOARD_BANNER_ON.mainBanner, link: "/book" },
+      },
+    });
+    await expect(page.locator(STAGE)).toHaveCount(1); // an act IS on the page
+    await page.locator(BANNER_WINDOW).click();
+    await page.waitForURL(/\/book$/, { timeout: 15_000 }); // and the link still wins
   });
 });
 
