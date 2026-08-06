@@ -3,9 +3,23 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useEventsBoard, type PageBanner } from "@/hooks/useEventsBoard";
-import { EVENTS_ACT_ENABLED, eventsRoomPreview } from "@/lib/ventures";
+import { scrollElementToTop } from "@/lib/smoothScroll";
 
 const DISMISS_PREFIX = "eventsBannerDismissed:";
+
+/**
+ * BANNER.EVENTS.1 — the LIT Events act, wherever it happens to be standing.
+ *
+ * The act is always in the DOM (its late-mount law: a section that arrives after
+ * a later act has pinned crashes React's insertBefore), but it renders as a bare
+ * `data-empty` marker when it is dark. So "is the events story on this page?" is
+ * one selector, asked of the DOM at the moment it matters — never inferred from
+ * the flag, the board and the pathname a second time. That is what makes the
+ * click rule below true on EVERY home variant without naming any of them: the
+ * cinematic home carries the act and scrolls to it; the editorial and classic
+ * homes carry no act, find nothing, and go to /events like every subpage.
+ */
+const LIT_ACT = '[data-qa="cinematic-events"]:not([data-empty])';
 
 /** The bar's own height. The spacer below reserves exactly this much flow. */
 const BANNER_H = 38;
@@ -157,6 +171,10 @@ const EventsBanner = () => {
   /** One segment's measured width, which sets both repeat count and duration. */
   const [segW, setSegW] = useState(0);
   const [viewportW, setViewportW] = useState(0);
+  /** The lit Events act on THIS page, or null where there is none. */
+  const [actEl, setActEl] = useState<Element | null>(null);
+  /** The act is on screen: the bar yields the frame to it. See the note below. */
+  const [actOnScreen, setActOnScreen] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -234,32 +252,73 @@ const EventsBanner = () => {
     };
   }, [bannerText, label, compact, reducedMotion, dismissed]);
 
+  /**
+   * BANNER.EVENTS.1 — track the lit act across the page's whole life, not just
+   * its first paint. The act lights AFTER the board fetch resolves and can go
+   * dark again while the page is open (the board is realtime-subscribed, so the
+   * owner's "Mostrar eventos en portada" toggle lands live), and a route change
+   * swaps the page under a component that never unmounts — this one is mounted
+   * in App, above the router. One querySelector on childList mutations is the
+   * cheapest honest answer: GSAP animates STYLE attributes, which this observer
+   * is not asking for, so it stays quiet through every act's scrub.
+   */
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const sync = () => {
+      const found = document.querySelector(LIT_ACT);
+      setActEl((prev) => (prev === found ? prev : found));
+    };
+    sync();
+    const mo = new MutationObserver(sync);
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [location.pathname, loading]);
+
+  /**
+   * BANNER.EVENTS.1 STEP 2 — the yield. Owner ruling, verbatim: "I want the
+   * banner to be active on the hero page and then when you scroll down to the
+   * events page it fades and disappears then as you pass the events page it
+   * reappears."
+   *
+   * So the bar is not suppressed on home any more — it is DEFERENTIAL. It says
+   * its line from the hero down, steps aside for exactly as long as the act it
+   * advertises holds the frame (the observed section spans the pin-spacer, so
+   * the yield covers the whole +=120% dwell), and comes back for everything
+   * below. The banner never says the same thing the act is already saying, and
+   * a reader who scrolls past still has the way back.
+   *
+   * Opacity only: the flow spacer stays put in every state, so nothing under the
+   * chrome moves when the bar goes or returns.
+   */
+  useEffect(() => {
+    if (!actEl || typeof IntersectionObserver === "undefined") {
+      setActOnScreen(false);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => setActOnScreen(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    io.observe(actEl);
+    return () => io.disconnect();
+  }, [actEl]);
+
   if (loading) return null;
   if (!board?.pageVisible) return null;
   if (!bannerText) return null;
   if (location.pathname.startsWith("/events")) return null;
   if (dismissed) return null;
 
-  // EVENTS.2 — division of labor. When the cinematic Events act is live, the
-  // HOME page carries the events story as an act in the flow, and running the
-  // marquee over it would say the same thing twice on the same screen. So the
-  // banner suppresses on home ONLY — every subpage keeps it, because those
-  // pages have no act. "Home" means the home surface itself: `/` and its
-  // deterministic DEV alias `/cinematic` — never `/book`, `/green-world` or
-  // any other page that merely defaults to the home scheme.
-  //
-  // EVENTS.2b — suppression follows the RENDER, not the flag: it yields only
-  // when the act actually paints, i.e. all three of its gate conditions hold —
-  // the flag (or its DEV room-preview stand-in), the owner's homeVisible
-  // switch, and at least one card. An act hidden for ANY reason leaves the
-  // banner behaving exactly as it does today, so flipping the engineering
-  // flag alone can never silently cost the home page its marquee.
-  const actRenders =
-    (EVENTS_ACT_ENABLED || eventsRoomPreview(location.search) !== null) &&
-    board.homeVisible &&
-    board.items.length > 0;
-  const onHome = location.pathname === "/" || location.pathname === "/cinematic";
-  if (actRenders && onHome) return null;
+  // BANNER.EVENTS.1 STEP 1 — the EVENTS.2b home suppression is GONE. It read
+  // the flag, the owner's homeVisible switch and the card count to decide the
+  // home page should not carry a marquee at all while the act was lit. The
+  // owner reversed that division of labor, verbatim: "I wanted the banner to
+  // show and when someone clicks it on the home page it scrolls down to the
+  // events section on the cinematic page. on the other pages it can lead the
+  // viewer to that page." The bar now shows on every page its board allows —
+  // home included, act lit or dark — and yields only in the moment the act is
+  // actually on screen (the IntersectionObserver above), which is the ONLY
+  // moment the two ever said the same thing twice.
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -268,14 +327,43 @@ const EventsBanner = () => {
     setDismissed(true);
   };
 
+  /**
+   * BANNER.EVENTS.1 STEP 2/3 — one click, three outcomes, in this order:
+   *
+   *   1. The owner's custom link WINS wherever it is set — unchanged. It is the
+   *      admin's explicit override of everything below it, external or internal.
+   *   2. This page carries the lit act → travel to it, up or down. Verbatim:
+   *      "whenever a view clicks the banner/marquee while on the cinematic page
+   *      it should automatically scroll up or down to the events section. that
+   *      banner is an immediate scroll to that page section." Asked of the DOM,
+   *      so it is true on the cinematic home and false on the editorial and
+   *      classic ones without this component knowing a single variant's name.
+   *   3. Otherwise → /events, exactly as today. Verbatim: "On the other pages,
+   *      the editorial and the classic web pages, when that banner is clicked it
+   *      keeps the current behavior and takes the viewer to the /events page and
+   *      then to return to the main site again they click <-Back."
+   *
+   * The travel goes through the page's registered scroller (Lenis on the
+   * cinematic home) so it never races the smooth scroll that owns the wheel, and
+   * lands on the act's own pin start — see src/lib/smoothScroll.ts. Under
+   * prefers-reduced-motion it is a jump, not a glide.
+   */
   const goTo = () => {
     const link = (activeBanner?.link ?? "").trim();
-    if (!link) { navigate("/events"); return; }
-    if (/^https?:\/\//i.test(link)) {
-      window.open(link, "_blank", "noopener,noreferrer");
+    if (link) {
+      if (/^https?:\/\//i.test(link)) {
+        window.open(link, "_blank", "noopener,noreferrer");
+        return;
+      }
+      navigate(link.startsWith("/") ? link : `/${link}`);
       return;
     }
-    navigate(link.startsWith("/") ? link : `/${link}`);
+    const act = document.querySelector(LIT_ACT);
+    if (act) {
+      scrollElementToTop(act, reducedMotion);
+      return;
+    }
+    navigate("/events");
   };
 
   const Separator = () => (
@@ -342,7 +430,21 @@ const EventsBanner = () => {
       {/* `left-0 right-0` rather than `w-screen`: the viewport width minus any
           scrollbar, so the block can never be the source of a horizontal
           overflow the site's guard would have to chase. */}
-      <div data-qa="events-chrome" className="fixed left-0 right-0 top-0 z-40">
+      {/* The yield (STEP 2): while the act holds the frame the chrome fades out
+          and stops taking clicks, then returns below it. Opacity only — the
+          flow spacer above never moves, so nothing on the page shifts either
+          way. Under reduced motion it is a cut, not a dissolve. */}
+      <div
+        data-qa="events-chrome"
+        data-yielded={actOnScreen ? "true" : undefined}
+        aria-hidden={actOnScreen || undefined}
+        className="fixed left-0 right-0 top-0 z-40"
+        style={{
+          opacity: actOnScreen ? 0 : 1,
+          pointerEvents: actOnScreen ? "none" : undefined,
+          transition: reducedMotion ? undefined : "opacity 320ms ease",
+        }}
+      >
         {/* The nav ground — see the note at the top of this file. Skipped where
             the header is opaque by design and would cover it anyway. */}
         {pageKey === "home" && (
