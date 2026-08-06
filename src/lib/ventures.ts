@@ -207,6 +207,13 @@ export const EVENTS_ACT_ROOM: EventsRoom = "A";
  * marquee division of labor (suppressed on home, see EventsBanner). Returns
  * null outside DEV builds and for any value that is not a room, so production
  * cannot be steered by a query string.
+ *
+ * EVENTS.2b — the preview stands in for EVENTS_ACT_ENABLED ONLY. The board
+ * conditions of the render gate (homeVisible — the owner's one home-surface
+ * switch — and at least one card) stay real under preview, so a previewed room
+ * is exactly what the flag flip would show. Previewing rooms therefore needs
+ * "Mostrar eventos en portada" ON in the Events admin — which is safe to do
+ * today, because with the flag false the toggle changes nothing public.
  */
 export const eventsRoomPreview = (search: string): EventsRoom | null => {
   if (!import.meta.env?.DEV) return null;

@@ -257,7 +257,17 @@ const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
   const room: EventsRoom = preview ?? EVENTS_ACT_ROOM;
 
   const cards = board.items;
-  const lit = (EVENTS_ACT_ENABLED || preview !== null) && !loading && cards.length > 0;
+  // EVENTS.2b — the render gate, all three doors: the engineering flag, the
+  // owner's ONE home-surface switch (board.homeVisible, set in the Events
+  // admin — never a per-layout control), and at least one enabled card. The
+  // DEV preview stands in for the FLAG ONLY: the board conditions stay real,
+  // so previewing a room shows exactly what the flip will show — an owner who
+  // has not turned the home surface on previews a dark act, honestly.
+  const lit =
+    (EVENTS_ACT_ENABLED || preview !== null) &&
+    board.homeVisible &&
+    !loading &&
+    cards.length > 0;
 
   // The stage's true height is not known until the card art has decoded: a
   // portrait poster adds hundreds of px AFTER first paint. GSAP's pin FREEZES

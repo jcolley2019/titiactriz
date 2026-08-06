@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useEventsBoard, type PageBanner } from "@/hooks/useEventsBoard";
+import { EVENTS_ACT_ENABLED, eventsRoomPreview } from "@/lib/ventures";
 
 const DISMISS_PREFIX = "eventsBannerDismissed:";
 const MARQUEE_REPEAT = 10;
@@ -98,6 +99,27 @@ const EventsBanner = () => {
   if (location.pathname.startsWith("/events")) return null;
   if (dismissed) return null;
 
+  // EVENTS.2 — division of labor. When the cinematic Events act is live, the
+  // HOME page carries the events story as an act in the flow, and running the
+  // marquee over it would say the same thing twice on the same screen. So the
+  // banner suppresses on home ONLY — every subpage keeps it, because those
+  // pages have no act. "Home" means the home surface itself: `/` and its
+  // deterministic DEV alias `/cinematic` — never `/book`, `/green-world` or
+  // any other page that merely defaults to the home scheme.
+  //
+  // EVENTS.2b — suppression follows the RENDER, not the flag: it yields only
+  // when the act actually paints, i.e. all three of its gate conditions hold —
+  // the flag (or its DEV room-preview stand-in), the owner's homeVisible
+  // switch, and at least one card. An act hidden for ANY reason leaves the
+  // banner behaving exactly as it does today, so flipping the engineering
+  // flag alone can never silently cost the home page its marquee.
+  const actRenders =
+    (EVENTS_ACT_ENABLED || eventsRoomPreview(location.search) !== null) &&
+    board.homeVisible &&
+    board.items.length > 0;
+  const onHome = location.pathname === "/" || location.pathname === "/cinematic";
+  if (actRenders && onHome) return null;
+
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -137,6 +159,7 @@ const EventsBanner = () => {
       <div
         role="region"
         aria-label={label}
+        data-qa="events-banner"
         className="fixed left-0 right-0 top-[60px] md:top-[68px] z-40 w-screen max-w-[100vw] select-none overflow-x-hidden border-y-2"
         style={{ height: 38, backgroundColor: scheme.bg, borderColor: scheme.border }}
       >
