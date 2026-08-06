@@ -113,30 +113,49 @@ type RoomProps = { cards: EventItem[]; title: string; intro: string };
 const RoomProscenio = ({ cards, title, intro }: RoomProps) => (
   <div className="relative flex w-full max-w-5xl flex-col items-center">
     {/* The proscenium: one hairline, outside the content's own room. It is a
-        rule, not a fill — the same single-gold-line device the Book act used. */}
+        rule, not a fill — the same single-gold-line device the Book act used.
+        Phone-only cut: Joey's device evidence showed the frame's own inset
+        clipped top and bottom once the card claimed the reclaimed vertical
+        room, so the frame is a tablet+ device — the ceremony, not the phone's
+        tight fit. */}
     <div
       aria-hidden
       data-events-frame
-      className="pointer-events-none absolute -inset-x-4 -inset-y-6 md:-inset-x-10 md:-inset-y-10"
+      className="pointer-events-none absolute -inset-x-4 -inset-y-6 hidden md:-inset-x-10 md:-inset-y-10 md:block"
       style={{ border: `1px solid rgba(201, 165, 92, 0.45)` }}
     />
     <h2
       data-qa="events-heading"
       data-events-line
       className="text-caps text-center"
-      style={{ fontFamily: "var(--font-display)", color: GOLD, letterSpacing: "0.35em" }}
+      style={{
+        // DESIGN.md's Headline ramp — the same act-title size every other act
+        // (Book, About) sets its heading in. Room A's eyebrow-sized text-caps
+        // font-size is overridden here; the class still supplies uppercase.
+        fontFamily: "var(--font-display)",
+        color: GOLD,
+        letterSpacing: "0.35em",
+        // WebKit/Safari counts the tracking trailing the last glyph toward the
+        // centered box, so the visible word sits left of true center — cancel
+        // it with a matching negative margin (Joey's device evidence).
+        marginRight: "-0.35em",
+        fontSize: "clamp(1.75rem, 4vw, 3.25rem)",
+        lineHeight: 1.15,
+      }}
     >
       {title}
     </h2>
-    <span aria-hidden data-events-line className="mt-5 block h-px w-16" style={{ backgroundColor: GOLD }} />
+    <span aria-hidden data-events-line className="mt-3 block h-px w-16 md:mt-5" style={{ backgroundColor: GOLD }} />
+    {/* Phone-only cut: Joey's device evidence showed this line and its gap
+        eating room the card needed more. Tablet+ keeps it. */}
     <p
       data-events-line
-      className="mt-5 max-w-md text-center text-sm leading-relaxed"
+      className="mt-3 hidden max-w-md text-center text-sm leading-relaxed md:mt-5 md:block"
       style={{ color: "rgba(240,233,218,0.6)", fontFamily: "var(--font-sans)", fontWeight: 300 }}
     >
       {intro}
     </p>
-    <div className="mt-10 flex w-full justify-center">
+    <div className="mt-6 flex w-full justify-center md:mt-10">
       <CardField cards={cards} wide={false} />
     </div>
   </div>
@@ -395,7 +414,7 @@ const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
         ref={stageRef}
         data-qa="events-stage"
         data-cards={cards.length}
-        className="cine-act-vh relative flex w-full flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-24"
+        className="cine-act-vh relative flex w-full flex-col items-center justify-center overflow-hidden px-6 pb-10 pt-[70px] md:pb-16 md:pt-24"
         // `safe center` is overflow insurance on top of the artReady gating
         // above: if the stage is ever shorter than its content again, the
         // overflow clips at the BOTTOM instead of centering the heading out of
