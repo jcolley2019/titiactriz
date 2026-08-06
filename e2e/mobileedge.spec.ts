@@ -502,33 +502,43 @@ test.describe("MOBILE.EDGE.3 E — the seam skirt guards the hero→reel boundar
       if (!next) return null;
       const h = hero.getBoundingClientRect();
       const n = next.getBoundingClientRect();
-      const skirt = next.querySelector('[data-qa="seam-skirt"]');
-      if (!skirt) return { hasSkirt: false as const, gap: Math.round(n.top - h.bottom) };
+      const gap = Math.round(n.top - h.bottom);
+
+      // FLIP.EVENTS.1 mounted the Events act directly after the hero, ahead of
+      // the reel — so the skirt (still the reel's own, unchanged) is no longer
+      // hero's immediate sibling. Locate it by its own markup, not by position:
+      // Joey's on-device check (2026-08-06) found no chrome-bleed at the new
+      // hero→Events seam, so only WHERE the skirt sits in the act order moved,
+      // never the skirt itself.
+      const skirt = document.querySelector('[data-qa="seam-skirt"]');
+      const skirtSection = skirt?.parentElement ?? null;
+      if (!skirt || !skirtSection) return { hasSkirt: false as const, gap };
+      const sec = skirtSection.getBoundingClientRect();
       const s = skirt.getBoundingClientRect();
       const cs = getComputedStyle(skirt);
       return {
         hasSkirt: true as const,
-        gap: Math.round(n.top - h.bottom),
-        seamOffset: Math.round(s.top - n.top),
+        gap,
+        seamOffset: Math.round(s.top - sec.top),
         height: Math.round(s.height),
-        overhangLeft: Math.round(s.left - n.left),
-        overhangRight: Math.round(n.right - s.right),
+        overhangLeft: Math.round(s.left - sec.left),
+        overhangRight: Math.round(sec.right - s.right),
         position: cs.position,
         pointer: cs.pointerEvents,
-        onSection: skirt.parentElement === next,
+        onSection: skirtSection.tagName === "SECTION",
         inStage: skirt.closest(".cine-stage-lvh") !== null,
       };
     });
 
     expect(geo, "the hero and its successor are on the page").not.toBeNull();
 
-    // THE LAW THIS BRICK MAY NOT BEND: the skirt costs zero layout — the GAP
-    // between hero.bottom and reel.top stays exactly 0.
-    expect(geo!.gap, "hero.bottom ↔ reel.top GAP is exactly 0").toBe(0);
+    // THE LAW THIS BRICK MAY NOT BEND: the act right after the hero costs zero
+    // layout — the GAP between hero.bottom and its top stays exactly 0.
+    expect(geo!.gap, "hero.bottom ↔ next act's top GAP is exactly 0").toBe(0);
 
-    expect(geo!.hasSkirt, "the reel act wears the seam skirt").toBe(true);
+    expect(geo!.hasSkirt, "the seam skirt exists, wherever its act now sits").toBe(true);
     if (geo!.hasSkirt) {
-      expect(geo!.seamOffset, "the skirt's top edge IS the seam").toBe(0);
+      expect(geo!.seamOffset, "the skirt's top edge IS its section's seam").toBe(0);
       expect(geo!.height, "a short skirt — the ruled ~110px, not a veil's reach").toBe(110);
       expect(geo!.overhangLeft, "it spans the act, flush left").toBe(0);
       expect(geo!.overhangRight, "and flush right").toBe(0);
@@ -537,7 +547,7 @@ test.describe("MOBILE.EDGE.3 E — the seam skirt guards the hero→reel boundar
       // The mid-act clause is enforced by parentage: on the SECTION the skirt
       // scrolls away with the seam as the pin engages; inside the pinned stage
       // it would ride the whole scrub instead.
-      expect(geo!.onSection, "the skirt is the section's child").toBe(true);
+      expect(geo!.onSection, "the skirt is a section's direct child").toBe(true);
       expect(geo!.inStage, "and never the pinned stage's").toBe(false);
     }
 
@@ -557,9 +567,24 @@ test.describe("MOBILE.EDGE.3 E — the seam skirt guards the hero→reel boundar
     expect(atRest, "the skirt is on the page").not.toBeNull();
     expect(atRest!, "full strength at the rest position").toBe(1);
 
+    // The yield trigger is anchored to the skirt's OWN section top (`start:
+    // "top bottom"`, `end: "top 65%"` in CinematicReel), not a fixed page
+    // offset — FLIP.EVENTS.1 pushed that section further down the page (the
+    // Events act now sits ahead of it), so the target is computed from the
+    // section's live position rather than the old constant 500.
+    const target = await page.evaluate(() => {
+      const skirt = document.querySelector('[data-qa="seam-skirt"]');
+      const section = skirt?.parentElement;
+      if (!section) return null;
+      const docTop = section.getBoundingClientRect().top + window.scrollY;
+      // Comfortably past the yield trigger's "top 65%" end point.
+      return Math.round(docTop - window.innerHeight * 0.3);
+    });
+    expect(target, "the skirt's section is on the page").not.toBeNull();
+
     // Past the fade window the photograph must be bare: the chrome that needed
     // the skirt collapses on the first scroll.
-    await page.evaluate(() => window.scrollTo(0, 500));
+    await page.evaluate((y) => window.scrollTo(0, y), target!);
     await page.waitForTimeout(1100);
     const scrolled = await page.evaluate(() => {
       const el = document.querySelector('[data-qa="seam-skirt"]');
@@ -570,7 +595,7 @@ test.describe("MOBILE.EDGE.3 E — the seam skirt guards the hero→reel boundar
     });
     expect(scrolled.opacity, "the skirt is still on the page").not.toBeNull();
     // Lenis law: assert against the OBSERVED position, not the aimed one.
-    expect(scrolled.scrollY, "the sweep actually left the fade window").toBeGreaterThan(350);
+    expect(scrolled.scrollY, "the sweep actually left the fade window").toBeGreaterThan(target! * 0.7);
     expect(scrolled.opacity!, "past the window the photograph is bare").toBe(0);
   });
 
