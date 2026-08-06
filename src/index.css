@@ -164,6 +164,31 @@
     @apply uppercase tracking-[0.25em] text-xs font-sans font-medium;
   }
 
+  /**
+   * EVENTS.NAV.1 — the /events page's top clearance.
+   *
+   * A literal `pt-32` is wrong on a notched phone: MOBILE.EDGE.1 D put the page
+   * under Safari's bars (viewport-fit=cover), so the fixed header pads itself by
+   * `env(safe-area-inset-top)` and grows with it. A page that clears a 70px
+   * header in the simulator can sit UNDER a ~127px one on the device. So the
+   * phone's clearance carries the same inset the header does, and the two move
+   * together. Desktop keeps its ratified 8rem exactly — Joey's ruling on the
+   * desktop composition was "the spacing here look fine", so it is untouched.
+   */
+  .events-page-top {
+    /* 4.5rem clears the 70px header by 12px and no more — the phone's first
+       screen has no pixels to spare (EVENTS.NAV.1 FIX). The inset rides along
+       because the header pads itself by the same inset, so the 12px gap is the
+       same in the simulator and in Joey's hand. */
+    padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .events-page-top {
+      padding-top: 8rem;
+    }
+  }
+
   /* Hero card overlay */
   .hero-card {
     @apply relative p-8 md:p-12;
