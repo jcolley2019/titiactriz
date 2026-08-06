@@ -1,76 +1,404 @@
-import { useRef } from "react";
+import { Suspense, lazy, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useEventsBoard } from "@/hooks/useEventsBoard";
-import { EVENTS_ACT_ENABLED } from "@/lib/ventures";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEventsBoard, type EventItem } from "@/hooks/useEventsBoard";
+import {
+  EVENTS_ACT_ENABLED,
+  EVENTS_ACT_ROOM,
+  eventsRoomPreview,
+  type EventsRoom,
+} from "@/lib/ventures";
 import { CHAPTER_GROUND_1 } from "./FramedVideo";
 
 /**
- * EVENTS.1 — the Events act, in the Book act's slot: position 5, after the
- * gallery and immediately before Green World.
+ * The card grammar is loaded ONLY when the act lights. A dark act must cost the
+ * home page nothing — the Socials act already measured what happens otherwise
+ * (its static import alone spent the TA.7d first-paint budget), and in dev the
+ * extra modules shift every async timing on the page, which is exactly the kind
+ * of drift the neighbor specs' scroll aims are sensitive to.
+ */
+const EventCard = lazy(() => import("@/components/events/EventCard"));
+
+gsap.registerPlugin(ScrollTrigger);
+
+const GOLD = "#C9A55C";
+const CREAM = "#f0e9da";
+
+/**
+ * EVENTS.2 — the Events act, BELOW THE HERO and above act 01 (the reel).
  *
- * This file is SCAFFOLD. It holds the slot, the data line and the DOM contract
- * so the flow can be asserted; it does NOT hold a composition. The act's real
- * design — what an event tile says and how the act carries 1 to 4 of them —
- * comes from the EVENTS.2 bake-off, along with the uniform dwell wiring, which
- * a dark act has nothing to hold the frame for.
+ * Owner ruling (supersedes the EVENTS.1 slot-5 placement), verbatim: "add it to
+ * the scrolling scren so that its visible when users scroll through it appears
+ * below the hero but above the 01 section."
  *
- * ## The late-mount law (CinematicSocials:358-373)
+ * ## The rooms
+ *
+ * The EventCard grammar is RATIFIED (gold frame, corner ornaments, PORTRAIT.1
+ * portrait art shown whole) — what EVENTS.2 builds is the ROOM the cards stand
+ * in. Three committed candidates, differing on entrance, framing/ornament, and
+ * rhythm against the hero above and the reel below:
+ *
+ *   A "Proscenio" — a hairline gold proscenium frames the whole stage. Formal
+ *     and centered: it answers the hero's centered lockup, and the frame
+ *     settles into place as the lines rise (the Book act's entrance grammar).
+ *   B "Cartelera" — an editorial playbill. The header band anchors top-left
+ *     with a rule drawn across the stage; the cards ride below it. Asymmetric
+ *     on purpose — a poster wall, not a ceremony — so the reel's numbered
+ *     chapters arrive as the return of order.
+ *   C "Función"   — a spotlight. A quiet radial glow pools behind the card,
+ *     the eyebrow is a bordered pill, and the card blooms up into the beam.
+ *     The most theatrical of the three; the room is dark, the event is lit.
+ *
+ * The winner is recorded in EVENTS_ACT_ROOM (ventures.ts). In DEV,
+ * `/cinematic?events=A|B|C` previews a room — it forces the act lit with the
+ * live board so the candidate can be judged in the real flow, and EventsBanner
+ * reads the same signal to preview its home-suppression (the true post-flip
+ * state). Production builds ignore the query entirely.
+ *
+ * ## The dwell (EVENTS.2, step 3)
+ *
+ * The act joins the uniform DWELL LAW as a story act: the stage pins
+ * (`start: "top top"`, `end: "+=120%"`) and holds the frame for 120% of a
+ * viewport before releasing — the same one number every story act on this page
+ * pays. The pin is created only when the act is LIT, which is after the board
+ * fetch resolves — i.e. after every act below has already measured — so the
+ * trigger list is `ScrollTrigger.sort()`ed into document order and refreshed,
+ * the same repair CinematicReel, CinematicActing and CinematicSocials carry
+ * (an unsorted late pin stales every trigger under it by its own pin distance).
+ * Reduced motion builds neither timeline nor pin: the act renders static,
+ * settled, unpinned.
+ *
+ * ## The late-mount law (unchanged from EVENTS.1)
  *
  * The section is in the DOM at EVERY paint — flag off, still loading, zero
- * cards, all of it. It empties rather than returning null, and that distinction
- * is load-bearing rather than stylistic. GSAP pins by WRAPPING an element in a
- * `pin-spacer` div, which moves it out from under React's feet: once a later act
- * has been pinned, React's record of this page's children no longer matches the
- * DOM's, and a section that arrives late is inserted before a sibling that is no
- * longer a child of the same parent — `NotFoundError: Failed to execute
- * 'insertBefore'`, measured on the first build of the Socials act, which took
- * the whole cinematic home down with it when its rows landed.
+ * cards. It empties rather than returning null: GSAP pins by WRAPPING an
+ * element in a `pin-spacer` div, so a section that arrives late is inserted
+ * against a DOM React no longer recognises — `NotFoundError: insertBefore`,
+ * measured on the first build of the Socials act. DOM order must never depend
+ * on what this act knows yet, and flipping EVENTS_ACT_ENABLED can never move
+ * another act.
  *
- * So ScrollTrigger's DOM order holds no matter what this act knows yet, and
- * flipping EVENTS_ACT_ENABLED can never move another act.
+ * ## Honest emptiness (unchanged)
  *
- * ## Honest emptiness
+ * Lit with zero cards, the act paints NOTHING — no room, no header, no height.
+ * The flag opens the door; the live `events_board` row decides whether anyone
+ * walks through it.
  *
- * Lit with zero cards, the act paints NOTHING — no room, no header, no "coming
- * soon", and no height. An act with nothing to show is not an act, and the flag
- * is not a content generator: it opens the door, the `events_board` row decides
- * whether anyone walks through it. Cards are the live realtime row (0-4, capped
- * by the board parser).
- *
- * The placeholder behind the flag is a single eyebrow/heading on the Book act's
- * own ground, reusing the existing `events.title` key — a marker that the slot
- * is wired, not a composition. EVENTS.2 replaces everything below the guard.
+ * The act is deliberately UNNUMBERED — a window, not a chapter. Spine 04 stays
+ * reserved for Acting.
  */
-const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
-  // Accepted for parity with every sibling act, unused in v1: this scaffold
-  // builds no timeline and no pin, so reduced motion has nothing to skip yet.
-  void reduced;
 
+/** The ratified card grammar, staged: full cards span, halves pair at md+. */
+const CardField = ({ cards, wide = true }: { cards: EventItem[]; wide?: boolean }) => (
+  <div
+    data-qa="events-cards"
+    className={`grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 ${wide ? "max-w-4xl" : "max-w-3xl"}`}
+  >
+    {cards.map((item) => (
+      <div
+        key={item.id}
+        data-events-line
+        className={item.size === "full" ? "md:col-span-2" : "md:col-span-1"}
+      >
+        <EventCard item={item} />
+      </div>
+    ))}
+  </div>
+);
+
+type RoomProps = { cards: EventItem[]; title: string; intro: string };
+
+/** Room A — "Proscenio": hairline gold frame, centered ceremony. */
+const RoomProscenio = ({ cards, title, intro }: RoomProps) => (
+  <div className="relative flex w-full max-w-5xl flex-col items-center">
+    {/* The proscenium: one hairline, outside the content's own room. It is a
+        rule, not a fill — the same single-gold-line device the Book act used. */}
+    <div
+      aria-hidden
+      data-events-frame
+      className="pointer-events-none absolute -inset-x-4 -inset-y-6 md:-inset-x-10 md:-inset-y-10"
+      style={{ border: `1px solid rgba(201, 165, 92, 0.45)` }}
+    />
+    <h2
+      data-qa="events-heading"
+      data-events-line
+      className="text-caps text-center"
+      style={{ fontFamily: "var(--font-display)", color: GOLD, letterSpacing: "0.35em" }}
+    >
+      {title}
+    </h2>
+    <span aria-hidden data-events-line className="mt-5 block h-px w-16" style={{ backgroundColor: GOLD }} />
+    <p
+      data-events-line
+      className="mt-5 max-w-md text-center text-sm leading-relaxed"
+      style={{ color: "rgba(240,233,218,0.6)", fontFamily: "var(--font-sans)", fontWeight: 300 }}
+    >
+      {intro}
+    </p>
+    <div className="mt-10 flex w-full justify-center">
+      <CardField cards={cards} wide={false} />
+    </div>
+  </div>
+);
+
+/** Room B — "Cartelera": left-anchored playbill band, rule across the stage. */
+const RoomCartelera = ({ cards, title, intro }: RoomProps) => (
+  <div className="flex w-full max-w-5xl flex-col">
+    <div className="flex w-full items-baseline gap-6">
+      <h2
+        data-qa="events-heading"
+        data-events-band
+        className="shrink-0 uppercase"
+        style={{
+          fontFamily: "var(--font-display)",
+          color: CREAM,
+          fontSize: "clamp(1.25rem, 2.6vw, 2rem)",
+          letterSpacing: "0.18em",
+        }}
+      >
+        {title}
+      </h2>
+      {/* The rule is drawn from the title's edge to the stage's — the playbill
+          margin. It scales in from the left on entrance. */}
+      <span
+        aria-hidden
+        data-events-rule
+        className="block h-px min-w-0 flex-1"
+        style={{ backgroundColor: "rgba(201,165,92,0.6)", transformOrigin: "left center" }}
+      />
+    </div>
+    <p
+      data-events-band
+      className="mt-3 max-w-md text-sm leading-relaxed"
+      style={{ color: "rgba(240,233,218,0.6)", fontFamily: "var(--font-sans)", fontWeight: 300 }}
+    >
+      {intro}
+    </p>
+    <div className="mt-10 flex w-full justify-start">
+      <CardField cards={cards} />
+    </div>
+  </div>
+);
+
+/** Room C — "Función": pill eyebrow, radial spotlight pooled behind the card. */
+const RoomFuncion = ({ cards, title, intro }: RoomProps) => (
+  <div className="relative flex w-full max-w-5xl flex-col items-center">
+    {/* The beam: one soft radial pool, gold at very low alpha, behind the
+        cards only. Painted, never animated by scroll — the entrance fades it
+        up once and the dwell holds it still. */}
+    <div
+      aria-hidden
+      data-events-glow
+      className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2"
+      style={{
+        background: "radial-gradient(ellipse 55% 45% at 50% 55%, rgba(201,165,92,0.14), transparent 70%)",
+      }}
+    />
+    <p
+      data-qa="events-heading"
+      data-events-line
+      className="text-caps border px-5 py-2"
+      style={{
+        fontFamily: "var(--font-sans)",
+        color: GOLD,
+        borderColor: "rgba(201,165,92,0.5)",
+        letterSpacing: "0.3em",
+      }}
+    >
+      {title}
+    </p>
+    <div data-events-bloom className="relative mt-10 flex w-full justify-center">
+      <CardField cards={cards} wide={false} />
+    </div>
+    <p
+      data-events-line
+      className="mt-8 max-w-md text-center text-xs leading-relaxed"
+      style={{ color: "rgba(240,233,218,0.45)", fontFamily: "var(--font-sans)", fontWeight: 300 }}
+    >
+      {intro}
+    </p>
+  </div>
+);
+
+const ROOMS: Record<EventsRoom, (p: RoomProps) => JSX.Element> = {
+  A: RoomProscenio,
+  B: RoomCartelera,
+  C: RoomFuncion,
+};
+
+/**
+ * Fires once the lazy card grammar has RESOLVED AND MOUNTED — it renders inside
+ * the same Suspense boundary as the cards, so its layout effect cannot run
+ * before theirs exist in the DOM. The GSAP work below keys off this signal:
+ * without it, an effect racing the lazy chunk would find an empty stage,
+ * declare the art settled, and freeze the pin at the wrong height.
+ */
+const MountSignal = ({ onMount }: { onMount: (v: boolean) => void }) => {
+  useLayoutEffect(() => {
+    onMount(true);
+    return () => onMount(false);
+  }, [onMount]);
+  return null;
+};
+
+const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
   const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const { board, loading } = useEventsBoard();
 
-  const cards = board.items;
+  // Read once per mount: the preview is a page-load decision, like the flag it
+  // stands in for, so mid-session query edits cannot half-rebuild the act.
+  const preview = useMemo(
+    () => eventsRoomPreview(typeof window === "undefined" ? "" : window.location.search),
+    [],
+  );
+  const room: EventsRoom = preview ?? EVENTS_ACT_ROOM;
 
-  if (!EVENTS_ACT_ENABLED || loading || cards.length === 0) {
+  const cards = board.items;
+  const lit = (EVENTS_ACT_ENABLED || preview !== null) && !loading && cards.length > 0;
+
+  // The stage's true height is not known until the card art has decoded: a
+  // portrait poster adds hundreds of px AFTER first paint. GSAP's pin FREEZES
+  // the pinned element's box at creation time, so a pin built against the
+  // pre-poster layout dwells on a frame the content then overflows — measured
+  // at 1280×800 in the EVENTS.2 evidence run, where the overflow centered
+  // itself right out of the top of the stage and clipped the act heading. So
+  // the timeline and pin wait for the art.
+  const [cardsMounted, setCardsMounted] = useState(false);
+  const [artReady, setArtReady] = useState(false);
+  useLayoutEffect(() => {
+    if (!lit || !cardsMounted) {
+      setArtReady(false);
+      return;
+    }
+    const stage = stageRef.current;
+    if (!stage) return;
+    const pending = Array.from(stage.querySelectorAll("img")).filter((img) => !img.complete);
+    if (pending.length === 0) {
+      setArtReady(true);
+      return;
+    }
+    let done = 0;
+    const onSettle = () => {
+      done += 1;
+      if (done === pending.length) setArtReady(true);
+    };
+    pending.forEach((img) => {
+      img.addEventListener("load", onSettle, { once: true });
+      img.addEventListener("error", onSettle, { once: true });
+    });
+    return () => {
+      pending.forEach((img) => {
+        img.removeEventListener("load", onSettle);
+        img.removeEventListener("error", onSettle);
+      });
+    };
+  }, [lit, cardsMounted, cards.length]);
+
+  useLayoutEffect(() => {
+    if (reduced || !lit || !cardsMounted || !artReady) return;
+    const section = sectionRef.current;
+    const stage = stageRef.current;
+    if (!section || !stage) return;
+
+    const ctx = gsap.context(() => {
+      const q = (sel: string) => Array.from(section.querySelectorAll<HTMLElement>(sel));
+
+      // The entrance, scrubbed over the act's arrival and complete at `top
+      // 22%` — before the pin engages at `top top` — so the hold always begins
+      // on a settled frame (the Book act's contract).
+      const tl = gsap.timeline({
+        scrollTrigger: { trigger: section, start: "top 78%", end: "top 22%", scrub: true },
+      });
+
+      if (room === "A") {
+        // Proscenio: the frame settles from a breath wider as the lines rise.
+        q("[data-events-frame]").forEach((el) =>
+          tl.fromTo(el, { opacity: 0, scale: 1.02 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 0),
+        );
+        q("[data-events-line]").forEach((el, i) =>
+          tl.fromTo(el, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" }, i * 0.12),
+        );
+      } else if (room === "B") {
+        // Cartelera: the band arrives from the left margin, the rule is drawn
+        // across the stage, then the cards ride up under it.
+        q("[data-events-band]").forEach((el, i) =>
+          tl.fromTo(el, { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, i * 0.1),
+        );
+        q("[data-events-rule]").forEach((el) =>
+          tl.fromTo(el, { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "power3.out" }, 0.1),
+        );
+        q("[data-events-line]").forEach((el, i) =>
+          tl.fromTo(el, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 0.2 + i * 0.1),
+        );
+      } else {
+        // Función: the beam fades up first, then the card blooms into it.
+        q("[data-events-glow]").forEach((el) =>
+          tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0),
+        );
+        q("[data-events-line]").forEach((el, i) =>
+          tl.fromTo(el, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 0.08 + i * 0.1),
+        );
+        q("[data-events-bloom]").forEach((el) =>
+          tl.fromTo(el, { scale: 0.965, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.16),
+        );
+      }
+
+      // The uniform dwell law: the story acts' one price, +=120%, no local
+      // number. Pinning fixes the stage's place and nothing else, so the
+      // card's buttons stay clickable through the whole hold.
+      ScrollTrigger.create({
+        trigger: stage,
+        start: "top top",
+        end: "+=120%",
+        pin: true,
+        anticipatePin: 1,
+      });
+    }, section);
+
+    // The board resolves AFTER first paint, so this pin is born above triggers
+    // that have already measured — sort into document order, then refresh, or
+    // every act below is staled by this pin's own distance.
+    ScrollTrigger.sort();
+    ScrollTrigger.refresh();
+
+    return () => ctx.revert();
+  }, [reduced, lit, cardsMounted, artReady, room, cards.length]);
+
+  if (!lit) {
     return <section ref={sectionRef} data-qa="cinematic-events" data-empty="true" aria-hidden />;
   }
 
+  const Room = ROOMS[room];
+
   return (
-    <section ref={sectionRef} data-qa="cinematic-events" className="relative w-full">
+    <section
+      ref={sectionRef}
+      data-qa="cinematic-events"
+      data-room={room}
+      data-preview={preview ? "true" : undefined}
+      className="relative w-full"
+    >
       <div
+        ref={stageRef}
         data-qa="events-stage"
         data-cards={cards.length}
         className="cine-act-vh relative flex w-full flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-24"
-        style={{ backgroundColor: CHAPTER_GROUND_1 }}
+        // `safe center` is overflow insurance on top of the artReady gating
+        // above: if the stage is ever shorter than its content again, the
+        // overflow clips at the BOTTOM instead of centering the heading out of
+        // the top of the frame. Browsers without `safe` keep plain `center`
+        // from the class.
+        style={{ backgroundColor: CHAPTER_GROUND_1, justifyContent: "safe center" }}
       >
-        <h2
-          data-qa="events-heading"
-          className="text-center"
-          style={{ fontFamily: "var(--font-display)", color: "#f0e9da" }}
-        >
-          {t("events.title")}
-        </h2>
+        {/* fallback null: while the chunk loads the stage is an empty ground,
+            which is the same thing the dark act paints — never a spinner. */}
+        <Suspense fallback={null}>
+          <Room cards={cards} title={t("events.title")} intro={t("events.intro")} />
+          <MountSignal onMount={setCardsMounted} />
+        </Suspense>
       </div>
     </section>
   );

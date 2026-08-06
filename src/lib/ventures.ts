@@ -168,11 +168,51 @@ export const ACTING_ACT_ENABLED = false;
  * EventsBoardManager and the sitewide marquee. The events feature family is kept
  * everywhere — this flag is about one act on one page.
  *
- * v1 behind this flag is SCAFFOLD, not composition. The act's real design comes
- * from the EVENTS.2 bake-off, which also brings the uniform dwell wiring (a dark
- * act has nothing to dwell on).
+ * EVENTS.2 (2026-08-05) — the placement above is SUPERSEDED by a new owner
+ * ruling, verbatim: "add it to the scrolling scren so that its visible when
+ * users scroll through it appears below the hero but above the 01 section."
+ * The act now mounts DIRECTLY AFTER THE HERO, before act 01 (the reel). The
+ * Book slot it briefly held is simply empty again — the gallery hands straight
+ * to Green World. Everything else in this note still binds: the flag gates
+ * CONTENTS, never the mount, and flipping it must never change DOM order.
+ *
+ * EVENTS.2 also replaced the scaffold with the real composition: three
+ * committed ROOMS (see CinematicEvents), previewable in DEV via
+ * `/cinematic?events=A|B|C`, with EVENTS_ACT_ROOM below recording Joey's pick.
  */
 export const EVENTS_ACT_ENABLED = false;
+
+/**
+ * EVENTS.2 — WHICH Events room. The act is built in THREE committed rooms —
+ * same EventCard grammar in each, different entrance, framing and rhythm:
+ *
+ *   A "Proscenio" — a hairline gold proscenium frames the stage; centered,
+ *     formal; the frame settles as the lines rise.
+ *   B "Cartelera" — editorial playbill: left-anchored header band with a rule
+ *     drawn across the stage; asymmetric against the hero's centered lockup.
+ *   C "Función"   — spotlight: a quiet radial glow behind the card, pill
+ *     eyebrow, the card blooms up into the beam.
+ *
+ * "A" here is a PROVISIONAL default so the type is total — it decides nothing.
+ * Joey's on-screen pick (from the EVENTS.2 evidence pack) edits this line, and
+ * the separate one-line EVENTS_ACT_ENABLED flip lights the act. In DEV,
+ * `/cinematic?events=A|B|C` previews any room without touching either constant.
+ */
+export type EventsRoom = "A" | "B" | "C";
+export const EVENTS_ACT_ROOM: EventsRoom = "A";
+
+/**
+ * EVENTS.2 — the DEV-only room preview switch, in one place so the act and the
+ * sitewide marquee read the SAME signal: previewing a room also previews the
+ * marquee division of labor (suppressed on home, see EventsBanner). Returns
+ * null outside DEV builds and for any value that is not a room, so production
+ * cannot be steered by a query string.
+ */
+export const eventsRoomPreview = (search: string): EventsRoom | null => {
+  if (!import.meta.env?.DEV) return null;
+  const v = new URLSearchParams(search).get("events");
+  return v === "A" || v === "B" || v === "C" ? v : null;
+};
 
 /**
  * PORT.SOC.12 (2026-08-03) — the Socials act is LIVE.
