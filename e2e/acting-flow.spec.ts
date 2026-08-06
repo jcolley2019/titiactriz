@@ -91,14 +91,15 @@ const CREDITS = [
  * contact all share `data-qa="cinematic-section"`.
  */
 const MARKERS: ReadonlyArray<{ name: string; sel: string }> = [
+  // EVENTS.2 — the Events act moved to below the hero, above act 01 (owner
+  // ruling, superseding the EVENTS.1 slot-5 placement). It is UNCONDITIONAL
+  // here, unlike `acting` below: the act is dark, but the late-mount law puts
+  // its (empty) section in the DOM at every paint, and this census is exactly
+  // the thing that would catch it going missing — or drifting back.
+  { name: "events", sel: '[data-qa="cinematic-events"]' },
   { name: "reel", sel: '[data-qa="reel-slide"]' },
   { name: "acting", sel: '[data-qa="cinematic-acting"]' },
   { name: "gallery", sel: '[data-qa="cinematic-gallery"]' },
-  // EVENTS.1 — the Events act holds slot 5, where the Book act used to. It is
-  // UNCONDITIONAL here, unlike `acting` below: the act is dark, but the late-
-  // mount law puts its (empty) section in the DOM at every paint, and this
-  // census is exactly the thing that would catch it going missing.
-  { name: "events", sel: '[data-qa="cinematic-events"]' },
   { name: "greenworld", sel: '[data-qa="cinematic-greenworld-seq"]' },
   { name: "titilinks", sel: '[data-qa="cinematic-titilinks"]' },
   { name: "about", sel: "#cinematic-about" },

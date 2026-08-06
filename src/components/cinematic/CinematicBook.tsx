@@ -15,10 +15,11 @@ gsap.registerPlugin(ScrollTrigger);
  * ## UNMOUNTED (EVENTS.1, 2026-08-04)
  *
  * Owner ruling: this act is REPLACED in the cinematic home flow by the Events
- * act, which now holds this exact slot (position 5, after the gallery and
- * immediately before Green World) — see CinematicEvents and the flag note in
- * ventures.ts. Book was a teaser for something with no date; Events is a window
- * on what Cristyna is actually doing.
+ * act — see CinematicEvents and the flag note in ventures.ts. Book was a teaser
+ * for something with no date; Events is a window on what Cristyna is actually
+ * doing. (EVENTS.1 gave Events this exact slot; EVENTS.2 then moved it below
+ * the hero, so this old slot is now simply empty — the gallery hands straight
+ * to Green World.)
  *
  * The ruling was UNMOUNT, not delete. This component, its styles and its locale
  * keys all stay exactly as they were, and re-mounting it in HomeCinematic is the

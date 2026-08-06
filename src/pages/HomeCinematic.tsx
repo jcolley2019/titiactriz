@@ -169,6 +169,23 @@ const HomeCinematic = () => {
         videoPortrait={hero.videoPortrait}
       />
 
+      {/* EVENTS.2 — the Events act, DIRECTLY AFTER THE HERO and before act 01.
+          Owner ruling (supersedes the EVENTS.1 slot-5 placement), verbatim:
+          "add it to the scrolling scren so that its visible when users scroll
+          through it appears below the hero but above the 01 section."
+
+          Mounted UNCONDITIONALLY, unlike the flagged acts below. The flag
+          lives INSIDE the component and gates its CONTENTS only, because this
+          act's section must be in the DOM at every paint for ScrollTrigger
+          order to hold — see the late-mount law in CinematicEvents. A
+          `{FLAG && ...}` wrapper here would be the bug that law exists to
+          prevent.
+
+          Ships dark (EVENTS_ACT_ENABLED=false): the section is empty and the
+          hero hands straight to the reel. In DEV, `?events=A|B|C` previews a
+          bake-off room lit, in this real position. */}
+      <CinematicEvents reduced={prefersReduced} />
+
       {/* TA.5c: reel uses photos #2–4 so it never repeats the hero's photo #1.
           Each slot's photo + framing comes from the resolver (non-hero pool by
           default; an admin-set slot overrides both). When fewer than 4 photos
@@ -209,21 +226,10 @@ const HomeCinematic = () => {
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
 
-      {/* EVENTS.1 — the Events act HAS THIS SLOT, replacing the BOOK.ACT.1
-          coming-soon teaser that held it (CinematicBook stays in the repo,
-          unmounted, with the swap recorded on it). Same position: after the
-          gallery, immediately before Green World.
-
-          Mounted UNCONDITIONALLY, unlike the flagged acts above and below. The
-          flag lives INSIDE the component and gates its CONTENTS only, because
-          this act's section must be in the DOM at every paint for ScrollTrigger
-          order to hold — see the late-mount law in CinematicEvents. A
-          `{FLAG && ...}` wrapper here would be the bug that law exists to
-          prevent.
-
-          Ships dark: zero enabled cards exist, and lighting it with none still
-          paints nothing. */}
-      <CinematicEvents reduced={prefersReduced} />
+      {/* EVENTS.2 — the Events act LEFT THIS SLOT for below-hero (see the
+          mount after CinematicHero above). The Book slot it briefly held
+          (EVENTS.1) is simply empty again: the gallery hands straight to
+          Green World, exactly as it did while the Book act was dark. */}
 
       {/* TA.7: ventures acts — full-viewport cinematic sections that replaced
           the old TA.6b split-panel (archived).
