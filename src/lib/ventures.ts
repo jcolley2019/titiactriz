@@ -180,7 +180,7 @@ export const ACTING_ACT_ENABLED = false;
  * committed ROOMS (see CinematicEvents), previewable in DEV via
  * `/cinematic?events=A|B|C`, with EVENTS_ACT_ROOM below recording Joey's pick.
  */
-export const EVENTS_ACT_ENABLED = false;
+export const EVENTS_ACT_ENABLED = true;
 
 /**
  * EVENTS.2 — WHICH Events room. The act is built in THREE committed rooms —
