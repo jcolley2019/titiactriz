@@ -92,6 +92,16 @@ export type PageBanner = {
 
 export type EventsBoard = {
   pageVisible: boolean;
+  /**
+   * EVENTS.2b — ONE owner switch: do events appear on the HOME SURFACE of
+   * whichever layout is active? The admin manages events, never layouts —
+   * cinematic expresses this as the Events act (EVENTS.2), classic will
+   * express it as a Featured-strip card (EVENTS.3), editorial has no home
+   * expression. Default FALSE, and rows written before the field existed
+   * parse as false: a surface nobody asked for never appears on its own.
+   * Distinct from `pageVisible`, which governs the /events page itself.
+   */
+  homeVisible: boolean;
   bannerText: Localized; // legacy mirror of mainBanner.text (kept for compatibility)
   mainBanner: PageBanner;
   greenWorldBanner: PageBanner;
@@ -120,6 +130,7 @@ const SMARTFILMS_TEXT: Localized = {
 
 export const EVENTS_BOARD_DEFAULT: EventsBoard = {
   pageVisible: true,
+  homeVisible: false,
   bannerText: SMARTFILMS_TEXT,
   mainBanner: makeBanner({
     enabled: true,
@@ -254,6 +265,9 @@ const coerceBanner = (v: unknown, defaults: PageBanner): PageBanner => {
 export const parseBoard = (value: unknown): EventsBoard => {
   if (!isObj(value)) return EVENTS_BOARD_DEFAULT;
   const pageVisible = typeof value.pageVisible === "boolean" ? value.pageVisible : true;
+  // EVENTS.2b — anything a stored row does not say, including every row written
+  // before the field existed, means "not on home". No migration, no rewrite.
+  const homeVisible = value.homeVisible === true;
 
   // Legacy migration: older rows stored a single `bannerText`.
   const legacyText = isObj(value.bannerText) ? coerceLocalized(value.bannerText) : null;
@@ -275,6 +289,7 @@ export const parseBoard = (value: unknown): EventsBoard => {
 
   return {
     pageVisible,
+    homeVisible,
     bannerText: mainBanner.text,
     mainBanner,
     greenWorldBanner,

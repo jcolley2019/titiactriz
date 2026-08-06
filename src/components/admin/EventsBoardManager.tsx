@@ -913,6 +913,29 @@ const EventsBoardManager = () => {
           </div>
         </div>
 
+        {/* EVENTS.2b — ONE switch for the home surface, whatever the layout.
+            The owner manages events, never layouts: cinematic shows the act,
+            classic will show the Featured-strip card (EVENTS.3), and there are
+            deliberately NO per-layout controls here. */}
+        <div className="flex items-start gap-3">
+          <Switch
+            checked={board.homeVisible}
+            onCheckedChange={(v) =>
+              setBoard((prev) => ({ ...prev, homeVisible: v }))
+            }
+            disabled={loading}
+            data-qa="home-visible"
+          />
+          <div>
+            <Label className="text-foreground text-sm">
+              {t("admin.eventsBoard.homeVisibleLabel")}
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.eventsBoard.homeVisibleHelp")}
+            </p>
+          </div>
+        </div>
+
         <div className="space-y-3">
           <BannerEditor
             name="Main banner"

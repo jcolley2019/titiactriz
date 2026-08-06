@@ -742,6 +742,8 @@
       "sectionSubtitle": "Gestiona las tarjetas de eventos, su orden y si la página se muestra.",
       "pageVisibleLabel": "Mostrar la página de Eventos",
       "pageVisibleHelp": "Cuando está desactivado, la página no se muestra al público.",
+      "homeVisibleLabel": "Mostrar eventos en portada",
+      "homeVisibleHelp": "Cuando está activado, los eventos aparecen en la página de inicio, en el diseño que esté activo.",
       "bannerText": "Texto del banner",
       "bannerHelp": "Este es el mensaje que se desplaza en el banner superior. Déjalo vacío para ocultar el banner.",
       "bannerTextRequired": "Escribe el texto del banner antes de activarlo.",

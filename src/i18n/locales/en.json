@@ -742,6 +742,8 @@
       "sectionSubtitle": "Manage event cards, their order, and whether the page is shown.",
       "pageVisibleLabel": "Show the Events page",
       "pageVisibleHelp": "When off, the page is hidden from the public.",
+      "homeVisibleLabel": "Show events on the home page",
+      "homeVisibleHelp": "When on, events appear on the home page, in whichever layout is active.",
       "bannerText": "Banner text",
       "bannerHelp": "This is the message that scrolls in the top banner. Leave empty to hide the banner.",
       "bannerTextRequired": "Enter the banner text before enabling it.",
