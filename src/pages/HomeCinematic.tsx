@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import SEO from "@/components/SEO";
+import { registerScrollDriver } from "@/lib/smoothScroll";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
 import { useCinematicData } from "@/components/cinematic/useCinematicData";
 import {
@@ -90,7 +91,17 @@ const HomeCinematic = () => {
     gsap.ticker.lagSmoothing(0);
     ScrollTrigger.refresh();
 
+    // BANNER.EVENTS.1 — publish the scroller for as long as this page owns it.
+    // The sitewide marquee lives in App, above the router, and its click has to
+    // travel THROUGH this instance: a second animator writing the same scrollTop
+    // stutters against Lenis's momentum and leaves ScrollTrigger measuring a
+    // position nothing agreed on. Unregistered on unmount, so every other route
+    // (and this one under reduced motion, which builds no Lenis) falls back to
+    // the platform — see src/lib/smoothScroll.ts.
+    const unregister = registerScrollDriver(lenis);
+
     return () => {
+      unregister();
       gsap.ticker.remove(raf);
       lenis.destroy();
       ScrollTrigger.getAll().forEach((t) => t.kill());
