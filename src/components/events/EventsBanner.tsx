@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
@@ -6,7 +6,6 @@ import { useEventsBoard, type PageBanner } from "@/hooks/useEventsBoard";
 import { EVENTS_ACT_ENABLED, eventsRoomPreview } from "@/lib/ventures";
 
 const DISMISS_PREFIX = "eventsBannerDismissed:";
-const MARQUEE_REPEAT = 10;
 
 /** The bar's own height. The spacer below reserves exactly this much flow. */
 const BANNER_H = 38;
@@ -53,6 +52,34 @@ const BANNER_H = 38;
  * design and would hide it anyway.
  */
 const CHROME_GROUND = "#0b0a08";
+
+/**
+ * MARQUEE.1 STEP 3 — the track runs at a CONSTANT speed, in pixels per second,
+ * instead of a constant 180s duration. A fixed duration means the speed is
+ * whatever the message length and repeat count happen to make it: the same
+ * animation crawled at 390px, where one message fills the window and the reader
+ * waits out the whole of it, and read fine at 1440 where four are on screen at
+ * once. Duration is now derived from the measured track length, so a phone and
+ * a desktop move at the same legible rate.
+ */
+const MARQUEE_SPEED = 48; // px/s
+/** Fallback repeat count for the first paint, before the segment is measured. */
+const MARQUEE_REPEAT = 10;
+
+/**
+ * MARQUEE.1 STEP 2 — the site's own breakpoint grammar, not a new one.
+ * NAV.FIT.1 ratified 1200px as this site's desktop boundary (the header's three
+ * navs switch there). "Tablet and below" is therefore everything under 1200:
+ * the pinned end caps collapse and the whole message — label and text, diamond
+ * separated — scrolls as one track. At 1200 and up the caps stay pinned and
+ * only the centre scrolls, exactly as before.
+ */
+const DESKTOP_MIN = 1200;
+
+/** The edge fade. Words dissolve at the track's ends instead of being sliced. */
+const FADE = 18;
+/** On one track the dismiss button overhangs the text, so its edge fades wider. */
+const FADE_UNDER_X = 46;
 
 const hashText = (s: string): string => {
   let h = 5381;
@@ -123,8 +150,14 @@ const EventsBanner = () => {
 
   const [dismissed, setDismissed] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  /** Under 1200: one track, no caps. See DESKTOP_MIN. */
+  const [compact, setCompact] = useState(false);
   /** The header's MEASURED height — the bar's top edge. Never a literal. */
   const [headerH, setHeaderH] = useState(0);
+  /** One segment's measured width, which sets both repeat count and duration. */
+  const [segW, setSegW] = useState(0);
+  const [viewportW, setViewportW] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!dismissKey) { setDismissed(false); return; }
@@ -136,6 +169,15 @@ const EventsBanner = () => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReducedMotion(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia(`(max-width: ${DESKTOP_MIN - 1}px)`);
+    const update = () => setCompact(mq.matches);
     update();
     mq.addEventListener?.("change", update);
     return () => mq.removeEventListener?.("change", update);
@@ -165,6 +207,32 @@ const EventsBanner = () => {
       window.removeEventListener("resize", measure);
     };
   }, [loading, dismissed, bannerText]);
+
+  /**
+   * Measure ONE segment and the window. Everything the track needs follows from
+   * those two numbers: how many copies cover the window (so the -50% loop never
+   * shows its end), and how long one period should take at a constant speed.
+   */
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const measure = () => {
+      setViewportW(window.innerWidth);
+      const first = trackRef.current?.firstElementChild as HTMLElement | null;
+      if (!first) return;
+      const w = first.getBoundingClientRect().width;
+      setSegW((prev) => (w > 0 && Math.abs(prev - w) > 1 ? w : prev));
+    };
+    measure();
+    const first = trackRef.current?.firstElementChild;
+    const ro = new ResizeObserver(measure);
+    if (first) ro.observe(first);
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [bannerText, label, compact, reducedMotion, dismissed]);
 
   if (loading) return null;
   if (!board?.pageVisible) return null;
@@ -214,8 +282,24 @@ const EventsBanner = () => {
     <span aria-hidden className="mx-6 text-[10px]" style={{ color: `${textColor}b3` }}>◆</span>
   );
 
+  /**
+   * One segment of the track. Below 1200 it carries the LABEL as well, because
+   * the pinned caps that used to hold it are gone — the whole message travels
+   * as one diamond-separated run.
+   */
   const renderSegment = (key: string) => (
     <div key={key} data-qa="events-banner-segment" className="flex items-center shrink-0 pr-2">
+      {compact && (
+        <>
+          <span
+            className="text-[11px] font-semibold tracking-[0.28em] uppercase whitespace-nowrap leading-none translate-y-[1px]"
+            style={{ fontFamily: "Cinzel, serif", color: scheme.label }}
+          >
+            {label}
+          </span>
+          <Separator />
+        </>
+      )}
       <span
         className="text-[11px] tracking-[0.22em] uppercase whitespace-nowrap leading-none translate-y-[1px]"
         style={{ fontFamily: "Jost, sans-serif", color: textColor, fontWeight: marqueeWeight }}
@@ -226,6 +310,25 @@ const EventsBanner = () => {
     </div>
   );
 
+  // How many copies cover the window, doubled so translating -50% lands on an
+  // identical frame. Measured, so a 390px phone carries a handful of segments
+  // instead of the twenty a desktop needs.
+  const repeat =
+    segW > 0 && viewportW > 0
+      ? Math.max(2, Math.ceil((viewportW + 240) / segW))
+      : MARQUEE_REPEAT;
+  const period = segW * repeat; // one loop's travel, in px
+  const duration = period > 0 ? period / MARQUEE_SPEED : 180;
+
+  // The fade that stops a word being guillotined at the track's edge — at the
+  // caps on desktop, and under the dismiss button when the track runs full
+  // width. `mask-image` needs the -webkit- prefix for iOS Safari, which is the
+  // physical test device.
+  const rightFade = compact ? FADE_UNDER_X : FADE;
+  const fadeMask =
+    `linear-gradient(to right, transparent 0, #000 ${FADE}px,` +
+    ` #000 calc(100% - ${rightFade}px), transparent 100%)`;
+
   return (
     <>
       {/* Flow spacer: reserves the BAR's height so page content clears it. The
@@ -235,9 +338,8 @@ const EventsBanner = () => {
 
       {/* The chrome block: ground + bar, anchored to the top of the viewport.
           Below the header in the stack (z-40 vs z-50) so the nav's own ground,
-          its links and the mobile sheet all paint over it.
-
-          `left-0 right-0` rather than `w-screen`: the viewport width minus any
+          its links and the mobile sheet all paint over it. */}
+      {/* `left-0 right-0` rather than `w-screen`: the viewport width minus any
           scrollbar, so the block can never be the source of a horizontal
           overflow the site's guard would have to chase. */}
       <div data-qa="events-chrome" className="fixed left-0 right-0 top-0 z-40">
@@ -261,11 +363,13 @@ const EventsBanner = () => {
           style={{ height: BANNER_H, backgroundColor: scheme.bg, borderColor: scheme.border }}
         >
           <div className="relative h-full flex items-stretch">
+            {/* The pinned caps — desktop only (NAV.FIT.1's 1200px boundary).
+                Below that their text rides in the track instead. */}
             <button
               type="button"
               onClick={goTo}
               data-qa="events-banner-cap"
-              className="shrink-0 h-full flex items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
+              className="hidden min-[1200px]:flex shrink-0 h-full items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
               style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
             >
               <span className="translate-y-[1px]">{label}</span>
@@ -277,23 +381,29 @@ const EventsBanner = () => {
               aria-label={label}
               data-qa="events-banner-window"
               className="flex-1 h-full overflow-hidden relative text-left cursor-pointer"
+              style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
             >
               {reducedMotion ? (
                 <div className="h-full flex items-center px-4">
                   <span
-                    className="text-[11px] tracking-[0.22em] uppercase leading-none translate-y-[1px]"
+                    className="truncate text-[11px] tracking-[0.22em] uppercase leading-none translate-y-[1px]"
                     style={{ fontFamily: "Jost, sans-serif", color: textColor, fontWeight: marqueeWeight }}
                   >
-                    {bannerText}
+                    {compact ? `${label} ◆ ${bannerText}` : bannerText}
                   </span>
                 </div>
               ) : (
                 <div
+                  ref={trackRef}
                   data-qa="events-banner-track"
+                  data-duration={Math.round(duration)}
                   className="absolute inset-y-0 left-0 flex items-center whitespace-nowrap will-change-transform"
-                  style={{ animation: "events-banner-marquee 180s linear infinite", paddingLeft: "1rem" }}
+                  style={{
+                    animation: `events-banner-marquee ${duration}s linear infinite`,
+                    paddingLeft: "1rem",
+                  }}
                 >
-                  {Array.from({ length: MARQUEE_REPEAT * 2 }).map((_, i) => renderSegment(`seg-${i}`))}
+                  {Array.from({ length: repeat * 2 }).map((_, i) => renderSegment(`seg-${i}`))}
                 </div>
               )}
             </button>
@@ -303,18 +413,21 @@ const EventsBanner = () => {
               onClick={goTo}
               aria-label={label}
               data-qa="events-banner-cap"
-              className="hidden md:flex shrink-0 h-full items-center px-4 border-l text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
+              className="hidden min-[1200px]:flex shrink-0 h-full items-center px-4 border-l text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
               style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
             >
               <span className="translate-y-[1px]">{label}</span>
             </button>
 
+            {/* The dismiss control floats above the track and keeps a 44px
+                target at every width — the track fades out beneath it rather
+                than sliding words under a button. */}
             <button
               type="button"
               onClick={handleDismiss}
               aria-label="Dismiss"
               data-qa="events-banner-dismiss"
-              className="shrink-0 h-full flex items-center px-3 transition-colors hover:bg-white/5"
+              className="absolute right-0 top-0 z-10 flex h-full min-w-11 items-center justify-center px-3 transition-colors hover:bg-white/5 min-[1200px]:relative min-[1200px]:z-auto min-[1200px]:min-w-0 min-[1200px]:shrink-0"
               style={{ color: `${textColor}b3`, borderColor: scheme.border }}
             >
               <X size={14} />
