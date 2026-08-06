@@ -284,6 +284,49 @@ const VideoBlock = ({
 const PORTRAIT_MAX_H = "max-h-[min(560px,70vh)]";
 const LANDSCAPE_MAX_H = "max-h-[420px]";
 
+/**
+ * EVENTS.NAV.1 — the portrait room, opt-in.
+ *
+ * On a portrait tablet the card rendered WIDER THAN TALL: at 1024x1366 the
+ * frame measured 992x738 with the poster capped at 560px, so a 1366px-tall
+ * screen showed a short, wide box with the art marooned in the middle of it.
+ * Joey: "it should fit more in a portrait mode... it should be taller than
+ * wide."
+ *
+ * The cap lifts only where the viewport is genuinely portrait AND wide enough
+ * to be a tablet — `md:portrait:`, so a phone (below md) and every landscape
+ * screen, desktop included, keep the ratified cap untouched.
+ *
+ * It is a PROP rather than a blanket change because this card is also the
+ * cinematic act's tenant (EVENTS.2's three rooms), and those rooms were judged
+ * at 768x1024 — itself a portrait viewport. Only the /events page opts in, so
+ * the bake-off evidence stays true to what it measured.
+ */
+const PORTRAIT_ROOM_MAX_H = "md:portrait:max-h-[min(900px,60vh)]";
+
+/**
+ * EVENTS.NAV.1 FIX — the phone's share of the first screen.
+ *
+ * The 560px cap is a DESKTOP cap: on a 440x956 phone it let the poster take
+ * 512px of a screen whose visible height is ~811 once iOS's inset and Safari's
+ * floating bar are counted, and the closing line fell off the bottom — the
+ * defect in Joey's screenshot. So on the phone the poster is capped as a share
+ * of the screen instead of a fixed height: whatever the row, the subtitle, the
+ * card's title and the closing line do not need, the art gets.
+ *
+ * 56vh is JOEY'S NUMBER, and it is a measured one: he turned a temporary DEV
+ * dial on the physical device until the art was the size he wanted, and stopped
+ * at "56VH 465PX (FITS 28PX SPARE FOLD 792+0)" — 465px of poster with 28px of
+ * his 792px window still under the closing line. The ledger only ever proposed
+ * 42vh. The eye on the phone settled it, and the dial is gone.
+ *
+ * The 792 is the number to keep: his Safari SUBTRACTS its bars from the window
+ * rather than painting over them, and sizes `vh` off a larger (~831px)
+ * viewport, so a 440x956 runner overstates this room by 164px. That mistake is
+ * what shipped two "in-fold" pages that ran off his screen.
+ */
+const PHONE_ROOM_MAX_H = "max-md:max-h-[56vh]";
+
 type ResolvedAspect = "landscape" | "portrait";
 
 const EventImage = ({
@@ -291,11 +334,13 @@ const EventImage = ({
   alt,
   isFull,
   aspect,
+  fillPortrait,
 }: {
   src: string;
   alt: string;
   isFull: boolean;
   aspect: ImageAspect;
+  fillPortrait?: boolean;
 }) => {
   const [measured, setMeasured] = useState<ResolvedAspect | null>(null);
 
@@ -304,7 +349,11 @@ const EventImage = ({
   const isPortrait = resolved === "portrait";
 
   return (
-    <div className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"}`}>
+    <div
+      className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"} ${
+        fillPortrait ? "max-md:mb-4" : ""
+      }`}
+    >
       <img
         src={src}
         alt={alt}
@@ -320,7 +369,9 @@ const EventImage = ({
         }}
         className={
           isPortrait
-            ? `mx-auto w-auto h-auto max-w-full ${PORTRAIT_MAX_H} object-contain rounded-md`
+            ? `mx-auto w-auto h-auto max-w-full ${PORTRAIT_MAX_H} ${
+                fillPortrait ? `${PHONE_ROOM_MAX_H} ${PORTRAIT_ROOM_MAX_H}` : ""
+              } object-contain rounded-md`
             : `w-full h-auto ${LANDSCAPE_MAX_H} object-cover rounded-md`
         }
         style={{ border: `1px solid ${GOLD}` }}
@@ -405,7 +456,16 @@ const renderIcon = (icon: ButtonIcon, className: string) => {
 
 /* ---------- Card ---------- */
 
-const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
+const EventCard = ({
+  item,
+  lang,
+  fillPortrait,
+}: {
+  item: EventItem;
+  lang?: Lang;
+  /** EVENTS.NAV.1 — let portrait art use a portrait tablet's vertical room. */
+  fillPortrait?: boolean;
+}) => {
   const fallback = useLang();
   const active: Lang = lang ?? fallback;
 
@@ -460,6 +520,7 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
       alt={title || ""}
       isFull={isFull}
       aspect={imageAspect}
+      fillPortrait={fillPortrait}
     />
   ) : null;
 
@@ -467,7 +528,7 @@ const EventCard = ({ item, lang }: { item: EventItem; lang?: Lang }) => {
     <article
       className={`relative h-full text-center ${
         isFull ? "p-8 md:p-12" : "p-6 md:p-8"
-      }`}
+      } ${fillPortrait ? "max-md:p-6" : ""}`}
       style={frameStyle}
     >
       {isFull && <Corners />}
