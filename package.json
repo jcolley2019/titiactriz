@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "test": "playwright test",
     "guard": "node scripts/guard-invariants.mjs",
     "drift": "node scripts/check-deploy-drift.mjs",
     "preview": "vite preview"

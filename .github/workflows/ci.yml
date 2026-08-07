@@ -1,6 +1,14 @@
 # BUILD.GATE.1 — the same gates every session runs locally (tsc + guard), enforced
 # on every push so nothing lands on main ungated. main auto-deploys via Vercel;
 # this is the last mechanical check before production.
+#
+# FIX.CI.1 — the 393-test Playwright battery now gates too. It is split across
+# eight shard jobs rather than run serially: a single-worker full battery is
+# ~60-75 minutes, and eight runners bring that to roughly a quarter-hour. The
+# repo is public, so Actions minutes cost nothing and the only currency spent is
+# wall clock. Each shard still runs workers:1 internally — the scroll and dwell
+# specs are timing-sensitive, so parallelism has to come from separate machines,
+# never from contended CPU on one.
 name: CI
 
 on:
@@ -20,3 +28,52 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run guard
+
+  e2e:
+    # Gated behind the cheap checks: eight runners should not spend a quarter of
+    # an hour proving that code which does not typecheck also does not scroll.
+    needs: gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # Every shard reports. One shard failing must not cancel the other seven,
+      # or a single flake hides whatever else broke.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # Chromium only — playwright.config.ts declares no projects, so the battery
+      # has always run on the one browser. Installing the other two would be
+      # ~200MB of download per shard for nothing.
+      - run: npx playwright install --with-deps chromium
+
+      # No serve step: playwright.config.ts owns the webServer and boots
+      # `npm run dev` itself. It must be the DEV server, not a build+preview —
+      # the seq-lab and reel-bakeoff QA routes exist only under import.meta.env.DEV
+      # and a preview build would 404 them (28 tests in seq-lab.spec.ts alone).
+      #
+      # Credentials: .env is tracked and holds only publishable anon values, so
+      # checkout is all the app needs to boot. The specs do read live Supabase
+      # (site_settings, gallery_photos, acting_credits, social_links) — a board
+      # change made in admin can turn this red with no code change.
+      - name: Playwright battery (shard ${{ matrix.shard }}/8)
+        run: npm test -- --shard=${{ matrix.shard }}/8
+
+      # Traces are written from the first retry onward (trace: on-first-retry),
+      # so anything that failed at least once leaves evidence. The runner is
+      # destroyed on exit, so this upload is the only copy that survives.
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-shard-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
