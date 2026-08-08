@@ -449,7 +449,12 @@
       "vote": "Vota por mi corto",
       "festival": "Sobre SmartFilms"
     },
-    "more": "Más eventos próximamente."
+    "more": "Más eventos próximamente.",
+    "playVideo": "Reproducir video",
+    "admin": {
+      "linkUnreadable": "No se puede incrustar este enlace, así que la tarjeta muestra la imagen. Pega el enlace completo del video en TikTok, Instagram o YouTube.",
+      "embedFailed": "El reproductor de la plataforma no cargó. La tarjeta muestra la imagen."
+    }
   },
   "admin": {
     "gallery": {
@@ -802,7 +807,24 @@
       "iconAuto": "Automático",
       "iconWebsite": "Sitio web",
       "iconNone": "Ninguno",
-      "addSocialIcon": "Agregar ícono social"
+      "addSocialIcon": "Agregar ícono social",
+      "mediaLabel": "Medios",
+      "mediaHelp": "La tarjeta muestra un solo medio: el video si hay uno, y si no, la imagen. La imagen siempre es la portada del video y lo que se ve si el video no carga.",
+      "videoLabel": "Video (opcional)",
+      "dropVideo": "Haz clic para subir un video",
+      "uploadingVideo": "Subiendo video...",
+      "videoLimitHint": "MP4 o WEBM · máximo {{mb}} MB",
+      "removeVideoFile": "Quitar video",
+      "videoUploadFailed": "No se pudo subir el video. Intenta de nuevo.",
+      "videoReject": {
+        "type": "Ese archivo no es un video MP4 o WEBM.",
+        "size": "El video pesa más de {{mb}} MB. Recórtalo, o súbelo a TikTok, Instagram o YouTube y pega el enlace aquí abajo."
+      },
+      "socialUrlLabel": "Enlace de TikTok, Instagram o YouTube (opcional)",
+      "socialUrlOk": "Enlace reconocido: {{platform}}",
+      "socialUrlBad": "No se reconoce este enlace. Usa el enlace completo del video (por ejemplo tiktok.com/@usuario/video/... , instagram.com/reel/... o youtube.com/watch?v=...). Mientras tanto la tarjeta muestra la imagen.",
+      "uploadBlockedBySocial": "Quita el enlace de abajo para subir un video propio.",
+      "socialBlockedByUpload": "Quita el video subido para usar un enlace."
     },
     "upload": {
       "title": "Subir fotos",

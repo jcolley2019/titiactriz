@@ -304,25 +304,44 @@ const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
     }
     const stage = stageRef.current;
     if (!stage) return;
-    const pending = Array.from(stage.querySelectorAll("img")).filter((img) => !img.complete);
+
+    // EVENTS.VIDEO.1 — a card's medium can now be a VIDEO, and a video is worse
+    // than a late image: before its metadata arrives it reports a 300x150
+    // intrinsic box, so a pin built against it freezes the stage at a height the
+    // real clip immediately overflows. The same decode-wait therefore covers
+    // both element kinds — an image settles on `complete`, a video on
+    // HAVE_METADATA (readyState >= 1), which is the first moment its true shape
+    // exists. Events, not polling: `loadedmetadata` for the good path, `error`
+    // so a medium that never arrives cannot hold the act unpinned forever.
+    const images = Array.from(stage.querySelectorAll("img")).filter((img) => !img.complete);
+    const videos = Array.from(stage.querySelectorAll("video")).filter((v) => v.readyState < 1);
+    const pending: { el: HTMLElement; events: string[] }[] = [
+      ...images.map((el) => ({ el: el as HTMLElement, events: ["load", "error"] })),
+      ...videos.map((el) => ({ el: el as HTMLElement, events: ["loadedmetadata", "error"] })),
+    ];
+
     if (pending.length === 0) {
       setArtReady(true);
       return;
     }
     let done = 0;
-    const onSettle = () => {
+    const settled = new WeakSet<HTMLElement>();
+    const onSettle = (e: Event) => {
+      const el = e.currentTarget as HTMLElement;
+      // One vote per element: a video that fires loadedmetadata AND error must
+      // not count twice and release the pin before its neighbours are ready.
+      if (settled.has(el)) return;
+      settled.add(el);
       done += 1;
       if (done === pending.length) setArtReady(true);
     };
-    pending.forEach((img) => {
-      img.addEventListener("load", onSettle, { once: true });
-      img.addEventListener("error", onSettle, { once: true });
-    });
+    pending.forEach(({ el, events }) =>
+      events.forEach((ev) => el.addEventListener(ev, onSettle)),
+    );
     return () => {
-      pending.forEach((img) => {
-        img.removeEventListener("load", onSettle);
-        img.removeEventListener("error", onSettle);
-      });
+      pending.forEach(({ el, events }) =>
+        events.forEach((ev) => el.removeEventListener(ev, onSettle)),
+      );
     };
   }, [lit, cardsMounted, cards.length]);
 

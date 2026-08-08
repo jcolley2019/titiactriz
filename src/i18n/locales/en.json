@@ -449,7 +449,12 @@
       "vote": "Vote for my film",
       "festival": "About SmartFilms"
     },
-    "more": "More events coming soon."
+    "more": "More events coming soon.",
+    "playVideo": "Play video",
+    "admin": {
+      "linkUnreadable": "This link can't be embedded, so the card shows the image instead. Paste the full video link from TikTok, Instagram or YouTube.",
+      "embedFailed": "The platform's player didn't load. The card is showing the image."
+    }
   },
   "admin": {
     "gallery": {
@@ -802,7 +807,24 @@
       "iconAuto": "Auto",
       "iconWebsite": "Website",
       "iconNone": "None",
-      "addSocialIcon": "Add social icon"
+      "addSocialIcon": "Add social icon",
+      "mediaLabel": "Media",
+      "mediaHelp": "A card shows one medium: the video if there is one, otherwise the image. The image is always the video's poster, and what shows if the video can't load.",
+      "videoLabel": "Video (optional)",
+      "dropVideo": "Click to upload a video",
+      "uploadingVideo": "Uploading video...",
+      "videoLimitHint": "MP4 or WEBM · {{mb}} MB max",
+      "removeVideoFile": "Remove video",
+      "videoUploadFailed": "Could not upload the video. Please try again.",
+      "videoReject": {
+        "type": "That file isn't an MP4 or WEBM video.",
+        "size": "That video is over {{mb}} MB. Trim it, or post it to TikTok, Instagram or YouTube and paste the link below."
+      },
+      "socialUrlLabel": "TikTok, Instagram or YouTube link (optional)",
+      "socialUrlOk": "Link recognised: {{platform}}",
+      "socialUrlBad": "This link isn't recognised. Use the full video link (for example tiktok.com/@user/video/... , instagram.com/reel/... or youtube.com/watch?v=...). Until then the card shows the image.",
+      "uploadBlockedBySocial": "Remove the link below to upload your own video.",
+      "socialBlockedByUpload": "Remove the uploaded video to use a link instead."
     },
     "upload": {
       "title": "Upload photos",

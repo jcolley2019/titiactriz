@@ -73,7 +73,24 @@ export type EventCardItem = BaseItem & {
   imageAspect?: ImageAspect;
   bulletsOn?: boolean;
   bullets?: Localized[];
+  /**
+   * EVENTS.VIDEO.1 — a video hosted on a platform, by its public link
+   * (TikTok / Instagram / YouTube). Pre-dates this brick and keeps its name and
+   * its meaning, so every row already on the board parses exactly as it did.
+   */
   videoUrl?: string;
+  /**
+   * EVENTS.VIDEO.1 — a video we host: an mp4/webm in the gallery bucket, by its
+   * public URL. Optional and absent from every row written before this brick.
+   *
+   * A card has ONE medium. When both video fields somehow carry a value — only
+   * reachable by hand-editing the row, since the admin lets you fill in one at a
+   * time — the uploaded file wins: it is the one Titi owns, and it is the one
+   * that cannot silently change under her from someone else's platform.
+   * `imageUrl` is never a competitor: it is this medium's POSTER, and the
+   * fallback whenever the video cannot be shown.
+   */
+  videoFileUrl?: string;
 };
 
 export type EventItem = EventCardItem;
@@ -166,6 +183,7 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
       bulletsOn: false,
       bullets: [],
       videoUrl: "",
+      videoFileUrl: "",
       buttons: [
         {
           label: { es: "Sobre SmartFilms", en: "About SmartFilms" },
@@ -235,6 +253,10 @@ const coerceItem = (v: unknown): EventItem | null => {
     bulletsOn: v.bulletsOn === true,
     bullets,
     videoUrl: typeof v.videoUrl === "string" ? v.videoUrl : "",
+    // EVENTS.VIDEO.1 — anything a stored row does not say, including every row
+    // written before the field existed, means "no uploaded video". No
+    // migration, no rewrite of live JSON.
+    videoFileUrl: typeof v.videoFileUrl === "string" ? v.videoFileUrl : "",
     buttons,
   };
 };
