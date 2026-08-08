@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -13,7 +13,6 @@ const HomeVariantToggle = () => {
   const { t } = useTranslation();
   const [variant, setVariantState] = useState<HomeVariant | null>(null);
   const [saving, setSaving] = useState<HomeVariant | null>(null);
-  const [open, setOpen] = useState(false);
 
   const OPTIONS: { value: HomeVariant; label: string; description: string }[] = [
     {
@@ -57,34 +56,21 @@ const HomeVariantToggle = () => {
 
   return (
     <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-3">
-          {open ? (
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          )}
-          <div>
-            <h2 className="font-serif text-base text-foreground leading-tight">{t("admin.homeVariant.title")}</h2>
-            <p className="text-xs text-muted-foreground">
-              {t("admin.homeVariant.subtitle")} <span className="font-mono">/</span>.
-            </p>
-          </div>
+      <div className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left">
+        <div>
+          <h2 className="font-serif text-base text-foreground leading-tight">{t("admin.homeVariant.title")}</h2>
+          <p className="text-xs text-muted-foreground">
+            {t("admin.homeVariant.subtitle")} <span className="font-mono">/</span>.
+          </p>
         </div>
         {variant && (
           <span className="text-xs uppercase tracking-wider text-accent shrink-0">
             {variant}
           </span>
         )}
-      </button>
+      </div>
 
-      {open && (
-        <div className="px-6 pb-4 grid sm:grid-cols-2 gap-3">
+      <div className="px-6 pb-4 grid sm:grid-cols-2 gap-3">
         {OPTIONS.map((opt) => {
           const active = variant === opt.value;
           const isSaving = saving === opt.value;
@@ -112,8 +98,7 @@ const HomeVariantToggle = () => {
             </button>
           );
         })}
-        </div>
-      )}
+      </div>
     </section>
   );
 };

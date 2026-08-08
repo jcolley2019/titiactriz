@@ -19,7 +19,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   ChevronDown,
-  ChevronRight,
   ChevronUp,
   GripVertical,
   Loader2,
@@ -314,7 +313,6 @@ const PortfolioManager = () => {
   const [rows, setRows] = useState<ActingCreditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
-  const [open, setOpen] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<ActingCreditRow | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const savedTimers = useRef<Map<string, number>>(new Map());
@@ -538,34 +536,21 @@ const PortfolioManager = () => {
   return (
     <div data-qa="admin-portfolio" className="pb-12">
       <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left hover:bg-accent/5 transition-colors"
-          aria-expanded={open}
-        >
-          <div className="flex items-center gap-3">
-            {open ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            )}
-            <div>
-              <h2 className="font-serif text-base text-foreground leading-tight">
-                {t("admin.portfolio.sectionTitle")}
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {t("admin.portfolio.sectionSubtitle")}
-              </p>
-            </div>
+        <div className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left">
+          <div>
+            <h2 className="font-serif text-base text-foreground leading-tight">
+              {t("admin.portfolio.sectionTitle")}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.portfolio.sectionSubtitle")}
+            </p>
           </div>
           <span className="text-xs text-muted-foreground tabular-nums shrink-0">
             {t("admin.portfolio.liveCount", { live: liveCount, total: rows.length })}
           </span>
-        </button>
+        </div>
 
-        {open && (
-          <div className="px-6 pt-4 pb-6 border-t border-border space-y-4">
+        <div className="px-6 pt-4 pb-6 border-t border-border space-y-4">
             {!ACTING_ACT_ENABLED && (
               <p
                 data-qa="portfolio-dark-notice"
@@ -629,8 +614,7 @@ const PortfolioManager = () => {
                 </SortableContext>
               </DndContext>
             )}
-          </div>
-        )}
+        </div>
       </section>
 
       <AlertDialog
