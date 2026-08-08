@@ -171,6 +171,8 @@ const EventCard = ({
     bullets?: Localized[];
     videoUrl?: string;
     videoFileUrl?: string;
+    imageFraming?: EventItem["imageFraming"];
+    videoFraming?: EventItem["videoFraming"];
     buttons?: EventButton[];
   };
 
@@ -213,6 +215,8 @@ const EventCard = ({
         videoUrl: v.videoUrl,
         videoFileUrl: v.videoFileUrl,
         imageAspect,
+        imageFraming: v.imageFraming,
+        videoFraming: v.videoFraming,
       }}
       alt={title || ""}
       isFull={isFull}
