@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./_admin";
+import { resolveHeroGeometry } from "../src/lib/hero-framing";
 
 /**
  * EVENTS.VIDEO.1 — an event card's medium.
@@ -34,9 +35,12 @@ import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./
  *  8. ONE CARD GRAMMAR, BOTH ROOMS — /events and the cinematic act mount the
  *     same EventCard, so each medium renders identically in both.
  *  9. THE FILE THE OWNER PICKS IS THE FILE THAT UPLOADS (VIDEO.1.FIX-B).
- * 10. THE VIDEO WELL IS THE IMAGE WELL (VIDEO.1.FIX-C) — a video and an image of
- *     the same intrinsic ratio render the SAME box, measured side by side, at
- *     both viewports. PORTRAIT.1 is read off the video's own dimensions.
+ * 10. THE UPLOADED-VIDEO WELL FOLLOWS THE SCREEN (EVENTS.MEDIA.EDITOR.1c —
+ *     superseding FIX-C's file-shaped well): one file must work in every
+ *     aspect ratio, so the well is the screen's design box (9:16 at the
+ *     ratified caps on portrait screens, the 420px band on landscape ones)
+ *     and the clip is framed into it by the per-view records. Still images
+ *     keep PORTRAIT.1's own-ratio law untouched.
  *
  * Everything is offline: the image fixtures are SVG data URIs with declared
  * intrinsic sizes, the video fixture is served by a route, and the three
@@ -604,60 +608,456 @@ async function mediaBox(
   return { media, well, aspect: await el.getAttribute("data-aspect") };
 }
 
+/**
+ * LAW 10, as re-ratified by EVENTS.MEDIA.EDITOR.1c: THE UPLOADED-VIDEO WELL
+ * FOLLOWS THE SCREEN, NOT THE FILE. One file has to work in every aspect
+ * ratio (the hero's own law), so a portrait screen shows the tall 9:16 well
+ * at the ratified NAV.1 caps and a landscape screen shows the historic
+ * full-width 420px band — whatever shape the clip is, with the clip framed
+ * into that box by the per-view records. Still images are untouched:
+ * PORTRAIT.1's own-ratio law holds for them (the framed-image tests below and
+ * events-portrait.spec.ts pin it).
+ */
 for (const vp of VIEWPORTS) {
-  test(`a portrait video fills the same well a portrait image fills (@${vp.name})`, async ({
+  test(`the uploaded-video well is the screen's box, whatever the clip's shape (@${vp.name})`, async ({
     page,
   }) => {
     test.setTimeout(90_000);
 
-    // The reference: what the IMAGE branch does with 1080x1920, right now.
-    const image = await mediaBox(page, { imageUrl: PORTRAIT_IMG_SRC }, vp);
-    expect(image.aspect, "the reference is the portrait branch").toBe("portrait");
+    const portrait = await mediaBox(page, { videoFileUrl: PORTRAIT_CLIP }, vp);
+    const landscape = await mediaBox(page, { videoFileUrl: LANDSCAPE_CLIP }, vp);
 
-    // The subject: the same ratio, arriving as an uploaded video.
-    const video = await mediaBox(page, { videoFileUrl: PORTRAIT_CLIP }, vp);
-
-    // PORTRAIT.1 read off the VIDEO's own dimensions, not off a default.
-    expect(video.aspect, "the video's real dimensions decided the well").toBe("portrait");
-
-    // The law: same box, not "a small centered box inside a dark one".
+    // The file has NO say: a 9:16 clip and a 16:9 clip render the same box.
     expect(
-      Math.abs(video.media.width - image.media.width),
-      `video ${video.media.width.toFixed(1)}x${video.media.height.toFixed(1)} vs image ` +
-        `${image.media.width.toFixed(1)}x${image.media.height.toFixed(1)}`,
+      Math.abs(portrait.media.width - landscape.media.width),
+      `portrait clip ${portrait.media.width.toFixed(1)}x${portrait.media.height.toFixed(1)} vs ` +
+        `landscape clip ${landscape.media.width.toFixed(1)}x${landscape.media.height.toFixed(1)}`,
     ).toBeLessThanOrEqual(2);
-    expect(Math.abs(video.media.height - image.media.height)).toBeLessThanOrEqual(2);
+    expect(Math.abs(portrait.media.height - landscape.media.height)).toBeLessThanOrEqual(2);
 
-    // Same well width — the wrapper both branches hang in.
-    expect(Math.abs(video.well.width - image.well.width), "the same well").toBeLessThanOrEqual(2);
-
-    // Uncropped: the box carries the source's own 9:16 shape, so every pixel is
-    // on screen and no bar is painted around it.
-    expect(
-      Math.abs(video.media.width / video.media.height - 1080 / 1920),
-      "the video box is the video's ratio",
-    ).toBeLessThan(0.02);
-
-    // And it is emphatically NOT the landscape band the bug rendered.
-    expect(video.media.height, "taller than the 420px band").toBeGreaterThan(BAND_H);
-  });
-
-  test(`a landscape video keeps the historic band, as a landscape image does (@${vp.name})`, async ({
-    page,
-  }) => {
-    test.setTimeout(90_000);
-
-    const image = await mediaBox(page, { imageUrl: LANDSCAPE_SRC }, vp);
-    const video = await mediaBox(page, { videoFileUrl: LANDSCAPE_CLIP }, vp);
-
-    // The other direction of the same law: a fix that forced every video
-    // portrait would pass the test above and fail this one.
-    expect(video.aspect, "16:9 stays landscape").toBe("landscape");
-    expect(
-      Math.abs(video.media.width - image.media.width),
-      `video ${video.media.width.toFixed(1)}x${video.media.height.toFixed(1)} vs image ` +
-        `${image.media.width.toFixed(1)}x${image.media.height.toFixed(1)}`,
-    ).toBeLessThanOrEqual(2);
-    expect(Math.abs(video.media.height - image.media.height)).toBeLessThanOrEqual(2);
+    if (vp.width < vp.height) {
+      // Portrait screen: the tall 9:16 well at the dialed-in 56vh phone cap.
+      expect(portrait.aspect, "the well reports the screen").toBe("portrait");
+      expect(
+        Math.abs(portrait.media.width / portrait.media.height - 9 / 16),
+        "the well is the 9:16 design box",
+      ).toBeLessThan(0.02);
+      expect(
+        Math.abs(portrait.media.height - 0.56 * vp.height),
+        "the well fills the ratified phone room",
+      ).toBeLessThanOrEqual(3);
+      expect(portrait.media.height, "taller than the band").toBeGreaterThan(BAND_H);
+    } else {
+      // Landscape screen: the historic full-width band, exactly as before.
+      expect(portrait.aspect, "the well reports the screen").toBe("landscape");
+      expect(Math.abs(portrait.media.width - LEGACY_WRAPPER_W)).toBeLessThanOrEqual(2);
+      expect(Math.abs(portrait.media.height - BAND_H)).toBeLessThanOrEqual(2);
+    }
   });
 }
+
+/* ─────── EVENTS.MEDIA.EDITOR.1b — framing through the hero resolver ─────── */
+
+/**
+ * The card's media can now carry framing in the hero system's stored shapes
+ * (image: {phone,wide} at the reel's 768px line; video: {landscape,portrait}
+ * by viewport orientation), painted by resolveHeroMediaStyle. These tests
+ * assert the RENDERED rectangle against the resolver's own math — the same
+ * function the app calls — so a render that ignored, halved or misrouted the
+ * stored record cannot pass. Law 10 above is the no-framing regression guard
+ * and is deliberately untouched: an absent record must keep producing the
+ * legacy element-box render it pins.
+ */
+
+const FRAMED_IMAGE = {
+  phone: { focal: { x: 0.3, y: 0.2 }, zoom: 1.6 },
+  wide: { focal: { x: 0.7, y: 0.4 }, zoom: 1.4 },
+};
+const FRAMED_VIDEO = {
+  portrait: { focal: { x: 0.3, y: 0.2 }, zoom: 1.6, fit: "fill" },
+  landscape: { focal: { x: 0.7, y: 0.4 }, zoom: 1.4, fit: "fill" },
+};
+
+type Rect = { x: number; y: number; width: number; height: number };
+
+/** Mount one card and return full rects of the medium and its well box. */
+async function framedRects(
+  page: Page,
+  overrides: Card,
+  vp: { width: number; height: number },
+): Promise<{ media: Rect; well: Rect }> {
+  await page.setViewportSize(vp);
+  await forceLanguage(page, "es");
+  await page.route(`**${PORTRAIT_CLIP}`, (route) =>
+    route.fulfill({ status: 200, contentType: "video/webm", body: PORTRAIT_BYTES }),
+  );
+  await routeSupabase(page, { eventsBoard: boardWith(overrides) });
+  await page.goto(PAGE, { waitUntil: "domcontentloaded" });
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
+  await page.waitForFunction(
+    () => {
+      const v = document.querySelector<HTMLVideoElement>('[data-qa="event-card-video"]');
+      if (v) return v.readyState >= 1 && v.videoWidth > 0;
+      const i = document.querySelector<HTMLImageElement>('[data-qa="event-card-image"]');
+      return !!i && i.complete && i.naturalWidth > 0;
+    },
+    undefined,
+    { timeout: 15_000 },
+  );
+  await page.waitForTimeout(300);
+  const el = page.locator(`${VIDEO}, ${IMG}`);
+  await expect(el, "the card has exactly one medium").toHaveCount(1);
+  const media = (await el.boundingBox())!;
+  const well = (await el.locator("xpath=..").boundingBox())!;
+  return { media, well };
+}
+
+/** The record's expected rectangle inside the measured well — resolver math. */
+const expectResolverRect = (
+  got: { media: Rect; well: Rect },
+  natAspect: number,
+  rec: { focal: { x: number; y: number }; zoom: number },
+) => {
+  const geo = resolveHeroGeometry(natAspect, got.well.width / got.well.height, {
+    scale: rec.zoom,
+    posX: rec.focal.x * 100,
+    posY: rec.focal.y * 100,
+    fit: "fill",
+  })!;
+  expect(geo, "the resolver has a rectangle for a decoded medium").not.toBeNull();
+  const tol = 2;
+  expect(
+    Math.abs(got.media.width - (got.well.width * geo.widthPct) / 100),
+    `width ${got.media.width.toFixed(1)} vs resolver ${((got.well.width * geo.widthPct) / 100).toFixed(1)}`,
+  ).toBeLessThanOrEqual(tol);
+  expect(
+    Math.abs(got.media.height - (got.well.height * geo.heightPct) / 100),
+    "height follows the resolver",
+  ).toBeLessThanOrEqual(tol);
+  expect(
+    Math.abs(got.media.x - got.well.x - (got.well.width * geo.leftPct) / 100),
+    "the pan (left offset) follows the resolver",
+  ).toBeLessThanOrEqual(tol);
+  expect(
+    Math.abs(got.media.y - got.well.y - (got.well.height * geo.topPct) / 100),
+    "the pan (top offset) follows the resolver",
+  ).toBeLessThanOrEqual(tol);
+};
+
+for (const vp of VIEWPORTS) {
+  test(`a framed still image renders the resolver's crop (@${vp.name})`, async ({ page }) => {
+    test.setTimeout(90_000);
+    const got = await framedRects(
+      page,
+      { imageUrl: PORTRAIT_IMG_SRC, imageFraming: FRAMED_IMAGE },
+      vp,
+    );
+    // The stored shape routes by device class at the reel's 768px line.
+    const rec = vp.width < 768 ? FRAMED_IMAGE.phone : FRAMED_IMAGE.wide;
+    expectResolverRect(got, 1080 / 1920, rec);
+    // Falsifiability: a render that ignored the record would paint 100%.
+    expect(got.media.width / got.well.width).toBeGreaterThan(1.2);
+  });
+
+  test(`a framed uploaded video renders the resolver's crop (@${vp.name})`, async ({ page }) => {
+    test.setTimeout(90_000);
+    const got = await framedRects(
+      page,
+      { videoFileUrl: PORTRAIT_CLIP, videoFraming: FRAMED_VIDEO },
+      vp,
+    );
+    // The stored shape routes by VIEWPORT orientation (the hero video's law):
+    // 390x844 is a portrait viewport, 1280x800 a landscape one.
+    const rec = vp.width < vp.height ? FRAMED_VIDEO.portrait : FRAMED_VIDEO.landscape;
+    expectResolverRect(got, 1080 / 1920, rec);
+    expect(got.media.width / got.well.width).toBeGreaterThan(1.2);
+  });
+}
+
+/* ── the admin: one combined zone, and framing that survives the round trip ── */
+
+/** The admin's events editor, open on one card with the given fields. */
+async function openMediaEditor(page: Page, writes: Write[], overrides: Card) {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await injectAdminSession(page);
+  await forceLanguage(page, "en");
+  await routeMedia(page);
+  await routeSupabase(page, { eventsBoard: boardWith(overrides), writes });
+  await page.goto("/admin", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(800);
+  await page.locator('[data-qa="admin-nav-events"]').click();
+  await page.locator('[data-qa="events-board-toggle"]').click();
+  await expect(page.locator('[data-qa="event-media"]'), "the media section").toBeVisible();
+}
+
+/** Drive the REAL combined input the way a person does (the pickVideo law). */
+async function pickMedia(page: Page, o: { name: string; type: string; bytes: number }) {
+  await page.evaluate((f) => {
+    const input = document.querySelector<HTMLInputElement>('[data-qa="event-video-input"]');
+    if (!input) throw new Error("combined media input not found");
+    const file = new File([new Uint8Array(f.bytes)], f.name, { type: f.type });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, o);
+}
+
+/** Set a React-controlled range input through its native value setter. */
+async function setRange(page: Page, selector: string, value: string) {
+  await page.evaluate(
+    ({ sel, v }) => {
+      const el = document.querySelector<HTMLInputElement>(sel);
+      if (!el) throw new Error(`range not found: ${sel}`);
+      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      set.call(el, v);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    },
+    { sel: selector, v: value },
+  );
+}
+
+test("the one combined zone accepts an image AND a video, through the same input", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const writes: Write[] = [];
+  await openMediaEditor(page, writes, {});
+
+  // There is ONE zone: the legacy separate image drop zone is gone.
+  await expect(page.locator('[data-qa="event-video-upload"]')).toHaveCount(1);
+  await expect(page.locator('[data-qa="event-video-input"]')).toHaveCount(1);
+
+  // An image file routes to the image slot (compression falls back offline;
+  // the upload itself is intercepted by the harness, never a live bucket).
+  await pickMedia(page, { name: "poster.png", type: "image/png", bytes: 2048 });
+  const imgPreview = page.locator('[data-qa="event-image-preview"]');
+  await expect(imgPreview, "the image lands as the card image").toBeVisible({ timeout: 20_000 });
+  expect(await imgPreview.getAttribute("src")).toMatch(
+    /\/storage\/v1\/object\/public\/gallery\/events\/[\w-]+\.webp$/,
+  );
+
+  // A video file, through the SAME input, routes to the uploaded-video slot.
+  await pickMedia(page, { name: "clip.mp4", type: "video/mp4", bytes: 1024 });
+  const vidPreview = page.locator('[data-qa="event-video-preview"]');
+  await expect(vidPreview, "the video lands as the uploaded video").toBeVisible({
+    timeout: 20_000,
+  });
+  expect(await vidPreview.getAttribute("src")).toMatch(
+    /\/storage\/v1\/object\/public\/gallery\/events\/[\w-]+\.mp4$/,
+  );
+
+  expect(
+    writes.filter((w) => STORAGE.test(w.url)).length,
+    "both media reached storage — and only through the harness",
+  ).toBe(2);
+});
+
+test("framing set in the editor is written to the row on save", async ({ page }) => {
+  test.setTimeout(90_000);
+  const writes: Write[] = [];
+  await openMediaEditor(page, writes, { imageUrl: LANDSCAPE_SRC });
+
+  await page.locator('[data-qa="event-edit-framing"]').click();
+  await expect(page.locator('[data-qa="event-framing-editor"]')).toBeVisible();
+
+  // The default tab is the iPhone — the PHONE class record.
+  const save = page.locator('[data-qa="event-framing-save"]');
+  await expect(save, "save arms once the medium has decoded").toBeEnabled({ timeout: 15_000 });
+  await setRange(page, '[data-qa="event-framing-zoom"]', "1.5");
+  await expect(page.locator('[data-qa="event-framing-zoom-value"]')).toHaveText("1.50×");
+  await save.click();
+  await expect(page.locator('[data-qa="event-framing-editor"]')).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect
+    .poll(
+      () =>
+        writes.some(
+          (w) =>
+            /\/rest\/v1\//.test(w.url) &&
+            !!w.body &&
+            w.body.includes('"imageFraming"') &&
+            w.body.includes('"zoom":1.5'),
+        ),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
+});
+
+test("stored framing reopens in the editor exactly as saved", async ({ page }) => {
+  test.setTimeout(90_000);
+  await openMediaEditor(page, [], {
+    imageUrl: LANDSCAPE_SRC,
+    imageFraming: {
+      phone: { focal: { x: 0.5, y: 0.5 }, zoom: 1.5 },
+      wide: { focal: { x: 0.5, y: 0.5 }, zoom: 1 },
+    },
+  });
+
+  await page.locator('[data-qa="event-edit-framing"]').click();
+  await expect(page.locator('[data-qa="event-framing-editor"]')).toBeVisible();
+
+  // iPhone tab (phone class) shows the saved zoom; the Desktop tab (wide
+  // class) shows its own untouched record — two records, not one.
+  await expect(page.locator('[data-qa="event-framing-zoom-value"]')).toHaveText("1.50×");
+  await page.locator('[data-qa="event-framing-device-desktop"]').click();
+  await expect(page.locator('[data-qa="event-framing-zoom-value"]')).toHaveText("1.00×");
+});
+
+
+/* ── EVENTS.MEDIA.EDITOR.1c — the hero editor's grammar, the CARD composition ── */
+
+/**
+ * Joey's ruling, both halves. The gold frame is the SCREEN (the hero editor's
+ * device-aspect canvas); what fills it is the EVENT CARD as that screen shows
+ * it — shell, badge, title, copy — with the medium painted into the CARD'S
+ * media well and drag/zoom operating on that well's real overflow (the hero
+ * editor's previewFrame law). The uploaded-video well is the SCREEN's design
+ * box — 9:16 at the ratified caps on portrait screens, the 420 band on
+ * landscape ones — so ONE file of any shape is framed per view; a still image
+ * keeps PORTRAIT.1's own-ratio well. These laws pin both halves with the
+ * resolver's own math.
+ */
+
+const EDITOR_TABS = [
+  { id: "iphone-17-pro", w: 402, h: 874 },
+  { id: "ipad-air", w: 820, h: 1180 },
+  { id: "desktop", w: 1440, h: 900 },
+] as const;
+
+const EDITOR_MEDIA = '[data-qa="event-framing-media"]';
+
+type EditorRects = { surface: Rect; well: Rect; media: Rect };
+
+/** The canvas surface, the card's well inside it, and the media element. */
+async function editorRects(page: Page): Promise<EditorRects> {
+  const surface = (await page.locator('[data-qa="event-framing-surface"]').boundingBox())!;
+  const media = (await page.locator(EDITOR_MEDIA).boundingBox())!;
+  const well = (await page.locator(EDITOR_MEDIA).locator("xpath=..").boundingBox())!;
+  return { surface, well, media };
+}
+
+/** Open the admin framing editor on one card (the hero-grammar dialog). */
+async function openFramingEditor(page: Page, overrides: Card) {
+  await page.route(`**${PORTRAIT_CLIP}`, (route) =>
+    route.fulfill({ status: 200, contentType: "video/webm", body: PORTRAIT_BYTES }),
+  );
+  await openMediaEditor(page, [], overrides);
+  await page.locator('[data-qa="event-edit-framing"]').click();
+  await expect(page.locator('[data-qa="event-framing-editor"]')).toBeVisible();
+  await expect(
+    page.locator('[data-qa="event-framing-save"]'),
+    "save arms once the medium has decoded",
+  ).toBeEnabled({ timeout: 15_000 });
+}
+
+/** The screen is the frame; the media follows the resolver INSIDE the well. */
+const expectCardCanvas = (
+  got: EditorRects,
+  device: { id: string; w: number; h: number },
+  wellAspect: number,
+  rec: { focal: { x: number; y: number }; zoom: number; fit?: string },
+) => {
+  const deviceAspect = device.w / device.h;
+  expect(
+    Math.abs(got.surface.width / got.surface.height - deviceAspect),
+    `${device.id}: the canvas IS the screen (${(got.surface.width / got.surface.height).toFixed(3)} vs ${deviceAspect.toFixed(3)})`,
+  ).toBeLessThanOrEqual(0.01);
+
+  expect(
+    Math.abs(got.well.width / got.well.height - wellAspect),
+    `${device.id}: the card's well holds its design shape ` +
+      `(${(got.well.width / got.well.height).toFixed(3)} vs ${wellAspect.toFixed(3)})`,
+  ).toBeLessThanOrEqual(0.02);
+
+  const geo = resolveHeroGeometry(1080 / 1920, got.well.width / got.well.height, {
+    scale: rec.zoom,
+    posX: rec.focal.x * 100,
+    posY: rec.focal.y * 100,
+    fit: rec.fit === "fit" ? "fit" : "fill",
+  })!;
+  expect(geo, "the resolver has a rectangle for the decoded medium").not.toBeNull();
+  const tol = 2;
+  expect(
+    Math.abs(got.media.width - (got.well.width * geo.widthPct) / 100),
+    `${device.id}: width ${got.media.width.toFixed(1)} vs resolver ${((got.well.width * geo.widthPct) / 100).toFixed(1)}`,
+  ).toBeLessThanOrEqual(tol);
+  expect(
+    Math.abs(got.media.height - (got.well.height * geo.heightPct) / 100),
+    `${device.id}: height follows the resolver`,
+  ).toBeLessThanOrEqual(tol);
+  expect(
+    Math.abs(got.media.x - got.well.x - (got.well.width * geo.leftPct) / 100),
+    `${device.id}: the pan (left offset) follows the resolver`,
+  ).toBeLessThanOrEqual(tol);
+  expect(
+    Math.abs(got.media.y - got.well.y - (got.well.height * geo.topPct) / 100),
+    `${device.id}: the pan (top offset) follows the resolver`,
+  ).toBeLessThanOrEqual(tol);
+};
+
+test("the editor frames the video into the CARD's well, per screen", async ({ page }) => {
+  test.setTimeout(150_000);
+  await openFramingEditor(page, {
+    imageUrl: PORTRAIT_IMG_SRC,
+    videoFileUrl: PORTRAIT_CLIP,
+    videoFraming: FRAMED_VIDEO,
+  });
+
+  // The hero options are present: three device-thumbnail tabs, Fill/Fit, the
+  // orientation caption.
+  await expect(page.locator('[data-qa="event-framing-devices"] button')).toHaveCount(3);
+  await expect(page.locator('[data-qa="event-framing-fit-fill"]')).toBeVisible();
+  await expect(page.locator('[data-qa="event-framing-fit-fit"]')).toBeVisible();
+  await expect(page.locator('[data-qa="event-framing-source-label"]')).toBeVisible();
+  // The composition IS the card: its title is on the canvas.
+  await expect(
+    page.locator('[data-qa="event-framing-surface"]').getByText("Cumpleaños de Titi"),
+  ).toBeVisible();
+
+  for (const d of EDITOR_TABS) {
+    await page.locator(`[data-qa="event-framing-device-${d.id}"]`).click();
+    // The video well is the SCREEN's design box: 9:16 on portrait screens,
+    // the 768x420 band on the landscape desktop.
+    const wellAspect = d.w / d.h < 1 ? 9 / 16 : 768 / 420;
+    const rec = d.w / d.h < 1 ? FRAMED_VIDEO.portrait : FRAMED_VIDEO.landscape;
+    await expect
+      .poll(async () => {
+        const got = await editorRects(page);
+        return got.media.width / got.well.width;
+      }, { timeout: 15_000 })
+      .toBeGreaterThan(1.2); // falsifiability: an ignored record paints <= 100%
+    expectCardCanvas(await editorRects(page), d, wellAspect, rec);
+  }
+
+  // A portrait clip vs the desktop BAND raises the hero's hint; the phone
+  // tab's 9:16 well matches the clip, so the hint stands down there.
+  await expect(page.locator('[data-qa="event-framing-hint"]')).toBeVisible();
+  await page.locator('[data-qa="event-framing-device-iphone-17-pro"]').click();
+  await expect(page.locator('[data-qa="event-framing-hint"]')).toHaveCount(0);
+});
+
+test("the editor frames a still image into the CARD's own-ratio well, per screen", async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await openFramingEditor(page, { imageUrl: PORTRAIT_IMG_SRC, imageFraming: FRAMED_IMAGE });
+
+  await expect(page.locator('[data-qa="event-framing-devices"] button')).toHaveCount(3);
+  // The image well is fill-only, like the hero photo: no Fill/Fit pair.
+  await expect(page.locator('[data-qa="event-framing-fit"]')).toHaveCount(0);
+
+  for (const d of EDITOR_TABS) {
+    await page.locator(`[data-qa="event-framing-device-${d.id}"]`).click();
+    // PORTRAIT.1 unchanged: the image well is the IMAGE's own ratio.
+    const rec = d.w < 768 ? FRAMED_IMAGE.phone : FRAMED_IMAGE.wide;
+    await expect
+      .poll(async () => {
+        const got = await editorRects(page);
+        return got.media.width / got.well.width;
+      }, { timeout: 15_000 })
+      .toBeGreaterThan(1.0);
+    expectCardCanvas(await editorRects(page), d, 1080 / 1920, rec);
+  }
+});
