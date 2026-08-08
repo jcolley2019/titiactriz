@@ -40,6 +40,7 @@ import {
   type EventButton,
 } from "@/hooks/useEventsBoard";
 import { syncBoardTranslations } from "@/lib/translate-copy";
+import EventFramingEditor from "@/components/admin/events/EventFramingEditor";
 import EventsGrid from "@/components/events/EventsGrid";
 import { TITANS_ENABLED } from "@/lib/ventures";
 import {
@@ -273,134 +274,70 @@ const BannerEditor = ({
   );
 };
 
-const ImageUploader = ({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (url: string) => void;
-}) => {
-  const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-
-  const handleFiles = async (files: FileList | null) => {
-    const file = files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    setBusy(true);
-    try {
-      const url = await uploadEventImage(file);
-      onChange(url);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      toast({
-        title: t("admin.eventsBoard.saveError"),
-        description: msg,
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (value) {
-    return (
-      <div className="flex items-center gap-3">
-        <img
-          src={value}
-          alt=""
-          className="w-24 h-24 object-cover rounded-md border border-border"
-        />
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => onChange("")}
-        >
-          <X className="w-3 h-3 mr-1" />
-          {t("admin.eventsBoard.removeImage")}
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragOver(true);
-      }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setDragOver(false);
-        handleFiles(e.dataTransfer.files);
-      }}
-      onClick={() => inputRef.current?.click()}
-      className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-md p-6 cursor-pointer transition-colors ${
-        dragOver
-          ? "border-accent bg-accent/5"
-          : "border-border hover:border-accent/50"
-      }`}
-    >
-      {busy ? (
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-      ) : (
-        <Upload className="w-5 h-5 text-muted-foreground" />
-      )}
-      <span className="text-xs text-muted-foreground text-center">
-        {t("admin.eventsBoard.dropImage")}
-      </span>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
-      />
-    </div>
-  );
-};
-
 /**
- * EVENTS.VIDEO.1 — the uploaded half of the media section.
+ * EVENTS.MEDIA.EDITOR.1b — ONE combined drop/click zone for the card's media.
  *
- * A file that will not work is refused HERE, before the upload, and the refusal
- * names the actual problem in the owner's own language: the wrong kind of file
- * and a file that is simply too big are different mistakes with different fixes,
- * and "no se pudo guardar" is neither of them.
+ * The separate image zone and video zone are unified: the zone accepts an image
+ * (image/*) OR a video (mp4/webm, the 60 MB cap and its per-reason refusals
+ * preserved verbatim), routes the file by its type, and shows what the card
+ * currently holds — the image (the poster) and/or the uploaded video — each
+ * with its own remove control. Mutual exclusion with the social link is
+ * preserved: while a link owns the card's video, a dropped video FILE is
+ * refused out loud, while images (the poster) still upload.
+ *
+ * EVENTS.VIDEO.1's refusal law stands: a file that will not work is refused
+ * HERE, before the upload, and the refusal names the actual problem — the
+ * wrong kind of file and a file that is simply too big are different mistakes
+ * with different fixes, and "no se pudo guardar" is neither of them.
  */
-const VideoUploader = ({
-  value,
-  disabled,
+const MediaUploader = ({
+  imageUrl,
+  videoFileUrl,
+  socialSet,
   onChange,
 }: {
-  value: string;
-  /** A social link already owns this card's medium — see the note beside it. */
-  disabled?: boolean;
-  onChange: (url: string) => void;
+  imageUrl: string;
+  videoFileUrl: string;
+  /** A social link already owns this card's video medium. */
+  socialSet: boolean;
+  onChange: (patch: Partial<EventCardItem>) => void;
 }) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"image" | "video" | null>(null);
   const [rejected, setRejected] = useState<EventVideoRejectReason | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   const handleFiles = async (files: ArrayLike<File> | null) => {
     const file = files?.[0];
     if (!file) return;
     setRejected(null);
 
+    if ((file.type || "").startsWith("image/")) {
+      setBusy("image");
+      try {
+        onChange({ imageUrl: await uploadEventImage(file) });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        toast({ title: t("admin.eventsBoard.saveError"), description: msg, variant: "destructive" });
+      } finally {
+        setBusy(null);
+      }
+      return;
+    }
+
+    // Not an image → the video path. Mutual exclusion first (the standing note
+    // below the zone says why), then EVENTS.VIDEO.1's own gate (type, then
+    // size) with its exact refusal messages.
+    if (socialSet) return;
     const check = validateEventVideo(file);
     if (!check.ok) {
       setRejected(check.reason);
       return;
     }
-
-    setBusy(true);
+    setBusy("video");
     try {
-      onChange(await uploadEventVideo(file));
+      onChange({ videoFileUrl: await uploadEventVideo(file) });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
       toast({
@@ -409,56 +346,85 @@ const VideoUploader = ({
         variant: "destructive",
       });
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
-  if (value) {
-    return (
-      <div className="flex items-center gap-3">
-        <video
-          src={value}
-          data-qa="event-video-preview"
-          muted
-          loop
-          playsInline
-          autoPlay
-          className="w-24 h-24 object-cover rounded-md border border-border"
-        />
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          data-qa="event-video-remove"
-          onClick={() => onChange("")}
-        >
-          <X className="w-3 h-3 mr-1" />
-          {t("admin.eventsBoard.removeVideoFile")}
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
+      {imageUrl && (
+        <div className="flex items-center gap-3">
+          <img
+            src={imageUrl}
+            alt=""
+            data-qa="event-image-preview"
+            className="w-24 h-24 object-cover rounded-md border border-border"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-qa="event-image-remove"
+            onClick={() => onChange({ imageUrl: "", imageFraming: undefined })}
+          >
+            <X className="w-3 h-3 mr-1" />
+            {t("admin.eventsBoard.removeImage")}
+          </Button>
+        </div>
+      )}
+
+      {videoFileUrl && (
+        <div className="flex items-center gap-3">
+          <video
+            src={videoFileUrl}
+            data-qa="event-video-preview"
+            muted
+            loop
+            playsInline
+            autoPlay
+            className="w-24 h-24 object-cover rounded-md border border-border"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-qa="event-video-remove"
+            onClick={() => onChange({ videoFileUrl: "", videoFraming: undefined })}
+          >
+            <X className="w-3 h-3 mr-1" />
+            {t("admin.eventsBoard.removeVideoFile")}
+          </Button>
+        </div>
+      )}
+
       <button
         type="button"
         data-qa="event-video-upload"
-        disabled={disabled || busy}
+        disabled={busy !== null}
         onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
         className={`flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed rounded-md p-6 transition-colors ${
-          disabled
-            ? "border-border opacity-50 cursor-not-allowed"
-            : "border-border hover:border-accent/50 cursor-pointer"
+          dragOver ? "border-accent bg-accent/5" : "border-border hover:border-accent/50 cursor-pointer"
         }`}
       >
-        {busy ? (
+        {busy !== null ? (
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         ) : (
           <Upload className="w-5 h-5 text-muted-foreground" />
         )}
         <span className="text-xs text-muted-foreground text-center">
-          {busy ? t("admin.eventsBoard.uploadingVideo") : t("admin.eventsBoard.dropVideo")}
+          {busy === "video"
+            ? t("admin.eventsBoard.uploadingVideo")
+            : t("admin.eventsBoard.dropMedia")}
         </span>
         <span className="text-[0.65rem] text-muted-foreground/70">
           {t("admin.eventsBoard.videoLimitHint", { mb: EVENT_VIDEO_MAX_MB })}
@@ -470,11 +436,16 @@ const VideoUploader = ({
           {t(`admin.eventsBoard.videoReject.${rejected}`, { mb: EVENT_VIDEO_MAX_MB })}
         </p>
       )}
+      {socialSet && !videoFileUrl && (
+        <p className="text-[0.7rem] text-muted-foreground">
+          {t("admin.eventsBoard.uploadBlockedBySocial")}
+        </p>
+      )}
 
       <input
         ref={inputRef}
         type="file"
-        accept={EVENT_VIDEO_ACCEPT_ATTR}
+        accept={`image/*,${EVENT_VIDEO_ACCEPT_ATTR}`}
         className="hidden"
         data-qa="event-video-input"
         onChange={(e) => {
@@ -483,6 +454,9 @@ const VideoUploader = ({
           // file comes out into a detached array FIRST. Without this the handler
           // received an empty list and returned at its `!file` guard — every
           // upload died in silence, and the size refusal was unreachable code.
+          // EVENTS.MEDIA.EDITOR.1b — the IMAGE path now runs through this same
+          // input, so it gets the same detached-copy + reset fix: re-picking
+          // the same file after a refusal fires a real change event again.
           const files = Array.from(e.target.files ?? []);
           e.target.value = ""; // let the same file be re-picked after a refusal
           handleFiles(files);
@@ -550,6 +524,14 @@ const EventFields = ({
 }) => {
   const { t } = useTranslation();
 
+  // EVENTS.MEDIA.EDITOR.1b — the framing dialog edits the card's CURRENT
+  // medium: the uploaded video when there is one, else the still image. A
+  // social card offers no framing (the platform's player frames itself).
+  const [framingOpen, setFramingOpen] = useState(false);
+  const hasUpload = !!(item.videoFileUrl ?? "").trim();
+  const hasImage = !!(item.imageUrl ?? "").trim();
+  const framingMode: "image" | "video" = hasUpload ? "video" : "image";
+
   const bullets = item.bullets ?? [];
   const setBullet = (idx: number, value: string) => {
     const next = bullets.map((b, i) =>
@@ -616,11 +598,48 @@ const EventFields = ({
           </p>
         </div>
 
-        <FieldLabel>{t("admin.eventsBoard.imageLabel")}</FieldLabel>
-        <ImageUploader
-          value={item.imageUrl ?? ""}
-          onChange={(url) => onChange({ imageUrl: url })}
+        <MediaUploader
+          imageUrl={item.imageUrl ?? ""}
+          videoFileUrl={item.videoFileUrl ?? ""}
+          socialSet={!!(item.videoUrl ?? "").trim()}
+          onChange={onChange}
         />
+
+        {(hasUpload || hasImage) && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-qa="event-edit-framing"
+            onClick={() => setFramingOpen(true)}
+          >
+            {t("admin.eventsBoard.editFraming")}
+          </Button>
+        )}
+        <EventFramingEditor
+          open={framingOpen}
+          mode={framingMode}
+          src={framingMode === "video" ? (item.videoFileUrl ?? "") : (item.imageUrl ?? "")}
+          poster={item.imageUrl ?? ""}
+          isFull={item.size === "full"}
+          text={{
+            badge: (item.badge?.es || item.badge?.en || "").trim(),
+            title: (item.title?.es || item.title?.en || "").trim(),
+            description: (item.description?.es || item.description?.en || "").trim(),
+            note: (item.note?.es || item.note?.en || "").trim(),
+            buttons: (item.buttons ?? [])
+              .map((b) => (b.label?.es || b.label?.en || "").trim())
+              .filter((s, i) => s.length > 0 || !!(item.buttons?.[i]?.url ?? "").trim()),
+          }}
+          initialImage={item.imageFraming}
+          initialVideo={item.videoFraming}
+          onSave={(patch) => {
+            onChange(patch);
+            setFramingOpen(false);
+          }}
+          onCancel={() => setFramingOpen(false)}
+        />
+
         <div className="flex rounded-md border border-border overflow-hidden w-fit">
           {(["above", "below"] as const).map((pos) => (
             <button
@@ -668,19 +687,10 @@ const EventFields = ({
           </div>
         </div>
 
+        {/* EVENTS.MEDIA.EDITOR.1b — the social link keeps its own field below
+            the combined zone. Mutual exclusion unchanged: an uploaded video
+            disables the link, a link blocks video files in the zone above. */}
         <div className="space-y-2 border-t border-border pt-3">
-          <FieldLabel>{t("admin.eventsBoard.videoLabel")}</FieldLabel>
-          <VideoUploader
-            value={item.videoFileUrl ?? ""}
-            disabled={!!(item.videoUrl ?? "").trim()}
-            onChange={(url) => onChange({ videoFileUrl: url })}
-          />
-          {!!(item.videoUrl ?? "").trim() && !(item.videoFileUrl ?? "").trim() && (
-            <p className="text-[0.7rem] text-muted-foreground">
-              {t("admin.eventsBoard.uploadBlockedBySocial")}
-            </p>
-          )}
-
           <SocialUrlField
             value={item.videoUrl ?? ""}
             disabled={!!(item.videoFileUrl ?? "").trim()}
