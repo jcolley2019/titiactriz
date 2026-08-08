@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { ClassFramingPair, HeroVideoFraming } from "@/hooks/useCinematicMedia";
+import { coerceEventImageFraming, coerceEventVideoFraming } from "@/lib/event-framing";
 
 export type Lang = "es" | "en";
 
@@ -91,6 +93,20 @@ export type EventCardItem = BaseItem & {
    * fallback whenever the video cannot be shown.
    */
   videoFileUrl?: string;
+  /**
+   * EVENTS.MEDIA.EDITOR.1b — the still image's framing, in the reel's exact
+   * shape: one record per device class, split at the same 768px line. Absent
+   * (every row written before this brick) = centered / unzoomed = today's
+   * render, byte-identical. The admin omits the field when it is all-defaults.
+   */
+  imageFraming?: ClassFramingPair;
+  /**
+   * EVENTS.MEDIA.EDITOR.1b — the uploaded video's framing, in the hero video's
+   * exact shape: one record per viewport orientation, each focal/zoom/fit.
+   * Absent = defaults, same law as imageFraming. A social link stores none —
+   * the platform's own player frames itself.
+   */
+  videoFraming?: HeroVideoFraming;
 };
 
 export type EventItem = EventCardItem;
@@ -240,6 +256,11 @@ const coerceItem = (v: unknown): EventItem | null => {
   const buttons = Array.isArray(v.buttons)
     ? (v.buttons.map(coerceButton).filter(Boolean) as EventButton[])
     : [];
+  // EVENTS.MEDIA.EDITOR.1b — absent stays ABSENT (not defaults-materialized):
+  // a row that never stored framing keeps parsing to the same object shape it
+  // parsed to yesterday, so nothing downstream can tell this brick happened.
+  const imageFraming = coerceEventImageFraming(v.imageFraming);
+  const videoFraming = coerceEventVideoFraming(v.videoFraming);
   return {
     id,
     size: coerceSize(v.size),
@@ -257,6 +278,8 @@ const coerceItem = (v: unknown): EventItem | null => {
     // written before the field existed, means "no uploaded video". No
     // migration, no rewrite of live JSON.
     videoFileUrl: typeof v.videoFileUrl === "string" ? v.videoFileUrl : "",
+    ...(imageFraming ? { imageFraming } : {}),
+    ...(videoFraming ? { videoFraming } : {}),
     buttons,
   };
 };
