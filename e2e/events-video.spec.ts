@@ -298,7 +298,7 @@ test("the same unreadable link is called out in the admin's own preview", async 
   await page.waitForTimeout(800);
 
   await page.locator('[data-qa="admin-nav-events"]').click();
-  await page.locator('[data-qa="events-board-toggle"]').click();
+  // ADMIN.FLAT.1 — the board is always open on arrival, no expand click.
   await expect(page.locator('[data-qa="event-media"]'), "the media section").toBeVisible();
 
   // The field says so where it is typed…
@@ -320,7 +320,8 @@ test("a readable link is confirmed in the editor, by platform name", async ({ pa
   await page.waitForTimeout(800);
 
   await page.locator('[data-qa="admin-nav-events"]').click();
-  await page.locator('[data-qa="events-board-toggle"]').click();
+  // ADMIN.FLAT.1 — the board is always open on arrival, no expand click.
+  await expect(page.locator('[data-qa="event-media"]'), "the media section").toBeVisible();
 
   await expect(page.locator('[data-qa="event-social-ok"]')).toContainText("TikTok");
   await expect(page.locator('[data-qa="event-social-bad"]')).toHaveCount(0);
@@ -444,7 +445,7 @@ async function openEditor(page: Page, writes: Write[]) {
   await page.waitForTimeout(800);
 
   await page.locator('[data-qa="admin-nav-events"]').click();
-  await page.locator('[data-qa="events-board-toggle"]').click();
+  // ADMIN.FLAT.1 — the board is always open on arrival, no expand click.
   await expect(page.locator('[data-qa="event-media"]'), "the media section").toBeVisible();
 }
 
@@ -786,7 +787,7 @@ async function openMediaEditor(page: Page, writes: Write[], overrides: Card) {
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(800);
   await page.locator('[data-qa="admin-nav-events"]').click();
-  await page.locator('[data-qa="events-board-toggle"]').click();
+  // ADMIN.FLAT.1 — the board is always open on arrival, no expand click.
   await expect(page.locator('[data-qa="event-media"]'), "the media section").toBeVisible();
 }
 

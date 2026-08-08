@@ -662,7 +662,6 @@ test.describe("EVENTS.2b — the /events page lifecycle", () => {
 
 test.describe("EVENTS.2b — the admin toggle", () => {
   const NAV = '[data-qa="admin-nav-events"]';
-  const BOARD_TOGGLE = '[data-qa="events-board-toggle"]';
   const HOME_SWITCH = '[data-qa="home-visible"]';
 
   async function openBoardAdmin(page: Page, board: unknown) {
@@ -674,7 +673,7 @@ test.describe("EVENTS.2b — the admin toggle", () => {
     await page.goto("/admin", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(800);
     await page.locator(NAV).click();
-    await page.locator(BOARD_TOGGLE).click(); // the board ships collapsed
+    // ADMIN.FLAT.1 — the board is always open on arrival, no expand click.
     await expect(page.locator(HOME_SWITCH)).toBeVisible();
     // Let the manager's initial board fetch land BEFORE interacting: a click
     // that races it gets repainted by the arriving row, and a screenshot taken

@@ -40,7 +40,6 @@ import { injectAdminSession, forceLanguage, routeSupabase, type Write } from "./
  */
 
 const NAV = '[data-qa="admin-nav-events"]';
-const TOGGLE = '[data-qa="events-board-toggle"]';
 const MAIN = '[data-qa="banner-editor"][data-banner="main"]';
 const ERROR = '[data-qa="banner-text-required"]';
 const WARNING = '[data-qa="translation-failed"]';
@@ -103,7 +102,7 @@ async function openBoard(page: Page, opts: OpenOpts = {}) {
   await page.waitForTimeout(800);
 
   await page.locator(NAV).click();
-  await page.locator(TOGGLE).click(); // the board ships collapsed
+  // ADMIN.FLAT.1 — the board is always open on arrival, no expand click.
   await expect(page.locator(MAIN)).toBeVisible();
   return { writes };
 }
