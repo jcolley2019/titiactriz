@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
+import EventMedia from "./EventMedia";
 import type {
   EventItem,
   EventButton,
@@ -59,326 +59,6 @@ const Corners = () => (
     />
   </>
 );
-
-/* ---------- Video ---------- */
-
-type VideoPlatform = "youtube" | "tiktok" | "instagram" | "unknown";
-
-const detectVideoPlatform = (url: string): VideoPlatform => {
-  if (!url) return "unknown";
-  try {
-    const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
-    if (host === "youtu.be" || host.endsWith("youtube.com")) return "youtube";
-    if (host.endsWith("tiktok.com")) return "tiktok";
-    if (host.endsWith("instagram.com")) return "instagram";
-    return "unknown";
-  } catch {
-    return "unknown";
-  }
-};
-
-const parseYouTubeId = (url: string): string | null => {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    const host = u.hostname.replace(/^www\./, "");
-    if (host === "youtu.be") return u.pathname.slice(1) || null;
-    if (host.endsWith("youtube.com")) {
-      const v = u.searchParams.get("v");
-      if (v) return v;
-      const parts = u.pathname.split("/").filter(Boolean);
-      const idx = parts.findIndex((p) => p === "shorts" || p === "embed");
-      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-const loadScriptOnce = (src: string): Promise<void> =>
-  new Promise((resolve, reject) => {
-    if (typeof document === "undefined") return reject(new Error("no document"));
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[src="${src}"]`,
-    );
-    if (existing) {
-      if (existing.dataset.loaded === "true") return resolve();
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("load error")), {
-        once: true,
-      });
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.onload = () => {
-      s.dataset.loaded = "true";
-      resolve();
-    };
-    s.onerror = () => reject(new Error("load error"));
-    document.body.appendChild(s);
-  });
-
-const FallbackVideoLink = ({ url }: { url: string }) => {
-  const { t } = useTranslation();
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs uppercase tracking-[0.2em] font-medium border transition-all duration-300 hover:-translate-y-0.5"
-      style={{ color: CREAM, borderColor: GOLD }}
-    >
-      {t("events.watchVideo", "Watch video")}
-    </a>
-  );
-};
-
-const YouTubeEmbed = ({ url, title }: { url: string; title: string }) => {
-  const id = parseYouTubeId(url);
-  if (!id) return <FallbackVideoLink url={url} />;
-  return (
-    <div
-      className="relative w-full overflow-hidden"
-      style={{ paddingBottom: "56.25%", border: `1px solid ${GOLD}` }}
-    >
-      <iframe
-        className="absolute inset-0 w-full h-full"
-        src={`https://www.youtube.com/embed/${id}`}
-        title={title || "Video"}
-        loading="lazy"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    </div>
-  );
-};
-
-const TikTokEmbed = ({ url }: { url: string }) => {
-  const [failed, setFailed] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  let videoId = "";
-  try {
-    const parts = new URL(url).pathname.split("/").filter(Boolean);
-    const idx = parts.findIndex((p) => p === "video");
-    if (idx >= 0 && parts[idx + 1]) videoId = parts[idx + 1];
-  } catch {
-    // ignore
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-    loadScriptOnce("https://www.tiktok.com/embed.js").catch(() => {
-      if (!cancelled) setFailed(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (failed) return <FallbackVideoLink url={url} />;
-
-  return (
-    <div ref={ref} className="mx-auto" style={{ maxWidth: 605 }}>
-      <blockquote
-        className="tiktok-embed"
-        cite={url}
-        data-video-id={videoId || undefined}
-        style={{ maxWidth: 605, minWidth: 280, margin: "0 auto" }}
-      >
-        <section>
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            {url}
-          </a>
-        </section>
-      </blockquote>
-    </div>
-  );
-};
-
-const InstagramEmbed = ({ url }: { url: string }) => {
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    loadScriptOnce("https://www.instagram.com/embed.js")
-      .then(() => {
-        if (cancelled) return;
-        const w = window as unknown as {
-          instgrm?: { Embeds?: { process?: () => void } };
-        };
-        try {
-          w.instgrm?.Embeds?.process?.();
-        } catch {
-          setFailed(true);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [url]);
-
-  if (failed) return <FallbackVideoLink url={url} />;
-
-  return (
-    <div className="mx-auto" style={{ maxWidth: 540 }}>
-      <blockquote
-        className="instagram-media"
-        data-instgrm-permalink={url}
-        data-instgrm-version="14"
-        style={{
-          background: "#FFF",
-          maxWidth: 540,
-          minWidth: 280,
-          margin: "0 auto",
-          padding: 0,
-        }}
-      >
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          {url}
-        </a>
-      </blockquote>
-    </div>
-  );
-};
-
-const VideoBlock = ({
-  url,
-  title,
-  isFull,
-}: {
-  url: string;
-  title: string;
-  isFull: boolean;
-}) => {
-  const platform = detectVideoPlatform(url);
-  const wrapper = `mx-auto mb-8 ${isFull ? "max-w-3xl" : "max-w-md"}`;
-
-  let content: React.ReactNode;
-  if (platform === "youtube") content = <YouTubeEmbed url={url} title={title} />;
-  else if (platform === "tiktok") content = <TikTokEmbed url={url} />;
-  else if (platform === "instagram") content = <InstagramEmbed url={url} />;
-  else content = <FallbackVideoLink url={url} />;
-
-  return <div className={wrapper}>{content}</div>;
-};
-
-
-/* ---------- Image ---------- */
-
-/**
- * The image well. Landscape art keeps the historic treatment — full width, a
- * horizontal band cropped to 420px. Portrait art is never cropped: it is fitted
- * whole inside its own intrinsic ratio and capped in height, so a 9:16 poster
- * reads tall without swallowing the page.
- *
- * "auto" asks the file. Until the browser has decoded it there is nothing to
- * ask, so the well starts landscape — which is what every row written before
- * this field carried anyway — and switches the moment `naturalHeight` is known.
- */
-const PORTRAIT_MAX_H = "max-h-[min(560px,70vh)]";
-const LANDSCAPE_MAX_H = "max-h-[420px]";
-
-/**
- * EVENTS.NAV.1 — the portrait room, opt-in.
- *
- * On a portrait tablet the card rendered WIDER THAN TALL: at 1024x1366 the
- * frame measured 992x738 with the poster capped at 560px, so a 1366px-tall
- * screen showed a short, wide box with the art marooned in the middle of it.
- * Joey: "it should fit more in a portrait mode... it should be taller than
- * wide."
- *
- * The cap lifts only where the viewport is genuinely portrait AND wide enough
- * to be a tablet — `md:portrait:`, so a phone (below md) and every landscape
- * screen, desktop included, keep the ratified cap untouched.
- *
- * It is a PROP rather than a blanket change because this card is also the
- * cinematic act's tenant (EVENTS.2's three rooms), and those rooms were judged
- * at 768x1024 — itself a portrait viewport. Only the /events page opts in, so
- * the bake-off evidence stays true to what it measured.
- */
-const PORTRAIT_ROOM_MAX_H = "md:portrait:max-h-[min(900px,60vh)]";
-
-/**
- * EVENTS.NAV.1 FIX — the phone's share of the first screen.
- *
- * The 560px cap is a DESKTOP cap: on a 440x956 phone it let the poster take
- * 512px of a screen whose visible height is ~811 once iOS's inset and Safari's
- * floating bar are counted, and the closing line fell off the bottom — the
- * defect in Joey's screenshot. So on the phone the poster is capped as a share
- * of the screen instead of a fixed height: whatever the row, the subtitle, the
- * card's title and the closing line do not need, the art gets.
- *
- * 56vh is JOEY'S NUMBER, and it is a measured one: he turned a temporary DEV
- * dial on the physical device until the art was the size he wanted, and stopped
- * at "56VH 465PX (FITS 28PX SPARE FOLD 792+0)" — 465px of poster with 28px of
- * his 792px window still under the closing line. The ledger only ever proposed
- * 42vh. The eye on the phone settled it, and the dial is gone.
- *
- * The 792 is the number to keep: his Safari SUBTRACTS its bars from the window
- * rather than painting over them, and sizes `vh` off a larger (~831px)
- * viewport, so a 440x956 runner overstates this room by 164px. That mistake is
- * what shipped two "in-fold" pages that ran off his screen.
- */
-const PHONE_ROOM_MAX_H = "max-md:max-h-[56vh]";
-
-type ResolvedAspect = "landscape" | "portrait";
-
-const EventImage = ({
-  src,
-  alt,
-  isFull,
-  aspect,
-  fillPortrait,
-}: {
-  src: string;
-  alt: string;
-  isFull: boolean;
-  aspect: ImageAspect;
-  fillPortrait?: boolean;
-}) => {
-  const [measured, setMeasured] = useState<ResolvedAspect | null>(null);
-
-  const resolved: ResolvedAspect =
-    aspect === "auto" ? (measured ?? "landscape") : aspect;
-  const isPortrait = resolved === "portrait";
-
-  return (
-    <div
-      className={`mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"} ${
-        fillPortrait ? "max-md:mb-4" : ""
-      }`}
-    >
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        data-qa="event-card-image"
-        data-aspect={resolved}
-        data-aspect-source={aspect}
-        onLoad={(e) => {
-          if (aspect !== "auto") return;
-          const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
-          if (!w || !h) return;
-          setMeasured(h > w ? "portrait" : "landscape");
-        }}
-        className={
-          isPortrait
-            ? `mx-auto w-auto h-auto max-w-full ${PORTRAIT_MAX_H} ${
-                fillPortrait ? `${PHONE_ROOM_MAX_H} ${PORTRAIT_ROOM_MAX_H}` : ""
-              } object-contain rounded-md`
-            : `w-full h-auto ${LANDSCAPE_MAX_H} object-cover rounded-md`
-        }
-        style={{ border: `1px solid ${GOLD}` }}
-      />
-    </div>
-  );
-};
 
 /* ---------- Icons ---------- */
 
@@ -460,11 +140,18 @@ const EventCard = ({
   item,
   lang,
   fillPortrait,
+  admin,
 }: {
   item: EventItem;
   lang?: Lang;
   /** EVENTS.NAV.1 — let portrait art use a portrait tablet's vertical room. */
   fillPortrait?: boolean;
+  /**
+   * EVENTS.VIDEO.1 — this card is standing in an ADMIN surface, so a medium
+   * that could not be rendered may say so out loud. Never set on a public
+   * surface: a visitor is shown the honest fallback, not our diagnostics.
+   */
+  admin?: boolean;
 }) => {
   const fallback = useLang();
   const active: Lang = lang ?? fallback;
@@ -483,6 +170,7 @@ const EventCard = ({
     bulletsOn?: boolean;
     bullets?: Localized[];
     videoUrl?: string;
+    videoFileUrl?: string;
     buttons?: EventButton[];
   };
 
@@ -492,13 +180,11 @@ const EventCard = ({
   const description = pick(v.description, active);
   const note = pick(v.note, active);
 
-  const imageUrl = (v.imageUrl || "").trim();
   const imagePosition = v.imagePosition === "below" ? "below" : "above";
   const imageAspect: ImageAspect =
     v.imageAspect === "landscape" || v.imageAspect === "portrait"
       ? v.imageAspect
       : "auto";
-  const videoUrl = (v.videoUrl || "").trim();
 
   const bulletList = (v.bullets ?? [])
     .map((b) => pick(b, active))
@@ -514,15 +200,26 @@ const EventCard = ({
     .filter((b) => b.url.length > 0);
 
 
-  const Image = imageUrl ? (
-    <EventImage
-      src={imageUrl}
+  /**
+   * EVENTS.VIDEO.1 — ONE well, wherever the image used to sit. The card keeps
+   * `imagePosition` as the slot's name because that is what the owner set and
+   * what every stored row says; what stands in the slot is now whichever medium
+   * the card actually has.
+   */
+  const Media = (
+    <EventMedia
+      item={{
+        imageUrl: v.imageUrl,
+        videoUrl: v.videoUrl,
+        videoFileUrl: v.videoFileUrl,
+        imageAspect,
+      }}
       alt={title || ""}
       isFull={isFull}
-      aspect={imageAspect}
       fillPortrait={fillPortrait}
+      admin={admin}
     />
-  ) : null;
+  );
 
   return (
     <article
@@ -560,7 +257,7 @@ const EventCard = ({
         </h2>
       )}
 
-      {imagePosition === "above" && Image}
+      {imagePosition === "above" && Media}
 
       {description && (
         <p
@@ -573,7 +270,7 @@ const EventCard = ({
         </p>
       )}
 
-      {imagePosition === "below" && Image}
+      {imagePosition === "below" && Media}
 
       {showBullets && (
         <ul
@@ -611,8 +308,9 @@ const EventCard = ({
         </p>
       )}
 
-      {videoUrl && <VideoBlock url={videoUrl} title={title} isFull={isFull} />}
-
+      {/* EVENTS.VIDEO.1 — the standalone video block is gone. A card's video is
+          its medium, and its medium stands in the well above, not in a second
+          slot underneath the note. */}
 
       {buttons.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
