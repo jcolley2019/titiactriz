@@ -42,6 +42,14 @@ import {
 import { syncBoardTranslations } from "@/lib/translate-copy";
 import EventsGrid from "@/components/events/EventsGrid";
 import { TITANS_ENABLED } from "@/lib/ventures";
+import {
+  EVENT_VIDEO_ACCEPT_ATTR,
+  EVENT_VIDEO_MAX_MB,
+  parseSocialVideo,
+  uploadEventVideo,
+  validateEventVideo,
+  type EventVideoRejectReason,
+} from "@/lib/event-video";
 
 const PREVIEW_BG = "#0e0c09";
 const BUCKET = "gallery";
@@ -61,6 +69,7 @@ const makeEvent = (): EventCardItem => ({
   bulletsOn: false,
   bullets: [],
   videoUrl: "",
+  videoFileUrl: "",
   buttons: [],
 });
 
@@ -355,6 +364,183 @@ const ImageUploader = ({
   );
 };
 
+/**
+ * EVENTS.VIDEO.1 — the uploaded half of the media section.
+ *
+ * A file that will not work is refused HERE, before the upload, and the refusal
+ * names the actual problem in the owner's own language: the wrong kind of file
+ * and a file that is simply too big are different mistakes with different fixes,
+ * and "no se pudo guardar" is neither of them.
+ */
+const VideoUploader = ({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  /** A social link already owns this card's medium — see the note beside it. */
+  disabled?: boolean;
+  onChange: (url: string) => void;
+}) => {
+  const { t } = useTranslation();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [rejected, setRejected] = useState<EventVideoRejectReason | null>(null);
+
+  const handleFiles = async (files: ArrayLike<File> | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setRejected(null);
+
+    const check = validateEventVideo(file);
+    if (!check.ok) {
+      setRejected(check.reason);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      onChange(await uploadEventVideo(file));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      toast({
+        title: t("admin.eventsBoard.videoUploadFailed"),
+        description: msg,
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-3">
+        <video
+          src={value}
+          data-qa="event-video-preview"
+          muted
+          loop
+          playsInline
+          autoPlay
+          className="w-24 h-24 object-cover rounded-md border border-border"
+        />
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-qa="event-video-remove"
+          onClick={() => onChange("")}
+        >
+          <X className="w-3 h-3 mr-1" />
+          {t("admin.eventsBoard.removeVideoFile")}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        type="button"
+        data-qa="event-video-upload"
+        disabled={disabled || busy}
+        onClick={() => inputRef.current?.click()}
+        className={`flex w-full flex-col items-center justify-center gap-2 border-2 border-dashed rounded-md p-6 transition-colors ${
+          disabled
+            ? "border-border opacity-50 cursor-not-allowed"
+            : "border-border hover:border-accent/50 cursor-pointer"
+        }`}
+      >
+        {busy ? (
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        ) : (
+          <Upload className="w-5 h-5 text-muted-foreground" />
+        )}
+        <span className="text-xs text-muted-foreground text-center">
+          {busy ? t("admin.eventsBoard.uploadingVideo") : t("admin.eventsBoard.dropVideo")}
+        </span>
+        <span className="text-[0.65rem] text-muted-foreground/70">
+          {t("admin.eventsBoard.videoLimitHint", { mb: EVENT_VIDEO_MAX_MB })}
+        </span>
+      </button>
+
+      {rejected && (
+        <p data-qa="event-video-reject" role="alert" className="text-xs text-destructive">
+          {t(`admin.eventsBoard.videoReject.${rejected}`, { mb: EVENT_VIDEO_MAX_MB })}
+        </p>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={EVENT_VIDEO_ACCEPT_ATTR}
+        className="hidden"
+        data-qa="event-video-input"
+        onChange={(e) => {
+          // VIDEO.1.FIX-B — a FileList is a LIVE view of the input, not a copy:
+          // the reset below empties the very list we were just handed, so the
+          // file comes out into a detached array FIRST. Without this the handler
+          // received an empty list and returned at its `!file` guard — every
+          // upload died in silence, and the size refusal was unreachable code.
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = ""; // let the same file be re-picked after a refusal
+          handleFiles(files);
+        }}
+      />
+    </div>
+  );
+};
+
+const PLATFORM_NAMES: Record<string, string> = {
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  instagram: "Instagram",
+};
+
+/**
+ * EVENTS.VIDEO.1 — the social half. The feedback is live and specific: a link
+ * the site can embed says WHICH platform it read, so the owner knows it landed;
+ * a link it cannot read says so HERE, where it can still be fixed, rather than
+ * on a public card that would just quietly show the image instead.
+ */
+const SocialUrlField = ({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled?: boolean;
+  onChange: (url: string) => void;
+}) => {
+  const { t } = useTranslation();
+  const trimmed = (value || "").trim();
+  const parsed = trimmed ? parseSocialVideo(trimmed) : null;
+
+  return (
+    <div className="space-y-1">
+      <FieldLabel>{t("admin.eventsBoard.socialUrlLabel")}</FieldLabel>
+      <Input
+        data-qa="event-social-url"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="https://www.tiktok.com/@usuario/video/123..."
+      />
+      {trimmed && parsed && (
+        <p data-qa="event-social-ok" className="text-xs text-muted-foreground">
+          {t("admin.eventsBoard.socialUrlOk", { platform: PLATFORM_NAMES[parsed.platform] })}
+        </p>
+      )}
+      {trimmed && !parsed && (
+        <p data-qa="event-social-bad" role="alert" className="text-xs text-destructive">
+          {t("admin.eventsBoard.socialUrlBad")}
+        </p>
+      )}
+    </div>
+  );
+};
+
 const EventFields = ({
   item,
   onChange,
@@ -415,7 +601,21 @@ const EventFields = ({
         />
       </div>
 
-      <div className="space-y-2">
+      {/* EVENTS.VIDEO.1 — the media section. One card, one medium: the image is
+          always the poster and always the fallback, and the video (uploaded OR
+          linked, never both) is what plays on top of it. The two video fields
+          disable each other rather than quietly ranking themselves, so what the
+          owner sees in this panel is what the card will render. */}
+      <div className="space-y-3 border border-border rounded-md p-3" data-qa="event-media">
+        <div>
+          <Label className="text-xs font-medium text-foreground">
+            {t("admin.eventsBoard.mediaLabel")}
+          </Label>
+          <p className="text-[0.7rem] text-muted-foreground">
+            {t("admin.eventsBoard.mediaHelp")}
+          </p>
+        </div>
+
         <FieldLabel>{t("admin.eventsBoard.imageLabel")}</FieldLabel>
         <ImageUploader
           value={item.imageUrl ?? ""}
@@ -466,6 +666,31 @@ const EventFields = ({
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="space-y-2 border-t border-border pt-3">
+          <FieldLabel>{t("admin.eventsBoard.videoLabel")}</FieldLabel>
+          <VideoUploader
+            value={item.videoFileUrl ?? ""}
+            disabled={!!(item.videoUrl ?? "").trim()}
+            onChange={(url) => onChange({ videoFileUrl: url })}
+          />
+          {!!(item.videoUrl ?? "").trim() && !(item.videoFileUrl ?? "").trim() && (
+            <p className="text-[0.7rem] text-muted-foreground">
+              {t("admin.eventsBoard.uploadBlockedBySocial")}
+            </p>
+          )}
+
+          <SocialUrlField
+            value={item.videoUrl ?? ""}
+            disabled={!!(item.videoFileUrl ?? "").trim()}
+            onChange={(url) => onChange({ videoUrl: url })}
+          />
+          {!!(item.videoFileUrl ?? "").trim() && (
+            <p className="text-[0.7rem] text-muted-foreground">
+              {t("admin.eventsBoard.socialBlockedByUpload")}
+            </p>
+          )}
         </div>
       </div>
 
@@ -595,27 +820,10 @@ const EventFields = ({
           </div>
         ))}
 
-        {item.videoUrl && (
-          <div className="space-y-1">
-            <FieldLabel>{t("admin.eventsBoard.videoUrlLabel")}</FieldLabel>
-            <div className="flex gap-2">
-              <Input
-                value={item.videoUrl}
-                onChange={(e) => onChange({ videoUrl: e.target.value })}
-                placeholder="https://youtube.com/..."
-              />
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => onChange({ videoUrl: "" })}
-              >
-                <X className="w-3 h-3 mr-1" />
-                {t("admin.eventsBoard.removeVideo")}
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* EVENTS.VIDEO.1 — the video link moved OUT of the buttons block and
+            into the media section above, where the image it posters lives. The
+            old "Add video" button (which seeded the field with a space to make
+            itself appear) went with it: the field is simply always there. */}
 
         <div className="flex flex-wrap gap-2 pt-1">
           <Button
@@ -638,17 +846,6 @@ const EventFields = ({
             <Plus className="w-3 h-3 mr-1" />
             {t("admin.eventsBoard.addSocialIcon")}
           </Button>
-          {!item.videoUrl && (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onChange({ videoUrl: " " })}
-            >
-              <Plus className="w-3 h-3 mr-1" />
-              {t("admin.eventsBoard.addVideo")}
-            </Button>
-          )}
         </div>
       </div>
 
@@ -1068,7 +1265,10 @@ const EventsBoardManager = () => {
                 {t("admin.eventsBoard.emptyState")}
               </p>
             ) : (
-              <EventsGrid items={board.items} />
+              // EVENTS.VIDEO.1 — the admin preview is an ADMIN surface: a link
+              // the site cannot embed says so here, in the same frame where the
+              // owner can paste a better one.
+              <EventsGrid items={board.items} admin />
             )}
           </div>
         </div>
