@@ -26,14 +26,17 @@ const BASE_URL = `http://localhost:${PORT}`;
  *    there); captured in CI on the first retry, because a failed shard is the
  *    only evidence available after the runner is destroyed. It is deliberately
  *    on-first-retry and NOT retain-on-failure: tracing every attempt slows the
- *    page enough to change timing, and it demonstrably does. Under
- *    retain-on-failure, admin-media.spec.ts:644 fails on a strict-mode
- *    violation — sonner's aria-live announcer has time to fill before the
- *    assertion runs, so getByText(/too large/i) matches both the toast body and
- *    the announcer. The spec's locator is the real defect and wants its own
- *    brick; until then CI must not manufacture the failure it is meant to
- *    detect. on-first-retry costs nothing on the ~99% of tests that pass, and a
- *    genuine failure still fails its retries — traced.
+ *    page enough to change timing, and it demonstrably does. The proof was
+ *    admin-media.spec.ts's hero-video rejection test: under retain-on-failure
+ *    it failed on a strict-mode violation, because the toast's aria-live
+ *    announcer had time to fill before the assertion ran, so
+ *    getByText(/too large/i) matched both the toast body and the announcer.
+ *    FIX.CI.1b fixed that locator — it now scopes to the toast <li>, so the
+ *    spec passes under either trace setting. The timing effect that exposed it
+ *    is unchanged, though, so the trace choice stands on its own: tracing every
+ *    attempt would still slow every test, and can still surface timing-only
+ *    failures elsewhere. on-first-retry costs nothing on the ~99% of tests that
+ *    pass, and a genuine failure still fails its retries — traced.
  *  - reuseExistingServer: locally it keeps an already-running `npm run dev`
  *    alive so per-brick runs are fast. In CI nothing is running, and silently
  *    adopting a stray server would be a lie about what was tested.

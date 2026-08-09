@@ -640,6 +640,20 @@ const cinematicMediaUpserts = (writes: Write[]) =>
     (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("cinematic_media"),
   );
 
+/**
+ * FIX.CI.1b — the toast BODY, never its announcer. Radix mounts every toast
+ * twice: the visible `<li role="status" aria-live="off">` in the viewport, and a
+ * portaled `<span role="status" aria-live="assertive">` screen-reader announcer
+ * that fills one frame after mount with label + title + description run
+ * together, then deletes itself at 1s. For that window a bare
+ * getByText(/…/) matches BOTH — a strict-mode violation that surfaces only when
+ * the page runs slowly enough for the announcer to fill before the assertion
+ * samples (tracing does it every time; see playwright.config.ts). Scoping to the
+ * `<li>` — the toast itself, of which the announcer is only a copy — leaves
+ * exactly one match at any page speed.
+ */
+const toastSaying = (page: Page, text: RegExp) => page.locator('li[role="status"]').filter({ hasText: text });
+
 test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
   test("rejects bad files; a valid upload sets the setting, opens the video editor, and saves decoupled framing", async ({
     page,
@@ -661,13 +675,13 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
 
     // ---- validation: wrong type → oversize → overlong (TOAST_LIMIT=1 replaces) ----
     await selectHeroVideoFile(page, { type: "text/plain", name: "notes.txt", sizeBytes: 1024 });
-    await expect(page.getByText(/Use an MP4 or WebM/i), "wrong type rejected").toBeVisible();
+    await expect(toastSaying(page, /Use an MP4 or WebM/i), "wrong type rejected").toBeVisible();
 
     await selectHeroVideoFile(page, { type: "video/mp4", name: "big.mp4", sizeBytes: 63 * 1024 * 1024 });
-    await expect(page.getByText(/too large/i), "oversize rejected").toBeVisible();
+    await expect(toastSaying(page, /too large/i), "oversize rejected").toBeVisible();
 
     await selectHeroVideoFile(page, { type: "video/mp4", name: "long.mp4", sizeBytes: 4096, durationSec: 20 });
-    await expect(page.getByText(/too long/i), "overlong rejected").toBeVisible();
+    await expect(toastSaying(page, /too long/i), "overlong rejected").toBeVisible();
 
     expect(heroVideoUpserts(writes).length, "no rejected file was uploaded/persisted").toBe(0);
     await expect(page.locator('[data-qa="media-editor-surface"]'), "no editor from a rejected file").toHaveCount(0);
