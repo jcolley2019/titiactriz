@@ -123,11 +123,20 @@ const videoWellClass = (orientation: "portrait" | "landscape", fillPortrait?: bo
     : `w-full ${LANDSCAPE_MAX_H} rounded-md`;
 
 /** The design box's own ratio — inline so the primitive's intrinsic-ratio
- * style cannot override it (later spread wins in the primitive). */
+ * style cannot override it (later spread wins in the primitive).
+ *
+ * EVENTS.CARD.POLISH.1 (item 1) — the framed wells carry NO gold inset
+ * hairline any more (this box and the framed image box alike). The old
+ * `inset 0 0 0 1px` box-shadow was fully covered by the medium on integer-DPR
+ * screens, but on fractional Windows display scales (DPR 1.5 / 1.665 / 1.75)
+ * the composited media edge and the painted shadow round to device pixels
+ * differently, and the hairline's bottom edge leaked out as a stray horizontal
+ * line under the card's media — Joey's desktop defect. The shadow had no other
+ * visible state than that leak (and the pre-load empty well, which now shows
+ * the plain well ground), so it is removed rather than papered over. */
 const videoWellStyle = (orientation: "portrait" | "landscape"): React.CSSProperties => ({
   aspectRatio: orientation === "portrait" ? "9 / 16" : "16 / 9",
   maxHeight: orientation === "landscape" ? 420 : undefined,
-  boxShadow: `inset 0 0 0 1px ${GOLD}`,
 });
 const framedBoxClass = (resolved: ResolvedAspect, fillPortrait?: boolean) =>
   resolved === "portrait"
@@ -137,9 +146,6 @@ const framedBoxClass = (resolved: ResolvedAspect, fillPortrait?: boolean) =>
           : ""
       } rounded-md`
     : `w-full h-auto ${LANDSCAPE_MAX_H} rounded-md`;
-
-/** The gold hairline, painted inside the box so its outer size never moves. */
-const framedBoxStyle: React.CSSProperties = { boxShadow: `inset 0 0 0 1px ${GOLD}` };
 
 /**
  * Which stored record this viewport renders: the image's device class at the
@@ -259,7 +265,6 @@ const EventStillImage = ({
         zoom={rec.zoom}
         fit="fill"
         boxClassName={framedBoxClass(resolved, fillPortrait)}
-        boxStyle={framedBoxStyle}
         imgDataQa="event-card-image"
         mediaAttrs={{ "data-aspect": resolved, "data-aspect-source": aspect }}
         loading="lazy"
