@@ -827,7 +827,13 @@
       "socialUrlOk": "Link recognised: {{platform}}",
       "socialUrlBad": "This link isn't recognised. Use the full video link (for example tiktok.com/@user/video/... , instagram.com/reel/... or youtube.com/watch?v=...). Until then the card shows the image.",
       "uploadBlockedBySocial": "Remove the link below to upload your own video.",
-      "socialBlockedByUpload": "Remove the uploaded video to use a link instead."
+      "socialBlockedByUpload": "Remove the uploaded video to use a link instead.",
+      "unsaved": "Unsaved text changes",
+      "discard": "Discard",
+      "leaveTitle": "You have unsaved changes",
+      "leaveBody": "The text you typed has not been saved yet. Leaving now discards it. Toggles and selectors were already saved.",
+      "leaveStay": "Keep editing",
+      "leaveDiscard": "Leave without saving"
     },
     "upload": {
       "title": "Upload photos",

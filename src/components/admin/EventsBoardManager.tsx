@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import imageCompression from "browser-image-compression";
 import {
@@ -18,7 +19,17 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Loader2, Trash2, Plus, X, Upload } from "lucide-react";
+import { GripVertical, Loader2, Trash2, Plus, X, Upload, Check, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +67,80 @@ const PREVIEW_BG = "#0e0c09";
 const BUCKET = "gallery";
 
 const emptyLocalized = (): Localized => ({ es: "", en: "" });
+
+/* ══════════════════════ ADMIN.QOL.1 — the save-button trap ══════════════════════
+ *
+ * Hit twice in real use: a toggle at the top of this editor (a card's Full/Half,
+ * a visibility switch) changed nothing but local state, the Save that would have
+ * written it sat far below the fold, and the owner navigated away or went to
+ * test — losing the change, or trusting a stale page.
+ *
+ * The split, and why it is not "save everything on change":
+ *
+ *   TOGGLES AND SELECTORS write immediately. They are single, deliberate,
+ *   reversible acts, and there is nothing to batch.
+ *   TEXT keeps an explicit Save. One write per keystroke would be absurd, and a
+ *   save here is expensive: onSave runs syncBoardTranslations first, a network
+ *   round trip PER FIELD.
+ *
+ * What makes that safe is the pair of references below. One Save writes the
+ * WHOLE board (a single site_settings row, not per-field rows), so an instant
+ * toggle that wrote the working state would drag half-typed text into the
+ * database with it — and run the translator over it. So an instant write is
+ * always `lastCommitted + this one patch`: the text already saved, plus the
+ * toggle just flipped. Pending text stays pending, which is what the sticky bar
+ * is for.
+ *
+ * Precedent: LinksManager already does exactly this per row (write → revert the
+ * touched keys on failure → flash saved). Same shape, one document instead of
+ * many rows.
+ */
+
+/** How long a saved/failed flash sits next to its control. */
+const FLASH_MS = 1800;
+
+type FlashState = "saved" | "failed" | undefined;
+type FlashMap = Record<string, FlashState>;
+
+/**
+ * The indicator at the control. Deliberately not a toast: the owner's eye is on
+ * the switch they just flipped, and the answer has to arrive there — a toast in
+ * the corner is exactly what they already miss.
+ */
+const SaveFlash = ({ state, qa }: { state: FlashState; qa: string }) => {
+  if (!state) return null;
+  const failed = state === "failed";
+  return (
+    <span
+      data-qa={`flash-${qa}`}
+      data-state={state}
+      role="status"
+      className={`inline-flex items-center gap-1 text-[0.7rem] ${
+        failed ? "text-destructive" : "text-accent"
+      }`}
+    >
+      {failed ? (
+        <AlertTriangle className="w-3 h-3" aria-hidden />
+      ) : (
+        <Check className="w-3 h-3" aria-hidden />
+      )}
+      {failed ? "not saved" : "saved"}
+    </span>
+  );
+};
+
+/** A patch applied to one item, as a whole-board transform. */
+const withItemPatch =
+  (id: string, patch: Partial<EventItem>) =>
+  (b: EventsBoard): EventsBoard => ({
+    ...b,
+    items: b.items.map((it) => (it.id === id ? ({ ...it, ...patch } as EventItem) : it)),
+  });
+
+/** The same, for one of the three banners. */
+const withBannerPatch =
+  (key: "mainBanner" | "greenWorldBanner" | "titansBanner", patch: Partial<PageBanner>) =>
+  (b: EventsBoard): EventsBoard => ({ ...b, [key]: { ...b[key], ...patch } });
 
 const makeEvent = (): EventCardItem => ({
   id: crypto.randomUUID(),
@@ -131,6 +216,8 @@ const BannerEditor = ({
   colorOptions,
   showErrors,
   onChange,
+  onInstant,
+  flash,
 }: {
   name: string;
   qa: string;
@@ -140,6 +227,9 @@ const BannerEditor = ({
   /** Forced on by a refused save, so the offending banner names itself. */
   showErrors: boolean;
   onChange: (patch: Partial<PageBanner>) => void;
+  /** ADMIN.QOL.1 — a toggle or selector that writes on the spot. */
+  onInstant: (patch: Partial<PageBanner>, key: string) => void;
+  flash: FlashMap;
 }) => {
   const { t } = useTranslation();
   const [attempted, setAttempted] = useState(false);
@@ -156,15 +246,18 @@ const BannerEditor = ({
         onCheckedChange={(v) => {
           if (v && textMissing) {
             setAttempted(true);
-            return; // refused — the banner stays off
+            return; // refused — the banner stays off, and nothing is written
           }
           setAttempted(false);
-          onChange({ enabled: v });
+          // ADMIN.QOL.1 — instant, but only PAST the guard: a refused toggle
+          // must not reach the database any more than it reaches the screen.
+          onInstant({ enabled: v }, `banner-${qa}-enabled`);
         }}
         disabled={loading}
         data-qa="banner-enabled"
       />
       <Label className="text-foreground text-sm font-medium">{name}</Label>
+      <SaveFlash state={flash[`banner-${qa}-enabled`]} qa={`banner-${qa}-enabled`} />
     </div>
 
     {invalid && (
@@ -231,16 +324,23 @@ const BannerEditor = ({
               <Switch
                 checked={!!banner.pages?.[key]}
                 onCheckedChange={(v) =>
-                  onChange({
-                    pages: {
-                      ...(banner.pages ?? { home: false, greenWorld: false, titans: false }),
-                      [key]: v,
+                  onInstant(
+                    {
+                      pages: {
+                        ...(banner.pages ?? { home: false, greenWorld: false, titans: false }),
+                        [key]: v,
+                      },
                     },
-                  })
+                    `banner-${qa}-page-${key}`,
+                  )
                 }
                 disabled={loading}
               />
               {lbl}
+              <SaveFlash
+                state={flash[`banner-${qa}-page-${key}`]}
+                qa={`banner-${qa}-page-${key}`}
+              />
             </label>
           ),
         )}
@@ -251,7 +351,7 @@ const BannerEditor = ({
       <label className="flex items-center gap-2 text-xs text-muted-foreground">
         <Switch
           checked={!!banner.bold}
-          onCheckedChange={(v) => onChange({ bold: v })}
+          onCheckedChange={(v) => onInstant({ bold: v }, `banner-${qa}-bold`)}
           disabled={loading}
         />
         Bold text
@@ -516,11 +616,16 @@ const SocialUrlField = ({
 };
 
 const EventFields = ({
+  onInstant,
+  flash,
   item,
   onChange,
 }: {
   item: EventCardItem;
   onChange: (patch: Partial<EventCardItem>) => void;
+  /** ADMIN.QOL.1 — toggles and selectors write on the spot. */
+  onInstant: (patch: Partial<EventItem>, key: string) => void;
+  flash: FlashMap;
 }) => {
   const { t } = useTranslation();
 
@@ -645,7 +750,7 @@ const EventFields = ({
             <button
               key={pos}
               type="button"
-              onClick={() => onChange({ imagePosition: pos })}
+              onClick={() => onInstant({ imagePosition: pos }, `pos-${item.id}`)}
               className={`px-3 py-1 text-xs ${
                 (item.imagePosition ?? "above") === pos
                   ? "bg-accent text-accent-foreground"
@@ -659,16 +764,20 @@ const EventFields = ({
               )}
             </button>
           ))}
+          <SaveFlash state={flash[`pos-${item.id}`]} qa={`pos-${item.id}`} />
         </div>
         <div className="space-y-1">
-          <FieldLabel>{t("admin.eventsBoard.imageAspectLabel")}</FieldLabel>
+          <FieldLabel>
+            {t("admin.eventsBoard.imageAspectLabel")}
+            <SaveFlash state={flash[`aspect-${item.id}`]} qa={`aspect-${item.id}`} />
+          </FieldLabel>
           <div className="flex rounded-md border border-border overflow-hidden w-fit">
             {(["auto", "landscape", "portrait"] as const).map((aspect) => (
               <button
                 key={aspect}
                 type="button"
                 data-qa={`event-aspect-${aspect}`}
-                onClick={() => onChange({ imageAspect: aspect })}
+                onClick={() => onInstant({ imageAspect: aspect }, `aspect-${item.id}`)}
                 className={`px-3 py-1 text-xs ${
                   (item.imageAspect ?? "auto") === aspect
                     ? "bg-accent text-accent-foreground"
@@ -719,11 +828,12 @@ const EventFields = ({
         <div className="flex items-center gap-3">
           <Switch
             checked={!!item.bulletsOn}
-            onCheckedChange={(v) => onChange({ bulletsOn: v })}
+            onCheckedChange={(v) => onInstant({ bulletsOn: v }, `bullets-${item.id}`)}
           />
           <Label className="text-xs text-muted-foreground">
             {t("admin.eventsBoard.bulletsToggleLabel")}
           </Label>
+          <SaveFlash state={flash[`bullets-${item.id}`]} qa={`bullets-${item.id}`} />
         </div>
         {item.bulletsOn && (
           <div className="space-y-2">
@@ -802,6 +912,15 @@ const EventFields = ({
               </Label>
               <select
                 value={b.icon ?? "auto"}
+                /*
+                  ADMIN.QOL.1 — this one selector deliberately KEEPS its Save.
+                  Every instant control above is a scalar on the board or the
+                  card, so writing it carries nothing else. An icon lives inside
+                  the `buttons` ARRAY, next to the label and URL the owner may be
+                  midway through typing — writing the array to commit the icon
+                  would smuggle that unsaved text into the database, which is the
+                  one thing this whole mechanism exists to prevent.
+                */
                 onChange={(e) =>
                   setButton(idx, { icon: e.target.value as EventButton["icon"] })
                 }
@@ -867,9 +986,12 @@ type SortableCardProps = {
   item: EventItem;
   onChange: (patch: Partial<EventItem>) => void;
   onDelete: () => void;
+  /** ADMIN.QOL.1 — toggles and selectors write on the spot. */
+  onInstant: (patch: Partial<EventItem>, key: string) => void;
+  flash: FlashMap;
 };
 
-const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
+const SortableCard = ({ item, onChange, onDelete, onInstant, flash }: SortableCardProps) => {
   const { t } = useTranslation();
   const {
     attributes,
@@ -895,7 +1017,7 @@ const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
       style={style}
       className="bg-card border border-border rounded-lg p-4"
     >
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3" data-qa="event-card-head">
         <button
           type="button"
           {...attributes}
@@ -912,7 +1034,7 @@ const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
           <div className="flex rounded-md border border-border overflow-hidden">
             <button
               type="button"
-              onClick={() => onChange({ size: "full" })}
+              onClick={() => onInstant({ size: "full" }, `size-${item.id}`)}
               className={`px-3 py-1 text-xs ${
                 item.size === "full"
                   ? "bg-accent text-accent-foreground"
@@ -923,7 +1045,7 @@ const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
             </button>
             <button
               type="button"
-              onClick={() => onChange({ size: "half" })}
+              onClick={() => onInstant({ size: "half" }, `size-${item.id}`)}
               className={`px-3 py-1 text-xs ${
                 item.size === "half"
                   ? "bg-accent text-accent-foreground"
@@ -933,6 +1055,7 @@ const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
               {t("admin.eventsBoard.sizeHalf")}
             </button>
           </div>
+          <SaveFlash state={flash[`size-${item.id}`]} qa={`size-${item.id}`} />
           <Button
             type="button"
             size="sm"
@@ -949,6 +1072,8 @@ const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
       <EventFields
         item={eventItem}
         onChange={(p) => onChange(p as Partial<EventItem>)}
+        onInstant={onInstant}
+        flash={flash}
       />
     </li>
   );
@@ -956,12 +1081,43 @@ const SortableCard = ({ item, onChange, onDelete }: SortableCardProps) => {
 
 const EventsBoardManager = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [board, setBoard] = useState<EventsBoard>(EVENTS_BOARD_DEFAULT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bannerErrors, setBannerErrors] = useState(false);
   /** Set when a save wrote the typed text into both slots because translation failed. */
   const [translationFailed, setTranslationFailed] = useState(false);
+
+  /**
+   * ADMIN.QOL.1 — the two references the whole mechanism rests on.
+   *
+   * `committed` is the board as the DATABASE has it. `boardRef` is the working
+   * state, read synchronously by handlers that must not close over a stale
+   * render. An instant write is committed + one patch; the difference between
+   * the two is, by construction, exactly the work still waiting on Save.
+   */
+  const committed = useRef<EventsBoard>(EVENTS_BOARD_DEFAULT);
+  const boardRef = useRef<EventsBoard>(board);
+  useEffect(() => {
+    boardRef.current = board;
+  }, [board]);
+
+  /**
+   * The committed board again, in state. The ref is what writes read (always
+   * current, never a stale closure); this is what RENDER reads, because a ref
+   * mutation cannot re-run the dirty comparison that decides whether the sticky
+   * bar is on screen. The two are set together, always.
+   */
+  const [committedBoard, setCommittedBoard] = useState<EventsBoard>(EVENTS_BOARD_DEFAULT);
+  const commit = (next: EventsBoard) => {
+    committed.current = next;
+    setCommittedBoard(next);
+  };
+
+  const [flash, setFlash] = useState<FlashMap>({});
+  const flashTimers = useRef<Map<string, number>>(new Map());
+  const [leaveTarget, setLeaveTarget] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -974,7 +1130,9 @@ const EventsBoardManager = () => {
     let cancelled = false;
     fetchEventsBoard()
       .then((b) => {
-        if (!cancelled) setBoard(b);
+        if (cancelled) return;
+        commit(b);
+        setBoard(b);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -983,6 +1141,181 @@ const EventsBoardManager = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const timers = flashTimers.current;
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      timers.clear();
+    };
+  }, []);
+
+  const showFlash = (key: string, state: Exclude<FlashState, undefined>) => {
+    setFlash((prev) => ({ ...prev, [key]: state }));
+    const prevTimer = flashTimers.current.get(key);
+    if (prevTimer) window.clearTimeout(prevTimer);
+    flashTimers.current.set(
+      key,
+      window.setTimeout(() => {
+        setFlash((prev) => ({ ...prev, [key]: undefined }));
+        flashTimers.current.delete(key);
+      }, FLASH_MS),
+    );
+  };
+
+  /**
+   * Write one toggle, now.
+   *
+   * `mut` is the same transform applied twice: to the working board (so the
+   * control moves the instant it is clicked) and to the committed board (so the
+   * write carries saved text, never pending text). On failure the control is put
+   * back exactly where it was — `revert` is the same transform inverted by the
+   * caller, which knows the prior value — and the flash says "not saved" beside
+   * it rather than in a corner.
+   */
+  const instant = async (
+    key: string,
+    mut: (b: EventsBoard) => EventsBoard,
+    revert: (b: EventsBoard) => EventsBoard,
+  ) => {
+    setBoard((prev) => mut(prev));
+    const next = mut(committed.current);
+    try {
+      await setEventsBoard(next);
+      commit(next);
+      showFlash(key, "saved");
+    } catch (e) {
+      setBoard((prev) => revert(prev));
+      showFlash(key, "failed");
+      toast({
+        title: t("admin.eventsBoard.saveError"),
+        description: e instanceof Error ? e.message : "",
+        variant: "destructive",
+      });
+    }
+  };
+
+  /**
+   * A card the database has never seen cannot be patched into the committed
+   * board — the write would match no row and flash a "saved" that saved nothing.
+   * Those changes stay local and travel with the Save bar, like the card itself.
+   */
+  const itemIsCommitted = (id: string) => committed.current.items.some((i) => i.id === id);
+
+  const instantItem = (id: string, patch: Partial<EventItem>, key: string) => {
+    const before = boardRef.current.items.find((i) => i.id === id);
+    if (!before || !itemIsCommitted(id)) {
+      updateItem(id, patch);
+      return;
+    }
+    const inverse = Object.fromEntries(
+      Object.keys(patch).map((k) => [k, (before as Record<string, unknown>)[k]]),
+    ) as Partial<EventItem>;
+    void instant(key, withItemPatch(id, patch), withItemPatch(id, inverse));
+  };
+
+  const instantBanner = (
+    slot: "mainBanner" | "greenWorldBanner" | "titansBanner",
+    patch: Partial<PageBanner>,
+    key: string,
+  ) => {
+    const before = boardRef.current[slot];
+    const inverse = Object.fromEntries(
+      Object.keys(patch).map((k) => [k, (before as Record<string, unknown>)[k]]),
+    ) as Partial<PageBanner>;
+    void instant(key, withBannerPatch(slot, patch), withBannerPatch(slot, inverse));
+  };
+
+  const instantBoardField = (patch: Partial<EventsBoard>, key: string) => {
+    const before = boardRef.current;
+    const inverse = Object.fromEntries(
+      Object.keys(patch).map((k) => [k, (before as Record<string, unknown>)[k]]),
+    ) as Partial<EventsBoard>;
+    void instant(
+      key,
+      (b) => ({ ...b, ...patch }),
+      (b) => ({ ...b, ...inverse }),
+    );
+  };
+
+  /**
+   * Unsaved TEXT — plus the structural edits that keep their Save (add, delete,
+   * reorder). Toggles never show up here: they are committed the moment they
+   * move, so whatever still differs between the two boards is precisely the work
+   * the Save bar owes.
+   */
+  const dirty = !loading && JSON.stringify(board) !== JSON.stringify(committedBoard);
+
+  const discard = () => setBoard(committedBoard);
+
+  /**
+   * Leaving with unsaved text.
+   *
+   * `beforeunload` covers reload, tab close, and a typed URL. It cannot cover an
+   * in-app route change: this app mounts a plain BrowserRouter, not a data
+   * router, so React Router's blocker does not exist here. A capture-phase click
+   * guard on same-origin links is what is left, and it is enough — it runs
+   * before the router sees the event, so the navigation is genuinely stopped and
+   * can be resumed from the dialog once the owner has answered.
+   */
+  /**
+   * ADMIN.QOL.1 — what actually makes the sticky bar stick.
+   *
+   * `body { overflow-x: hidden }` (index.css, sitewide) makes the body a scroll
+   * container, and a scroll container between a sticky element and the viewport
+   * cancels the stickiness: the bar computed `position: sticky` and still sat
+   * 1879px down a 720px screen. Measured on the live page — `hidden` does not
+   * stick, `clip` pins the bar to bottom = 720 exactly. `clip` clips the same
+   * pixels without creating the container.
+   *
+   * The proper home for this is index.css, which belongs to another brick's
+   * surface right now, so it is applied HERE, only while there is unsaved text,
+   * and the previous value is put back. The two are visually identical, so the
+   * flip is invisible.
+   *
+   * NOTE FOR THE FOLLOW-UP: this same `overflow-x: hidden` silently killed the
+   * /events scroll-snap. Two features, one latent defect — it wants fixing at
+   * the source.
+   */
+  useEffect(() => {
+    if (!dirty) return;
+    const body = document.body;
+    const previous = body.style.overflowX;
+    body.style.overflowX = "clip";
+    return () => {
+      body.style.overflowX = previous;
+    };
+  }, [dirty]);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const el = e.target as HTMLElement | null;
+      const link = el?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link) return;
+      const href = link.getAttribute("href") ?? "";
+      if (!href || href.startsWith("#") || link.target === "_blank") return;
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      if (url.pathname === window.location.pathname) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setLeaveTarget(url.pathname + url.search + url.hash);
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [dirty]);
 
   const updateItem = (id: string, patch: Partial<EventItem>) => {
     setBoard((prev) => ({
@@ -1048,6 +1381,7 @@ const EventsBoardManager = () => {
       setTranslationFailed(failed > 0);
 
       await setEventsBoard(translated);
+      commit(translated);
 
       if (failed > 0) {
         toast({
@@ -1073,7 +1407,17 @@ const EventsBoardManager = () => {
   const atMax = board.items.length >= 4;
 
   return (
-    <section className="bg-card border border-border rounded-lg mb-10 overflow-hidden">
+    <section
+      /*
+        ADMIN.QOL.1 — `overflow-clip`, not `overflow-hidden`.
+        `hidden` makes this section a scroll container, and a scroll container
+        between a sticky element and the viewport kills the stickiness outright:
+        the Save bar computed `position: sticky` and still sat 2678px down the
+        page. `clip` clips the rounded corners exactly the same way without
+        establishing that container, so the bar can pin to the viewport.
+      */
+      className="bg-card border border-border rounded-lg mb-10 overflow-clip"
+    >
       <div className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left">
         <div>
           <h2 className="font-serif text-base text-foreground leading-tight">
@@ -1090,14 +1434,14 @@ const EventsBoardManager = () => {
         <div className="flex items-start gap-3">
           <Switch
             checked={board.pageVisible}
-            onCheckedChange={(v) =>
-              setBoard((prev) => ({ ...prev, pageVisible: v }))
-            }
+            onCheckedChange={(v) => instantBoardField({ pageVisible: v }, "pageVisible")}
             disabled={loading}
+            data-qa="page-visible"
           />
           <div>
             <Label className="text-foreground text-sm">
               {t("admin.eventsBoard.pageVisibleLabel")}
+              <SaveFlash state={flash.pageVisible} qa="pageVisible" />
             </Label>
             <p className="text-xs text-muted-foreground">
               {t("admin.eventsBoard.pageVisibleHelp")}
@@ -1112,15 +1456,14 @@ const EventsBoardManager = () => {
         <div className="flex items-start gap-3">
           <Switch
             checked={board.homeVisible}
-            onCheckedChange={(v) =>
-              setBoard((prev) => ({ ...prev, homeVisible: v }))
-            }
+            onCheckedChange={(v) => instantBoardField({ homeVisible: v }, "homeVisible")}
             disabled={loading}
             data-qa="home-visible"
           />
           <div>
             <Label className="text-foreground text-sm">
               {t("admin.eventsBoard.homeVisibleLabel")}
+              <SaveFlash state={flash.homeVisible} qa="homeVisible" />
             </Label>
             <p className="text-xs text-muted-foreground">
               {t("admin.eventsBoard.homeVisibleHelp")}
@@ -1146,6 +1489,8 @@ const EventsBoardManager = () => {
             onChange={(patch) =>
               setBoard((prev) => ({ ...prev, mainBanner: { ...prev.mainBanner, ...patch } }))
             }
+            onInstant={(patch, key) => instantBanner("mainBanner", patch, key)}
+            flash={flash}
           />
           <BannerEditor
             name="Green World banner"
@@ -1162,6 +1507,8 @@ const EventsBoardManager = () => {
             onChange={(patch) =>
               setBoard((prev) => ({ ...prev, greenWorldBanner: { ...prev.greenWorldBanner, ...patch } }))
             }
+            onInstant={(patch, key) => instantBanner("greenWorldBanner", patch, key)}
+            flash={flash}
           />
           {/* TITANS.OFF.1 — editor hidden, stored banner preserved. */}
           {TITANS_ENABLED && (
@@ -1180,6 +1527,8 @@ const EventsBoardManager = () => {
               onChange={(patch) =>
                 setBoard((prev) => ({ ...prev, titansBanner: { ...prev.titansBanner, ...patch } }))
               }
+              onInstant={(patch, key) => instantBanner("titansBanner", patch, key)}
+              flash={flash}
             />
           )}
         </div>
@@ -1240,6 +1589,8 @@ const EventsBoardManager = () => {
                     item={item}
                     onChange={(patch) => updateItem(item.id, patch)}
                     onDelete={() => deleteItem(item.id)}
+                    onInstant={(patch, key) => instantItem(item.id, patch, key)}
+                    flash={flash}
                   />
                 ))}
               </ul>
@@ -1268,11 +1619,51 @@ const EventsBoardManager = () => {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        {/*
+          ADMIN.QOL.1 — ONE Save button, which becomes the sticky bar.
+          Rendering a second Save in a fixed bar would put two controls with the
+          same accessible name in the DOM and break every strict-mode locator
+          that asks for it by name (the FIX.CI.1b lesson). Instead the existing
+          row goes `sticky bottom-0` while there is unsaved text: the section is
+          taller than the screen, so the row pins itself to the bottom of the
+          viewport and is on screen from the top of the editor — which is where
+          the trap used to be sprung.
+        */}
+        <div
+          data-qa="events-save-bar"
+          data-dirty={dirty ? "true" : "false"}
+          className={`flex items-center justify-end gap-3 ${
+            dirty
+              ? "sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
+              : ""
+          }`}
+        >
+          {dirty && (
+            <span
+              data-qa="events-unsaved"
+              className="mr-auto inline-flex items-center gap-2 text-xs text-destructive"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" aria-hidden />
+              {t("admin.eventsBoard.unsaved")}
+            </span>
+          )}
+          {dirty && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              data-qa="events-discard"
+              onClick={discard}
+              disabled={saving}
+            >
+              {t("admin.eventsBoard.discard")}
+            </Button>
+          )}
           <Button
             type="button"
             onClick={onSave}
             disabled={saving || loading}
+            data-qa="events-save"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
             {saving ? (
@@ -1286,6 +1677,44 @@ const EventsBoardManager = () => {
           </Button>
         </div>
       </div>
+
+      {/*
+        ADMIN.QOL.1 — the last door. `beforeunload` (above) covers reload and
+        tab close; this covers an in-app link, which the capture-phase guard
+        stopped before the router could act on it. Answering resumes exactly the
+        navigation that was interrupted.
+      */}
+      <AlertDialog
+        open={!!leaveTarget}
+        onOpenChange={(open) => {
+          if (!open) setLeaveTarget(null);
+        }}
+      >
+        <AlertDialogContent data-qa="events-leave-prompt">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("admin.eventsBoard.leaveTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.eventsBoard.leaveBody")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-qa="events-leave-stay">
+              {t("admin.eventsBoard.leaveStay")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              data-qa="events-leave-discard"
+              onClick={() => {
+                const to = leaveTarget;
+                setLeaveTarget(null);
+                setBoard(committedBoard);
+                if (to) navigate(to);
+              }}
+            >
+              {t("admin.eventsBoard.leaveDiscard")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };
