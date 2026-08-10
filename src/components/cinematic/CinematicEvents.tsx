@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEventsBoard, type EventItem } from "@/hooks/useEventsBoard";
+import { loneHalves } from "@/components/events/packing";
 import {
   EVENTS_ACT_ENABLED,
   EVENTS_ACT_ROOM,
@@ -89,23 +90,48 @@ const CREAM = "#f0e9da";
  * reserved for Acting.
  */
 
-/** The ratified card grammar, staged: full cards span, halves pair at md+. */
-const CardField = ({ cards, wide = true }: { cards: EventItem[]; wide?: boolean }) => (
-  <div
-    data-qa="events-cards"
-    className={`grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 ${wide ? "max-w-4xl" : "max-w-3xl"}`}
-  >
-    {cards.map((item) => (
-      <div
-        key={item.id}
-        data-events-line
-        className={item.size === "full" ? "md:col-span-2" : "md:col-span-1"}
-      >
-        <EventCard item={item} />
-      </div>
-    ))}
-  </div>
-);
+/**
+ * Half, alone on its row: hold the row, then take one column's width in it.
+ *
+ * Plain `md:`, matching the two-up rule right below it — this stage is a PINNED
+ * act, not a scroll of one-card screens, so it has no portrait law to answer and
+ * `md:landscape:` (what /events keys on) would only change what a portrait
+ * tablet gets here for no reason. The 1rem is half of `md:gap-8`.
+ */
+const LONE_HALF = "md:col-span-2 md:mx-auto md:w-[calc(50%-1rem)]";
+
+/**
+ * The ratified card grammar, staged: full cards span, halves pair at md+, and a
+ * Half left alone on its row centres instead of hugging the left.
+ *
+ * That last clause is SNAP.1's law, and this room went without it: the live
+ * board (a Full, then a lone Half) centred on /events and hugged the left here,
+ * from the same data on the same screen, because the rule lived in EventsGrid
+ * and this stage stages its own field. The walk is shared now (packing.ts) so
+ * the two rooms cannot answer the same board differently again.
+ */
+const CardField = ({ cards, wide = true }: { cards: EventItem[]; wide?: boolean }) => {
+  const lone = loneHalves(cards);
+  return (
+    <div
+      data-qa="events-cards"
+      className={`grid w-full grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 ${wide ? "max-w-4xl" : "max-w-3xl"}`}
+    >
+      {cards.map((item, i) => (
+        <div
+          key={item.id}
+          data-events-line
+          data-qa="events-card-cell"
+          className={
+            item.size === "full" ? "md:col-span-2" : lone[i] ? LONE_HALF : "md:col-span-1"
+          }
+        >
+          <EventCard item={item} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 type RoomProps = { cards: EventItem[]; title: string; intro: string };
 
