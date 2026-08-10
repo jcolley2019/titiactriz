@@ -113,11 +113,20 @@ const boardWrites = (writes: Write[]) =>
     .filter((w) => w.method !== "GET" && w.url.includes("site_settings") && w.body)
     .map((w) => JSON.parse(w.body as string));
 
-/** The single saved board, unwrapped from the upsert envelope. */
+/**
+ * The saved board, unwrapped from the upsert envelope.
+ *
+ * ADMIN.QOL.1 — this used to assert exactly ONE board write, because a Save was
+ * the only thing that ever wrote. Toggles now commit the moment they move, so a
+ * banner enabled before a Save legitimately puts a write on the wire ahead of
+ * it. What these laws are about is what the SAVE carried, which is the LAST
+ * write — asserting the count would only re-assert the trap that brick removed.
+ */
 const savedBoard = (writes: Write[]) => {
   const sent = boardWrites(writes);
-  expect(sent, "the save went through").toHaveLength(1);
-  const rows = Array.isArray(sent[0]) ? sent[0] : [sent[0]];
+  expect(sent.length, "the save went through").toBeGreaterThan(0);
+  const latest = sent[sent.length - 1];
+  const rows = Array.isArray(latest) ? latest : [latest];
   return rows[0].value;
 };
 

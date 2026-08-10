@@ -367,6 +367,115 @@ test.describe("EVENTS.2 — the bake-off rooms (DEV preview)", () => {
   });
 });
 
+/* ───────── SNAP.1-FIX-A2 — the act packs the board the way /events does ───────── */
+
+/**
+ * The defect this exists to prevent, found on Joey's home screen: the live board
+ * (a Full, then a lone Half) CENTRED on /events and HUGGED THE LEFT here, from
+ * the same data, on the same screen, at the same moment. SNAP.1 taught the rule
+ * to EventsGrid; this stage builds its own CardField and never learned it.
+ *
+ * So the packing law is now stated in BOTH rooms, over the same six arrangements
+ * — the walk itself is shared code (components/events/packing.ts), and these are
+ * what stop the two rooms answering one board differently again.
+ *
+ * Measured under REDUCED MOTION: the act then renders static, settled and
+ * unpinned, so the geometry is the act's own and not a frame of its entrance.
+ * Everything is measured against the card field's OWN box, never a hardcoded
+ * width — "centred in the section" is a claim about the row, and Room A's field
+ * is `max-w-3xl` while Rooms B/C differ.
+ */
+test.describe("EVENTS.2 — a lone Half centres on the act's stage too", () => {
+  const FIELD = '[data-qa="events-cards"]';
+
+  const staged = (sizes: readonly string[]) =>
+    sizes.map((size, i) => ({ ...CARD, id: `ev-${i}`, size }));
+
+  /** The field's box, and every card in it, in viewport coordinates. */
+  const fieldAndCards = (page: Page) =>
+    page.evaluate((sel) => {
+      const field = document.querySelector(sel);
+      const f = field.getBoundingClientRect();
+      return {
+        field: { left: Math.round(f.left), right: Math.round(f.right), w: Math.round(f.width) },
+        cards: [...field.querySelectorAll("article")].map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            left: Math.round(r.left),
+            right: Math.round(r.right),
+            top: Math.round(r.top),
+            w: Math.round(r.width),
+          };
+        }),
+      };
+    }, FIELD);
+
+  const ARRANGEMENTS = [
+    { name: "alone on the board", sizes: ["half"], lone: [0], pairs: [] },
+    { name: "trailing a Full — the live board", sizes: ["full", "half"], lone: [1], pairs: [] },
+    { name: "leading, with a Full below", sizes: ["half", "full"], lone: [0], pairs: [] },
+    { name: "enclosed by Fulls", sizes: ["full", "half", "full"], lone: [1], pairs: [] },
+    { name: "left over after a pair", sizes: ["half", "half", "half"], lone: [2], pairs: [[0, 1]] },
+    {
+      name: "left over after a pair, with a Full below",
+      sizes: ["half", "half", "half", "full"],
+      lone: [2],
+      pairs: [[0, 1]],
+    },
+  ] as const;
+
+  for (const a of ARRANGEMENTS) {
+    test(`a Half with no partner centres on the stage — ${a.name}`, async ({ page }) => {
+      test.setTimeout(120_000);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await openAt(page, PATH, {
+        board: { pageVisible: true, homeVisible: true, items: staged(a.sizes) },
+        width: 1440,
+        height: 900,
+      });
+
+      await expect(page.locator(FIELD)).toBeVisible();
+      await expect(page.locator(`${FIELD} article`)).toHaveCount(a.sizes.length);
+
+      const { field, cards } = await fieldAndCards(page);
+      const halfW = (field.w - 32) / 2; // one column, minus half of md:gap-8
+
+      for (const i of a.lone) {
+        const lone = cards[i];
+        expect(
+          Math.abs(lone.w - halfW),
+          `card ${i} is ONE column wide (${lone.w}px, expected ~${Math.round(halfW)})`,
+        ).toBeLessThanOrEqual(2);
+
+        const leftGap = lone.left - field.left;
+        const rightGap = field.right - lone.right;
+        expect(
+          Math.abs(leftGap - rightGap),
+          `card ${i} has equal gutters, so it is centred (left ${leftGap}, right ${rightGap})`,
+        ).toBeLessThanOrEqual(2);
+        expect(
+          lone.left,
+          `card ${i} genuinely moved off the field's left edge (left ${lone.left}, field ${field.left})`,
+        ).toBeGreaterThan(field.left + 100);
+      }
+
+      // Centring must not leak onto Halves that DO have a partner.
+      for (const [x, y] of a.pairs) {
+        expect(cards[x].top, `cards ${x} and ${y} share a row`).toBe(cards[y].top);
+        expect(cards[x].left, `card ${x} opens the field`).toBe(field.left);
+        expect(cards[y].left, `card ${y} sits to its right`).toBeGreaterThan(cards[x].right);
+      }
+
+      // …and the Fulls still span, which is WHY the Half beside them is alone.
+      a.sizes.forEach((size, i) => {
+        if (size !== "full") return;
+        expect(cards[i].w, `card ${i} is Full and spans the field`).toBe(field.w);
+        expect(cards[i].left, `card ${i} starts at the field's edge`).toBe(field.left);
+      });
+    });
+  }
+});
+
 /* ─────── law 5 — the uniform dwell, and the neighbors it must not disturb ─────── */
 
 test.describe("EVENTS.2 — the dwell", () => {
@@ -686,8 +795,12 @@ test.describe("EVENTS.2b — the admin toggle", () => {
     const sent = writes
       .filter((w) => w.method !== "GET" && w.url.includes("site_settings") && w.body)
       .map((w) => JSON.parse(w.body as string));
-    expect(sent, "exactly one save went through").toHaveLength(1);
-    const payload = Array.isArray(sent[0]) ? sent[0][0] : sent[0];
+    // ADMIN.QOL.1 — the switch commits on click now, so a Save that follows it
+    // is the LAST write rather than the only one. What this law cares about is
+    // the value that reached the board, not how many writes carried it.
+    expect(sent.length, "a save went through").toBeGreaterThan(0);
+    const latest = sent[sent.length - 1];
+    const payload = Array.isArray(latest) ? latest[0] : latest;
     return (payload.value as { homeVisible?: unknown }).homeVisible;
   };
 
@@ -718,6 +831,11 @@ test.describe("EVENTS.2b — the admin toggle", () => {
     await expect(page.locator(HOME_SWITCH)).toHaveAttribute("data-state", "checked");
     await page.screenshot({ path: shot("events-2b-admin-toggle-on.png") });
 
+    // ADMIN.QOL.1 — the click ALONE is now the save. Asserted before any Save
+    // is touched, because that is the whole point of the change.
+    expect(savedHomeVisible(writes), "the click itself writes homeVisible true").toBe(true);
+
+    // …and a Save afterwards still carries it, unchanged.
     await page.getByRole("button", { name: /save changes/i }).click();
     await page.waitForTimeout(600);
     expect(savedHomeVisible(writes), "the save writes homeVisible true").toBe(true);
