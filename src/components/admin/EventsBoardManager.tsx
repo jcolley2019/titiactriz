@@ -1249,6 +1249,15 @@ const EventsBoardManager = () => {
   const discard = () => setBoard(committedBoard);
 
   /**
+   * ADMIN.QOL.1 — what makes the Save bar stick lives in index.css, not here.
+   * The bar computed `position: sticky` and still sat 1879px down a 720px screen
+   * because `body { overflow-x: hidden }` made the body a scroll container, which
+   * cancels stickiness against the viewport. QOL.1 flipped body to `clip` from
+   * this component while there was unsaved text; FIX.OVERFLOW.1 fixed the
+   * sitewide rule instead, so body is never a scroll container on any page.
+   */
+
+  /**
    * Leaving with unsaved text.
    *
    * `beforeunload` covers reload, tab close, and a typed URL. It cannot cover an
@@ -1258,35 +1267,6 @@ const EventsBoardManager = () => {
    * before the router sees the event, so the navigation is genuinely stopped and
    * can be resumed from the dialog once the owner has answered.
    */
-  /**
-   * ADMIN.QOL.1 — what actually makes the sticky bar stick.
-   *
-   * `body { overflow-x: hidden }` (index.css, sitewide) makes the body a scroll
-   * container, and a scroll container between a sticky element and the viewport
-   * cancels the stickiness: the bar computed `position: sticky` and still sat
-   * 1879px down a 720px screen. Measured on the live page — `hidden` does not
-   * stick, `clip` pins the bar to bottom = 720 exactly. `clip` clips the same
-   * pixels without creating the container.
-   *
-   * The proper home for this is index.css, which belongs to another brick's
-   * surface right now, so it is applied HERE, only while there is unsaved text,
-   * and the previous value is put back. The two are visually identical, so the
-   * flip is invisible.
-   *
-   * NOTE FOR THE FOLLOW-UP: this same `overflow-x: hidden` silently killed the
-   * /events scroll-snap. Two features, one latent defect — it wants fixing at
-   * the source.
-   */
-  useEffect(() => {
-    if (!dirty) return;
-    const body = document.body;
-    const previous = body.style.overflowX;
-    body.style.overflowX = "clip";
-    return () => {
-      body.style.overflowX = previous;
-    };
-  }, [dirty]);
-
   useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => {

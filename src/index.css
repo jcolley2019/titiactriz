@@ -113,6 +113,38 @@
     @apply border-border;
   }
 
+  /**
+   * FIX.OVERFLOW.1 — the sitewide horizontal guard. The two values below differ
+   * on purpose.
+   *
+   * The guard arrived 2026-01-30 as "Hide horizontal scroll on mobile", a
+   * symptomatic fix while the TitansAgency mobile hero was being centred — one
+   * commit after that hero got its own `overflow-x-hidden`. It has never been
+   * load-bearing at the page level since: measured across /, /events,
+   * /titans-agency, /green-world, /book and /studio at phone and desktop widths,
+   * every box that sticks out (the cinematic gallery track, the events banner
+   * track) is already clipped by its OWN component and the document's
+   * scrollWidth never exceeds its clientWidth. It stays anyway, as insurance — a
+   * bare 200vw box hung off body leaks a scrollbar the moment it is removed.
+   *
+   * `hidden` was the wrong spelling. On BODY it makes the body a scroll
+   * container, and a scroll container between the viewport and its contents
+   * breaks two unrelated things: `position: sticky` stops sticking to the
+   * viewport (ADMIN.QOL.1 — the Save bar computed `sticky` and sat 1879px down a
+   * 720px screen) and viewport scroll-snap is swallowed whole (EVENTS.SNAP.1 —
+   * /events armed the snap and no card ever snapped). Both bricks shipped scoped
+   * workarounds; both are retired in favour of this one line. `clip` is the same
+   * graphical effect minus the scroll container — precisely its spec'd
+   * difference from `hidden`. On all nine surface/viewport pairs above, body
+   * `clip` contains the 200vw probe AND sticks AND snaps; `hidden` contains it
+   * and breaks both.
+   *
+   * HTML keeps `hidden`: the viewport is a scroll container regardless, so it
+   * costs nothing (`clip+clip` measured identical to `hidden+clip` everywhere),
+   * `scrollbar-gutter: stable` needs a scroll container to reserve its gutter
+   * in, and it is the fallback — Safari below 16 drops the unknown `clip`,
+   * leaving body `visible` and html's `hidden` as the only thing still clipping.
+   */
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
@@ -121,7 +153,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    overflow-x: hidden;
+    overflow-x: clip;
     background-image: 
       radial-gradient(ellipse 80% 50% at 50% -20%, hsl(35 30% 20% / 0.15), transparent),
       radial-gradient(circle at 20% 80%, hsl(35 40% 30% / 0.08), transparent 40%),
@@ -202,39 +234,51 @@
    * PORTRAIT ONLY, per the ratified matrix — a landscape screen lays cards out
    * two-up and has nothing to snap to.
    *
-   * `proximity`, not `mandatory`, and the same under prefers-reduced-motion:
-   * mandatory refuses to rest anywhere but a snap point, which fights a reader
-   * mid-gesture and can make the closing line unreachable by momentum alone.
-   * Proximity only tidies a scroll that already came to rest near a card, so a
-   * keyboard, a trackpad and a screen reader all still reach every card and
-   * everything below them. It is the least coercive snap that still lands the
-   * frame.
+   * `mandatory` (EVENTS.SNAP.2), and the same under prefers-reduced-motion.
+   *
+   * SNAP.1 chose `proximity` as the least coercive snap that still lands the
+   * frame, and it does land it — measured on WebKit at Joey's 440x792 device
+   * truth, a scroll aimed 40px or 120px short of card 2 rests exactly on the
+   * snap point. But aimed 250px short it gives up and rests where it was
+   * dropped, which is a real thumb's fling, and the phone gate ruled that a
+   * suggestion is not enough: "decisive snap, not a suggestion".
+   *
+   * What made `mandatory` unsafe before was reachability — it refuses to rest
+   * anywhere but a snap point, so trailing content that is not a snap target
+   * gets snapped away from and can never be read. That is answered directly
+   * rather than avoided: the closing line carries `snap-start` too (see
+   * Events.tsx), so the tail IS a snap position and momentum, a keyboard and a
+   * screen reader all still come to rest on it. Nothing below the last card is
+   * fenced off.
+   *
+   * For any of it to work, `body` must not be a scroll container — one between
+   * the snap targets and the viewport swallows the snapping whole. SNAP.1 bought
+   * that with a scoped `html.events-snap body { overflow-x: clip }`;
+   * FIX.OVERFLOW.1 retired it by fixing the sitewide guard (see the base layer),
+   * so this rule now stands on its own.
    */
   @media (orientation: portrait) {
     html.events-snap {
-      scroll-snap-type: y proximity;
+      scroll-snap-type: y mandatory;
     }
 
     /**
-     * …and the reason the snap above does nothing without this line.
+     * …and the last snap position, which is what keeps `mandatory` honest all
+     * the way to the bottom of the document.
      *
-     * `body { overflow-x: hidden }` (see the base layer) makes the body a
-     * scroll container in its own right, and a scroll container between the
-     * snap targets and the viewport swallows the viewport's snapping whole.
-     * Isolated on a bare page: with `overflow-x: hidden` on both html and body,
-     * a scroll to 620 rests at 620; with `clip` in body's place it rests at
-     * 700, the snap point. Moving the snap declaration to `body` does NOT fix
-     * it — the scroll container is the problem, not where the property sits.
+     * With only the cards and the closing line as snap targets, a fling to the
+     * end came to rest at 1372 of a possible 1569 (measured, WebKit 440x792):
+     * the closing line was fully readable but the footer's bottom 197px were
+     * fenced off, because no snap position existed down there and `mandatory`
+     * pulled back to the closing line. The footer is a snap position of its own,
+     * so the document's end is reachable — its own start clamps to max scroll,
+     * which puts the whole footer on screen at once.
      *
-     * `clip` says the same thing to the layout — no horizontal overflow, no
-     * horizontal scrollbar — without creating that scroll container. It is
-     * scoped to this class so the rule can only ever reach /events with a
-     * portrait multi-card board; every other page keeps `hidden` exactly.
-     * Safari below 16 ignores `clip`, keeps `hidden`, and simply gets the
-     * unsnapped stack — the layout is identical either way.
+     * Scoped to `html.events-snap`, so the global footer is untouched on every
+     * other page.
      */
-    html.events-snap body {
-      overflow-x: clip;
+    html.events-snap footer {
+      scroll-snap-align: start;
     }
   }
 
