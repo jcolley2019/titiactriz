@@ -189,6 +189,55 @@
     }
   }
 
+  /**
+   * EVENTS.SNAP.1 — the /events snap container.
+   *
+   * `scroll-snap-type` only means anything on the SCROLLER, and on this page the
+   * scroller is the document element — a rule on any inner div would be inert.
+   * The /events page adds this class on mount and drops it on unmount, so the
+   * behaviour cannot follow the reader to the cinematic home, where Lenis owns
+   * the wheel and a second scroll authority would fight it. (/events itself runs
+   * on native scroll: Lenis is constructed only in HomeCinematic.)
+   *
+   * PORTRAIT ONLY, per the ratified matrix — a landscape screen lays cards out
+   * two-up and has nothing to snap to.
+   *
+   * `proximity`, not `mandatory`, and the same under prefers-reduced-motion:
+   * mandatory refuses to rest anywhere but a snap point, which fights a reader
+   * mid-gesture and can make the closing line unreachable by momentum alone.
+   * Proximity only tidies a scroll that already came to rest near a card, so a
+   * keyboard, a trackpad and a screen reader all still reach every card and
+   * everything below them. It is the least coercive snap that still lands the
+   * frame.
+   */
+  @media (orientation: portrait) {
+    html.events-snap {
+      scroll-snap-type: y proximity;
+    }
+
+    /**
+     * …and the reason the snap above does nothing without this line.
+     *
+     * `body { overflow-x: hidden }` (see the base layer) makes the body a
+     * scroll container in its own right, and a scroll container between the
+     * snap targets and the viewport swallows the viewport's snapping whole.
+     * Isolated on a bare page: with `overflow-x: hidden` on both html and body,
+     * a scroll to 620 rests at 620; with `clip` in body's place it rests at
+     * 700, the snap point. Moving the snap declaration to `body` does NOT fix
+     * it — the scroll container is the problem, not where the property sits.
+     *
+     * `clip` says the same thing to the layout — no horizontal overflow, no
+     * horizontal scrollbar — without creating that scroll container. It is
+     * scoped to this class so the rule can only ever reach /events with a
+     * portrait multi-card board; every other page keeps `hidden` exactly.
+     * Safari below 16 ignores `clip`, keeps `hidden`, and simply gets the
+     * unsnapped stack — the layout is identical either way.
+     */
+    html.events-snap body {
+      overflow-x: clip;
+    }
+  }
+
   /* Hero card overlay */
   .hero-card {
     @apply relative p-8 md:p-12;

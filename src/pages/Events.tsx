@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -89,6 +90,31 @@ const editorialFontVars: React.CSSProperties = {
  * The rest of the fit is the poster's own cap, in EventCard — see
  * PHONE_ROOM_MAX_H there. The law that judges all of it now reserves the
  * device's chrome instead of pretending the headless fold is the real one.
+ *
+ * ## EVENTS.SNAP.1 — the arrival frame, measured and published
+ *
+ * A portrait board of two or more cards gives each card a screen of its own and
+ * snaps, so every card comes to rest in the frame the FIRST card arrives in.
+ * That frame is not the middle of the viewport — the heading band sits above
+ * it. Measured on a 1-card board: the card's top is 126px down on both phones,
+ * 264 at 820x1180, 276 at 1024x1366. Centring the cards in the viewport instead
+ * would yank card 1 out of its own arrival framing by 14px on the phone and
+ * 142px on the tablet the moment the reader first scrolled.
+ *
+ * So the page measures the band above the grid and publishes it as
+ * `--events-snap-top`; each cell snaps to `start` with that as its scroll
+ * margin (EventsGrid). Card 1's snap position works out to scrollY 0 — the
+ * arrival position exactly — and every later card lands in the same frame.
+ *
+ * The band is measured, never hardcoded: it moves with the locale's heading
+ * wrap, the font landing, and `env(safe-area-inset-top)` on a notched phone.
+ *
+ * The snap TYPE lives on the document element (`html.events-snap`, index.css)
+ * because that is the scroller. It is added on mount and removed on unmount, so
+ * it can never reach the cinematic home — the one route where Lenis owns the
+ * wheel and a second scroll authority would fight it. Nothing here touches
+ * src/lib/smoothScroll.ts: /events registers no driver and the banner never
+ * issues a scroll on this page (it finds no lit act and navigates instead).
  */
 const Events = () => {
   const { t, i18n } = useTranslation();
@@ -108,6 +134,98 @@ const Events = () => {
   const showMore =
     !loading && (!board.pageVisible || !hasItems || showGrid);
 
+  /**
+   * EVENTS.SNAP.1 — one card is already one-per-screen, and its composition is
+   * ratified to the pixel (events-nav.spec.ts holds the whole act inside the
+   * phone's first screen). The snap layout is therefore a MULTI-card behaviour
+   * only: a single-card board renders byte-for-byte as it did.
+   */
+  const snapping = showGrid && board.items.length > 1;
+
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const [snapTop, setSnapTop] = useState(0);
+
+  /**
+   * ARM THE SNAP ONLY ONCE THE BAND IS KNOWN.
+   *
+   * This gate is not defensive tidiness — without it the page loads scrolled.
+   * On the first render the band is still 0, so a cell's snap position is its
+   * own raw top (126px down on a phone); the browser obeys immediately, scrolls
+   * there, and the heading and the way out are gone before the reader has
+   * touched anything. Caught in the rendered evidence, not in the numbers: every
+   * measurement is in DOCUMENT coordinates and reads identically whether or not
+   * the page has jumped.
+   *
+   * With the band published first, card 1's snap position works out to scrollY 0
+   * and arming changes nothing about where the page sits.
+   */
+  const armed = snapping && snapTop > 0;
+
+  /**
+   * The band above the first card, in document pixels — the grid's own top, so
+   * the margin between the heading block and the card is inside the number.
+   *
+   * Watching the HEADER alone is not enough, and the first cut of this was
+   * measurably wrong because of it: at 1024x1366 the grid starts at 291 and
+   * settles at 276 once the marquee's spacer and the display font have landed.
+   * Those move the grid without changing the header's own box by a pixel, so a
+   * header-only observer never fires and the published band stays 15px stale —
+   * every card after the first then rests 15px below the frame card 1 arrives
+   * in, which is the one thing this number exists to prevent.
+   *
+   * So the observer watches `document.body`: anything above the grid that grows,
+   * lands, or disappears changes the body's box. Publishing a new band changes
+   * the cells' `min-height` and therefore the body too, but that feeds back
+   * exactly once — the grid's TOP is unmoved by its children's height, so the
+   * second pass measures the same number and React drops the re-render. The rAF
+   * throttle collapses the burst and keeps the observer out of its own loop
+   * warning.
+   */
+  useEffect(() => {
+    if (!snapping) return;
+    const grid = gridRef.current;
+    if (!grid) return;
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() =>
+        setSnapTop(Math.round(grid.getBoundingClientRect().top + window.scrollY)),
+      );
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.body);
+    if (headerRef.current) ro.observe(headerRef.current);
+    // The display font swapping in re-wraps the heading under the grid.
+    void document.fonts?.ready.then(measure).catch(() => {});
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measure);
+      ro.disconnect();
+    };
+  }, [snapping, i18n.language]);
+
+  /**
+   * The snap type belongs on the scroller, which is the document element — a
+   * `scroll-snap-type` on any inner div would do nothing. Scoped to a class this
+   * page owns, and removed on unmount so no other route inherits it.
+   *
+   * `proximity`, deliberately, and the same under prefers-reduced-motion: it is
+   * the least coercive snap that still lands the frame. `mandatory` would refuse
+   * to leave a card half-scrolled, which traps a reader mid-gesture and can hide
+   * the closing line entirely; proximity only tidies a scroll that has already
+   * come to rest near a card, so momentum, a keyboard, and a screen reader all
+   * still reach every card and the content below them.
+   */
+  useEffect(() => {
+    if (!armed) return;
+    const root = document.documentElement;
+    root.classList.add("events-snap");
+    return () => root.classList.remove("events-snap");
+  }, [armed]);
+
   return (
     <main
       data-qa="events-page"
@@ -116,7 +234,7 @@ const Events = () => {
     >
       <SEO path="/events" title={title} description={description} />
 
-      <div className="max-w-3xl mx-auto text-center mb-4 md:mb-12">
+      <div ref={headerRef} className="max-w-3xl mx-auto text-center mb-4 md:mb-12">
         {/* The phone's one row: the way out pinned to the left edge, the title
             centred in the same band. `md:static` hands the control back to the
             page at md and up, where it goes out of flow into the ratified
@@ -167,8 +285,16 @@ const Events = () => {
           that screen actually has. Landscape and desktop never match the query,
           so both keep the ratified 1024-wide composition exactly. */}
       {showGrid && (
-        <div className="md:portrait:mx-auto md:portrait:max-w-2xl">
-          <EventsGrid items={board.items} fillPortrait />
+        <div
+          ref={gridRef}
+          className="md:portrait:mx-auto md:portrait:max-w-2xl"
+          style={
+            armed
+              ? ({ ["--events-snap-top" as never]: `${snapTop}px` } as React.CSSProperties)
+              : undefined
+          }
+        >
+          <EventsGrid items={board.items} fillPortrait snap={armed} />
         </div>
       )}
 
