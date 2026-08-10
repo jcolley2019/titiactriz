@@ -91,7 +91,13 @@ const EventsGrid = ({ items, lang, fillPortrait, admin, snap }: Props) => {
               ? LONE_HALF
               : "md:landscape:col-span-1";
         const cardEl = (
-          <EventCard item={item} lang={lang} fillPortrait={fillPortrait} admin={admin} />
+          <EventCard
+            item={item}
+            lang={lang}
+            fillPortrait={fillPortrait}
+            fillCell={snapping}
+            admin={admin}
+          />
         );
         return (
           <div
@@ -100,16 +106,21 @@ const EventsGrid = ({ items, lang, fillPortrait, admin, snap }: Props) => {
             className={snapping ? `${span} ${SNAP_CELL}` : span}
           >
             {/*
-              The card keeps its OWN height inside a screen-tall cell. EventCard
-              carries `h-full`, which is what makes two landscape cards match
-              heights on a stretched grid row — but against a cell holding a
-              whole screen it would inflate the gold frame by the leftover (98px
-              on a 390 phone) and hand back a card that is not the dialled-in
-              one. A plain auto-height div between the two resolves that `100%`
-              to `auto`, so the frame is exactly the height it is on a one-card
-              board and the spare screen stays empty below it.
+              EVENTS.SNAP.2 — the card FILLS its cell, gold frame and all.
+              EventCard carries `h-full`, so it takes the whole screen-tall cell
+              in portrait and matches its neighbour's height on a stretched
+              landscape row. Both are wanted.
+
+              SNAP.1 put a plain auto-height div here on purpose, to resolve that
+              `100%` back to `auto` and keep the frame exactly the height it has
+              on a one-card board — leaving the spare screen empty BELOW the
+              frame. The phone gate overruled it: measured on WebKit at Joey's
+              440x792 device truth, that left the frame 81px short of the screen
+              on card 1 and 116px short on card 2, so no two cards were the same
+              height and none of them filled. Joey's ruling is one screen, one
+              card, border and all — so the wrapper is gone.
             */}
-            {snapping ? <div className="w-full">{cardEl}</div> : cardEl}
+            {cardEl}
           </div>
         );
       })}

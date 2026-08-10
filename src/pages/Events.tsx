@@ -298,11 +298,35 @@ const Events = () => {
         </div>
       )}
 
+      {/**
+       * EVENTS.SNAP.2 — the closing line is a SNAP TARGET, and that is what makes
+       * `mandatory` safe here.
+       *
+       * `mandatory` refuses to come to rest anywhere but a snap position, so any
+       * trailing content that is not one gets snapped away from and becomes
+       * unreadable — the exact trap that kept SNAP.1 on `proximity`. Making the
+       * tail a snap position of its own answers it: a fling past the last card
+       * lands here and HOLDS here, so the closing line, and the footer below it,
+       * stay reachable by momentum, by keyboard, and under reduced motion.
+       *
+       * Only while the snap is armed (`armed` ⇒ a portrait multi-card board);
+       * a one-card board has no snap container and wants no snap classes.
+       */}
       {showMore && (
         <p
           data-qa="events-more"
-          className="text-center mt-4 md:mt-12 text-xs md:text-sm uppercase tracking-[0.25em]"
-          style={{ color: `${CREAM}80`, fontFamily: "var(--font-sans)" }}
+          className={`text-center mt-4 md:mt-12 text-xs md:text-sm uppercase tracking-[0.25em] ${
+            armed ? "portrait:snap-start portrait:scroll-mt-[var(--events-snap-top,0px)]" : ""
+          }`}
+          style={
+            armed
+              ? ({
+                  color: `${CREAM}80`,
+                  fontFamily: "var(--font-sans)",
+                  ["--events-snap-top" as never]: `${snapTop}px`,
+                } as React.CSSProperties)
+              : { color: `${CREAM}80`, fontFamily: "var(--font-sans)" }
+          }
         >
           {t("events.more")}
         </p>

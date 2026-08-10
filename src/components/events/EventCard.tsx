@@ -140,12 +140,26 @@ const EventCard = ({
   item,
   lang,
   fillPortrait,
+  fillCell,
   admin,
 }: {
   item: EventItem;
   lang?: Lang;
   /** EVENTS.NAV.1 — let portrait art use a portrait tablet's vertical room. */
   fillPortrait?: boolean;
+  /**
+   * EVENTS.SNAP.2 — this card is filling a screen-tall snap cell, so its frame is
+   * taller than its content and the leftover has to go somewhere. It is CENTRED,
+   * not poured into the art: the 56vh poster cap is Joey's measured device number
+   * and stays exactly as ratified, so the art is the same size it is on a
+   * one-card board and only the empty room moves. Without this the whole leftover
+   * (81-116px, measured on WebKit at 440x792) banks up as a dead band between the
+   * art and the bottom border.
+   *
+   * Portrait only — a landscape row stretches cards to match each other and has
+   * no screen-tall cell to centre inside.
+   */
+  fillCell?: boolean;
   /**
    * EVENTS.VIDEO.1 — this card is standing in an ADMIN surface, so a medium
    * that could not be rendered may say so out loud. Never set on a public
@@ -229,7 +243,9 @@ const EventCard = ({
     <article
       className={`relative h-full text-center ${
         isFull ? "p-8 md:p-12" : "p-6 md:p-8"
-      } ${fillPortrait ? "max-md:p-6" : ""}`}
+      } ${fillPortrait ? "max-md:p-6" : ""} ${
+        fillCell ? "portrait:grid portrait:content-center" : ""
+      }`}
       style={frameStyle}
     >
       {isFull && <Corners />}
@@ -238,7 +254,7 @@ const EventCard = ({
         <span
           className={`inline-block px-3 py-1 uppercase tracking-[0.25em] ${
             isFull ? "text-[0.65rem] mb-6" : "text-[0.6rem] mb-4"
-          }`}
+          } ${fillCell ? "portrait:justify-self-center" : ""}`}
           style={{
             backgroundColor: GOLD,
             color: DARK,

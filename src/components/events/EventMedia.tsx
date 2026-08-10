@@ -66,8 +66,21 @@ const PHONE_ROOM_MAX_H = "max-md:max-h-[56vh]";
 
 type ResolvedAspect = "landscape" | "portrait";
 
+/**
+ * `w-full` is load-bearing, not decoration (EVENTS.SNAP.2).
+ *
+ * In block flow it is a no-op — a block div already fills its container and
+ * `max-w-*` still caps it. It matters the moment this wrapper becomes a FLEX or
+ * GRID item, which is what a screen-tall snap cell makes it: `mx-auto` is an auto
+ * inline margin, and in both flex and grid an auto margin makes the item
+ * shrink-to-fit instead of stretching. The well inside is sized `w-full` off an
+ * aspect ratio, so with nothing definite to resolve against the whole medium
+ * collapsed to 0x0 — measured on WebKit, a loaded 768px poster rendering at zero
+ * and the card showing an empty gold frame. A definite width breaks the cycle and
+ * `mx-auto` still centres it.
+ */
 const wrapperClass = (isFull: boolean, fillPortrait?: boolean) =>
-  `mx-auto mb-6 ${isFull ? "max-w-3xl" : "max-w-md"} ${fillPortrait ? "max-md:mb-4" : ""}`;
+  `mx-auto w-full mb-6 ${isFull ? "max-w-3xl" : "max-w-md"} ${fillPortrait ? "max-md:mb-4" : ""}`;
 
 /**
  * The media box itself. Portrait is shown WHOLE at its own ratio and capped;
