@@ -66,4 +66,39 @@ export default defineConfig({
     reuseExistingServer: !CI,
     timeout: 120_000,
   },
+
+  /**
+   * EVENTS.SNAP.2 — the phone snap laws run on WEBKIT, everything else on Chromium.
+   *
+   * Chromium emulation is not iOS. It passed the /events snap laws while the phone
+   * failed the gate in Joey's hand, which disqualifies it as evidence for anything
+   * that depends on how mobile Safari actually scrolls: scroll-snap strictness,
+   * momentum resting, and the svh/lvh arithmetic behind a screen-tall cell. Those
+   * laws live in events-snap-phone.spec.ts and run in a real WebKit at Joey's
+   * measured device truth — a 440x792 window, not the 390x844 the emulator offers
+   * and not the 956 the spec sheet claims.
+   *
+   * Everything else stays exactly where it was: same browser, same viewports, so
+   * the rest of the battery is unchanged and comparable to previous runs.
+   */
+  projects: [
+    {
+      name: "chromium",
+      use: { browserName: "chromium" },
+      testIgnore: /events-snap-phone\.spec\.ts/,
+    },
+    {
+      name: "webkit-iphone",
+      testMatch: /events-snap-phone\.spec\.ts/,
+      use: {
+        browserName: "webkit",
+        viewport: { width: 440, height: 792 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true,
+        userAgent:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+      },
+    },
+  ],
 });

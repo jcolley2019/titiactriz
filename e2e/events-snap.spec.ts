@@ -35,7 +35,6 @@ import { forceLanguage, routeSupabase } from "./_admin";
 
 const CELL = '[data-qa="event-cell"]';
 const CARD = "article";
-const MORE = '[data-qa="events-more"]';
 
 /** A portrait poster at the real card's aspect, served offline. */
 const POSTER = `data:image/svg+xml,${encodeURIComponent(
@@ -107,13 +106,6 @@ const bandOf = (page: Page) =>
 
 const snapTypeOf = (page: Page) =>
   page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType);
-
-/** Scroll, then let the browser settle wherever IT decides to rest. */
-async function settleAt(page: Page, y: number) {
-  await page.evaluate((top) => window.scrollTo({ top: Math.max(0, top), behavior: "smooth" }), y);
-  await page.waitForTimeout(900);
-  return page.evaluate(() => Math.round(window.scrollY));
-}
 
 /* ══════════════════ A. LANDSCAPE — the Full/Half row ══════════════════ */
 
@@ -262,166 +254,18 @@ test.describe("EVENTS.SNAP.1 — landscape honours Full/Half", () => {
   });
 });
 
-/* ══════════════════ B. PORTRAIT — one screen per card ══════════════════ */
+/* ══════════════════ B. PORTRAIT — moved to WebKit ══════════════════ */
 
-const PORTRAIT_ROOMS = [
-  { name: "phone-390x844", width: 390, height: 844 },
-  { name: "tablet-portrait-820x1180", width: 820, height: 1180 },
-];
-
-for (const room of PORTRAIT_ROOMS) {
-  test.describe(`EVENTS.SNAP.1 — ${room.name}`, () => {
-    const items = [card("a", "full"), card("b", "half"), card("c", "full")];
-
-    test("cards stack one per column, whatever Full/Half says", async ({ page }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items });
-
-      const cards = await cardsDoc(page);
-      expect(cards, "all three are on the page").toHaveLength(3);
-      for (let i = 1; i < cards.length; i++) {
-        expect(cards[i].top, `card ${i} is BELOW card ${i - 1}, never beside it`).toBeGreaterThan(
-          cards[i - 1].top + cards[i - 1].h - 1,
-        );
-        expect(cards[i].left, `card ${i} keeps the same column`).toBe(cards[0].left);
-        expect(cards[i].w, `…at the same width`).toBe(cards[0].w);
-      }
-    });
-
-    test("the page ARRIVES at the top, with the heading and the way out in view", async ({
-      page,
-    }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items });
-
-      // The defect this guards: arm the snap before the band is measured and the
-      // band is 0, so card 1's snap position becomes its own raw top. The browser
-      // obeys on load, scrolls 126px down, and eats the heading and the back
-      // control before the reader has touched anything. Every document-coordinate
-      // measurement reads identically either way — only the scroll position and
-      // the rendered pixels tell the truth, so this is asserted on both.
-      expect(await page.evaluate(() => Math.round(window.scrollY)), "no jump on load").toBe(0);
-      await expect(page.locator('[data-qa="events-title"]'), "the heading is on screen").toBeInViewport();
-      await expect(page.locator('[data-qa="events-back"]'), "…and so is the way out").toBeInViewport();
-
-      const cards = await cardsDoc(page);
-      const firstTop = await page
-        .locator(CARD)
-        .first()
-        .evaluate((el) => Math.round(el.getBoundingClientRect().top));
-      expect(firstTop, "card 1 is exactly where the document puts it").toBe(cards[0].top);
-    });
-
-    test("the snap container is armed, and each cell carries the arrival band", async ({
-      page,
-    }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items });
-
-      // Chrome reports `y proximity` as plain `y` — proximity is the default
-      // strictness. `y mandatory` would read back in full, and would be wrong.
-      expect(await snapTypeOf(page), "portrait scrolls snap, softly").toBe("y");
-
-      const cards = await cardsDoc(page);
-      const { scrollMarginTop, align } = await bandOf(page);
-      expect(align, "each card is a snap target, aligned to its own top").toBe("start");
-      expect(
-        scrollMarginTop,
-        `the band equals card 1's arrival top (${cards[0].top})`,
-      ).toBe(cards[0].top);
-
-      // Card 1's snap position is therefore the arrival position itself.
-      expect(cards[0].top - scrollMarginTop, "card 1 snaps to scrollY 0").toBe(0);
-    });
-
-    test("every card comes to rest in card 1's arrival frame", async ({ page }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items });
-
-      const cards = await cardsDoc(page);
-      const { scrollMarginTop: band } = await bandOf(page);
-
-      for (let i = 0; i < cards.length; i++) {
-        await settleAt(page, cards[i].top - band);
-        const top = await page
-          .locator(CARD)
-          .nth(i)
-          .evaluate((el) => Math.round(el.getBoundingClientRect().top));
-        expect(top, `card ${i} rests in the arrival frame, ${band}px down`).toBe(band);
-      }
-    });
-
-    test("one card per screen: the next card waits below the fold", async ({ page }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items });
-
-      const cards = await cardsDoc(page);
-      const { scrollMarginTop: band } = await bandOf(page);
-
-      for (let i = 0; i < cards.length - 1; i++) {
-        await settleAt(page, cards[i].top - band);
-        const nextTop = await page
-          .locator(CARD)
-          .nth(i + 1)
-          .evaluate((el) => Math.round(el.getBoundingClientRect().top));
-        expect(
-          nextTop,
-          `with card ${i} at rest, card ${i + 1} has not crept into the screen`,
-        ).toBeGreaterThanOrEqual(room.height);
-      }
-    });
-
-    test("nothing is trapped: every card and the closing line stay reachable", async ({
-      page,
-    }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items });
-
-      const cards = await cardsDoc(page);
-      const { scrollMarginTop: band } = await bandOf(page);
-
-      // End to end, card by card, the way a thumb travels — and back up again.
-      const order = [...cards.keys(), ...[...cards.keys()].reverse()];
-      for (const i of order) {
-        await settleAt(page, cards[i].top - band);
-        await expect(page.locator(CARD).nth(i), `card ${i} is reachable`).toBeInViewport();
-      }
-
-      // The closing line lives past the last card and must not be sealed off by
-      // a snap point. Proximity is what buys this: `mandatory` could refuse to
-      // rest here at all.
-      const moreTop = await page
-        .locator(MORE)
-        .evaluate((el) => Math.round(el.getBoundingClientRect().top + window.scrollY));
-      await settleAt(page, moreTop - room.height / 2);
-      await expect(page.locator(MORE), "the closing line is reachable").toBeInViewport();
-    });
-  });
-}
-
-/* ══════════════ C. THE ONE-CARD BOARD IS NOT TOUCHED ══════════════ */
-
-test.describe("EVENTS.SNAP.1 — a single card is left exactly as it was", () => {
-  for (const room of PORTRAIT_ROOMS) {
-    test(`${room.name} — no snap, no screen-tall cell, ratified geometry`, async ({ page }) => {
-      test.setTimeout(120_000);
-      await open(page, { ...room, items: [card("a", "full")] });
-
-      // One card is ALREADY one-per-screen, and events-nav.spec.ts holds its
-      // composition to the pixel — including the closing line inside the phone's
-      // first screen. A screen-tall cell would push that line off the fold.
-      expect(await snapTypeOf(page), "the snap container is not armed").toBe("none");
-
-      const { minHeight } = await bandOf(page);
-      expect(
-        minHeight === "auto" || minHeight === "0px",
-        `the cell keeps its content height (min-height: ${minHeight})`,
-      ).toBe(true);
-
-      const [only] = await cardsDoc(page);
-      expect(only.top, "the card arrives where it always did").toBe(
-        room.width === 390 ? 126 : 264,
-      );
-    });
-  }
-});
+/**
+ * EVENTS.SNAP.2 — the portrait one-card-per-screen laws, and the one-card board's
+ * exemption from them, now live in events-snap-phone.spec.ts and run in a real
+ * WebKit at Joey's 440x792 device truth.
+ *
+ * They were here, in Chromium emulation, and they all passed while the phone
+ * failed the gate in Joey's hand: cards 81px and 116px short of filling their
+ * cells, and a fling resting mid-way between them. Snap strictness, where
+ * momentum settles, and the svh arithmetic behind a screen-tall cell are engine
+ * behaviour — this file keeps what is pure layout (the Full/Half row and the six
+ * packing orders below), and the engine-dependent laws moved to the engine that
+ * ships on the device.
+ */
