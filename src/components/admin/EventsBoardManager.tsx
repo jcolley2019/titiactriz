@@ -251,7 +251,13 @@ const BannerEditor = ({
           setAttempted(false);
           // ADMIN.QOL.1 — instant, but only PAST the guard: a refused toggle
           // must not reach the database any more than it reaches the screen.
-          onInstant({ enabled: v }, `banner-${qa}-enabled`);
+          // BANNER.TOGGLE.1 — going ON stamps `enabledAt`: the banner's new
+          // identity, which resets every visitor's X dismissal (see
+          // EventsBanner's dismissKey). Going OFF leaves the stamp alone.
+          onInstant(
+            v ? { enabled: true, enabledAt: new Date().toISOString() } : { enabled: false },
+            `banner-${qa}-enabled`,
+          );
         }}
         disabled={loading}
         data-qa="banner-enabled"

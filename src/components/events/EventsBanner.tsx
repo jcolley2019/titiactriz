@@ -160,7 +160,19 @@ const EventsBanner = () => {
   const textColor = scheme.text;
   const marqueeWeight = activeBanner?.bold ? 700 : 400;
 
-  const dismissKey = bannerText ? DISMISS_PREFIX + hashText(bannerText) : "";
+  /**
+   * BANNER.TOGGLE.1 — the X is a PER-VISITOR dismissal of ONE banner, never a
+   * veto over the owner's switch. The switch already outranks it structurally
+   * (enabled:false empties `bannerText` above, and this component returns null
+   * before it ever reads `dismissed`). What the key encodes is the other half
+   * of the law: WHICH banner was dismissed. It hashes the banner's `enabledAt`
+   * stamp — written by the admin each time the switch goes ON — together with
+   * the text, so a re-enabled banner is a NEW banner even when it says the same
+   * words, and every visitor's X resets with it.
+   */
+  const dismissKey = bannerText
+    ? DISMISS_PREFIX + hashText(`${activeBanner?.enabledAt ?? ""}|${bannerText}`)
+    : "";
 
   const [dismissed, setDismissed] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);

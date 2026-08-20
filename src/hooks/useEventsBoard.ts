@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ClassFramingPair, HeroVideoFraming } from "@/hooks/useCinematicMedia";
 import { coerceEventImageFraming, coerceEventVideoFraming } from "@/lib/event-framing";
@@ -121,6 +121,15 @@ export type PageBanner = {
   pages: BannerPages;
   bold: boolean;
   textColor: string;  // hex
+  /**
+   * BANNER.TOGGLE.1 — when this banner last went ON, stamped by the admin at
+   * the moment the enable switch is flipped. It is the banner's IDENTITY for
+   * the visitor's X dismissal: the dismissal key hashes this stamp with the
+   * text, so re-enabling a banner — even with the same words — is a NEW banner
+   * and every visitor's X resets. Absent on rows written before the field
+   * existed; those fall back to a text-only identity, exactly as before.
+   */
+  enabledAt?: string;
 };
 
 export type EventsBoard = {
@@ -165,8 +174,11 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
   pageVisible: true,
   homeVisible: false,
   bannerText: SMARTFILMS_TEXT,
+  // BANNER.TOGGLE.1 — the default banner is OFF. This object is what a reader
+  // gets when the row is absent OR the fetch fails, and the owner's enable
+  // switch is authoritative: a client that cannot READ the switch must fail
+  // DARK, never resurrect a hardcoded banner the owner may have turned off.
   mainBanner: makeBanner({
-    enabled: true,
     text: SMARTFILMS_TEXT,
     pages: { home: true, greenWorld: true, titans: true },
     textColor: "#C9A55C",
@@ -304,6 +316,9 @@ const coerceBanner = (v: unknown, defaults: PageBanner): PageBanner => {
     bold: v.bold === true,
     textColor:
       typeof v.textColor === "string" && v.textColor ? v.textColor : defaults.textColor,
+    // BANNER.TOGGLE.1 — absent on every row written before the field existed;
+    // conditional so those rows keep parsing to the same object shape.
+    ...(typeof v.enabledAt === "string" && v.enabledAt ? { enabledAt: v.enabledAt } : {}),
   };
 };
 
@@ -411,37 +426,95 @@ export const setEventsBoard = async (next: EventsBoard): Promise<void> => {
     },
   ]);
   if (error) throw error;
+  // BANNER.TOGGLE.1 — echo the write into this tab's own store, so the admin's
+  // switch reaches every public surface mounted beside it (header, footer, the
+  // banner itself) without waiting on the realtime round trip.
+  publishBoard(next);
 };
 
-export const useEventsBoard = (): { board: EventsBoard; loading: boolean } => {
-  const [board, setBoard] = useState<EventsBoard>(EVENTS_BOARD_DEFAULT);
-  const [loading, setLoading] = useState(true);
+/**
+ * BANNER.TOGGLE.1 — ONE board store for every public reader.
+ *
+ * The hook used to open its own realtime channel per consumer. Five components
+ * mount it at once (banner, header, footer, plus the page), and five channels
+ * on the SAME topic over one socket is something the realtime server refuses:
+ * measured against the live project, every duplicate ends in CHANNEL_ERROR
+ * "mismatch between server and client bindings" — so no reader ever heard a
+ * change even when the publication was in place. One module-level store, one
+ * fetch, one channel; consumers subscribe to the store.
+ *
+ * The store also refetches when the tab becomes visible or focused again. The
+ * owner's test is exactly this shape — flip the switch on the desk, pick the
+ * phone back up — and on a phone the socket rarely survives being backgrounded,
+ * so the wake-up refetch is what makes "off means off, immediately" true on the
+ * physical device and not just on a machine whose websocket never slept.
+ */
+type BoardState = { board: EventsBoard; loading: boolean };
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchEventsBoard()
-      .then((b) => { if (!cancelled) setBoard(b); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+let boardState: BoardState = { board: EVENTS_BOARD_DEFAULT, loading: true };
+const boardListeners = new Set<() => void>();
+let boardStoreStarted = false;
+let lastBoardFetch = 0;
 
-    const channel = supabase
-      .channel("site_settings_events_board")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "site_settings",
-          filter: `key=eq.${EVENTS_BOARD_KEY}`,
-        },
-        (payload) => {
-          const next = (payload.new as { value?: unknown } | null)?.value;
-          if (next !== undefined) setBoard(parseBoard(next));
-        },
-      )
-      .subscribe();
+/** How stale a mounting consumer will tolerate the shared board being. */
+const BOARD_FRESH_MS = 2000;
 
-    return () => { cancelled = true; supabase.removeChannel(channel); };
-  }, []);
-
-  return { board, loading };
+const setBoardState = (next: BoardState) => {
+  boardState = next;
+  boardListeners.forEach((l) => l());
 };
+
+/** The one door every fresh board walks through, wherever it came from. */
+const publishBoard = (board: EventsBoard) => setBoardState({ board, loading: false });
+
+const refetchBoard = () => {
+  lastBoardFetch = Date.now();
+  fetchEventsBoard()
+    .then(publishBoard)
+    .catch(() => setBoardState({ ...boardState, loading: false }));
+};
+
+const startBoardStore = () => {
+  if (boardStoreStarted || typeof window === "undefined") return;
+  boardStoreStarted = true;
+
+  refetchBoard();
+
+  supabase
+    .channel("site_settings_events_board")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "site_settings",
+        filter: `key=eq.${EVENTS_BOARD_KEY}`,
+      },
+      (payload) => {
+        const next = (payload.new as { value?: unknown } | null)?.value;
+        if (next !== undefined) publishBoard(parseBoard(next));
+      },
+    )
+    .subscribe();
+
+  const onWake = () => {
+    if (document.visibilityState === "visible") refetchBoard();
+  };
+  document.addEventListener("visibilitychange", onWake);
+  window.addEventListener("focus", onWake);
+};
+
+const subscribeBoard = (listener: () => void) => {
+  startBoardStore();
+  // A route change mounts fresh consumers without any wake event. Each used to
+  // fetch for itself; the shared store keeps that honesty with one throttled
+  // refetch — the mount burst (five consumers per page) collapses to one.
+  if (Date.now() - lastBoardFetch > BOARD_FRESH_MS) refetchBoard();
+  boardListeners.add(listener);
+  return () => boardListeners.delete(listener);
+};
+
+const getBoardState = () => boardState;
+
+export const useEventsBoard = (): { board: EventsBoard; loading: boolean } =>
+  useSyncExternalStore(subscribeBoard, getBoardState, getBoardState);
