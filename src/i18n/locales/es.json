@@ -833,7 +833,22 @@
       "leaveTitle": "Tienes cambios sin guardar",
       "leaveBody": "Los textos que escribiste todavía no se han guardado. Si sales ahora se pierden. Los interruptores y selectores ya quedaron guardados.",
       "leaveStay": "Seguir editando",
-      "leaveDiscard": "Salir sin guardar"
+      "leaveDiscard": "Salir sin guardar",
+      "eventDateLabel": "Fecha del evento (opcional)",
+      "eventDateHelp": "Al día siguiente de esta fecha, el evento se archiva solo. Sin fecha, el evento queda hasta que lo archives tú.",
+      "tabActive": "Activos",
+      "tabArchived": "Archivados",
+      "archiveAction": "Archivar",
+      "restoreAction": "Restaurar",
+      "deleteAction": "Eliminar",
+      "cancelAction": "Cancelar",
+      "eventDatedOn": "Evento: {{date}}",
+      "archivedOn": "Archivado el {{date}}",
+      "purgeOn": "Se elimina definitivamente el {{date}}",
+      "archiveEmpty": "No hay eventos archivados.",
+      "restoreBlocked": "El tablero está lleno (máximo 4). Archiva o elimina un evento activo para poder restaurar.",
+      "deleteArchivedTitle": "¿Eliminar este evento para siempre?",
+      "deleteArchivedBody": "Se borran el evento y sus archivos (imagen y video). Esto no se puede deshacer."
     },
     "upload": {
       "title": "Subir fotos",

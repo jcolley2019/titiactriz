@@ -166,6 +166,12 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
         body: JSON.stringify({ Key: "gallery/hero/mock.mp4" }),
       });
     }
+    // EVENTS.ARCHIVE.1 — the purge DELETES media (remove() sends the paths in
+    // the body), and the archive gate asserts exactly which files went.
+    if (method === "DELETE") {
+      opts.writes?.push({ method, url: route.request().url(), body: route.request().postData() });
+      return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    }
     return route.fulfill({ status: 200, contentType: "application/json", body: "{}" });
   });
 

@@ -107,6 +107,20 @@ export type EventCardItem = BaseItem & {
    * the platform's own player frames itself.
    */
   videoFraming?: HeroVideoFraming;
+  /**
+   * EVENTS.ARCHIVE.1 — the day the event HAPPENS, as a local calendar date
+   * (YYYY-MM-DD). Optional: a dated event archives itself the day after this
+   * date; an undated event is evergreen and only the owner's manual Archive
+   * moves it. Absent from every row written before this brick.
+   */
+  eventDate?: string;
+  /**
+   * EVENTS.ARCHIVE.1 — when this event entered the archive (ISO timestamp).
+   * Present only on entries in `EventsBoard.archive`. For an undated event it
+   * is also the purge clock's anchor: 90 days after it, the entry and its
+   * media are deleted for good.
+   */
+  archivedAt?: string;
 };
 
 export type EventItem = EventCardItem;
@@ -149,6 +163,15 @@ export type EventsBoard = {
   greenWorldBanner: PageBanner;
   titansBanner: PageBanner;
   items: EventItem[];
+  /**
+   * EVENTS.ARCHIVE.1 — events whose day has passed, or that the owner archived
+   * by hand. Each carries `archivedAt`. Never rendered on any public surface;
+   * the admin's Archive view lists them with Restore and Delete, and the sweep
+   * purges an entry — row AND media files — 90 days past its event date
+   * (`archivedAt` for undated events). Rows written before the field existed
+   * parse to an empty archive. Deliberately uncapped: the purge bounds it.
+   */
+  archive: EventItem[];
 };
 
 export const EVENTS_BOARD_KEY = "events_board";
@@ -221,6 +244,7 @@ export const EVENTS_BOARD_DEFAULT: EventsBoard = {
       ],
     },
   ],
+  archive: [],
 };
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
@@ -292,6 +316,12 @@ const coerceItem = (v: unknown): EventItem | null => {
     videoFileUrl: typeof v.videoFileUrl === "string" ? v.videoFileUrl : "",
     ...(imageFraming ? { imageFraming } : {}),
     ...(videoFraming ? { videoFraming } : {}),
+    // EVENTS.ARCHIVE.1 — absent stays absent, same law as the framing fields:
+    // an undated row keeps parsing to yesterday's exact object shape.
+    ...(typeof v.eventDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.eventDate)
+      ? { eventDate: v.eventDate }
+      : {}),
+    ...(typeof v.archivedAt === "string" && v.archivedAt ? { archivedAt: v.archivedAt } : {}),
     buttons,
   };
 };
@@ -347,6 +377,13 @@ export const parseBoard = (value: unknown): EventsBoard => {
     ? ((rawItems.map(coerceItem).filter(Boolean) as EventItem[]).slice(0, 4))
     : EVENTS_BOARD_DEFAULT.items;
 
+  // EVENTS.ARCHIVE.1 — anything a stored row does not say means "nothing
+  // archived". No cap: the 4-item law is about what a SURFACE carries, and the
+  // purge is what bounds this list.
+  const archive = Array.isArray(value.archive)
+    ? (value.archive.map(coerceItem).filter(Boolean) as EventItem[])
+    : [];
+
   return {
     pageVisible,
     homeVisible,
@@ -355,6 +392,7 @@ export const parseBoard = (value: unknown): EventsBoard => {
     greenWorldBanner,
     titansBanner,
     items,
+    archive,
   };
 };
 
@@ -393,6 +431,7 @@ export const mapBoardLocalized = (
     greenWorldBanner: mapBannerLocalized(board.greenWorldBanner, fn),
     titansBanner: mapBannerLocalized(board.titansBanner, fn),
     items: board.items.map((it) => mapItemLocalized(it, fn)),
+    archive: board.archive.map((it) => mapItemLocalized(it, fn)),
     bannerText: mainBanner.text,
   };
 };
@@ -407,6 +446,55 @@ export const forEachBoardLocalized = (
     return v;
   });
 };
+
+/* ══════════════════ EVENTS.ARCHIVE.1 — the lifecycle clock ══════════════════
+ *
+ * All times are the CLOCK OF WHOEVER IS LOOKING. An event on the 8th is "today"
+ * anywhere on earth until that viewer's own midnight; the day after, it is
+ * past. The archive sweep runs on the admin's clock; the public filter runs on
+ * each visitor's. A boundary-hour disagreement between them is at most one
+ * day wide and always resolves in the sweep's favor on the next admin visit.
+ */
+
+/** Days an archived event survives past its date before the purge takes it. */
+export const EVENT_PURGE_DAYS = 90;
+
+/** The last millisecond of a local calendar day, from its YYYY-MM-DD name. */
+const endOfLocalDay = (ymd: string): Date | null => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) return null;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 23, 59, 59, 999);
+};
+
+/** A dated event whose day is fully over. Undated events never pass. */
+export const eventDatePassed = (item: EventItem, now: Date = new Date()): boolean => {
+  const end = item.eventDate ? endOfLocalDay(item.eventDate) : null;
+  return !!end && now.getTime() > end.getTime();
+};
+
+/**
+ * When the purge may take an archived entry: 90 days past its event date, or —
+ * for an event that never had one — 90 days past the day it was archived.
+ * `null` means "never" (no date and no stamp; nothing to count from).
+ */
+export const eventPurgeAt = (item: EventItem): Date | null => {
+  const anchor = item.eventDate
+    ? endOfLocalDay(item.eventDate)
+    : item.archivedAt
+      ? new Date(item.archivedAt)
+      : null;
+  if (!anchor || Number.isNaN(anchor.getTime())) return null;
+  return new Date(anchor.getTime() + EVENT_PURGE_DAYS * 24 * 60 * 60 * 1000);
+};
+
+export const eventPurgeDue = (item: EventItem, now: Date = new Date()): boolean => {
+  const at = eventPurgeAt(item);
+  return !!at && now.getTime() > at.getTime();
+};
+
+/** The events a public surface may show: current ones. */
+export const liveEventItems = (items: EventItem[], now: Date = new Date()): EventItem[] =>
+  items.filter((it) => !eventDatePassed(it, now));
 
 export const fetchEventsBoard = async (): Promise<EventsBoard> => {
   const { data } = await supabase
@@ -464,8 +552,18 @@ const setBoardState = (next: BoardState) => {
   boardListeners.forEach((l) => l());
 };
 
-/** The one door every fresh board walks through, wherever it came from. */
-const publishBoard = (board: EventsBoard) => setBoardState({ board, loading: false });
+/**
+ * The one door every fresh board walks through, wherever it came from.
+ *
+ * EVENTS.ARCHIVE.1 — the door is where the public filter lives: every consumer
+ * of this hook is a public surface (the banner, the act, /events, header,
+ * footer — the admin reads `fetchEventsBoard` directly), so the board they
+ * share carries only CURRENT events. A dated event disappears from every
+ * surface at the viewer's own midnight, whether or not the admin's sweep has
+ * moved it to the archive yet.
+ */
+const publishBoard = (board: EventsBoard) =>
+  setBoardState({ board: { ...board, items: liveEventItems(board.items) }, loading: false });
 
 const refetchBoard = () => {
   lastBoardFetch = Date.now();

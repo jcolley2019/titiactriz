@@ -833,7 +833,22 @@
       "leaveTitle": "You have unsaved changes",
       "leaveBody": "The text you typed has not been saved yet. Leaving now discards it. Toggles and selectors were already saved.",
       "leaveStay": "Keep editing",
-      "leaveDiscard": "Leave without saving"
+      "leaveDiscard": "Leave without saving",
+      "eventDateLabel": "Event date (optional)",
+      "eventDateHelp": "The day after this date, the event archives itself. Without a date it stays until you archive it yourself.",
+      "tabActive": "Active",
+      "tabArchived": "Archived",
+      "archiveAction": "Archive",
+      "restoreAction": "Restore",
+      "deleteAction": "Delete",
+      "cancelAction": "Cancel",
+      "eventDatedOn": "Event: {{date}}",
+      "archivedOn": "Archived {{date}}",
+      "purgeOn": "Permanently deleted on {{date}}",
+      "archiveEmpty": "No archived events.",
+      "restoreBlocked": "The board is full (maximum 4). Archive or delete an active event to restore one.",
+      "deleteArchivedTitle": "Delete this event forever?",
+      "deleteArchivedBody": "The event and its files (image and video) are deleted. This cannot be undone."
     },
     "upload": {
       "title": "Upload photos",

@@ -19,7 +19,18 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Loader2, Trash2, Plus, X, Upload, Check, AlertTriangle } from "lucide-react";
+import {
+  GripVertical,
+  Loader2,
+  Trash2,
+  Plus,
+  X,
+  Upload,
+  Check,
+  AlertTriangle,
+  Archive as ArchiveIcon,
+  ArchiveRestore,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +53,9 @@ import {
   setEventsBoard,
   localizedText,
   setLocalizedText,
+  eventDatePassed,
+  eventPurgeAt,
+  eventPurgeDue,
   EVENTS_BOARD_DEFAULT,
   type EventsBoard,
   type PageBanner,
@@ -181,6 +195,79 @@ const uploadEventImage = async (file: File): Promise<string> => {
   if (upErr) throw upErr;
   const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
   return pub.publicUrl;
+};
+
+/* ══════════════════ EVENTS.ARCHIVE.1 — the sweep and the purge ══════════════════
+ *
+ * The mechanism is a SWEEP ON ADMIN LOAD, and the choice is forced, not merely
+ * convenient: site_settings writes are RLS-gated to the authenticated admin, so
+ * a public page structurally CANNOT move or purge anything — and no scheduler
+ * exists in this stack (no cron, and the edge functions are all request-driven).
+ * The admin session is the only pair of hands that can hold the broom.
+ *
+ * What makes that staleness harmless is the read-time filter in useEventsBoard:
+ * every public surface hides a past-dated event at the viewer's own midnight,
+ * whether or not the sweep has run. The sweep only MATERIALIZES the state the
+ * public already sees — moves passed events into the archive — and takes out
+ * what the purge clock has condemned: the entry AND its media files.
+ *
+ * Files first, row second (the gallery's own deletion order): an entry whose
+ * files failed to delete stays in the archive so the next sweep retries — a
+ * board row is never dropped while its bytes still sit in the bucket.
+ */
+
+/** The storage path inside BUCKET, from a public URL — the gallery's pattern. */
+const pathFromUrl = (url: string): string | null => {
+  const marker = `/storage/v1/object/public/${BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.slice(idx + marker.length);
+};
+
+/** Delete an event's media (poster and/or uploaded video). Throws on failure. */
+const removeEventMedia = async (item: EventItem): Promise<void> => {
+  const paths = [item.imageUrl ?? "", item.videoFileUrl ?? ""]
+    .map((u) => (u.trim() ? pathFromUrl(u.trim()) : null))
+    .filter((p): p is string => !!p);
+  if (paths.length === 0) return;
+  const { error } = await supabase.storage.from(BUCKET).remove(paths);
+  if (error) throw error;
+};
+
+/**
+ * One pass of the lifecycle: passed events → archive, condemned entries →
+ * gone (media first). Returns the board it wrote, or the board it was given
+ * when there was nothing to do. Throws only if the WRITE fails; a failed file
+ * delete just keeps its entry for the next pass.
+ */
+const sweepBoard = async (board: EventsBoard): Promise<EventsBoard> => {
+  const now = new Date();
+  const stamp = now.toISOString();
+
+  const passing = board.items.filter((it) => eventDatePassed(it, now));
+  const staying = board.items.filter((it) => !eventDatePassed(it, now));
+  let archive = [
+    ...board.archive,
+    ...passing.map((it) => ({ ...it, archivedAt: stamp })),
+  ];
+
+  const purged: string[] = [];
+  for (const it of archive) {
+    if (!eventPurgeDue(it, now)) continue;
+    try {
+      await removeEventMedia(it);
+      purged.push(it.id);
+    } catch {
+      // Files still standing → the entry stands with them; retried next load.
+    }
+  }
+  archive = archive.filter((it) => !purged.includes(it.id));
+
+  if (passing.length === 0 && purged.length === 0) return board;
+
+  const next = { ...board, items: staying, archive };
+  await setEventsBoard(next);
+  return next;
 };
 
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
@@ -694,6 +781,28 @@ const EventFields = ({
         />
       </div>
 
+      {/* EVENTS.ARCHIVE.1 — the event's day, and the whole lifecycle behind it.
+          A date input commits whole values (a full date or empty), so it is an
+          ADMIN.QOL.1 instant control, not text waiting on Save. */}
+      <div className="space-y-1">
+        <FieldLabel>
+          {t("admin.eventsBoard.eventDateLabel")}
+          <SaveFlash state={flash[`date-${item.id}`]} qa={`date-${item.id}`} />
+        </FieldLabel>
+        <Input
+          type="date"
+          data-qa="event-date"
+          value={item.eventDate ?? ""}
+          onChange={(e) =>
+            onInstant({ eventDate: e.target.value || undefined }, `date-${item.id}`)
+          }
+          className="w-fit"
+        />
+        <p className="text-[0.7rem] text-muted-foreground">
+          {t("admin.eventsBoard.eventDateHelp")}
+        </p>
+      </div>
+
       {/* EVENTS.VIDEO.1 — the media section. One card, one medium: the image is
           always the poster and always the fallback, and the video (uploaded OR
           linked, never both) is what plays on top of it. The two video fields
@@ -992,12 +1101,14 @@ type SortableCardProps = {
   item: EventItem;
   onChange: (patch: Partial<EventItem>) => void;
   onDelete: () => void;
+  /** EVENTS.ARCHIVE.1 — move this event to the archive, now. */
+  onArchive: () => void;
   /** ADMIN.QOL.1 — toggles and selectors write on the spot. */
   onInstant: (patch: Partial<EventItem>, key: string) => void;
   flash: FlashMap;
 };
 
-const SortableCard = ({ item, onChange, onDelete, onInstant, flash }: SortableCardProps) => {
+const SortableCard = ({ item, onChange, onDelete, onArchive, onInstant, flash }: SortableCardProps) => {
   const { t } = useTranslation();
   const {
     attributes,
@@ -1062,6 +1173,21 @@ const SortableCard = ({ item, onChange, onDelete, onInstant, flash }: SortableCa
             </button>
           </div>
           <SaveFlash state={flash[`size-${item.id}`]} qa={`size-${item.id}`} />
+          {/* EVENTS.ARCHIVE.1 — off the board, into the archive: reversible,
+              so no confirmation stands in its way. Deleting stays the
+              destructive neighbor it always was. */}
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            data-qa="event-archive"
+            onClick={onArchive}
+            className="px-2 text-muted-foreground hover:text-foreground"
+            aria-label={t("admin.eventsBoard.archiveAction")}
+          >
+            <ArchiveIcon className="w-4 h-4" />
+          </Button>
+          <SaveFlash state={flash[`archive-${item.id}`]} qa={`archive-${item.id}`} />
           <Button
             type="button"
             size="sm"
@@ -1086,9 +1212,11 @@ const SortableCard = ({ item, onChange, onDelete, onInstant, flash }: SortableCa
 };
 
 const EventsBoardManager = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [board, setBoard] = useState<EventsBoard>(EVENTS_BOARD_DEFAULT);
+  /** EVENTS.ARCHIVE.1 — which list the card area shows. */
+  const [view, setView] = useState<"active" | "archive">("active");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bannerErrors, setBannerErrors] = useState(false);
@@ -1135,6 +1263,17 @@ const EventsBoardManager = () => {
   useEffect(() => {
     let cancelled = false;
     fetchEventsBoard()
+      // EVENTS.ARCHIVE.1 — the lifecycle sweep rides the load: passed events
+      // move to the archive, condemned entries purge (media first). If the
+      // sweep's write fails the fetched board still lands, and the next admin
+      // visit simply sweeps again.
+      .then(async (b) => {
+        try {
+          return await sweepBoard(b);
+        } catch {
+          return b;
+        }
+      })
       .then((b) => {
         if (cancelled) return;
         commit(b);
@@ -1242,6 +1381,104 @@ const EventsBoardManager = () => {
       (b) => ({ ...b, ...patch }),
       (b) => ({ ...b, ...inverse }),
     );
+  };
+
+  /* ═══════════════ EVENTS.ARCHIVE.1 — archive, restore, delete ═══════════════
+   *
+   * All three are ADMIN.QOL.1 instant acts: single, deliberate, and (for the
+   * first two) reversible, written on the spot with a flash at the control. A
+   * card the database has never seen just moves locally and travels with Save,
+   * exactly like every other edit to an uncommitted card.
+   */
+
+  const archiveItem = (id: string) => {
+    const stamp = new Date().toISOString();
+    const mut = (b: EventsBoard): EventsBoard => {
+      const it = b.items.find((i) => i.id === id);
+      if (!it) return b;
+      return {
+        ...b,
+        items: b.items.filter((i) => i.id !== id),
+        archive: [...b.archive, { ...it, archivedAt: stamp }],
+      };
+    };
+    const revert = (b: EventsBoard): EventsBoard => {
+      const it = b.archive.find((i) => i.id === id);
+      if (!it) return b;
+      const { archivedAt: _drop, ...rest } = it;
+      return {
+        ...b,
+        archive: b.archive.filter((i) => i.id !== id),
+        items: [...b.items, rest as EventItem],
+      };
+    };
+    if (!itemIsCommitted(id)) {
+      setBoard(mut);
+      return;
+    }
+    void instant(`archive-${id}`, mut, revert);
+  };
+
+  /**
+   * Restore clears `eventDate` along with the stamp: the date that sent the
+   * event to the archive would send it straight back on the next read, so a
+   * restored event comes back evergreen and the owner writes its next date.
+   */
+  const restoreItem = (id: string) => {
+    const orig = boardRef.current.archive.find((i) => i.id === id);
+    if (!orig || boardRef.current.items.length >= 4) return;
+    const mut = (b: EventsBoard): EventsBoard => {
+      const it = b.archive.find((i) => i.id === id);
+      if (!it || b.items.length >= 4) return b;
+      const { archivedAt: _a, eventDate: _d, ...rest } = it;
+      return {
+        ...b,
+        archive: b.archive.filter((i) => i.id !== id),
+        items: [...b.items, rest as EventItem],
+      };
+    };
+    const revert = (b: EventsBoard): EventsBoard => ({
+      ...b,
+      items: b.items.filter((i) => i.id !== id),
+      archive: b.archive.some((i) => i.id === id) ? b.archive : [...b.archive, orig],
+    });
+    if (!committed.current.archive.some((i) => i.id === id)) {
+      setBoard(mut);
+      return;
+    }
+    void instant(`restore-${id}`, mut, revert);
+  };
+
+  /** The archived event under the delete-forever dialog, if any. */
+  const [deleteArchived, setDeleteArchived] = useState<EventItem | null>(null);
+
+  const confirmDeleteArchived = async () => {
+    const it = deleteArchived;
+    setDeleteArchived(null);
+    if (!it) return;
+    // Media first, row second — the sweep's own order. If the files will not
+    // go, the entry stays and says so; nothing is orphaned either way.
+    try {
+      await removeEventMedia(it);
+    } catch (e) {
+      toast({
+        title: t("admin.eventsBoard.saveError"),
+        description: e instanceof Error ? e.message : "",
+        variant: "destructive",
+      });
+      return;
+    }
+    const mut = (b: EventsBoard): EventsBoard => ({
+      ...b,
+      archive: b.archive.filter((i) => i.id !== it.id),
+    });
+    const revert = (b: EventsBoard): EventsBoard =>
+      b.archive.some((i) => i.id === it.id) ? b : { ...b, archive: [...b.archive, it] };
+    if (!committed.current.archive.some((i) => i.id === it.id)) {
+      setBoard(mut);
+      return;
+    }
+    void instant(`archdel-${it.id}`, mut, revert);
   };
 
   /**
@@ -1536,6 +1773,124 @@ const EventsBoardManager = () => {
           </p>
         )}
 
+        {/* EVENTS.ARCHIVE.1 — the two shelves. Active is the board the public
+            sees; Archived is where passed and hand-archived events wait out
+            their 90 days with Restore and Delete at hand. */}
+        <div className="flex rounded-md border border-border overflow-hidden w-fit">
+          {(["active", "archive"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              data-qa={`events-view-${v}`}
+              onClick={() => setView(v)}
+              className={`px-3 py-1.5 text-xs ${
+                view === v
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-transparent text-muted-foreground hover:bg-accent/10"
+              }`}
+            >
+              {v === "active"
+                ? `${t("admin.eventsBoard.tabActive")} (${board.items.length})`
+                : `${t("admin.eventsBoard.tabArchived")} (${board.archive.length})`}
+            </button>
+          ))}
+        </div>
+
+        {view === "archive" && (
+          <div className="space-y-3" data-qa="events-archive-list">
+            {board.archive.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">
+                {t("admin.eventsBoard.archiveEmpty")}
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {[...board.archive]
+                  .sort((a, b) => (b.archivedAt ?? "").localeCompare(a.archivedAt ?? ""))
+                  .map((it) => {
+                    const dateFmt = (iso?: string) => {
+                      if (!iso) return null;
+                      const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
+                      if (Number.isNaN(d.getTime())) return null;
+                      return d.toLocaleDateString(i18n.language, {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      });
+                    };
+                    const purgeAt = eventPurgeAt(it);
+                    return (
+                      <li
+                        key={it.id}
+                        data-qa="events-archive-entry"
+                        className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-lg p-4"
+                      >
+                        {(it.imageUrl ?? "").trim() && (
+                          <img
+                            src={it.imageUrl}
+                            alt=""
+                            className="w-14 h-14 object-cover rounded-md border border-border"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-foreground truncate">
+                            {localizedText(it.title) || t("admin.eventsBoard.typeEvent")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {it.eventDate &&
+                              `${t("admin.eventsBoard.eventDatedOn", { date: dateFmt(it.eventDate) })} · `}
+                            {it.archivedAt &&
+                              `${t("admin.eventsBoard.archivedOn", { date: dateFmt(it.archivedAt) })} · `}
+                            {purgeAt &&
+                              t("admin.eventsBoard.purgeOn", {
+                                date: purgeAt.toLocaleDateString(i18n.language, {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }),
+                              })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            data-qa="events-archive-restore"
+                            onClick={() => restoreItem(it.id)}
+                            disabled={atMax}
+                          >
+                            <ArchiveRestore className="w-3.5 h-3.5 mr-1" />
+                            {t("admin.eventsBoard.restoreAction")}
+                          </Button>
+                          <SaveFlash state={flash[`restore-${it.id}`]} qa={`restore-${it.id}`} />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            data-qa="events-archive-delete"
+                            onClick={() => setDeleteArchived(it)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            {t("admin.eventsBoard.deleteAction")}
+                          </Button>
+                          <SaveFlash state={flash[`archdel-${it.id}`]} qa={`archdel-${it.id}`} />
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
+            )}
+            {board.archive.length > 0 && atMax && (
+              <p className="text-xs text-muted-foreground">
+                {t("admin.eventsBoard.restoreBlocked")}
+              </p>
+            )}
+          </div>
+        )}
+
+        {view === "active" && (
+        <>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -1575,6 +1930,7 @@ const EventsBoardManager = () => {
                     item={item}
                     onChange={(patch) => updateItem(item.id, patch)}
                     onDelete={() => deleteItem(item.id)}
+                    onArchive={() => archiveItem(item.id)}
                     onInstant={(patch, key) => instantItem(item.id, patch, key)}
                     flash={flash}
                   />
@@ -1604,6 +1960,8 @@ const EventsBoardManager = () => {
             )}
           </div>
         </div>
+        </>
+        )}
 
         {/*
           ADMIN.QOL.1 — ONE Save button, which becomes the sticky bar.
@@ -1670,6 +2028,35 @@ const EventsBoardManager = () => {
         stopped before the router could act on it. Answering resumes exactly the
         navigation that was interrupted.
       */}
+      {/* EVENTS.ARCHIVE.1 — deleting from the archive is FOREVER: the row and
+          its media files go together. Forever gets a dialog. */}
+      <AlertDialog
+        open={!!deleteArchived}
+        onOpenChange={(open) => {
+          if (!open) setDeleteArchived(null);
+        }}
+      >
+        <AlertDialogContent data-qa="events-archive-delete-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("admin.eventsBoard.deleteArchivedTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.eventsBoard.deleteArchivedBody")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-qa="events-archive-delete-cancel">
+              {t("admin.eventsBoard.cancelAction")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              data-qa="events-archive-delete-confirm-btn"
+              onClick={() => void confirmDeleteArchived()}
+            >
+              {t("admin.eventsBoard.deleteAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog
         open={!!leaveTarget}
         onOpenChange={(open) => {
