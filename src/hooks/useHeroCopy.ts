@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import type { Lang } from "@/hooks/useEventsBoard";
+import type { Lang, Localized } from "@/hooks/useEventsBoard";
 
 /**
  * HERO.EDIT.1 — the hero's words, owned by the admin.
@@ -124,6 +124,47 @@ export const resolveHeroCopy = (
     title: asText(slot?.title) ?? defaults.title,
     description: asText(slot?.description) ?? defaults.description,
   };
+};
+
+/**
+ * The admin edits each field as one `Localized` value — the Events board's
+ * shape, so its single-field + translate-on-save machinery applies unchanged.
+ * These two carry a document to that shape and back; `meta` is where the
+ * per-field `src` / `pending` bookkeeping lives in storage.
+ */
+export type HeroCopyFields = Record<HeroCopyField, Localized>;
+
+export const docToFields = (doc: HeroCopyDoc | null): HeroCopyFields => {
+  const out = {} as HeroCopyFields;
+  for (const f of HERO_COPY_FIELDS) {
+    const v: Localized = { es: doc?.es[f] ?? "", en: doc?.en[f] ?? "" };
+    const src = doc?.meta?.src?.[f];
+    if (src) v.src = src;
+    if (doc?.meta?.pending?.[f]) v.pending = true;
+    out[f] = v;
+  }
+  return out;
+};
+
+/** Blank fields are simply left out: absent and blank mean the same thing. */
+export const fieldsToDoc = (fields: HeroCopyFields): HeroCopyDoc => {
+  const doc: HeroCopyDoc = { es: {}, en: {} };
+  const src: Partial<Record<HeroCopyField, Lang>> = {};
+  const pending: Partial<Record<HeroCopyField, boolean>> = {};
+  for (const f of HERO_COPY_FIELDS) {
+    const v = fields[f];
+    const es = v.es.trim();
+    const en = v.en.trim();
+    if (es) doc.es[f] = es;
+    if (en) doc.en[f] = en;
+    if (!es && !en) continue;
+    if (v.src) src[f] = v.src;
+    if (v.pending) pending[f] = true;
+  }
+  const meta: HeroCopyMeta = {};
+  if (Object.keys(src).length) meta.src = src;
+  if (Object.keys(pending).length) meta.pending = pending;
+  return Object.keys(meta).length ? { ...doc, meta } : doc;
 };
 
 /** A document with no text in any field of either locale says nothing at all. */

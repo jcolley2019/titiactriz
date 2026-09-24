@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
   forEachBoardLocalized,
+  localizedSource,
   localizedText,
   mapBoardLocalized,
   type EventsBoard,
@@ -83,4 +84,54 @@ export const syncBoardTranslations = async (
     requested: texts.length,
     failed: texts.length - done.size,
   };
+};
+
+/**
+ * HERO.EDIT.1 — the same pass over a flat record of fields (the hero copy is four
+ * fields, not a board), with one difference its brief rules: a field whose
+ * translation FAILED keeps the typed text in its own slot only and leaves the
+ * other slot BLANK, so that locale's public reader falls back to its default
+ * instead of serving the wrong language. It stays `pending`; the next save
+ * retries it. Still never a blocked save.
+ */
+export const syncLocalizedRecord = async <K extends string>(
+  fields: Record<K, Localized>,
+): Promise<{ fields: Record<K, Localized>; requested: number; failed: number }> => {
+  const keys = Object.keys(fields) as K[];
+  const texts = [
+    ...new Set(
+      keys
+        .filter((k) => fields[k].pending)
+        .map((k) => localizedText(fields[k]).trim())
+        .filter(Boolean),
+    ),
+  ];
+  if (texts.length === 0) return { fields, requested: 0, failed: 0 };
+
+  const done = new Map<string, Translation>();
+  const results = await Promise.allSettled(texts.map((t) => translateText(t)));
+  results.forEach((r, i) => {
+    if (r.status === "fulfilled") done.set(texts[i], r.value);
+  });
+
+  const out = { ...fields };
+  for (const k of keys) {
+    const v = fields[k];
+    const typed = localizedText(v);
+    if (!v.pending || !typed.trim()) continue;
+    const hit = done.get(typed.trim());
+    if (hit) {
+      out[k] =
+        hit.source === "es"
+          ? { es: typed, en: hit.translation, src: "es" }
+          : { es: hit.translation, en: typed, src: "en" };
+    } else {
+      const src = localizedSource(v);
+      out[k] =
+        src === "es"
+          ? { es: typed, en: "", src, pending: true }
+          : { es: "", en: typed, src, pending: true };
+    }
+  }
+  return { fields: out, requested: texts.length, failed: texts.length - done.size };
 };

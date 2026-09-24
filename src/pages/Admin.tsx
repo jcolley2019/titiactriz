@@ -64,6 +64,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import LivePreviewDock from "@/components/admin/LivePreviewDock";
 import HomeVariantToggle from "@/components/admin/HomeVariantToggle";
+import HeroCopyEditor from "@/components/admin/HeroCopyEditor";
 import EventsBoardManager from "@/components/admin/EventsBoardManager";
 import AdminShell, { type AdminSection } from "@/components/admin/AdminShell";
 import AdminSubmissionsSection from "@/components/admin/AdminSubmissionsSection";
@@ -1392,6 +1393,8 @@ const adminSections = (t: (key: string) => string): AdminSection[] => [
     content: (
       <div className="space-y-2">
         <HomeVariantToggle />
+        {/* HERO.EDIT.1 — the words every home layout reads. */}
+        <HeroCopyEditor />
       </div>
     ),
   },
