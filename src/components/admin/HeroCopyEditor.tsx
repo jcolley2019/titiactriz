@@ -341,11 +341,13 @@ const HeroCopyEditor = () => {
         ))}
 
         {/* The Events board's bar: pinned always, opaque, warning and Discard
-            only while there is unsaved copy. */}
+            only while there is unsaved copy. It WRAPS: at phone width the
+            warning, Discard and Save do not fit one line, and a right-aligned
+            row that cannot wrap pushes the warning off its left edge, clipped. */}
         <div
           data-qa="hero-copy-save-bar"
           data-dirty={dirty ? "true" : "false"}
-          className="sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card flex items-center justify-end gap-3"
+          className="sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card flex flex-wrap items-center justify-end gap-x-3 gap-y-2"
         >
           {dirty && (
             <span
