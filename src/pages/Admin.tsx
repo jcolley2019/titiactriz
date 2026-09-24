@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreVertical, ChevronUp, ChevronDown, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, Drama, Link2, CalendarDays, Settings2, Inbox } from "lucide-react";
+import { GripVertical, MoreVertical, ChevronUp, ChevronDown, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, Drama, Link2, CalendarDays, Settings2, Inbox, PenLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   BUCKET,
@@ -71,6 +71,7 @@ import AdminSubmissionsSection from "@/components/admin/AdminSubmissionsSection"
 import CinematicMediaManager from "@/components/admin/media/CinematicMediaManager";
 import PortfolioManager from "@/components/admin/PortfolioManager";
 import LinksManager from "@/components/admin/LinksManager";
+import BlogManager from "@/components/admin/blog/BlogManager";
 
 type Photo = {
   id: string;
@@ -1385,6 +1386,13 @@ const adminSections = (t: (key: string) => string): AdminSection[] => [
     label: t("admin.shell.sections.events"),
     icon: <CalendarDays />,
     content: <EventsBoardManager />,
+  },
+  {
+    // BLOG.1 — Titi's posts: write, translate, publish.
+    id: "blog",
+    label: t("admin.shell.sections.blog"),
+    icon: <PenLine />,
+    content: <BlogManager />,
   },
   {
     id: "settings",

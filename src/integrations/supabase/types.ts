@@ -68,6 +68,59 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          body: Json
+          cover_photo_id: string | null
+          created_at: string
+          excerpt: Json | null
+          id: string
+          meta_description: Json | null
+          published_at: string | null
+          slug: string
+          status: string
+          tags: string[]
+          title: Json
+          updated_at: string
+        }
+        Insert: {
+          body: Json
+          cover_photo_id?: string | null
+          created_at?: string
+          excerpt?: Json | null
+          id?: string
+          meta_description?: Json | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[]
+          title: Json
+          updated_at?: string
+        }
+        Update: {
+          body?: Json
+          cover_photo_id?: string | null
+          created_at?: string
+          excerpt?: Json | null
+          id?: string
+          meta_description?: Json | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[]
+          title?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_cover_photo_id_fkey"
+            columns: ["cover_photo_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           created_at: string

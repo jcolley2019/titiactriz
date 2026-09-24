@@ -23,8 +23,14 @@ type Props = {
   photos: CinematicPhoto[];
   currentPhotoId?: string | null;
   onSelect: (photo: CinematicPhoto) => void;
-  onUploaded: (photo: CinematicPhoto) => void;
+  onUploaded?: (photo: CinematicPhoto) => void;
   onClose: () => void;
+  /**
+   * BLOG.1 — false hides the "Upload new" tile: the blog's cover comes from the
+   * gallery only (face law — a photo of Titi enters the site through the
+   * gallery's pipeline, nowhere else).
+   */
+  allowUpload?: boolean;
 };
 
 const ImagePicker = ({
@@ -35,6 +41,7 @@ const ImagePicker = ({
   onSelect,
   onUploaded,
   onClose,
+  allowUpload = true,
 }: Props) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +54,7 @@ const ImagePicker = ({
     setUploading(true);
     try {
       const photo = await uploadGalleryPhoto(file);
-      onUploaded(photo); // auto-select the new photo
+      onUploaded?.(photo); // auto-select the new photo
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("admin.media.picker.uploadFailed");
       toast({ title: t("admin.media.picker.uploadFailed"), description: msg, variant: "destructive" });
@@ -74,9 +81,11 @@ const ImagePicker = ({
         {/* MEDIA.RES.0 — owner-facing source guidance. Advice only: nothing here
             validates, blocks or rejects an upload, and the wording carries the
             numbers so the threshold reads the same in both locales. */}
-        <p data-qa="media-picker-source-hint" className="text-xs text-muted-foreground">
-          {t("admin.media.picker.sourceHint")}
-        </p>
+        {allowUpload && (
+          <p data-qa="media-picker-source-hint" className="text-xs text-muted-foreground">
+            {t("admin.media.picker.sourceHint")}
+          </p>
+        )}
 
         <div
           data-qa="media-picker-grid"
@@ -91,41 +100,45 @@ const ImagePicker = ({
           className="grid max-h-[60vh] auto-rows-max grid-cols-3 gap-3 overflow-y-auto pr-1 sm:grid-cols-4"
         >
           {/* Upload new tile */}
-          <button
-            type="button"
-            data-qa="media-picker-upload"
-            onClick={() => inputRef.current?.click()}
-            disabled={uploading}
-            className="relative block w-full overflow-hidden rounded-md border border-dashed border-border text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground disabled:opacity-60"
-          >
-            {/* ADMIN.MOBILE.2: an in-flow ratio spacer, not aspect-ratio on the
-                grid item. grid-auto-rows:auto sizes each implicit row from its
-                items' IN-FLOW content; a grid item whose height comes only from
-                its own aspect-ratio feeds 0 into that track sizing past the
-                first row, so rows 2..N collapse (~22px) and tiles overlap. The
-                spacer's height is padding-top:125% — a percentage that resolves
-                against the tile's WIDTH (definite from the column track), so it
-                needs no aspect-ratio and gives every row a real, measurable 4:5
-                height at any viewport and photo count. */}
-            <span aria-hidden className="block w-full" style={{ paddingTop: "125%" }} />
-            <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-center">
-              {uploading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-accent" />
-              ) : (
-                <Upload className="h-5 w-5" />
-              )}
-              <span className="text-[11px] leading-tight">
-                {uploading ? t("admin.media.picker.uploading") : t("admin.media.picker.uploadNew")}
-              </span>
-            </span>
-          </button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept={ACCEPT_ATTR}
-            className="hidden"
-            onChange={handleFile}
-          />
+          {allowUpload && (
+            <>
+              <button
+                type="button"
+                data-qa="media-picker-upload"
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+                className="relative block w-full overflow-hidden rounded-md border border-dashed border-border text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground disabled:opacity-60"
+              >
+                {/* ADMIN.MOBILE.2: an in-flow ratio spacer, not aspect-ratio on the
+                    grid item. grid-auto-rows:auto sizes each implicit row from its
+                    items' IN-FLOW content; a grid item whose height comes only from
+                    its own aspect-ratio feeds 0 into that track sizing past the
+                    first row, so rows 2..N collapse (~22px) and tiles overlap. The
+                    spacer's height is padding-top:125% — a percentage that resolves
+                    against the tile's WIDTH (definite from the column track), so it
+                    needs no aspect-ratio and gives every row a real, measurable 4:5
+                    height at any viewport and photo count. */}
+                <span aria-hidden className="block w-full" style={{ paddingTop: "125%" }} />
+                <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-center">
+                  {uploading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-accent" />
+                  ) : (
+                    <Upload className="h-5 w-5" />
+                  )}
+                  <span className="text-[11px] leading-tight">
+                    {uploading ? t("admin.media.picker.uploading") : t("admin.media.picker.uploadNew")}
+                  </span>
+                </span>
+              </button>
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPT_ATTR}
+                className="hidden"
+                onChange={handleFile}
+              />
+            </>
+          )}
 
           {photos.map((photo) => {
             const selected = currentPhotoId === photo.id;
