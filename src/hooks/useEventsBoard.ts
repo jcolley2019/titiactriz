@@ -144,6 +144,14 @@ export type PageBanner = {
    * existed; those fall back to a text-only identity, exactly as before.
    */
   enabledAt?: string;
+  /**
+   * BANNER.EXPIRE.1 — the last day the banner shows, as a local calendar date
+   * (YYYY-MM-DD, the same shape as an event's `eventDate`). The day after it,
+   * the banner is off on every page without anyone touching the switch.
+   * Absent = never expires. A separate condition from `enabled`: expiry never
+   * writes the switch, and it plays no part in the X-dismissal identity.
+   */
+  showUntil?: string;
 };
 
 export type EventsBoard = {
@@ -349,6 +357,11 @@ const coerceBanner = (v: unknown, defaults: PageBanner): PageBanner => {
     // BANNER.TOGGLE.1 — absent on every row written before the field existed;
     // conditional so those rows keep parsing to the same object shape.
     ...(typeof v.enabledAt === "string" && v.enabledAt ? { enabledAt: v.enabledAt } : {}),
+    // BANNER.EXPIRE.1 — the same coercion as an event's `eventDate`: a malformed
+    // value is dropped, and absent stays absent (the banner never expires).
+    ...(typeof v.showUntil === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.showUntil)
+      ? { showUntil: v.showUntil }
+      : {}),
   };
 };
 
@@ -469,6 +482,16 @@ const endOfLocalDay = (ymd: string): Date | null => {
 /** A dated event whose day is fully over. Undated events never pass. */
 export const eventDatePassed = (item: EventItem, now: Date = new Date()): boolean => {
   const end = item.eventDate ? endOfLocalDay(item.eventDate) : null;
+  return !!end && now.getTime() > end.getTime();
+};
+
+/**
+ * BANNER.EXPIRE.1 — a banner whose show-until day is fully over, on the
+ * viewer's own clock (the same midnight law as an event's date). A banner
+ * without the date never expires.
+ */
+export const bannerExpired = (banner: PageBanner, now: Date = new Date()): boolean => {
+  const end = banner.showUntil ? endOfLocalDay(banner.showUntil) : null;
   return !!end && now.getTime() > end.getTime();
 };
 

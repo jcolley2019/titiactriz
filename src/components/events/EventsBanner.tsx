@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
-import { useEventsBoard, type PageBanner } from "@/hooks/useEventsBoard";
+import { bannerExpired, useEventsBoard, type PageBanner } from "@/hooks/useEventsBoard";
 import { scrollElementToTop } from "@/lib/smoothScroll";
 
 const DISMISS_PREFIX = "eventsBannerDismissed:";
@@ -177,8 +177,10 @@ const EventsBanner = () => {
     (b?.label?.[activeLang] ?? "").trim() ||
     (b?.label?.[fallbackLang] ?? "").trim() ||
     t("events.title");
+  // BANNER.EXPIRE.1 — a banner past its show-until day is off, whatever its
+  // switch says; the switch itself is left exactly as the owner set it.
   const isOn = (b: PageBanner | undefined, key: "home" | "greenWorld" | "titans"): boolean =>
-    !!b && b.enabled && !!b.pages?.[key] && !!textOf(b);
+    !!b && b.enabled && !bannerExpired(b) && !!b.pages?.[key] && !!textOf(b);
 
   const banners = board
     ? { main: board.mainBanner, greenWorld: board.greenWorldBanner, titans: board.titansBanner }

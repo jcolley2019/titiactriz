@@ -57,6 +57,7 @@ import {
   eventDatePassed,
   eventPurgeAt,
   eventPurgeDue,
+  bannerExpired,
   EVENTS_BOARD_DEFAULT,
   type EventsBoard,
   type PageBanner,
@@ -276,6 +277,18 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => (
 );
 
 /**
+ * A stored date for the owner's eye, in the admin's language. A bare
+ * YYYY-MM-DD is read at local noon so no timezone can tip it onto the day
+ * before; anything else is an ISO timestamp.
+ */
+const formatDay = (iso: string | undefined, lang: string): string | null => {
+  if (!iso) return null;
+  const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(lang, { day: "numeric", month: "short", year: "numeric" });
+};
+
+/**
  * EVENTS.I18N.1 — the banner trap, restated.
  *
  * EVENTS.1 guarded the Spanish slot specifically: Spanish is the site's primary
@@ -325,9 +338,10 @@ const BannerEditor = ({
   onInstant: (patch: Partial<PageBanner>, key: string) => void;
   flash: FlashMap;
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [attempted, setAttempted] = useState(false);
   const textMissing = bannerTextMissing(banner);
+  const untilExpired = bannerExpired(banner);
   // Shown after a refused toggle, after a refused save, or whenever an already
   // enabled banner has had its text emptied out from under it.
   const invalid = textMissing && (attempted || showErrors || !!banner.enabled);
@@ -409,6 +423,41 @@ const BannerEditor = ({
           ? "Events page is on — a blank link clicks to events."
           : "Events page is off — a blank link is not clickable (announcement only)."}
       </p>
+    </div>
+
+    {/* BANNER.EXPIRE.1 — the last day the banner shows. A date input commits
+        whole values (a full date or empty), so it is an ADMIN.QOL.1 instant
+        control, exactly like an event's date. The note reads the same rule
+        the public bar does, so what it says is what visitors get. */}
+    <div className="space-y-1">
+      <FieldLabel>
+        {t("admin.eventsBoard.bannerShowUntilLabel")}
+        <SaveFlash state={flash[`banner-${qa}-until`]} qa={`banner-${qa}-until`} />
+      </FieldLabel>
+      <Input
+        type="date"
+        data-qa="banner-show-until"
+        value={banner.showUntil ?? ""}
+        onChange={(e) =>
+          onInstant({ showUntil: e.target.value || undefined }, `banner-${qa}-until`)
+        }
+        disabled={loading}
+        className="w-fit"
+      />
+      {banner.showUntil && (
+        <p
+          data-qa="banner-until-note"
+          data-expired={untilExpired ? "true" : "false"}
+          className={`text-xs ${untilExpired ? "text-destructive" : "text-muted-foreground"}`}
+        >
+          {t(
+            untilExpired
+              ? "admin.eventsBoard.bannerExpiredOn"
+              : "admin.eventsBoard.bannerShowsUntil",
+            { date: formatDay(banner.showUntil, i18n.language) },
+          )}
+        </p>
+      )}
     </div>
 
     <div className="space-y-1">
@@ -1851,16 +1900,7 @@ const EventsBoardManager = () => {
                 {[...board.archive]
                   .sort((a, b) => (b.archivedAt ?? "").localeCompare(a.archivedAt ?? ""))
                   .map((it) => {
-                    const dateFmt = (iso?: string) => {
-                      if (!iso) return null;
-                      const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
-                      if (Number.isNaN(d.getTime())) return null;
-                      return d.toLocaleDateString(i18n.language, {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      });
-                    };
+                    const dateFmt = (iso?: string) => formatDay(iso, i18n.language);
                     const purgeAt = eventPurgeAt(it);
                     return (
                       <li
