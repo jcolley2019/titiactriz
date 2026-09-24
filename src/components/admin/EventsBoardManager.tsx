@@ -305,11 +305,17 @@ const BannerEditor = ({
   onChange,
   onInstant,
   flash,
+  pageVisible,
 }: {
   name: string;
   qa: string;
   banner: PageBanner;
   loading: boolean;
+  /**
+   * BANNER.RULE.1 — the Events-page switch, read live: it decides what a BLANK
+   * link means on the public bar (clicks to events, or plain announcement).
+   */
+  pageVisible: boolean;
   colorOptions: { label: string; value: string }[];
   /** Forced on by a refused save, so the offending banner names itself. */
   showErrors: boolean;
@@ -390,13 +396,18 @@ const BannerEditor = ({
     </div>
 
     <div className="space-y-1">
-      <FieldLabel>Link (optional — where it clicks to; blank = Events page)</FieldLabel>
+      <FieldLabel>Link (optional) — blank follows the Events page; a URL or /page always clicks there</FieldLabel>
       <Input
         value={banner.link ?? ""}
         onChange={(e) => onChange({ link: e.target.value })}
         disabled={loading}
         placeholder="https://...  or  /green-world"
       />
+      <p data-qa="banner-link-note" className="text-xs text-muted-foreground">
+        {pageVisible
+          ? "Events page is on — a blank link clicks to events."
+          : "Events page is off — a blank link is not clickable (announcement only)."}
+      </p>
     </div>
 
     <div className="space-y-1">
@@ -1696,10 +1707,11 @@ const EventsBoardManager = () => {
 
         <div className="space-y-3">
           <BannerEditor
-            name="Main banner"
+            name="Site banner"
             qa="main"
             banner={board.mainBanner}
             loading={loading}
+            pageVisible={board.pageVisible}
             showErrors={bannerErrors}
             colorOptions={[
               { label: "Gold", value: "#C9A55C" },
@@ -1720,6 +1732,7 @@ const EventsBoardManager = () => {
             qa="greenWorld"
             banner={board.greenWorldBanner}
             loading={loading}
+            pageVisible={board.pageVisible}
             showErrors={bannerErrors}
             colorOptions={[
               { label: "White", value: "#FFFFFF" },
@@ -1740,6 +1753,7 @@ const EventsBoardManager = () => {
               qa="titans"
               banner={board.titansBanner}
               loading={loading}
+              pageVisible={board.pageVisible}
               showErrors={bannerErrors}
               colorOptions={[
                 { label: "White", value: "#FFFFFF" },

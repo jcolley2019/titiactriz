@@ -95,6 +95,50 @@ const FADE = 18;
 /** On one track the dismiss button overhangs the text, so its edge fades wider. */
 const FADE_UNDER_X = 46;
 
+/**
+ * BANNER.RULE.1 — one of the bar's three hit areas (the two caps and the
+ * window), as a control only while the banner has somewhere to go. A banner
+ * with nowhere to go is an announcement: the same box, the same classes minus
+ * the ones that promise a click, and no handler — a <div>, not a disabled
+ * <button>, so nothing on the page offers an action it cannot take.
+ *
+ * Module-level on purpose: a component declared inside EventsBanner would be a
+ * new type on every render and remount the marquee track each time.
+ */
+const BannerHit = ({
+  live,
+  onActivate,
+  ariaLabel,
+  qa,
+  className,
+  style,
+  children,
+}: {
+  live: boolean;
+  onActivate: () => void;
+  ariaLabel?: string;
+  qa: string;
+  className: string;
+  style: React.CSSProperties;
+  children: React.ReactNode;
+}) =>
+  live ? (
+    <button
+      type="button"
+      onClick={onActivate}
+      aria-label={ariaLabel}
+      data-qa={qa}
+      className={className}
+      style={style}
+    >
+      {children}
+    </button>
+  ) : (
+    <div data-qa={qa} className={className} style={style}>
+      {children}
+    </div>
+  );
+
 const hashText = (s: string): string => {
   let h = 5381;
   for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
@@ -316,10 +360,26 @@ const EventsBanner = () => {
   }, [actEl]);
 
   if (loading) return null;
-  if (!board?.pageVisible) return null;
   if (!bannerText) return null;
   if (location.pathname.startsWith("/events")) return null;
   if (dismissed) return null;
+
+  /**
+   * BANNER.RULE.1 — the owner's switch rules each banner; a blank link follows
+   * the Events page. Joey, verbatim: "maybe we have a rule set or something that
+   * tells it if there is an event it will automatically link to the events page
+   * if it is on. If the events page is off then it just acts as a non clickable
+   * banner?"
+   *
+   * So `pageVisible` no longer hides the bar — each banner's own `enabled` is
+   * the only thing that shows or hides it (read above, through `bannerText`).
+   * What the Events-page switch decides is where a BLANK link goes: on, the
+   * click travels exactly as goTo() below always has; off, the bar is a plain
+   * announcement — it renders and it can be dismissed, but it is not a control.
+   * A FILLED link is the owner's explicit target and clicks there regardless.
+   */
+  const link = (activeBanner?.link ?? "").trim();
+  const clickable = !!link || !!board?.pageVisible;
 
   // BANNER.EVENTS.1 STEP 1 — the EVENTS.2b home suppression is GONE. It read
   // the flag, the owner's homeVisible switch and the card count to decide the
@@ -361,7 +421,6 @@ const EventsBanner = () => {
    * prefers-reduced-motion it is a jump, not a glide.
    */
   const goTo = () => {
-    const link = (activeBanner?.link ?? "").trim();
     if (link) {
       if (/^https?:\/\//i.test(link)) {
         window.open(link, "_blank", "noopener,noreferrer");
@@ -473,28 +532,29 @@ const EventsBanner = () => {
           role="region"
           aria-label={label}
           data-qa="events-banner"
+          data-clickable={clickable ? "true" : "false"}
           className="w-full select-none overflow-x-hidden border-y-2"
           style={{ height: BANNER_H, backgroundColor: scheme.bg, borderColor: scheme.border }}
         >
           <div className="relative h-full flex items-stretch">
             {/* The pinned caps — desktop only (NAV.FIT.1's 1200px boundary).
                 Below that their text rides in the track instead. */}
-            <button
-              type="button"
-              onClick={goTo}
-              data-qa="events-banner-cap"
-              className="hidden min-[1200px]:flex shrink-0 h-full items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
+            <BannerHit
+              live={clickable}
+              onActivate={goTo}
+              qa="events-banner-cap"
+              className={`hidden min-[1200px]:flex shrink-0 h-full items-center px-4 border-r text-[11px] font-semibold tracking-[0.28em] uppercase leading-none${clickable ? " transition-colors hover:bg-white/5" : ""}`}
               style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
             >
               <span className="translate-y-[1px]">{label}</span>
-            </button>
+            </BannerHit>
 
-            <button
-              type="button"
-              onClick={goTo}
-              aria-label={label}
-              data-qa="events-banner-window"
-              className="flex-1 h-full overflow-hidden relative text-left cursor-pointer"
+            <BannerHit
+              live={clickable}
+              onActivate={goTo}
+              ariaLabel={label}
+              qa="events-banner-window"
+              className={`flex-1 h-full overflow-hidden relative text-left${clickable ? " cursor-pointer" : ""}`}
               style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
             >
               {reducedMotion ? (
@@ -520,18 +580,18 @@ const EventsBanner = () => {
                   {Array.from({ length: repeat * 2 }).map((_, i) => renderSegment(`seg-${i}`))}
                 </div>
               )}
-            </button>
+            </BannerHit>
 
-            <button
-              type="button"
-              onClick={goTo}
-              aria-label={label}
-              data-qa="events-banner-cap"
-              className="hidden min-[1200px]:flex shrink-0 h-full items-center px-4 border-l text-[11px] font-semibold tracking-[0.28em] uppercase leading-none transition-colors hover:bg-white/5"
+            <BannerHit
+              live={clickable}
+              onActivate={goTo}
+              ariaLabel={label}
+              qa="events-banner-cap"
+              className={`hidden min-[1200px]:flex shrink-0 h-full items-center px-4 border-l text-[11px] font-semibold tracking-[0.28em] uppercase leading-none${clickable ? " transition-colors hover:bg-white/5" : ""}`}
               style={{ fontFamily: "Cinzel, serif", color: scheme.label, borderColor: scheme.border }}
             >
               <span className="translate-y-[1px]">{label}</span>
-            </button>
+            </BannerHit>
 
             {/* The dismiss control floats above the track and keeps a 44px
                 target at every width — the track fades out beneath it rather
