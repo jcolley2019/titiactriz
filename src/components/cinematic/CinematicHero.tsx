@@ -25,6 +25,8 @@ type Props = {
   photo?: CinematicPhoto;
   videoSrc?: string | null;
   subtitle: string;
+  /** HERO.EDIT.1 — the admin's intro sentence; empty falls back to hero.intro. */
+  intro?: string;
   scrollLabel: string;
   reduced: boolean;
   focal?: Focal;
@@ -42,6 +44,7 @@ const CinematicHero = ({
   photo,
   videoSrc,
   subtitle,
+  intro,
   scrollLabel,
   reduced,
   focal,
@@ -159,7 +162,7 @@ const CinematicHero = ({
               marginTop: "0.75rem",
             }}
           >
-            {t("hero.intro")}
+            {intro?.trim() ? intro : t("hero.intro")}
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import SEO from "@/components/SEO";
+import { useHeroCopy } from "@/hooks/useHeroCopy";
 import { registerScrollDriver } from "@/lib/smoothScroll";
 import { useReducedMotion } from "@/components/cinematic/useReducedMotion";
 import { useCinematicData } from "@/components/cinematic/useCinematicData";
@@ -65,6 +66,9 @@ const HomeCinematic = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const prefersReduced = useReducedMotion();
   const { photos, heroVideo, heroPhotoSetting, reelChapterSettings } = useCinematicData();
+  // HERO.EDIT.1 — roles line, intro and search listing: the admin's hero.copy
+  // row where it says something, today's copy where it doesn't.
+  const copy = useHeroCopy();
   // CINE.FLOW.6 — ES primary: anything that is not explicitly English reads
   // the Spanish chapter (mirrors the site's es-default language law).
   const chapterLocale = i18n.language?.toLowerCase().startsWith("en") ? "en" : "es";
@@ -164,14 +168,15 @@ const HomeCinematic = () => {
     >
       <SEO
         path="/cinematic"
-        title="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín"
-        description="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World."
+        title={copy.title}
+        description={copy.description}
       />
 
       <CinematicHero
         photo={hero.photo}
         videoSrc={hero.videoSrc}
-        subtitle={t("hero.rolesLine")}
+        subtitle={copy.roles}
+        intro={copy.intro}
         scrollLabel={t("common.scroll")}
         reduced={prefersReduced}
         focal={hero.focal}

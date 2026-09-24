@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import SEO from "@/components/SEO";
+import { useHeroCopy } from "@/hooks/useHeroCopy";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -54,6 +55,14 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 const Index = () => {
   const { t } = useTranslation();
+  // HERO.EDIT.1 — the same resolved copy the cinematic and editorial heroes read.
+  // This layout draws the roles as separate words with its own gold "|" between
+  // them, so the one stored line is split on its "·"; a line without one is a
+  // single role and renders whole.
+  const copy = useHeroCopy();
+  const roleParts = copy.roles.includes("·")
+    ? copy.roles.split("·").map((r) => r.trim()).filter(Boolean)
+    : [copy.roles];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -134,8 +143,8 @@ const Index = () => {
     <>
       <SEO
         path="/"
-        title="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín"
-        description="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World."
+        title={copy.title}
+        description={copy.description}
       />
 
       <CosmicBackground />
@@ -176,11 +185,12 @@ const Index = () => {
               {/* Roles - centered below headline */}
               <p className="text-[10px] sm:text-xs md:text-sm tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] uppercase text-gold-light/85 text-center mb-12 opacity-0 animate-[fadeIn_0.8s_ease-out_0.5s_forwards]">
                 <span className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
-                  <span>{t("hero.roles.actress")}</span>
-                  <span className="text-accent">|</span>
-                  <span>{t("hero.roles.streamer")}</span>
-                  <span className="text-accent">|</span>
-                  <span>{t("hero.roles.entrepreneur")}</span>
+                  {roleParts.map((role, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && <span className="text-accent">|</span>}
+                      <span>{role}</span>
+                    </Fragment>
+                  ))}
                 </span>
               </p>
 

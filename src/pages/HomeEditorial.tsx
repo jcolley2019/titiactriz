@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import SEO from "@/components/SEO";
+import { useHeroCopy } from "@/hooks/useHeroCopy";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -48,6 +49,8 @@ const CREAM = "#ffffff";
 
 const HomeEditorial = () => {
   const { t } = useTranslation();
+  // HERO.EDIT.1 — the same resolved copy the cinematic and classic heroes read.
+  const copy = useHeroCopy();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
@@ -166,8 +169,8 @@ const HomeEditorial = () => {
     <div data-qa="home-editorial" style={editorialFontVars}>
       <SEO
         path="/"
-        title="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín"
-        description="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World."
+        title={copy.title}
+        description={copy.description}
       />
 
       <CosmicBackground />
@@ -288,7 +291,7 @@ const HomeEditorial = () => {
                   letterSpacing: "0.35em",
                 }}
               >
-                {t("hero.rolesLine")}
+                {copy.roles}
               </p>
 
               <div className="editorial-subtitle max-w-md mt-2 sm:mt-5 flex flex-col gap-2.5 sm:gap-3">
