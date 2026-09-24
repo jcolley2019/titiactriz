@@ -19,6 +19,7 @@ import {
   fieldsToDoc,
   heroCopyDefaults,
   setHeroCopyDoc,
+  HERO_COPY_FIELDS,
   type HeroCopy,
   type HeroCopyField,
   type HeroCopyFields,
@@ -259,6 +260,14 @@ const HeroCopyEditor = () => {
 
   const dirty = !loading && JSON.stringify(fields) !== JSON.stringify(committedFields);
 
+  // ADMIN.SAVEBAR.1c — the Events board's rule: Save is lit only while it has
+  // work to do — unsaved text, or a translation a failed save still owes (the
+  // one kind of work a CLEAN editor can carry; Joey's ruling keeps it lit).
+  const owesTranslation = HERO_COPY_FIELDS.some(
+    (f) => fields[f].pending && localizedText(fields[f]).trim(),
+  );
+  const canSave = dirty || (!loading && owesTranslation);
+
   const discard = () => setFields(committedFields);
 
   // Reload, tab close or a typed URL with unsaved copy asks first.
@@ -390,7 +399,7 @@ const HeroCopyEditor = () => {
           <Button
             type="button"
             onClick={onSave}
-            disabled={saving || loading || loadFailed}
+            disabled={saving || loading || loadFailed || !canSave}
             data-qa="hero-copy-save"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >

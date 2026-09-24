@@ -51,6 +51,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   fetchEventsBoard,
   setEventsBoard,
+  forEachBoardLocalized,
   localizedText,
   setLocalizedText,
   eventDatePassed,
@@ -1510,6 +1511,25 @@ const EventsBoardManager = () => {
    */
   const dirty = !loading && JSON.stringify(board) !== JSON.stringify(committedBoard);
 
+  /**
+   * ADMIN.SAVEBAR.1c — Save is lit only while it has work to do. Joey, verbatim:
+   * "if its an action or item that dosen't autosave like a toggle, then it should
+   * remain greyed out until something is entered and then be bright showing that
+   * it still needs to be saved if its not greyed out".
+   *
+   * Two kinds of work: unsaved text (`dirty`), and a translation a failed save
+   * still owes. The second leaves the board CLEAN — the save did commit — yet
+   * EVENTS.I18N.1's law is that the next Save alone heals it, with no edit, and
+   * the on-screen help says exactly that. Joey's ruling: Save stays lit while a
+   * retry is owed. Toggles are neither kind: 1b's optimistic commit keeps them
+   * out of `dirty`, so they never light it.
+   */
+  let owesTranslation = false;
+  forEachBoardLocalized(board, (v) => {
+    if (v.pending && localizedText(v).trim()) owesTranslation = true;
+  });
+  const canSave = dirty || (!loading && owesTranslation);
+
   const discard = () => setBoard(committedBoard);
 
   /**
@@ -2001,11 +2021,16 @@ const EventsBoardManager = () => {
           and whatever is being scrolled goes under it." Solid ground, no blur:
           nothing scrolling beneath may show through. Only the warning and
           Discard still wait on unsaved text.
+
+          ADMIN.SAVEBAR.1c — the row WRAPS (as ed12356 gave the hero bar): at
+          phone width the warning, Discard and Save do not fit one line, and a
+          right-aligned row that cannot wrap pushed the warning past its left
+          edge, where the section's overflow-clip cut it.
         */}
         <div
           data-qa="events-save-bar"
           data-dirty={dirty ? "true" : "false"}
-          className="sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card flex items-center justify-end gap-3"
+          className="sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card flex flex-wrap items-center justify-end gap-x-3 gap-y-2"
         >
           {dirty && (
             <span
@@ -2031,7 +2056,7 @@ const EventsBoardManager = () => {
           <Button
             type="button"
             onClick={onSave}
-            disabled={saving || loading}
+            disabled={saving || loading || !canSave}
             data-qa="events-save"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >

@@ -391,3 +391,120 @@ test("F2: a failed switch write goes back, says so, and never dirties the bar", 
   expect(state.value.homeVisible).toBe(false);
   await expect(page.locator(SAVE_BAR)).toHaveAttribute("data-dirty", "false");
 });
+
+/* ═════════ ADMIN.SAVEBAR.1c — Save is greyed out until text changes ═════════
+ *
+ * Joey, verbatim: "if its an action or item that dosen't autosave like a toggle,
+ * then it should remain greyed out until something is entered and then be
+ * bright showing that it still needs to be saved if its not greyed out".
+ *
+ *  G1  Clean → Save disabled. A switch writes through the (held-open) mocked
+ *      write and Save never lights, not on any 25ms sample. Text lights it;
+ *      Discard greys it again.
+ *  G3  At 390×844: no back-to-top button on /admin (it covered Save), and the
+ *      dirty bar's warning sits wholly on screen — the bar wraps instead of
+ *      pushing it off its left edge.
+ *
+ * G2 — the same law on the hero copy editor — lives in hero-copy.spec.ts.
+ */
+
+const EVENTS_SAVE = '[data-qa="events-save"]';
+
+test("G1: Save is greyed while clean, through a switch's write, lit by text, greyed by Discard", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const writes: Write[] = [];
+  const state = await openEventsAdmin(page, writes, { delayMs: 400 });
+  await expect(page.locator(EVENTS_SAVE), "a clean board has nothing to save").toBeDisabled();
+
+  // Every 25ms from the click until the flash lands, read in one evaluate so no
+  // locator auto-waits: is Save lit?
+  const clickedAt = Date.now();
+  await page.locator(HOME_SWITCH).click();
+  const litAt: number[] = [];
+  for (;;) {
+    const tick = await page.evaluate(
+      ({ save, flash }) => ({
+        lit: !(document.querySelector(save) as HTMLButtonElement | null)?.disabled,
+        flash: document.querySelector(flash)?.getAttribute("data-state") ?? null,
+      }),
+      { save: EVENTS_SAVE, flash: HOME_FLASH },
+    );
+    const at = Date.now() - clickedAt;
+    if (tick.lit) litAt.push(at);
+    if (tick.flash) {
+      expect(at, "the write really was held open").toBeGreaterThanOrEqual(350);
+      break;
+    }
+    if (at > 10_000) throw new Error("the flash never landed");
+    await page.waitForTimeout(25);
+  }
+  expect(litAt, "Save never lit while the switch was writing").toEqual([]);
+  await expect.poll(() => state.value.homeVisible, { timeout: 10_000 }).toBe(true);
+  await expect(page.locator(EVENTS_SAVE), "a committed switch leaves nothing to save").toBeDisabled();
+
+  await page.locator('[data-qa="banner-text"]').first().fill("Texto nuevo para el banner");
+  await expect(page.locator(EVENTS_SAVE), "typed text lights Save").toBeEnabled();
+
+  await page.locator('[data-qa="events-discard"]').click();
+  await expect(page.locator(EVENTS_SAVE), "Discard greys it again").toBeDisabled();
+  expect(boardWrites(writes).length, "only the switch wrote").toBe(1);
+});
+
+test("G3: at 390×844 the admin has no back-to-top button, and the Events warning is on screen", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const writes: Write[] = [];
+  // In SPANISH, Titi's admin language: its longer bar strings ("Cambios de texto
+  // sin guardar", "Guardar cambios") are what overflowed a 390px row. English
+  // fits on one line, so an EN-only check passes with or without the wrap.
+  await injectAdminSession(page);
+  await forceLanguage(page, "es");
+  await routeLiveBoard(page, writes);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/admin", { waitUntil: "domcontentloaded" });
+  await page.locator('[data-qa="admin-nav-events"]').click();
+  await expect(page.locator(SAVE_BAR)).toBeVisible();
+  await page.waitForTimeout(400);
+
+  // Deep in the editor — far past the 80px the button waits for on a phone.
+  const text = page.locator('[data-qa="banner-text"]').first();
+  await text.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => window.scrollY), "past the button's threshold").toBeGreaterThan(80);
+  await expect(page.getByRole("button", { name: "Scroll to top" })).toHaveCount(0);
+
+  await text.fill("Texto sin guardar");
+  await expect(page.locator(UNSAVED)).toBeVisible();
+  const geo = await page.evaluate(
+    ({ unsaved, bar }) => {
+      const u = document.querySelector(unsaved)!.getBoundingClientRect();
+      const b = document.querySelector(bar)!.getBoundingClientRect();
+      return {
+        left: u.left,
+        right: u.right,
+        top: u.top,
+        bottom: u.bottom,
+        barLeft: b.left,
+        vw: window.innerWidth,
+        vh: window.innerHeight,
+      };
+    },
+    { unsaved: UNSAVED, bar: SAVE_BAR },
+  );
+  expect(geo.left, "the warning starts inside its own bar").toBeGreaterThanOrEqual(geo.barLeft);
+  expect(geo.left).toBeGreaterThanOrEqual(0);
+  expect(geo.right).toBeLessThanOrEqual(geo.vw);
+  expect(geo.top).toBeGreaterThanOrEqual(0);
+  expect(geo.bottom).toBeLessThanOrEqual(geo.vh);
+
+  // The control: off /admin the button is still there once you scroll, so its
+  // absence above is the route rule, not a page too short to scroll.
+  await page.locator('[data-qa="events-discard"]').click();
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect(page.getByRole("button", { name: "Scroll to top" })).toBeVisible({ timeout: 10_000 });
+});

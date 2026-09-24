@@ -10,6 +10,9 @@ const ScrollToTopButton = () => {
   
   // Check if we're on the Titans Agency page for special styling
   const isTitansPage = location.pathname === "/titans-agency";
+  // ADMIN.SAVEBAR.1c — the admin's pinned save bars sit exactly where this
+  // button floats, and at phone width it covered their Save.
+  const isAdmin = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     const getThreshold = () =>
@@ -40,7 +43,7 @@ const ScrollToTopButton = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isAdmin) return null;
 
   return (
     <button

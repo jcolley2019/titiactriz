@@ -22,6 +22,15 @@ import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./
  *      it dirty, Discard reverts, Save runs the translator and upserts hero.copy
  *      with both locales; a correction to the English is never translated over;
  *      restoring every field deletes the row.
+ *
+ * ADMIN.SAVEBAR.1c — Joey, verbatim: "if its an action or item that dosen't
+ * autosave like a toggle, then it should remain greyed out until something is
+ * entered and then be bright showing that it still needs to be saved if its not
+ * greyed out".
+ *
+ *  G2  Save is greyed while clean, lit by typing, greyed again by Discard; and
+ *      (Joey's ruling) a translation a failed save still owes keeps it lit on a
+ *      clean editor, until one Save pays it.
  */
 
 const HERO_COPY_KEY = "hero.copy";
@@ -299,5 +308,47 @@ test.describe("HERO.EDIT.1 — H4 the admin editor", () => {
     );
     expect(deletes, "restoring everything deletes hero.copy").toHaveLength(1);
     expect(heroCopyUpserts(writes), "no blank document was upserted").toHaveLength(1);
+  });
+});
+
+/* ════════════════ ADMIN.SAVEBAR.1c — G2 the hero editor's Save ════════════════ */
+
+test.describe("ADMIN.SAVEBAR.1c — G2 Save is greyed out until text changes", () => {
+  test("greyed while clean, lit by typing, greyed again by Discard", async ({ page }) => {
+    const writes: Write[] = [];
+    await openHeroCopyAdmin(page, writes, STORED);
+
+    await expect(page.locator(SAVE), "a clean editor has nothing to save").toBeDisabled();
+    await page.locator('[data-qa="hero-copy-intro"]').fill("Una frase nueva.");
+    await expect(page.locator(SAVE), "typed text lights Save").toBeEnabled();
+    await page.locator(DISCARD).click();
+    await expect(page.locator(SAVE), "Discard greys it again").toBeDisabled();
+    expect(heroCopyUpserts(writes), "nothing was written").toHaveLength(0);
+  });
+
+  test("a translation still owed keeps Save lit on a clean editor, and one Save pays it", async ({
+    page,
+  }) => {
+    const writes: Write[] = [];
+    // What a failed save leaves behind: committed, but still owed a translation.
+    const OWED = {
+      es: { roles: "ACTRIZ · CREADORA · EMPRESARIA" },
+      en: { roles: "ACTRIZ · CREADORA · EMPRESARIA" },
+      meta: { src: { roles: "es" }, pending: { roles: true } },
+    };
+    await openHeroCopyAdmin(page, writes, OWED);
+
+    await expect(page.locator(BAR), "nothing typed, so not dirty").toHaveAttribute("data-dirty", "false");
+    await expect(page.locator(SAVE), "…but a retry is owed, so Save is lit").toBeEnabled();
+
+    await page.locator(SAVE).click();
+    await expect(page.locator('[data-qa="flash-hero-copy"]')).toHaveAttribute("data-state", "saved");
+    expect(translateCalls(writes)).toEqual([OWED.es.roles]);
+    expect(heroCopyUpserts(writes).at(-1)?.value).toEqual({
+      es: { roles: OWED.es.roles },
+      en: { roles: `EN ${OWED.es.roles}` },
+      meta: { src: { roles: "es" } },
+    });
+    await expect(page.locator(SAVE), "paid: nothing left to save").toBeDisabled();
   });
 });

@@ -239,9 +239,15 @@ test.describe("EVENTS.I18N.1 — one field, both slots", () => {
       translate: () => ({ source: "es", translation: "SHOULD-NOT-BE-ASKED" }),
     });
 
+    // ADMIN.SAVEBAR.1c — Save is greyed on a clean board, so the save that must
+    // leave this field alone is armed by editing a DIFFERENT one.
+    const other = "Promo de Green World";
+    await page
+      .locator('[data-qa="banner-editor"][data-banner="greenWorld"] [data-qa="banner-text"]')
+      .fill(other);
     await save(page);
 
-    expect(translateCalls(writes), "nothing was edited, so nothing was asked").toEqual([]);
+    expect(translateCalls(writes), "only the edited field was asked about").toEqual([other]);
     const board = savedBoard(writes);
     expect(board.mainBanner.text.es).toBe("EN COMPETENCIA");
     expect(board.mainBanner.text.en).toBe("Now competing");

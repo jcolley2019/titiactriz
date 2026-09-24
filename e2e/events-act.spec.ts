@@ -815,6 +815,9 @@ test.describe("EVENTS.2b — the admin toggle", () => {
     await page.locator(HOME_SWITCH).scrollIntoViewIfNeeded();
     await page.screenshot({ path: shot("events-2b-admin-toggle-off.png") });
 
+    // ADMIN.SAVEBAR.1c — Save is greyed on a clean board, so the save that must
+    // carry the field needs something to save: a text edit, never the switch.
+    await page.locator('[data-qa="event-title"]').first().fill("Titi's Birthday!");
     await page.getByRole("button", { name: /save changes/i }).click();
     await page.waitForTimeout(600);
     expect(savedHomeVisible(writes), "an untouched old board saves homeVisible false").toBe(false);
@@ -835,7 +838,9 @@ test.describe("EVENTS.2b — the admin toggle", () => {
     // is touched, because that is the whole point of the change.
     expect(savedHomeVisible(writes), "the click itself writes homeVisible true").toBe(true);
 
-    // …and a Save afterwards still carries it, unchanged.
+    // …and a Save afterwards still carries it, unchanged. ADMIN.SAVEBAR.1c — the
+    // switch alone leaves nothing to save (Save is greyed), so a text edit arms it.
+    await page.locator('[data-qa="event-title"]').first().fill("Titi's Birthday!");
     await page.getByRole("button", { name: /save changes/i }).click();
     await page.waitForTimeout(600);
     expect(savedHomeVisible(writes), "the save writes homeVisible true").toBe(true);
