@@ -107,8 +107,8 @@ const FieldEditor = ({
   const other: Lang = src === "es" ? "en" : "es";
   const main = localizedText(value);
   // While a field is pending, its other slot holds a verbatim copy of what was
-  // typed (or nothing, after a failed translation) — not a translation, so the
-  // disclosure does not present it as one.
+  // typed (before the save, or after a failed translation — HERO.EDIT.1b) — not
+  // a translation, so the disclosure does not present it as one.
   const otherText = value.pending ? "" : (value[other] ?? "");
   const hasOverride = !!(value.es.trim() || value.en.trim());
   const id = `hero-copy-${field}`;

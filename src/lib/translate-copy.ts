@@ -1,7 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
   forEachBoardLocalized,
-  localizedSource,
   localizedText,
   mapBoardLocalized,
   type EventsBoard,
@@ -88,11 +87,13 @@ export const syncBoardTranslations = async (
 
 /**
  * HERO.EDIT.1 — the same pass over a flat record of fields (the hero copy is four
- * fields, not a board), with one difference its brief rules: a field whose
- * translation FAILED keeps the typed text in its own slot only and leaves the
- * other slot BLANK, so that locale's public reader falls back to its default
- * instead of serving the wrong language. It stays `pending`; the next save
- * retries it. Still never a blocked save.
+ * fields, not a board).
+ *
+ * HERO.EDIT.1b — and the same failure law as the board: a field whose
+ * translation FAILED carries the typed text into BOTH slots and stays `pending`,
+ * so the public site never serves a stale mismatch and the next save retries it.
+ * (The first cut left the other slot blank, falling back to that locale's
+ * default; the architect ruled for the board's behavior.) Never a blocked save.
  */
 export const syncLocalizedRecord = async <K extends string>(
   fields: Record<K, Localized>,
@@ -126,11 +127,10 @@ export const syncLocalizedRecord = async <K extends string>(
           ? { es: typed, en: hit.translation, src: "es" }
           : { es: hit.translation, en: typed, src: "en" };
     } else {
-      const src = localizedSource(v);
-      out[k] =
-        src === "es"
-          ? { es: typed, en: "", src, pending: true }
-          : { es: "", en: typed, src, pending: true };
+      // Both slots carry what was typed — written out explicitly rather than
+      // trusting `v` to already hold it, so a stored field whose other slot was
+      // ever left blank heals to the board's shape on its next failed save too.
+      out[k] = { ...v, es: typed, en: typed, pending: true };
     }
   }
   return { fields: out, requested: texts.length, failed: texts.length - done.size };

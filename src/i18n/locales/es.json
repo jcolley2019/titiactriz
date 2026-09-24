@@ -745,7 +745,7 @@
       "saveError": "No se pudo guardar. Intenta de nuevo.",
       "loadError": "No se pudieron cargar los textos. Recarga la página antes de editar.",
       "translationFailed": "Se guardó, pero sin traducir",
-      "translationFailedHelp": "No se pudo traducir. Por ahora el otro idioma usa el texto predeterminado; vuelve a guardar para reintentar."
+      "translationFailedHelp": "No se pudo traducir. Por ahora el mismo texto se muestra en los dos idiomas; vuelve a guardar para reintentar."
     },
     "settings": {},
     "cinematicHero": {

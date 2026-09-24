@@ -21,7 +21,9 @@ import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./
  *  H4  Admin: the editor loads the stored copy with a quiet bar, typing makes
  *      it dirty, Discard reverts, Save runs the translator and upserts hero.copy
  *      with both locales; a correction to the English is never translated over;
- *      restoring every field deletes the row.
+ *      restoring every field deletes the row. HERO.EDIT.1b: a failed translation
+ *      carries the typed text into both languages (the Events board's law), and
+ *      the next Save heals it.
  *
  * ADMIN.SAVEBAR.1c — Joey, verbatim: "if its an action or item that dosen't
  * autosave like a toggle, then it should remain greyed out until something is
@@ -195,10 +197,17 @@ async function watchBarFlash(page: Page) {
   });
 }
 
-async function openHeroCopyAdmin(page: Page, writes: Write[], stored: unknown | null) {
+type Translate = NonNullable<Parameters<typeof routeSupabase>[1]>["translate"];
+
+async function openHeroCopyAdmin(
+  page: Page,
+  writes: Write[],
+  stored: unknown | null,
+  translate?: Translate,
+) {
   await injectAdminSession(page);
   await forceLanguage(page, "es");
-  await routeSupabase(page, { writes });
+  await routeSupabase(page, { writes, translate });
   await routeHeroCopy(page, stored);
   await watchBarFlash(page);
   await page.setViewportSize({ width: 1280, height: 720 });
@@ -308,6 +317,43 @@ test.describe("HERO.EDIT.1 — H4 the admin editor", () => {
     );
     expect(deletes, "restoring everything deletes hero.copy").toHaveLength(1);
     expect(heroCopyUpserts(writes), "no blank document was upserted").toHaveLength(1);
+  });
+
+  test("HERO.EDIT.1b: a failed translation carries the typed text to both languages, and the next Save heals it", async ({
+    page,
+  }) => {
+    const writes: Write[] = [];
+    let translatorUp = false;
+    await openHeroCopyAdmin(page, writes, STORED, (text) =>
+      translatorUp ? { source: "es", translation: `EN ${text}` } : null,
+    );
+
+    const typed = "Frase sin traducir.";
+    await page.locator('[data-qa="hero-copy-intro"]').fill(typed);
+    await page.locator(SAVE).click();
+
+    // The save is NOT blocked, and neither language is left stale or blank:
+    // both carry exactly what was typed, still owed a translation.
+    await expect(page.locator('[data-qa="hero-copy-translation-failed"]')).toBeVisible();
+    await expect(page.locator(BAR)).toHaveAttribute("data-dirty", "false");
+    expect(heroCopyUpserts(writes).at(-1)?.value).toMatchObject({
+      es: { roles: STORED.es.roles, intro: typed },
+      en: { roles: STORED.en.roles, intro: typed },
+      meta: { pending: { intro: true } },
+    });
+
+    // Owed a retry, so Save stays lit (ADMIN.SAVEBAR.1c); with the translator
+    // back, one click — no edit — finishes the job.
+    await expect(page.locator(SAVE)).toBeEnabled();
+    translatorUp = true;
+    await page.locator(SAVE).click();
+    await expect(page.locator('[data-qa="hero-copy-translation-failed"]')).toHaveCount(0);
+    expect(heroCopyUpserts(writes).at(-1)?.value).toEqual({
+      es: { roles: STORED.es.roles, intro: typed },
+      en: { roles: STORED.en.roles, intro: `EN ${typed}` },
+      meta: { src: { roles: "es", intro: "es" } },
+    });
+    await expect(page.locator(SAVE), "paid: nothing left to save").toBeDisabled();
   });
 });
 

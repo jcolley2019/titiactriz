@@ -745,7 +745,7 @@
       "saveError": "Could not save. Please try again.",
       "loadError": "Couldn't load the copy. Reload the page before editing.",
       "translationFailed": "Saved, but not translated",
-      "translationFailedHelp": "Translation didn't run. For now the other language shows the default text — save again to retry."
+      "translationFailedHelp": "Translation didn't run. For now the same text shows in both languages — save again to retry."
     },
     "settings": {},
     "cinematicHero": {
