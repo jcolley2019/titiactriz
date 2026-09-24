@@ -98,7 +98,13 @@ const Header = () => {
   // they pointed at. The home's own acts carry both now, and the two URLs 301
   // to / at the edge, so a nav entry would only be a link from the home back
   // to the home.
+  // BLOG.1 — on the desktop bar the blog sits HERE, beside Contacto, not after
+  // TitiLinks on the left: measured, the left rail with it overlapped the
+  // monogram by 54px at 1200 (ES) and cleared it by 10px above 1280. Joey's
+  // ruling (2026-09-24): "BLOG on the right" at desktop; the band and the sheet
+  // keep it right after TitiLinks.
   const rightLinks: NavLink[] = [
+    { name: t("nav.blog"), path: "/blog", qa: "nav-blog" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
 
@@ -122,6 +128,7 @@ const Header = () => {
       external: true,
       qa: "nav-band-titilinks",
     },
+    { name: t("nav.blog"), path: "/blog", qa: "nav-band-blog" },
   ];
   if (eventsVisible) {
     bandInlineLinks.push({ name: t("nav.events", "Events"), path: "/events" });
@@ -147,6 +154,7 @@ const Header = () => {
       phoneOnly: true,
       qa: "nav-sheet-titilinks",
     },
+    { name: t("nav.blog"), path: "/blog", phoneOnly: true, qa: "nav-sheet-blog" },
     { name: t("nav.contact"), path: "/#contact" },
   ];
 
@@ -276,6 +284,7 @@ const Header = () => {
       <Link
         to={link.path}
         translate={noTranslate}
+        data-qa={link.qa}
         style={navHalo}
         className={`${linkBase} ${linkColor(active)}`}
       >
@@ -544,6 +553,7 @@ const Header = () => {
                 <Link
                   to={link.path}
                   translate={link.noTranslate ? "no" : undefined}
+                  data-qa={link.qa}
                   onClick={closeMenu}
                   className={`block py-2 text-lg font-serif transition-colors ${
                     location.pathname === link.path

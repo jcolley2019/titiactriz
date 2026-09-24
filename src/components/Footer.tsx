@@ -24,6 +24,8 @@ const Footer = () => {
       ? [{ name: t("nav.titansAgency"), path: "/titans-agency", noTranslate: true }]
       : []),
     { name: t("nav.greenWorld"), path: "/green-world", noTranslate: true },
+    // BLOG.1 — the blog's quick link.
+    { name: t("nav.blog"), path: "/blog" },
     // PORT.ACT.10 — the Portafolio entry left with the /work page it pointed
     // at; the home's Acting act is the portfolio now.
   ];

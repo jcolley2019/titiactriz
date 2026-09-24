@@ -16,7 +16,8 @@
     "contact": "Contacto",
     "comingSoon": "¡Próximamente!!!",
     "book": "El Libro",
-    "titilinks": "TitiLinks"
+    "titilinks": "TitiLinks",
+    "blog": "Blog"
   },
   "book": {
     "eyebrow": "Próximamente",
@@ -465,6 +466,16 @@
       "prev": "Evento anterior",
       "next": "Evento siguiente"
     }
+  },
+  "blog": {
+    "eyebrow": "Blog",
+    "seoTitle": "Blog | Cristyna Polentino",
+    "seoDescription": "El blog de Cristyna Polentino (Titi), actriz colombiana, streamer y empresaria en Medellín.",
+    "empty": "Pronto, las primeras entradas.",
+    "loadError": "No se pudieron cargar las entradas. Intenta de nuevo más tarde.",
+    "readingTime": "{{n}} min de lectura",
+    "back": "Blog",
+    "tags": "Etiquetas"
   },
   "admin": {
     "gallery": {

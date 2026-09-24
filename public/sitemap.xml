@@ -45,4 +45,17 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://titiactriz.com/blog</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://titiactriz.com/blog" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://titiactriz.com/blog" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://titiactriz.com/blog" />
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- BLOG-POSTS:START — BLOG.1: one entry per published post, rewritten by
+       scripts/build-sitemap.mjs before every build (`prebuild`). Hand edits
+       between these two markers are overwritten; everything outside them is
+       kept exactly as written. -->
+  <!-- BLOG-POSTS:END -->
 </urlset>

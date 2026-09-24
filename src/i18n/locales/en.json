@@ -16,7 +16,8 @@
     "contact": "Contact",
     "comingSoon": "Coming soon!!!",
     "book": "Book",
-    "titilinks": "TitiLinks"
+    "titilinks": "TitiLinks",
+    "blog": "Blog"
   },
   "book": {
     "eyebrow": "Coming soon",
@@ -465,6 +466,16 @@
       "prev": "Previous event",
       "next": "Next event"
     }
+  },
+  "blog": {
+    "eyebrow": "Blog",
+    "seoTitle": "Blog | Cristyna Polentino",
+    "seoDescription": "The blog of Cristyna Polentino (Titi), Colombian actress, streamer and entrepreneur in Medellín.",
+    "empty": "The first posts are coming soon.",
+    "loadError": "Couldn't load the posts. Please try again later.",
+    "readingTime": "{{n}} min read",
+    "back": "Blog",
+    "tags": "Tags"
   },
   "admin": {
     "gallery": {

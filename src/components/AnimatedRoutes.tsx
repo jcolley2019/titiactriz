@@ -13,6 +13,8 @@ const GreenWorld = lazy(() => import("@/pages/GreenWorld"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Events = lazy(() => import("@/pages/Events"));
+const Blog = lazy(() => import("@/pages/Blog"));
+const BlogPost = lazy(() => import("@/pages/BlogPost"));
 const Book = lazy(() => import("@/pages/Book"));
 const Studio = lazy(() => import("@/pages/Studio"));
 
@@ -126,6 +128,28 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <Suspense fallback={<RouteFallback />}>
                 <Events />
+              </Suspense>
+            </PageTransition>
+          }
+        />
+        {/* BLOG.1 — Titi's posts. A draft or unknown slug renders NotFound
+            from inside BlogPost, the same 404 the `*` route serves. */}
+        <Route
+          path="/blog"
+          element={
+            <PageTransition>
+              <Suspense fallback={<RouteFallback />}>
+                <Blog />
+              </Suspense>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/blog/:slug"
+          element={
+            <PageTransition>
+              <Suspense fallback={<RouteFallback />}>
+                <BlogPost />
               </Suspense>
             </PageTransition>
           }
