@@ -28,8 +28,42 @@ type Props = {
   onSignOut: () => void;
 };
 
+/**
+ * ADMIN.TAB.1 — the admin reopens on the section it was left on (leave to view
+ * the page, come back, carry on). Signing out forgets it, so the next sign-in
+ * starts on the first section. Storage can throw (Safari private mode, blocked
+ * site data): the shell then simply behaves as it did before.
+ */
+export const ADMIN_SECTION_KEY = "admin.section";
+
+export function forgetAdminSection() {
+  try {
+    localStorage.removeItem(ADMIN_SECTION_KEY);
+  } catch {
+    /* storage unavailable — nothing was remembered */
+  }
+}
+
+function rememberedSection(sections: AdminSection[]) {
+  try {
+    const id = localStorage.getItem(ADMIN_SECTION_KEY);
+    if (id && sections.some((s) => s.id === id)) return id;
+  } catch {
+    /* storage unavailable — fall through to the first section */
+  }
+  return sections[0]?.id ?? "";
+}
+
 const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props) => {
-  const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
+  const [activeId, setActiveId] = useState(() => rememberedSection(sections));
+  const pick = (id: string) => {
+    setActiveId(id);
+    try {
+      localStorage.setItem(ADMIN_SECTION_KEY, id);
+    } catch {
+      /* storage unavailable — the choice lasts for this visit only */
+    }
+  };
   const active = sections.find((s) => s.id === activeId) ?? sections[0];
 
   return (
@@ -58,7 +92,7 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props
               key={s.id}
               type="button"
               data-qa={`admin-nav-${s.id}`}
-              onClick={() => setActiveId(s.id)}
+              onClick={() => pick(s.id)}
               aria-current={isActive ? "page" : undefined}
               className={`relative flex items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors ${
                 isActive

@@ -66,7 +66,7 @@ import LivePreviewDock from "@/components/admin/LivePreviewDock";
 import HomeVariantToggle from "@/components/admin/HomeVariantToggle";
 import HeroCopyEditor from "@/components/admin/HeroCopyEditor";
 import EventsBoardManager from "@/components/admin/EventsBoardManager";
-import AdminShell, { type AdminSection } from "@/components/admin/AdminShell";
+import AdminShell, { forgetAdminSection, type AdminSection } from "@/components/admin/AdminShell";
 import AdminSubmissionsSection from "@/components/admin/AdminSubmissionsSection";
 import CinematicMediaManager from "@/components/admin/media/CinematicMediaManager";
 import PortfolioManager from "@/components/admin/PortfolioManager";
@@ -1413,7 +1413,10 @@ const Admin = () => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // ADMIN.TAB.1 — every sign-out (shell, header, language menu, the idle
+      // timer) lands here, so the next sign-in opens on Gallery.
+      if (event === "SIGNED_OUT") forgetAdminSection();
       setSession(s);
     });
     supabase.auth.getSession().then(({ data }) => {
@@ -1422,6 +1425,13 @@ const Admin = () => {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // ADMIN.TAB.1 — a sign-out on the public pages can happen before this page's
+  // code has ever loaded, so its SIGNED_OUT reaches no listener here. Every
+  // sign-in goes through the form below, so showing it forgets the section too.
+  useEffect(() => {
+    if (!checking && !session) forgetAdminSection();
+  }, [checking, session]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
