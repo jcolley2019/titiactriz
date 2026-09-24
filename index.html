@@ -32,11 +32,11 @@
     <link rel="apple-touch-icon" href="/favicon.png" />
 
     <!-- Default SEO -->
-    <title>Cristyna Polentino | Actriz Colombiana, Bailarina y Empresaria en Medellín</title>
-    <meta name="description" content="Cristyna Polentino — actriz colombiana, bailarina y empresaria en Medellín. Colombian actress, dancer & entrepreneur, also known as Titi (TitiActriz).">
+    <title>Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín</title>
+    <meta name="description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World.">
     <meta name="author" content="Cristyna Polentino" />
     <!-- TITANS.OFF.1 — "Titans Agency" dropped from keywords; restore it with the flag. -->
-    <meta name="keywords" content="Cristyna Polentino, actriz colombiana, Colombian actress, bailarina, dancer, empresaria, entrepreneur, Medellín, Colombia, Green World, TikTok, creadora de contenido, content creator" />
+    <meta name="keywords" content="Cristyna Polentino, actriz colombiana, Colombian actress, streamer, creadora de contenido, empresaria, entrepreneur, Medellín, Colombia, Green World, TikTok, content creator" />
 
     <!-- Geo targeting -->
     <meta name="geo.region" content="CO-ANT" />
@@ -56,17 +56,17 @@
     <meta property="og:locale:alternate" content="es_ES" />
     <meta property="og:locale:alternate" content="es_MX" />
     <meta property="og:locale:alternate" content="es_AR" />
-    <meta property="og:title" content="Cristyna Polentino | Actriz Colombiana, Bailarina y Empresaria" />
-    <meta property="og:description" content="Cristyna Polentino — actriz colombiana, bailarina y empresaria en Medellín. Colombian actress, dancer & entrepreneur, also known as Titi (TitiActriz)." />
+    <meta property="og:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
+    <meta property="og:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
     <meta property="og:image" content="https://titiactriz.com/og-image-v7.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="670" />
-    <meta property="og:image:alt" content="Cristyna Polentino - Actriz Colombiana, Bailarina y Empresaria" />
+    <meta property="og:image:alt" content="Cristyna Polentino — Actriz, Streamer y Empresaria" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Cristyna Polentino | Actriz Colombiana, Bailarina y Empresaria" />
-    <meta name="twitter:description" content="Cristyna Polentino - Actriz colombiana, bailarina profesional y empresaria en Medellín. Colombian actress, dancer & entrepreneur." />
+    <meta name="twitter:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
+    <meta name="twitter:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
     <meta name="twitter:image" content="https://titiactriz.com/og-image-v7.jpg" />
 
     <!-- Preconnect to Google Fonts -->
@@ -108,8 +108,8 @@
       "alternateName": ["Cristina Polentino", "Cris Polentino", "Cristyna", "Cristina", "Cris", "Titi", "TitiActriz"],
       "url": "https://titiactriz.com",
       "image": "https://titiactriz.com/og-image.png",
-      "description": "Actriz colombiana, bailarina profesional y empresaria en Medellín. Colombian actress, professional dancer, and entrepreneur.",
-      "jobTitle": ["Actriz", "Bailarina", "Empresaria", "Actress", "Dancer", "Entrepreneur"],
+      "description": "Actriz colombiana, streamer y empresaria en Medellín. Colombian actress, streamer and entrepreneur.",
+      "jobTitle": ["Actriz", "Streamer", "Empresaria", "Actress", "Entrepreneur"],
       "nationality": {
         "@type": "Country",
         "name": "Colombia"
@@ -126,7 +126,7 @@
         "https://www.instagram.com/cristinapolentino_actriz",
         "https://www.youtube.com/@mimundoderoles6875"
       ],
-      "knowsAbout": ["Acting", "Dance", "Entrepreneurship", "TikTok Content Creation", "Wellness Products", "Actuación", "Danza", "Emprendimiento"],
+      "knowsAbout": ["Acting", "Entrepreneurship", "TikTok Content Creation", "Wellness Products", "Actuación", "Creación de contenido", "Emprendimiento"],
       "affiliation": [
         {
           "@type": "Organization",
@@ -155,7 +155,21 @@
       aria-hidden="true"
       style="position:fixed;inset:0;z-index:2147483647;background:#121212;"
     ></div>
-    <div id="root"></div>
+    <!--
+      SEO.BING.1 — static content shell. A crawler that does not run JS used to
+      see an empty #root: no h1, no body copy. This gives it the hero's own
+      heading, roles line and intro. It is never seen by a person: it sits under
+      the boot cover above, and createRoot().render clears #root on its first
+      commit, so the mounted page carries exactly one h1 (the hero's). No
+      styles of its own — it must not fight the app stylesheet if the 4s safety
+      net ever lifts the cover over it.
+    -->
+    <div id="root"><div data-static-shell>
+      <h1>Cristyna Polentino</h1>
+      <p>Actriz · Streamer · Empresaria</p>
+      <p lang="es">Actriz colombiana, streamer y empresaria en Medellín. Su historia, su comunidad y sus proyectos.</p>
+      <p lang="en">Colombian actress, streamer and entrepreneur in Medellín. Her story, her community and her projects.</p>
+    </div></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       (function () {
@@ -174,11 +188,15 @@
           // Reveal only once the app stylesheet has applied (the --background
           // custom property resolves) AND React has committed its first frame —
           // so lifting the cover never exposes an unstyled page or an empty #root.
+          // SEO.BING.1: #root is no longer empty before React — it holds the
+          // static shell — so "has a child" would pass on the first frame. React's
+          // output is the first child that is NOT the shell.
           var cssReady =
             getComputedStyle(document.documentElement)
               .getPropertyValue("--background")
               .trim() !== "";
-          var reactReady = !!root && root.childElementCount > 0;
+          var first = root && root.firstElementChild;
+          var reactReady = !!first && !first.hasAttribute("data-static-shell");
           return cssReady && reactReady;
         };
         var tick = function () {

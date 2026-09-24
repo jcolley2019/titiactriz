@@ -47,7 +47,7 @@ const Book = () => {
     "@type": "Person",
     name: "Cristyna Polentino",
     url: "https://titiactriz.com",
-    jobTitle: lang === "en" ? "Actress, dancer, entrepreneur" : "Actriz, bailarina y empresaria",
+    jobTitle: lang === "en" ? "Actress, streamer, entrepreneur" : "Actriz, streamer y empresaria",
   };
 
   return (

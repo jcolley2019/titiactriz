@@ -11,8 +11,8 @@ import type { Page } from "@playwright/test";
  *
  * Discriminators: the hero roles line is UPPERCASE in the dictionaries, so its
  * exact tokens tell the languages apart with a case-sensitive substring match:
- *   ES → "ACTRIZ · TIKTOKER · EMPRESARIA"
- *   EN → "ACTRESS · TIKTOKER · ENTREPRENEUR"
+ *   ES → "ACTRIZ · STREAMER · EMPRESARIA"
+ *   EN → "ACTRESS · STREAMER · ENTREPRENEUR"
  */
 
 const PATH = "/cinematic";

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CinematicHeroMedia from "./CinematicHeroMedia";
@@ -48,6 +49,7 @@ const CinematicHero = ({
   videoLandscape,
   videoPortrait,
 }: Props) => {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const restRef = useRef<HTMLDivElement>(null);
@@ -140,6 +142,24 @@ const CinematicHero = ({
             }}
           >
             {subtitle}
+          </p>
+          {/* SEO.BING.1 — the visible twin of the static shell's intro in
+              index.html, so what a crawler reads is what a visitor reads. Inside
+              restRef, it rides the roles line's fade-up and reduced-motion path. */}
+          <p
+            data-qa="cinematic-hero-intro"
+            className="mx-auto"
+            style={{
+              fontFamily: "var(--font-sans)",
+              color: "rgba(240,233,218,0.70)",
+              fontSize: "clamp(0.7rem, 1.5vw, 0.95rem)",
+              lineHeight: 1.5,
+              maxWidth: "36ch",
+              textAlign: "center",
+              marginTop: "0.75rem",
+            }}
+          >
+            {t("hero.intro")}
           </p>
         </div>
       </div>

@@ -134,8 +134,8 @@ const Index = () => {
     <>
       <SEO
         path="/"
-        title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"
-        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio y Green World. Colombian actress, dancer & entrepreneur."
+        title="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín"
+        description="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World."
       />
 
       <CosmicBackground />
@@ -178,11 +178,9 @@ const Index = () => {
                 <span className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
                   <span>{t("hero.roles.actress")}</span>
                   <span className="text-accent">|</span>
-                  <span>{t("hero.roles.dancer")}</span>
+                  <span>{t("hero.roles.streamer")}</span>
                   <span className="text-accent">|</span>
                   <span>{t("hero.roles.entrepreneur")}</span>
-                  <span className="text-accent">|</span>
-                  <span>{t("hero.roles.streamer")}</span>
                 </span>
               </p>
 

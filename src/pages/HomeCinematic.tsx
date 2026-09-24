@@ -164,8 +164,8 @@ const HomeCinematic = () => {
     >
       <SEO
         path="/cinematic"
-        title="Cristyna Polentino | Actriz, Bailarina y Empresaria en Medellín"
-        description="Actriz colombiana, bailarina profesional y empresaria en Medellín. Portafolio y Green World."
+        title="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín"
+        description="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World."
       />
 
       <CinematicHero

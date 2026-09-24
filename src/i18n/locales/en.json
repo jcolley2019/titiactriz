@@ -27,10 +27,9 @@
     "headline": "Creating impact through presence, performance, and purpose.",
     "description": "Bringing stories to life through movement and emotion. Every role is a journey, every performance a connection.",
     "roles": {
-      "actress": "Colombian Actress",
-      "dancer": "Professional Dancer",
+      "actress": "Actress",
       "entrepreneur": "Entrepreneur",
-      "streamer": "TikTok Streamer"
+      "streamer": "Streamer"
     },
     "buttons": {
       "titans": "Titans Agency",
@@ -39,7 +38,8 @@
     "guidedBy": "Guided by a desire to...",
     "guidedByText": "awaken curiosity, creativity, and connection.",
     "cta": "Work With Cristyna",
-    "rolesLine": "ACTRESS · TIKTOKER · ENTREPRENEUR",
+    "rolesLine": "ACTRESS · STREAMER · ENTREPRENEUR",
+    "intro": "Colombian actress, streamer and entrepreneur in Medellín. Her story, her community and her projects.",
     "tagline": "I create impact through presence, performance, and purpose.",
     "subtitle": "Bringing stories to life through movement and emotion. Every role is a journey, every performance a connection."
   },
@@ -87,7 +87,7 @@
     "formNote": "Form wiring can be added later. For immediate inquiries, please email directly."
   },
   "footer": {
-    "description": "Colombian actress, professional dancer, and entrepreneur. Creating impact through presence, performance, and purpose.",
+    "description": "Colombian actress, streamer and entrepreneur. Creating impact through presence, performance, and purpose.",
     "quickLinks": "Quick Links",
     "connect": "Connect",
     "copyright": "© {{year}} Cristyna Polentino. All rights reserved.",

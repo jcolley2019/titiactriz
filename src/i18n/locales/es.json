@@ -27,10 +27,9 @@
     "headline": "Creando impacto a través de presencia, actuación y propósito.",
     "description": "Dando vida a historias a través del movimiento y la emoción. Cada rol es un viaje, cada actuación una conexión.",
     "roles": {
-      "actress": "Actriz Colombiana",
-      "dancer": "Bailarina Profesional",
-      "entrepreneur": "Emprendedora",
-      "streamer": "Streamer de TikTok"
+      "actress": "Actriz",
+      "entrepreneur": "Empresaria",
+      "streamer": "Streamer"
     },
     "buttons": {
       "titans": "Titans Agency",
@@ -39,7 +38,8 @@
     "guidedBy": "Guiada por el deseo de...",
     "guidedByText": "despertar curiosidad, creatividad y conexión.",
     "cta": "Trabaja con Cristyna",
-    "rolesLine": "ACTRIZ · TIKTOKER · EMPRESARIA",
+    "rolesLine": "ACTRIZ · STREAMER · EMPRESARIA",
+    "intro": "Actriz colombiana, streamer y empresaria en Medellín. Su historia, su comunidad y sus proyectos.",
     "tagline": "Creo impacto con presencia, actuación y propósito.",
     "subtitle": "Doy vida a las historias a través del movimiento y la emoción — cada papel es un viaje, cada actuación una conexión."
   },
@@ -87,7 +87,7 @@
     "formNote": "El formulario se puede conectar después. Para consultas inmediatas, por favor envía un correo directamente."
   },
   "footer": {
-    "description": "Actriz colombiana, bailarina profesional y empresaria. Creando impacto a través de presencia, actuación y propósito.",
+    "description": "Actriz colombiana, streamer y empresaria. Creando impacto a través de presencia, actuación y propósito.",
     "quickLinks": "Enlaces Rápidos",
     "connect": "Conectar",
     "copyright": "© {{year}} Cristyna Polentino. Todos los derechos reservados.",
