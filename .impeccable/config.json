@@ -4,7 +4,8 @@
       "src/components/admin/**",
       "src/components/events/**",
       "src/_archive/**",
-      "src/pages/HomeEditorial.tsx"
+      "src/pages/HomeEditorial.tsx",
+      "src/components/brandMarks.generated.ts"
     ],
     "ignoreValues": [
       {

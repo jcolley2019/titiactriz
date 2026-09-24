@@ -96,6 +96,36 @@ try {
   console.log("-- UNFURL-JWT skipped (supabase/config.toml unreadable)");
 }
 
+// LOCALE-PARITY: ES-primary copy (CLAUDE.md law 6) — es.json and en.json must
+// carry exactly the same set of leaf key paths. A key present in only one file
+// renders as a raw key path (or a silent fallback) in the other language.
+try {
+  const leaves = (node, prefix = "", out = new Set()) => {
+    for (const [k, v] of Object.entries(node)) {
+      const path = prefix ? `${prefix}.${k}` : k;
+      if (v !== null && typeof v === "object") leaves(v, path, out);
+      else out.add(path);
+    }
+    return out;
+  };
+  const load = (lang) => leaves(JSON.parse(readFileSync(F(`i18n/locales/${lang}.json`), "utf8")));
+  const es = load("es");
+  const en = load("en");
+  const onlyEs = [...es].filter((k) => !en.has(k)).sort();
+  const onlyEn = [...en].filter((k) => !es.has(k)).sort();
+  if (onlyEs.length || onlyEn.length) {
+    failed++;
+    console.error(`x LOCALE-PARITY — es.json ${es.size} keys, en.json ${en.size} keys:`);
+    onlyEs.forEach((k) => console.error(`      only in es.json: ${k}`));
+    onlyEn.forEach((k) => console.error(`      only in en.json: ${k}`));
+  } else {
+    console.log(`ok LOCALE-PARITY (${es.size}/${en.size})`);
+  }
+} catch (e) {
+  failed++;
+  console.error(`x LOCALE-PARITY — cannot read or parse the locale files: ${e.message}`);
+}
+
 if (failed) {
   console.error(`\nGUARD FAILED - ${failed} invariant(s) broken.`);
   process.exit(1);
