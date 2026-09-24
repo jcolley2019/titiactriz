@@ -55,7 +55,14 @@ const BOARD = {
  * the fixture cannot tell a real write from a no-op. This mock keeps the last
  * written value and hands it back, so "reload and see it" means something.
  */
-async function routeLiveBoard(page: Page, writes: Write[]) {
+/**
+ * ADMIN.SAVEBAR.1b — how the mocked board write answers. The default is what
+ * every law above was written against: at once, and successfully. `delayMs`
+ * holds the write open so a test can watch the round trip; `fail` answers 400.
+ */
+type WriteMode = { delayMs?: number; fail?: boolean };
+
+async function routeLiveBoard(page: Page, writes: Write[], mode: WriteMode = {}) {
   const state = { value: JSON.parse(JSON.stringify(BOARD)) as Record<string, unknown> };
   await routeSupabase(page, { writes, eventsBoard: state.value });
   // Sits IN FRONT of routeSupabase's handler and owns this one key.
@@ -75,6 +82,14 @@ async function routeLiveBoard(page: Page, writes: Write[]) {
       // This handler fulfils before routeSupabase's ever runs (routes are
       // LIFO), so the write has to be recorded HERE or it is invisible.
       writes.push({ method: req.method(), url, body });
+      if (mode.delayMs) await new Promise((r) => setTimeout(r, mode.delayMs));
+      if (mode.fail) {
+        return route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "mocked write failure" }),
+        });
+      }
       try {
         const rows = JSON.parse(body);
         const row = Array.isArray(rows) ? rows[0] : rows;
@@ -89,10 +104,10 @@ async function routeLiveBoard(page: Page, writes: Write[]) {
   return state;
 }
 
-async function openEventsAdmin(page: Page, writes: Write[]) {
+async function openEventsAdmin(page: Page, writes: Write[], mode: WriteMode = {}) {
   await injectAdminSession(page);
   await forceLanguage(page, "en");
-  const state = await routeLiveBoard(page, writes);
+  const state = await routeLiveBoard(page, writes, mode);
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
   await page.locator('[data-qa="admin-nav-events"]').click();
@@ -268,4 +283,111 @@ test("with no unsaved text, leaving is not interrupted", async ({ page }) => {
   await page.locator('a[href="/"]').first().click();
   await expect(page.locator('[data-qa="events-leave-prompt"]')).toHaveCount(0);
   await expect.poll(() => new URL(page.url()).pathname, { timeout: 10_000 }).toBe("/");
+});
+
+/* ═════════ ADMIN.SAVEBAR.1b — an instant switch never flashes the bar ═════════
+ *
+ * Joey, verbatim: "when you click the toggle that little save bar thing pops up
+ * for just a split second and then next to the text by the toggle it shows a
+ * check mark and saved". A switch is committed the moment it moves, so the bar
+ * has nothing to say about it — not for the length of the round trip either.
+ * The write is held open 400ms so that window is wide enough to see.
+ */
+
+const HOME_SWITCH = '[data-qa="home-visible"]';
+const HOME_FLASH = '[data-qa="flash-homeVisible"]';
+
+/**
+ * In-page witness, armed before the click: a MutationObserver catches a dirty
+ * render that lives for a single frame, which no outside poll can promise to.
+ */
+async function armBarWitness(page: Page) {
+  await page.evaluate(
+    ({ bar, unsaved }) => {
+      const w = window as unknown as { __barSeen: { unsaved: number; dirty: number } };
+      w.__barSeen = { unsaved: 0, dirty: 0 };
+      const look = () => {
+        if (document.querySelector(unsaved)) w.__barSeen.unsaved++;
+        if (document.querySelector(bar)?.getAttribute("data-dirty") === "true") w.__barSeen.dirty++;
+      };
+      new MutationObserver(look).observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ["data-dirty"],
+      });
+    },
+    { bar: SAVE_BAR, unsaved: UNSAVED },
+  );
+}
+
+const barWitness = (page: Page) =>
+  page.evaluate(() => (window as unknown as { __barSeen: unknown }).__barSeen);
+
+/**
+ * The brief's poll: every 25ms, from the click until the flash lands, is the
+ * unsaved marker attached? Read in one evaluate so no locator auto-waits.
+ */
+async function pollUntilFlash(page: Page, clickedAt: number) {
+  const sightings: number[] = [];
+  for (;;) {
+    const tick = await page.evaluate(
+      ({ unsaved, flash }) => ({
+        unsaved: !!document.querySelector(unsaved),
+        state: document.querySelector(flash)?.getAttribute("data-state") ?? null,
+      }),
+      { unsaved: UNSAVED, flash: HOME_FLASH },
+    );
+    const at = Date.now() - clickedAt;
+    if (tick.unsaved) sightings.push(at);
+    if (tick.state) return { sightings, elapsed: at, state: tick.state };
+    if (at > 10_000) throw new Error("the flash never landed");
+    await page.waitForTimeout(25);
+  }
+}
+
+test("F1: a clean board's switch writes without the bar ever going dirty", async ({ page }) => {
+  test.setTimeout(120_000);
+  const writes: Write[] = [];
+  const state = await openEventsAdmin(page, writes, { delayMs: 400 });
+  await expect(page.locator(SAVE_BAR)).toHaveAttribute("data-dirty", "false");
+  await expect(page.locator(HOME_SWITCH)).toHaveAttribute("aria-checked", "false");
+
+  await armBarWitness(page);
+  const clickedAt = Date.now();
+  await page.locator(HOME_SWITCH).click();
+  const { sightings, elapsed, state: flashState } = await pollUntilFlash(page, clickedAt);
+
+  expect(elapsed, "the write really was held open").toBeGreaterThanOrEqual(350);
+  expect(sightings, "events-unsaved was never attached during the write").toEqual([]);
+  expect(await barWitness(page), "not even for one frame").toEqual({ unsaved: 0, dirty: 0 });
+  expect(flashState).toBe("saved");
+  await expect(page.locator(HOME_FLASH)).toHaveAttribute("data-state", "saved");
+  await expect(page.locator(HOME_SWITCH)).toHaveAttribute("aria-checked", "true");
+  await expect.poll(() => state.value.homeVisible, { timeout: 10_000 }).toBe(true);
+  await expect(page.locator(SAVE_BAR)).toHaveAttribute("data-dirty", "false");
+});
+
+test("F2: a failed switch write goes back, says so, and never dirties the bar", async ({ page }) => {
+  test.setTimeout(120_000);
+  const writes: Write[] = [];
+  const state = await openEventsAdmin(page, writes, { delayMs: 400, fail: true });
+  await expect(page.locator(SAVE_BAR)).toHaveAttribute("data-dirty", "false");
+  await expect(page.locator(HOME_SWITCH)).toHaveAttribute("aria-checked", "false");
+
+  await armBarWitness(page);
+  const clickedAt = Date.now();
+  await page.locator(HOME_SWITCH).click();
+  const { sightings, elapsed, state: flashState } = await pollUntilFlash(page, clickedAt);
+
+  expect(elapsed, "the write really was held open").toBeGreaterThanOrEqual(350);
+  expect(boardWrites(writes).length, "the write was attempted").toBe(1);
+  expect(sightings, "events-unsaved was never attached during the write").toEqual([]);
+  expect(await barWitness(page), "not even for one frame").toEqual({ unsaved: 0, dirty: 0 });
+  expect(flashState).toBe("failed");
+  await expect(page.locator(HOME_FLASH)).toHaveAttribute("data-state", "failed");
+  // The switch is back where it was, and the database never moved.
+  await expect(page.locator(HOME_SWITCH)).toHaveAttribute("aria-checked", "false");
+  expect(state.value.homeVisible).toBe(false);
+  await expect(page.locator(SAVE_BAR)).toHaveAttribute("data-dirty", "false");
 });

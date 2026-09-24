@@ -1251,8 +1251,8 @@ const EventsBoardManager = () => {
   /**
    * The committed board again, in state. The ref is what writes read (always
    * current, never a stale closure); this is what RENDER reads, because a ref
-   * mutation cannot re-run the dirty comparison that decides whether the sticky
-   * bar is on screen. The two are set together, always.
+   * mutation cannot re-run the dirty comparison that decides whether the save
+   * bar shows its unsaved warning. The two are set together, always.
    */
   const [committedBoard, setCommittedBoard] = useState<EventsBoard>(EVENTS_BOARD_DEFAULT);
   const commit = (next: EventsBoard) => {
@@ -1328,19 +1328,29 @@ const EventsBoardManager = () => {
    * back exactly where it was — `revert` is the same transform inverted by the
    * caller, which knows the prior value — and the flash says "not saved" beside
    * it rather than in a corner.
+   *
+   * ADMIN.SAVEBAR.1b — the commit is OPTIMISTIC. Committing only after the round
+   * trip left `board` ahead of `committedBoard` for the whole write, so the bar
+   * read dirty and flashed its warning for that long. Joey, verbatim: "when you
+   * click the toggle that little save bar thing pops up for just a split second
+   * and then next to the text by the toggle it shows a check mark and saved".
+   * Both boards now move in the same render, and a failed write puts BOTH back
+   * — the committed board to exactly what it was before the toggle.
    */
   const instant = async (
     key: string,
     mut: (b: EventsBoard) => EventsBoard,
     revert: (b: EventsBoard) => EventsBoard,
   ) => {
+    const prevCommitted = committed.current;
+    const next = mut(prevCommitted);
+    commit(next);
     setBoard((prev) => mut(prev));
-    const next = mut(committed.current);
     try {
       await setEventsBoard(next);
-      commit(next);
       showFlash(key, "saved");
     } catch (e) {
+      commit(prevCommitted);
       setBoard((prev) => revert(prev));
       showFlash(key, "failed");
       toast({
@@ -1982,19 +1992,20 @@ const EventsBoardManager = () => {
           Rendering a second Save in a fixed bar would put two controls with the
           same accessible name in the DOM and break every strict-mode locator
           that asks for it by name (the FIX.CI.1b lesson). Instead the existing
-          row goes `sticky bottom-0` while there is unsaved text: the section is
-          taller than the screen, so the row pins itself to the bottom of the
-          viewport and is on screen from the top of the editor — which is where
-          the trap used to be sprung.
+          row is `sticky bottom-0`: the section is taller than the screen, so the
+          row pins itself to the bottom of the viewport and is on screen from the
+          top of the editor — which is where the trap used to be sprung.
+
+          ADMIN.SAVEBAR.1b — pinned ALWAYS, dirty or clean, and opaque. Joey,
+          verbatim: "this and this should always be at the bottom of the page
+          and whatever is being scrolled goes under it." Solid ground, no blur:
+          nothing scrolling beneath may show through. Only the warning and
+          Discard still wait on unsaved text.
         */}
         <div
           data-qa="events-save-bar"
           data-dirty={dirty ? "true" : "false"}
-          className={`flex items-center justify-end gap-3 ${
-            dirty
-              ? "sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
-              : ""
-          }`}
+          className="sticky bottom-0 z-40 -mx-6 px-6 py-3 border-t border-border bg-card flex items-center justify-end gap-3"
         >
           {dirty && (
             <span
