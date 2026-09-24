@@ -1,14 +1,17 @@
-import { Suspense, lazy, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEventsBoard, type EventItem } from "@/hooks/useEventsBoard";
 import { loneHalves } from "@/components/events/packing";
+import { useCardTap } from "@/components/events/useCardTap";
 import {
   EVENTS_ACT_ENABLED,
   EVENTS_ACT_ROOM,
   eventsRoomPreview,
+  eventsStagePreview,
   type EventsRoom,
+  type EventsStage,
 } from "@/lib/ventures";
 import { CHAPTER_GROUND_1 } from "./FramedVideo";
 
@@ -20,6 +23,16 @@ import { CHAPTER_GROUND_1 } from "./FramedVideo";
  * of drift the neighbor specs' scroll aims are sensitive to.
  */
 const EventCard = lazy(() => import("@/components/events/EventCard"));
+
+/**
+ * EVENTS.ACT.CAROUSEL.1 — the carousel stage and its modal are lazy for exactly
+ * the reason the card grammar above is: both reach EventCard, so a static import
+ * of either would undo that gate and put the whole card family back on every home
+ * paint. They mount inside the SAME Suspense boundary as the cards, so nothing
+ * can observe a half-loaded stage.
+ */
+const EventsCarousel = lazy(() => import("@/components/events/EventsCarousel"));
+const EventLightbox = lazy(() => import("@/components/EventLightbox"));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -110,8 +123,50 @@ const LONE_HALF = "md:col-span-2 md:mx-auto md:w-[calc(50%-1rem)]";
  * and this stage stages its own field. The walk is shared now (packing.ts) so
  * the two rooms cannot answer the same board differently again.
  */
-const CardField = ({ cards, wide = true }: { cards: EventItem[]; wide?: boolean }) => {
+const CardField = ({
+  cards,
+  wide = true,
+  stage,
+  onOpenCard,
+  modalOpen,
+  reduced,
+}: {
+  cards: EventItem[];
+  wide?: boolean;
+  stage: EventsStage | null;
+  onOpenCard: (index: number) => void;
+  modalOpen: boolean;
+  reduced: boolean;
+}) => {
+  const { t, i18n } = useTranslation();
+  const lang = (i18n.language || "es").startsWith("es") ? "es" : "en";
+  const cellProps = useCardTap(onOpenCard);
   const lone = loneHalves(cards);
+
+  // EVENTS.ACT.CAROUSEL.1 — THREE or more cards become the strip.
+  //
+  // Joey's ruling after seeing it on the desktop, verbatim: "the carousel should
+  // only scroll when there are more than 2 events because technically when you
+  // look at it especially on deskto the full size cards fit so we really don't
+  // need the carousel on the desktop view." A board of two showed each card
+  // twice in the doubled strip and read as padding around content that already
+  // fitted. So two cards keep today's grid, everywhere, and the strip is
+  // reserved for a board that genuinely has more than the room can hold.
+  //
+  // The board caps at four items (useEventsBoard :332), so in practice the strip
+  // exists at exactly three or four.
+  if (stage === "carousel" && cards.length >= 3) {
+    return (
+      <EventsCarousel
+        cards={cards}
+        wide={wide}
+        onOpenCard={onOpenCard}
+        modalOpen={modalOpen}
+        reduced={reduced}
+      />
+    );
+  }
+
   return (
     <div
       data-qa="events-cards"
@@ -125,6 +180,14 @@ const CardField = ({ cards, wide = true }: { cards: EventItem[]; wide?: boolean 
           className={
             item.size === "full" ? "md:col-span-2" : lone[i] ? LONE_HALF : "md:col-span-1"
           }
+          // Off the carousel stage this spreads NOTHING: the production field is
+          // the same DOM it has always been, down to the absence of a role.
+          {...(stage === "carousel"
+            ? cellProps(
+                i,
+                t("events.carousel.open", { title: (item.title?.[lang] || item.title?.es) ?? "" }),
+              )
+            : {})}
         >
           <EventCard item={item} />
         </div>
@@ -133,10 +196,18 @@ const CardField = ({ cards, wide = true }: { cards: EventItem[]; wide?: boolean 
   );
 };
 
-type RoomProps = { cards: EventItem[]; title: string; intro: string };
+type RoomProps = {
+  cards: EventItem[];
+  title: string;
+  intro: string;
+  stage: EventsStage | null;
+  onOpenCard: (index: number) => void;
+  modalOpen: boolean;
+  reduced: boolean;
+};
 
 /** Room A — "Proscenio": hairline gold frame, centered ceremony. */
-const RoomProscenio = ({ cards, title, intro }: RoomProps) => (
+const RoomProscenio = ({ title, intro, ...field }: RoomProps) => (
   <div className="relative flex w-full max-w-5xl flex-col items-center">
     {/* The proscenium: one hairline, outside the content's own room. It is a
         rule, not a fill — the same single-gold-line device the Book act used.
@@ -182,13 +253,13 @@ const RoomProscenio = ({ cards, title, intro }: RoomProps) => (
       {intro}
     </p>
     <div className="mt-6 flex w-full justify-center md:mt-10">
-      <CardField cards={cards} wide={false} />
+      <CardField {...field} wide={false} />
     </div>
   </div>
 );
 
 /** Room B — "Cartelera": left-anchored playbill band, rule across the stage. */
-const RoomCartelera = ({ cards, title, intro }: RoomProps) => (
+const RoomCartelera = ({ title, intro, ...field }: RoomProps) => (
   <div className="flex w-full max-w-5xl flex-col">
     <div className="flex w-full items-baseline gap-6">
       <h2
@@ -221,13 +292,13 @@ const RoomCartelera = ({ cards, title, intro }: RoomProps) => (
       {intro}
     </p>
     <div className="mt-10 flex w-full justify-start">
-      <CardField cards={cards} />
+      <CardField {...field} />
     </div>
   </div>
 );
 
 /** Room C — "Función": pill eyebrow, radial spotlight pooled behind the card. */
-const RoomFuncion = ({ cards, title, intro }: RoomProps) => (
+const RoomFuncion = ({ title, intro, ...field }: RoomProps) => (
   <div className="relative flex w-full max-w-5xl flex-col items-center">
     {/* The beam: one soft radial pool, gold at very low alpha, behind the
         cards only. Painted, never animated by scroll — the entrance fades it
@@ -254,7 +325,7 @@ const RoomFuncion = ({ cards, title, intro }: RoomProps) => (
       {title}
     </p>
     <div data-events-bloom className="relative mt-10 flex w-full justify-center">
-      <CardField cards={cards} wide={false} />
+      <CardField {...field} wide={false} />
     </div>
     <p
       data-events-line
@@ -300,6 +371,24 @@ const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
     [],
   );
   const room: EventsRoom = preview ?? EVENTS_ACT_ROOM;
+
+  // EVENTS.ACT.CAROUSEL.1 — WHICH card stage. Read once per mount for the same
+  // reason the room is: staging is a page-load decision, and a mid-session query
+  // edit must not half-rebuild an act that has already measured and pinned.
+  const stage = useMemo(
+    () => eventsStagePreview(typeof window === "undefined" ? "" : window.location.search),
+    [],
+  );
+
+  // The event modal. Its index is into `cards`, so the strip's second copy and
+  // the first open the same card — the copy a reader tapped is not a fact the
+  // modal needs to know.
+  const [lightbox, setLightbox] = useState<{ open: boolean; index: number }>({
+    open: false,
+    index: 0,
+  });
+  const openCard = useCallback((index: number) => setLightbox({ open: true, index }), []);
+  const closeCard = useCallback(() => setLightbox((l) => ({ ...l, open: false })), []);
 
   const cards = board.items;
   // EVENTS.2b — the render gate, all three doors: the engineering flag, the
@@ -470,10 +559,35 @@ const CinematicEvents = ({ reduced }: { reduced: boolean }) => {
         {/* fallback null: while the chunk loads the stage is an empty ground,
             which is the same thing the dark act paints — never a spinner. */}
         <Suspense fallback={null}>
-          <Room cards={cards} title={t("events.title")} intro={t("events.intro")} />
+          <Room
+            cards={cards}
+            title={t("events.title")}
+            intro={t("events.intro")}
+            stage={stage}
+            onOpenCard={openCard}
+            modalOpen={lightbox.open}
+            reduced={reduced}
+          />
           <MountSignal onMount={setCardsMounted} />
         </Suspense>
       </div>
+
+      {/* The modal is a sibling of the STAGE, not a child of it, and that is
+          load-bearing: the stage is `overflow-hidden`, and while a fixed element
+          whose containing block is the viewport is not clipped by an ancestor's
+          overflow, it IS clipped the moment any ancestor gains a transform. This
+          act runs a GSAP entrance and a GSAP pin; keeping the dialog out of that
+          subtree means no future change to either can quietly crop it. */}
+      {stage === "carousel" && (
+        <Suspense fallback={null}>
+          <EventLightbox
+            items={cards}
+            open={lightbox.open}
+            initialIndex={lightbox.index}
+            onClose={closeCard}
+          />
+        </Suspense>
+      )}
     </section>
   );
 };

@@ -454,6 +454,16 @@
     "admin": {
       "linkUnreadable": "No se puede incrustar este enlace, así que la tarjeta muestra la imagen. Pega el enlace completo del video en TikTok, Instagram o YouTube.",
       "embedFailed": "El reproductor de la plataforma no cargó. La tarjeta muestra la imagen."
+    },
+    "carousel": {
+      "region": "Carrusel de eventos",
+      "open": "Ver evento: {{title}}"
+    },
+    "lightbox": {
+      "title": "Evento",
+      "close": "Cerrar",
+      "prev": "Evento anterior",
+      "next": "Evento siguiente"
     }
   },
   "admin": {

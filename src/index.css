@@ -546,6 +546,18 @@
   background: hsl(var(--muted-foreground));
 }
 
+/* EVENTS.ACT.CAROUSEL.1 — the act's card strip is a real scroll container, but it
+   must never paint a bar: the themed `::-webkit-scrollbar` above would otherwise
+   draw an 8px track straight across the bottom of the cards. Scoped to the strip's
+   own attribute, so nothing outside the carousel stage can be reached by it. The
+   Firefox/legacy-Edge halves of this are inline on the element (ported from the
+   TitiLinks block, which carries the same pair). */
+[data-carousel="true"]::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* Hide the page scrollbar at all widths (scrolling still works via wheel/trackpad/keyboard/touch) */
 @media (min-width: 0px) {
   html,

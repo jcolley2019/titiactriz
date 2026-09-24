@@ -222,6 +222,27 @@ export const eventsRoomPreview = (search: string): EventsRoom | null => {
 };
 
 /**
+ * EVENTS.ACT.CAROUSEL.1 — the DEV-only CARD STAGE preview, read exactly like the
+ * room preview above and for the same reason: a composition this large is judged
+ * in the real flow, on the real board, before it replaces anything.
+ *
+ * `?actstage=carousel` turns the act's card field from the static grid into the
+ * horizontal carousel (drift + swipe + snap) whose cards open the event modal.
+ * Any other value, and every production build, is `null` — the field is the grid
+ * it has always been, byte for byte.
+ *
+ * This switch does NOT stand in for the flag or for any board condition. It only
+ * chooses HOW a lit act stages the cards it already has, so previewing it is
+ * subject to the same three doors as everything else (EVENTS.2b law 7) and can
+ * be combined freely with `?events=A|B|C`.
+ */
+export type EventsStage = "carousel";
+export const eventsStagePreview = (search: string): EventsStage | null => {
+  if (!import.meta.env?.DEV) return null;
+  return new URLSearchParams(search).get("actstage") === "carousel" ? "carousel" : null;
+};
+
+/**
  * PORT.SOC.12 (2026-08-03) — the Socials act is LIVE.
  *
  * Flipped on after the walk: composition B, walked and confirmed by Joey on

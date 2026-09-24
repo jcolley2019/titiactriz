@@ -47,6 +47,13 @@ const BASE_URL = `http://localhost:${PORT}`;
  */
 const CI = !!process.env.CI;
 
+/**
+ * The specs that must run on a real mobile WebKit rather than Chromium
+ * emulation. One list, consumed by both projects below — the chromium project
+ * ignores exactly what the webkit-iphone project claims.
+ */
+const PHONE_SPECS = /events-(snap|carousel)-phone\.spec\.ts/;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -80,16 +87,23 @@ export default defineConfig({
    *
    * Everything else stays exactly where it was: same browser, same viewports, so
    * the rest of the battery is unchanged and comparable to previous runs.
+   *
+   * EVENTS.ACT.CAROUSEL.1 joins the same arrangement rather than inventing a
+   * second one: the carousel's phone laws — touch seizure, snap arming, the
+   * modal's swipe grammar and a fixed dialog inside a GSAP pin — depend on the
+   * same things about mobile Safari, and mobile WebKit additionally refuses
+   * `mouse.wheel` outright. One pattern now names both phone files, so a third
+   * cannot be added to one list and forgotten in the other.
    */
   projects: [
     {
       name: "chromium",
       use: { browserName: "chromium" },
-      testIgnore: /events-snap-phone\.spec\.ts/,
+      testIgnore: PHONE_SPECS,
     },
     {
       name: "webkit-iphone",
-      testMatch: /events-snap-phone\.spec\.ts/,
+      testMatch: PHONE_SPECS,
       use: {
         browserName: "webkit",
         viewport: { width: 440, height: 792 },

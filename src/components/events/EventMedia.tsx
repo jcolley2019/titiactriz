@@ -59,6 +59,36 @@ const CREAM = "#f0e9da";
 /* ── the ratified caps (EVENTS.PORTRAIT.1 / EVENTS.NAV.1), unchanged ── */
 const PORTRAIT_MAX_H = "max-h-[min(560px,70vh)]";
 const LANDSCAPE_MAX_H = "max-h-[420px]";
+
+/**
+ * EVENTS.ACT.CAROUSEL.1 — the LIGHTBOX's own room (`roomy`).
+ *
+ * Every cap above is the size a medium may take while standing IN A PAGE,
+ * beside a heading, an intro and whatever act it belongs to. A card alone on a
+ * full-screen modal stage is not in that situation, and holding it to those
+ * numbers made opening a card pointless: measured on Joey's desktop, the
+ * GREEN WORLD poster came out 548px in the modal against 560px in the strip —
+ * the lightbox was returning the event very slightly SMALLER than the field it
+ * was opened from.
+ *
+ * Joey's ruling, given the trade stated plainly (a bigger poster means the
+ * card's own type scales down with it): POSTER FIRST. So the modal — and only
+ * the modal — lets the medium ask for far more height than the act would. The
+ * card then overflows the stage and the lightbox's contain scales the whole
+ * thing back to fit, which lands the poster near the stage's full height while
+ * keeping the card whole and its proportions exactly as ratified.
+ *
+ * These are written out as WHOLE literal class names rather than composed from
+ * the numbers above, because Tailwind scans source text: a class assembled at
+ * runtime is a class that never gets generated.
+ *
+ * `roomy` and `fillPortrait` are mutually exclusive by construction — the
+ * lightbox passes `roomy` INSTEAD of `fillPortrait`, because that prop's
+ * `max-md:56vh` phone cap would otherwise win on exactly the screen where the
+ * extra room matters most.
+ */
+const PORTRAIT_MAX_H_ROOMY = "max-h-[min(1200px,85vh)]";
+const LANDSCAPE_MAX_H_ROOMY = "max-h-[min(700px,60vh)]";
 /** EVENTS.NAV.1 — the portrait room, opt-in (tablet portrait only). */
 const PORTRAIT_ROOM_MAX_H = "md:portrait:max-h-[min(900px,60vh)]";
 /** EVENTS.NAV.1 FIX — 56vh is Joey's measured number, taken on the device. */
@@ -87,12 +117,14 @@ const wrapperClass = (isFull: boolean, fillPortrait?: boolean) =>
  * landscape keeps the historic full-width 420px band. Identical for img and
  * video — `object-contain` / `object-cover` mean the same thing to both.
  */
-const boxClass = (resolved: ResolvedAspect, fillPortrait?: boolean) =>
+const boxClass = (resolved: ResolvedAspect, fillPortrait?: boolean, roomy?: boolean) =>
   resolved === "portrait"
-    ? `mx-auto w-auto h-auto max-w-full ${PORTRAIT_MAX_H} ${
-        fillPortrait ? `${PHONE_ROOM_MAX_H} ${PORTRAIT_ROOM_MAX_H}` : ""
+    ? `mx-auto w-auto h-auto max-w-full ${roomy ? PORTRAIT_MAX_H_ROOMY : PORTRAIT_MAX_H} ${
+        // `roomy` owns every viewport when it is set — the phone/tablet caps
+        // exist to fit a card into a PAGE, which is not the modal's situation.
+        !roomy && fillPortrait ? `${PHONE_ROOM_MAX_H} ${PORTRAIT_ROOM_MAX_H}` : ""
       } object-contain rounded-md`
-    : `w-full h-auto ${LANDSCAPE_MAX_H} object-cover rounded-md`;
+    : `w-full h-auto ${roomy ? LANDSCAPE_MAX_H_ROOMY : LANDSCAPE_MAX_H} object-cover rounded-md`;
 
 /**
  * EVENTS.MEDIA.EDITOR.1b — the SAME caps, restated for the framed well BOX.
@@ -126,14 +158,20 @@ const boxClass = (resolved: ResolvedAspect, fillPortrait?: boolean) =>
  *
  * Images are untouched: a still keeps PORTRAIT.1's own-ratio law exactly.
  */
-const videoWellClass = (orientation: "portrait" | "landscape", fillPortrait?: boolean) =>
+const videoWellClass = (
+  orientation: "portrait" | "landscape",
+  fillPortrait?: boolean,
+  roomy?: boolean,
+) =>
   orientation === "portrait"
-    ? `mx-auto w-full max-w-[min(100%,calc(min(560px,70vh)*9/16))] ${
-        fillPortrait
-          ? "max-md:max-w-[min(100%,calc(56vh*9/16))] md:portrait:max-w-[min(100%,calc(min(900px,60vh)*9/16))]"
-          : ""
-      } rounded-md`
-    : `w-full ${LANDSCAPE_MAX_H} rounded-md`;
+    ? roomy
+      ? "mx-auto w-full max-w-[min(100%,calc(min(1200px,85vh)*9/16))] rounded-md"
+      : `mx-auto w-full max-w-[min(100%,calc(min(560px,70vh)*9/16))] ${
+          fillPortrait
+            ? "max-md:max-w-[min(100%,calc(56vh*9/16))] md:portrait:max-w-[min(100%,calc(min(900px,60vh)*9/16))]"
+            : ""
+        } rounded-md`
+    : `w-full ${roomy ? LANDSCAPE_MAX_H_ROOMY : LANDSCAPE_MAX_H} rounded-md`;
 
 /** The design box's own ratio — inline so the primitive's intrinsic-ratio
  * style cannot override it (later spread wins in the primitive).
@@ -147,18 +185,25 @@ const videoWellClass = (orientation: "portrait" | "landscape", fillPortrait?: bo
  * line under the card's media — Joey's desktop defect. The shadow had no other
  * visible state than that leak (and the pre-load empty well, which now shows
  * the plain well ground), so it is removed rather than papered over. */
-const videoWellStyle = (orientation: "portrait" | "landscape"): React.CSSProperties => ({
+const videoWellStyle = (
+  orientation: "portrait" | "landscape",
+  roomy?: boolean,
+): React.CSSProperties => ({
   aspectRatio: orientation === "portrait" ? "9 / 16" : "16 / 9",
-  maxHeight: orientation === "landscape" ? 420 : undefined,
+  // Inline wins over the class, so the act's 420 is withheld in the modal and
+  // LANDSCAPE_MAX_H_ROOMY is left to do the capping.
+  maxHeight: orientation === "landscape" && !roomy ? 420 : undefined,
 });
-const framedBoxClass = (resolved: ResolvedAspect, fillPortrait?: boolean) =>
+const framedBoxClass = (resolved: ResolvedAspect, fillPortrait?: boolean, roomy?: boolean) =>
   resolved === "portrait"
-    ? `mx-auto w-full h-auto max-w-[min(100%,calc(min(560px,70vh)*var(--evf-ar)),calc(var(--evf-nw)*1px))] ${
-        fillPortrait
-          ? "max-md:max-w-[min(100%,calc(56vh*var(--evf-ar)),calc(var(--evf-nw)*1px))] md:portrait:max-w-[min(100%,calc(min(900px,60vh)*var(--evf-ar)),calc(var(--evf-nw)*1px))]"
-          : ""
-      } rounded-md`
-    : `w-full h-auto ${LANDSCAPE_MAX_H} rounded-md`;
+    ? roomy
+      ? "mx-auto w-full h-auto max-w-[min(100%,calc(min(1200px,85vh)*var(--evf-ar)),calc(var(--evf-nw)*1px))] rounded-md"
+      : `mx-auto w-full h-auto max-w-[min(100%,calc(min(560px,70vh)*var(--evf-ar)),calc(var(--evf-nw)*1px))] ${
+          fillPortrait
+            ? "max-md:max-w-[min(100%,calc(56vh*var(--evf-ar)),calc(var(--evf-nw)*1px))] md:portrait:max-w-[min(100%,calc(min(900px,60vh)*var(--evf-ar)),calc(var(--evf-nw)*1px))]"
+            : ""
+        } rounded-md`
+    : `w-full h-auto ${roomy ? LANDSCAPE_MAX_H_ROOMY : LANDSCAPE_MAX_H} rounded-md`;
 
 /**
  * Which stored record this viewport renders: the image's device class at the
@@ -217,12 +262,14 @@ const EventImage = ({
   isFull,
   aspect,
   fillPortrait,
+  roomy,
 }: {
   src: string;
   alt: string;
   isFull: boolean;
   aspect: ImageAspect;
   fillPortrait?: boolean;
+  roomy?: boolean;
 }) => {
   const { resolved, measure } = useResolvedAspect(aspect);
   return (
@@ -235,7 +282,7 @@ const EventImage = ({
         data-aspect={resolved}
         data-aspect-source={aspect}
         onLoad={(e) => measure(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
-        className={boxClass(resolved, fillPortrait)}
+        className={boxClass(resolved, fillPortrait, roomy)}
         style={{ border: `1px solid ${GOLD}` }}
       />
     </div>
@@ -257,6 +304,7 @@ const EventStillImage = ({
   isFull,
   aspect,
   fillPortrait,
+  roomy,
   framing,
 }: {
   src: string;
@@ -264,6 +312,7 @@ const EventStillImage = ({
   isFull: boolean;
   aspect: ImageAspect;
   fillPortrait?: boolean;
+  roomy?: boolean;
   framing?: ClassFramingPair;
 }) => {
   const { resolved, measure } = useResolvedAspect(aspect);
@@ -277,7 +326,7 @@ const EventStillImage = ({
         focal={rec.focal}
         zoom={rec.zoom}
         fit="fill"
-        boxClassName={framedBoxClass(resolved, fillPortrait)}
+        boxClassName={framedBoxClass(resolved, fillPortrait, roomy)}
         imgDataQa="event-card-image"
         mediaAttrs={{ "data-aspect": resolved, "data-aspect-source": aspect }}
         loading="lazy"
@@ -306,6 +355,7 @@ const EventUploadedVideo = ({
   isFull,
   aspect,
   fillPortrait,
+  roomy,
   framing,
 }: {
   src: string;
@@ -314,6 +364,7 @@ const EventUploadedVideo = ({
   isFull: boolean;
   aspect: ImageAspect;
   fillPortrait?: boolean;
+  roomy?: boolean;
   framing?: HeroVideoFraming;
 }) => {
   const reduced = useReducedMotion();
@@ -333,8 +384,8 @@ const EventUploadedVideo = ({
         autoPlay={!reduced}
         controls={reduced}
         ariaLabel={title || undefined}
-        boxClassName={videoWellClass(orientation, fillPortrait)}
-        boxStyle={videoWellStyle(orientation)}
+        boxClassName={videoWellClass(orientation, fillPortrait, roomy)}
+        boxStyle={videoWellStyle(orientation, roomy)}
         videoDataQa="event-card-video"
         mediaAttrs={{
           "data-aspect": orientation,
@@ -374,6 +425,7 @@ const EventSocialEmbed = ({
   isFull,
   aspect,
   fillPortrait,
+  roomy,
   admin,
 }: {
   video: EventSocialVideo;
@@ -382,6 +434,7 @@ const EventSocialEmbed = ({
   isFull: boolean;
   aspect: ImageAspect;
   fillPortrait?: boolean;
+  roomy?: boolean;
   admin?: boolean;
 }) => {
   const { t } = useTranslation();
@@ -413,7 +466,7 @@ const EventSocialEmbed = ({
             data-aspect={shape}
             data-aspect-source={aspect}
             onLoad={(e) => measure(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
-            className={boxClass(shape, fillPortrait)}
+            className={boxClass(shape, fillPortrait, roomy)}
             // Hidden, never unmounted: it is the box's sizer for the embed above.
             style={{ visibility: showEmbed ? "hidden" : undefined }}
           />
@@ -423,10 +476,10 @@ const EventSocialEmbed = ({
             data-qa="event-card-poster-empty"
             className={`${
               shape === "portrait"
-                ? `mx-auto aspect-[9/16] w-full ${PORTRAIT_MAX_H} ${
-                    fillPortrait ? `${PHONE_ROOM_MAX_H} ${PORTRAIT_ROOM_MAX_H}` : ""
+                ? `mx-auto aspect-[9/16] w-full ${roomy ? PORTRAIT_MAX_H_ROOMY : PORTRAIT_MAX_H} ${
+                    !roomy && fillPortrait ? `${PHONE_ROOM_MAX_H} ${PORTRAIT_ROOM_MAX_H}` : ""
                   }`
-                : `aspect-video w-full ${LANDSCAPE_MAX_H}`
+                : `aspect-video w-full ${roomy ? LANDSCAPE_MAX_H_ROOMY : LANDSCAPE_MAX_H}`
             } rounded-md`}
             style={{ backgroundColor: "#13110d" }}
           />
@@ -475,6 +528,7 @@ const EventMedia = ({
   alt,
   isFull,
   fillPortrait,
+  roomy,
   admin,
 }: {
   item: {
@@ -488,6 +542,12 @@ const EventMedia = ({
   alt: string;
   isFull: boolean;
   fillPortrait?: boolean;
+  /**
+   * EVENTS.ACT.CAROUSEL.1 — this medium is standing ALONE on a full-screen
+   * modal stage, not inside a page, so it may claim the lightbox's room rather
+   * than the act's. Set by EventLightbox and by nothing else.
+   */
+  roomy?: boolean;
   /** Admin surfaces only: report a link the app could not read. Never public. */
   admin?: boolean;
 }) => {
@@ -506,6 +566,7 @@ const EventMedia = ({
         isFull={isFull}
         aspect={aspect}
         fillPortrait={fillPortrait}
+        roomy={roomy}
         framing={item.imageFraming}
       />
     );
@@ -520,6 +581,7 @@ const EventMedia = ({
         isFull={isFull}
         aspect={aspect}
         fillPortrait={fillPortrait}
+        roomy={roomy}
         framing={item.videoFraming}
       />
     );
@@ -537,6 +599,7 @@ const EventMedia = ({
             isFull={isFull}
             aspect={aspect}
             fillPortrait={fillPortrait}
+            roomy={roomy}
           />
         )}
         {admin && <AdminMediaWarning>{t("events.admin.linkUnreadable")}</AdminMediaWarning>}
@@ -552,6 +615,7 @@ const EventMedia = ({
       isFull={isFull}
       aspect={aspect}
       fillPortrait={fillPortrait}
+      roomy={roomy}
       admin={admin}
     />
   );

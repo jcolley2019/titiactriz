@@ -141,6 +141,7 @@ const EventCard = ({
   lang,
   fillPortrait,
   fillCell,
+  roomy,
   admin,
 }: {
   item: EventItem;
@@ -160,6 +161,18 @@ const EventCard = ({
    * no screen-tall cell to centre inside.
    */
   fillCell?: boolean;
+  /**
+   * EVENTS.ACT.CAROUSEL.1 — this card is standing ALONE on the event modal's
+   * full-screen stage rather than inside a page, so its medium may claim the
+   * lightbox's room instead of the act's. Joey's poster-first ruling: the
+   * medium grows and the card's own type scales down with it, because on these
+   * cards the poster IS the event — the date, the hour and the message are all
+   * inside the artwork, and the card's text mostly repeats them.
+   *
+   * Set by EventLightbox alone. Every other surface leaves it unset and renders
+   * exactly the geometry it always has.
+   */
+  roomy?: boolean;
   /**
    * EVENTS.VIDEO.1 — this card is standing in an ADMIN surface, so a medium
    * that could not be rendered may say so out loud. Never set on a public
@@ -235,6 +248,7 @@ const EventCard = ({
       alt={title || ""}
       isFull={isFull}
       fillPortrait={fillPortrait}
+      roomy={roomy}
       admin={admin}
     />
   );
