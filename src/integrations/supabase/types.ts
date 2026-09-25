@@ -307,6 +307,56 @@ export type Database = {
         }
         Relationships: []
       }
+      studio_generations: {
+        Row: {
+          blog_post_id: string | null
+          created_at: string
+          formats: string[]
+          id: string
+          input_kind: string
+          input_text: string
+          language: string
+          outputs: Json
+          platforms: string[]
+          source_url: string | null
+          usage: Json | null
+        }
+        Insert: {
+          blog_post_id?: string | null
+          created_at?: string
+          formats: string[]
+          id?: string
+          input_kind: string
+          input_text: string
+          language: string
+          outputs: Json
+          platforms: string[]
+          source_url?: string | null
+          usage?: Json | null
+        }
+        Update: {
+          blog_post_id?: string | null
+          created_at?: string
+          formats?: string[]
+          id?: string
+          input_kind?: string
+          input_text?: string
+          language?: string
+          outputs?: Json
+          platforms?: string[]
+          source_url?: string | null
+          usage?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_generations_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

@@ -23,6 +23,16 @@
       "ezbr_sha256": "cf551a9950c0dc10c6b531c3227afc737b6a5261d28ae500835dab0f94486d1f",
       "version": 1,
       "verifiedInSync": "2026-08-04 — first deploy (EVENTS.I18N.1), walked through the UNFURL.DEPLOY.1 recipe: deployed, sha read from `npx supabase functions list` immediately after, slug ledgered in the SAME commit. Live verify_jwt=true, so the admin's own session token is what authorises it — the function then re-checks has_role('admin') itself, exactly as generate-alt-text does."
+    },
+    "generate-content": {
+      "ezbr_sha256": "508f70880fd08b216629f757ca3976ee7ac71fdb7a5bb950841e307c20713c49",
+      "version": 1,
+      "verifiedInSync": "2026-09-25 — first deploy (BLOG.2 step 1): deployed with `supabase functions deploy generate-content`, sha read from `npx supabase functions list` immediately after, slug ledgered in the SAME commit. Live verify_jwt=true; the function re-checks has_role('admin') itself, as translate-text does. Smoke: one ES blog call (web_search off) streamed 200 with a done event."
+    },
+    "youtube-transcript": {
+      "ezbr_sha256": "8c1622cb5d428642b496e5a9df4130bf92665812187e2d069ec4ff03afb8a476",
+      "version": 1,
+      "verifiedInSync": "2026-09-25 — first deploy (BLOG.2 step 1), same recipe. Live verify_jwt=true plus the has_role('admin') re-check. Smoke: admin call reached YouTube and returned 500 'No captions available' — the ported joeyc.ai scraper, not the gate (see BLOG.2 step 1 report)."
     }
   }
 }
