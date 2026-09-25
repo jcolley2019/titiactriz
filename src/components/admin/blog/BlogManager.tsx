@@ -41,6 +41,7 @@ import {
 } from "@/lib/blog";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import ImagePicker from "@/components/admin/media/ImagePicker";
+import { useAdminIntent } from "@/components/admin/AdminShell";
 
 /**
  * BLOG.1 — Titi writes, translates and publishes blog posts.
@@ -1001,6 +1002,8 @@ const BlogManager = () => {
   const [loadFailed, setLoadFailed] = useState(false);
   /** undefined = the list; null = a new post; a post = editing it. */
   const [editing, setEditing] = useState<BlogPost | null | undefined>(undefined);
+  // BLOG.2 — the Studio's Publish lands here with the new draft to open.
+  const open = useAdminIntent<{ postId: string }>("blog");
 
   useEffect(() => {
     let cancelled = false;
@@ -1025,6 +1028,13 @@ const BlogManager = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (loading || !open.data) return;
+    const post = posts.find((p) => p.id === open.data?.postId);
+    if (post) setEditing(post);
+    open.clear();
+  }, [loading, posts, open]);
 
   const onSaved = useCallback((saved: BlogPost) => {
     setPosts((prev) =>

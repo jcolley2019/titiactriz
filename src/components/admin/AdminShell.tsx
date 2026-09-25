@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -44,6 +44,33 @@ export function forgetAdminSection() {
   }
 }
 
+/**
+ * BLOG.2 — a section can send the admin to another section with an intent for
+ * it (the Studio's Publish lands on Blog with the new draft open). The intent
+ * is held here, read once by the target section, and then cleared.
+ */
+export type AdminIntent = { section: string; data: unknown };
+
+type AdminNav = {
+  goTo: (sectionId: string, data?: unknown) => void;
+  intent: AdminIntent | null;
+  clearIntent: () => void;
+};
+
+const AdminNavContext = createContext<AdminNav>({
+  goTo: () => {},
+  intent: null,
+  clearIntent: () => {},
+});
+
+export const useAdminNav = () => useContext(AdminNavContext);
+
+/** The intent addressed to `sectionId`, if one is waiting. */
+export function useAdminIntent<T>(sectionId: string): { data: T | null; clear: () => void } {
+  const { intent, clearIntent } = useAdminNav();
+  return { data: intent?.section === sectionId ? (intent.data as T) : null, clear: clearIntent };
+}
+
 function rememberedSection(sections: AdminSection[]) {
   try {
     const id = localStorage.getItem(ADMIN_SECTION_KEY);
@@ -56,17 +83,31 @@ function rememberedSection(sections: AdminSection[]) {
 
 const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props) => {
   const [activeId, setActiveId] = useState(() => rememberedSection(sections));
-  const pick = (id: string) => {
+  const [intent, setIntent] = useState<AdminIntent | null>(null);
+  const pick = useCallback((id: string) => {
     setActiveId(id);
     try {
       localStorage.setItem(ADMIN_SECTION_KEY, id);
     } catch {
       /* storage unavailable — the choice lasts for this visit only */
     }
-  };
+  }, []);
+  const nav = useMemo<AdminNav>(
+    () => ({
+      goTo: (id, data) => {
+        setIntent(data === undefined ? null : { section: id, data });
+        pick(id);
+        window.scrollTo({ top: 0 });
+      },
+      intent,
+      clearIntent: () => setIntent(null),
+    }),
+    [intent, pick],
+  );
   const active = sections.find((s) => s.id === activeId) ?? sections[0];
 
   return (
+    <AdminNavContext.Provider value={nav}>
     <div data-qa="admin-shell" className="max-w-6xl mx-auto px-4 pt-28 pb-16">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
@@ -92,7 +133,10 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props
               key={s.id}
               type="button"
               data-qa={`admin-nav-${s.id}`}
-              onClick={() => pick(s.id)}
+              onClick={() => {
+                setIntent(null);
+                pick(s.id);
+              }}
               aria-current={isActive ? "page" : undefined}
               className={`relative flex items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors ${
                 isActive
@@ -119,6 +163,7 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props
         </section>
       )}
     </div>
+    </AdminNavContext.Provider>
   );
 };
 

@@ -72,6 +72,7 @@ import CinematicMediaManager from "@/components/admin/media/CinematicMediaManage
 import PortfolioManager from "@/components/admin/PortfolioManager";
 import LinksManager from "@/components/admin/LinksManager";
 import BlogManager from "@/components/admin/blog/BlogManager";
+import StudioPanel from "@/components/admin/studio/StudioPanel";
 
 type Photo = {
   id: string;
@@ -1393,6 +1394,13 @@ const adminSections = (t: (key: string) => string): AdminSection[] => [
     label: t("admin.shell.sections.blog"),
     icon: <PenLine />,
     content: <BlogManager />,
+  },
+  {
+    // BLOG.2 — Titi's Content Studio: brain dump or YouTube in, blog and social out.
+    id: "studio",
+    label: t("admin.shell.sections.studio"),
+    icon: <Sparkles />,
+    content: <StudioPanel />,
   },
   {
     id: "settings",

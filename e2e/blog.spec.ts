@@ -133,13 +133,14 @@ test.describe("BLOG.1 admin", () => {
     await expect(page.locator('[data-qa="blog-empty"]')).toBeVisible();
     await expect(page.locator('[data-qa="blog-row"]')).toHaveCount(0);
     await expect(page.locator('[data-qa="blog-new"]')).toBeEnabled();
-    // The section sits between Events and Settings.
+    // The section sits between Events and the Studio (BLOG.2 put Studio between Blog and Settings).
     const ids = await page
       .locator('[data-qa="admin-nav"] button')
       .evaluateAll((els) => els.map((e) => e.getAttribute("data-qa")));
     const at = ids.indexOf("admin-nav-blog");
     expect(ids[at - 1]).toBe("admin-nav-events");
-    expect(ids[at + 1]).toBe("admin-nav-settings");
+    expect(ids[at + 1]).toBe("admin-nav-studio");
+    expect(ids[at + 2]).toBe("admin-nav-settings");
   });
 
   test("P2 a Spanish post: auto slug, translated on save, written as a draft", async ({ page }) => {

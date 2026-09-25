@@ -12,6 +12,15 @@ colors:
   gw-deep-green: "#0B5D2A"
   admin-charcoal: "#121212"
   admin-tan: "#C4A86C"
+  studio-luxe-bg: "#faf6f0"
+  studio-luxe-card: "#f5efe6"
+  studio-luxe-text: "#1a1008"
+  studio-luxe-text-2: "#3d2b1f"
+  studio-luxe-border: "#d4c5a9"
+  studio-luxe-gold: "#b8860b"
+  studio-luxe-gold-hover: "#d4a017"
+  studio-luxe-error: "#9b2c2c"
+  studio-dark-error: "#e8a598"
 typography:
   display:
     fontFamily: "Cinzel, 'Cormorant Garamond', Georgia, serif"
@@ -34,6 +43,39 @@ typography:
     fontSize: "0.75rem"
     fontWeight: 500
     letterSpacing: "0.25em"
+  studio-eyebrow:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "14px"
+    fontWeight: 700
+    letterSpacing: "0.25em"
+  studio-label:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "15px"
+    fontWeight: 700
+    letterSpacing: "0.12em"
+  studio-body-compact:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "16px"
+    fontWeight: 500
+    lineHeight: 1.6
+  studio-body:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "17px"
+    fontWeight: 500
+    lineHeight: 1.6
+  studio-subhead:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "20px"
+    fontWeight: 700
+  studio-heading:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "22px"
+    fontWeight: 700
+  studio-title:
+    fontFamily: "'Cormorant Garamond', Cinzel, Jost, Georgia, serif"
+    fontSize: "28px"
+    fontWeight: 700
+    lineHeight: 1.15
 rounded:
   sharp: "0px"
   admin: "0.5rem"
@@ -337,6 +379,50 @@ needs a box to be readable, the veil is wrong, not the type.
 **The Parity Rule.** Every string ships in Spanish and English. ES and EN locale
 files are held at exact key parity (625 / 625 today). Spanish is primary; English
 is parity, not a follow-up.
+
+
+### Studio ramp (BLOG.2, 2026-09-25)
+
+The admin's Content Studio (Admin › Estudio) is the one admin surface with its
+own governed type and palette. Joey, verbatim: "the fonts are too small and kind
+of difficult to read"; "we don't want this to be the same blue color scheme we
+will want to use the luxe lighter theme and possibly do a dark theme with the
+titiactriz standard colors for the dark mode". Every value is written once, in
+`src/styles/studio.css`, scoped under `.studio` — the components carry no
+literals, so the detector governs the Studio even though it skips
+`src/components/admin/**`. Nothing leaks: the rest of the admin keeps the
+legacy tokens whichever theme the Studio is in.
+
+**Sizes** (frontmatter `studio-*` roles). Built for a laptop or an iPad — she
+"will never do the blog from her phone" — so body is 17px from 1024px and 16px
+below it. Labels and eyebrows sit one step above the joeyc.ai Command Center
+they were ported from (its 13px eyebrow and 14px labels).
+
+- **Eyebrow** `14px`, tracking `0.25em`, uppercase, gold — the "Estudio" kicker.
+- **Label** `15px`, tracking `0.12em` (`0.16em` dark), uppercase — section
+  titles (Entrada / Salida / Historial) and field labels. Captions share the step.
+- **Body** `17px` ≥1024, **Body compact** `16px` below — text, inputs, tabs, choices.
+- **Subhead** `20px`, **Heading** `22px`, **Title** `28px` — the article
+  preview's H3 / H2 / H1; Title is also the Studio's own heading (the
+  **Headline** floor, so the step already existed).
+
+**Light — Luxe (default).** Ground `#faf6f0`, cards `#f5efe6`, ink `#1a1008`,
+secondary ink `#3d2b1f`, borders `#d4c5a9`, gold `#b8860b` (hover
+`#d4a017`), error `#9b2c2c`. Cormorant Garamond throughout at 500 / 700 —
+the serif is set heavier than the public site because it is read, not glanced
+at. The Generate button is solid gold with ink text (`#1a1008` on
+`#b8860b`), not cream on gold, which does not hold AA at this size.
+
+**Dark — the site.** The public room's tokens: ground `#0b0a08`, cards
+`#12100c`, fields `#0e0c09`, ivory `#f4ecdb`, secondary ivory-dim at
+`0.78`, gold `#C9A55C` on the alpha ladder (structure `0.35` borders, frame
+`0.55` edges, atmosphere `0.12` selected fills), error `#e8a598`. Cinzel
+for display, Jost 400 for text (the site's 300 is too light for a working
+screen). One Filament holds: in dark, Generate is a gold outline, never a gold
+fill.
+
+The theme toggle lives in the Studio header and is remembered per browser
+(`localStorage` `studio.theme`).
 
 ## Layout
 
