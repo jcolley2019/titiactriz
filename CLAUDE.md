@@ -38,6 +38,9 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
   `npx impeccable detect src --json` — 0 new vs 46 (baseline, .impeccable/config.json).
   When edge functions are in play, also `npm run drift` (compares deployed function shas
   against `supabase/functions/deploy-ledger.json`; needs an authenticated Supabase CLI).
+- Known flakes (pass on retry; treat as a regression only if they repeat): framesplit capture,
+  marquee/Lenis momentum, reel wide-ES, titilinks-act TA.8 mobile ("About unobstructed"),
+  seq-lab gw-port-1080 scrub.
 - Supabase: live project ref `nsmstwkjbjicpdclgecq` ("TitiActriz"). Deploys: Vercel →
   titiactriz.com. Everything under `public/` deploys publicly — no stray files.
 

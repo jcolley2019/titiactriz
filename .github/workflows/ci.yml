@@ -49,10 +49,13 @@ jobs:
           cache: npm
       - run: npm ci
 
-      # Chromium only — playwright.config.ts declares no projects, so the battery
-      # has always run on the one browser. Installing the other two would be
-      # ~200MB of download per shard for nothing.
-      - run: npx playwright install --with-deps chromium
+      # Chromium AND WebKit. playwright.config.ts declares two projects: chromium
+      # runs the battery, and webkit-iphone runs the phone snap/carousel laws
+      # (PHONE_SPECS) at Joey's device truth; seo-bing's B2 test also launches
+      # WebKit itself. CI.1b: installing Chromium alone left every WebKit test
+      # failing at browser launch from e2d7522 (2026-08-10) until 1a2c670.
+      # Firefox is not used anywhere, so it is still not installed.
+      - run: npx playwright install --with-deps chromium webkit
 
       # No serve step: playwright.config.ts owns the webServer and boots
       # `npm run dev` itself. It must be the DEV server, not a build+preview —
