@@ -1,13 +1,14 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./_admin";
 import { studioDraft, uniqueSlug, firstParagraph } from "../src/lib/studio/publish";
+import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
 
 /**
  * BLOG.2 step 3 — the Content Studio, end to end, with generate-content and
  * youtube-transcript mocked (no model is ever called from this suite).
  *
  *   S1 brain dump → Generate (blog + TikTok + Instagram) → three tabs
- *   S2 YouTube link → transcript preview → Generate
+ *   S2 YouTube shows "Próximamente" (BLOG.2b: the deployed function gets 403)
  *   S3 narration leaked into the stream → the article shows without it
  *   S4 Publish → a blog_posts DRAFT, Blog tab open on it, other language pending
  *   S5 History lists a generation and reopens it
@@ -268,22 +269,33 @@ test.describe("BLOG.2 Content Studio", () => {
     expect(Object.keys(row.outputs.social).sort()).toEqual(["instagram", "tiktok"]);
   });
 
-  test("S2 YouTube link → transcript preview → Generate uses the transcript", async ({ page }) => {
+  test("S2 YouTube is 'Próximamente' while YOUTUBE_INPUT_ENABLED is false: no tab, no transcript call", async ({ page }) => {
+    // BLOG.2b — the deployed youtube-transcript gets 403 from YouTube, so the
+    // Studio offers only the Brain Dump. Flip the constant in src/lib/ventures.ts
+    // only once the DEPLOYED function returns captions, and restore the
+    // link → transcript → Generate path here in the same commit.
+    expect(YOUTUBE_INPUT_ENABLED).toBe(false);
     const mock = await setup(page);
     await openStudio(page);
-    await page.locator('[data-qa="studio-input-youtube"]').click();
-    await page.locator('[data-qa="studio-yt-url"]').fill("https://www.youtube.com/watch?v=abcdefghijk");
-    await page.locator('[data-qa="studio-yt-fetch"]').click();
-    await expect(page.locator('[data-qa="studio-transcript"]')).toHaveText(TRANSCRIPT);
-    expect(mock.ytCalls).toEqual([{ url: "https://www.youtube.com/watch?v=abcdefghijk" }]);
+    const soon = page.locator('[data-qa="studio-input-youtube-soon"]');
+    await expect(soon).toHaveText("YouTube · Próximamente");
+    await expect(soon).toHaveAttribute("aria-disabled", "true");
+    await expect(page.locator('[data-qa="studio-input-youtube"]')).toHaveCount(0);
+    await soon.click();
+    await expect(page.locator('[data-qa="studio-yt-url"]')).toHaveCount(0);
+    await expect(page.locator('[data-qa="studio-brain-dump"]')).toBeVisible();
 
+    await page.locator('[data-qa="studio-brain-dump"]').fill("Una idea para TikTok.");
     await page.locator('[data-qa="studio-generate"]').click();
     await expect(page.locator('[data-qa="studio-social"]')).toContainText("Hook de tiktok");
-    expect(mock.genCalls).toEqual([
-      expect.objectContaining({ input_kind: "youtube", input_text: TRANSCRIPT, output_format: "social", platform: "tiktok" }),
-    ]);
-    const [row] = inserts(mock, "studio_generations");
-    expect(row).toMatchObject({ input_kind: "youtube", source_url: "https://www.youtube.com/watch?v=abcdefghijk", input_text: TRANSCRIPT });
+    expect(mock.ytCalls).toEqual([]);
+    expect(mock.genCalls).toEqual([expect.objectContaining({ input_kind: "brain_dump", input_text: "Una idea para TikTok." })]);
+  });
+
+  test("S2 in English the note reads 'Coming soon'", async ({ page }) => {
+    await setup(page, { lang: "en" });
+    await openStudio(page);
+    await expect(page.locator('[data-qa="studio-input-youtube-soon"]')).toHaveText("YouTube · Coming soon");
   });
 
   test("S3 narration glued in front of the article never reaches the preview", async ({ page }) => {

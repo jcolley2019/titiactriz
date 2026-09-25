@@ -300,3 +300,18 @@ export const SOCIALS_ACT_VARIANT: "A" | "B" | "C" | null = "B";
  * refresh control's failures mean a real failure again.
  */
 export const UNFURL_DEPLOYED = true;
+
+/**
+ * BLOG.2b (2026-09-25) — the Content Studio's YouTube input.
+ *
+ * youtube-transcript is deployed and admin-gated, and its player-API approach
+ * (YouTube's Android client) returns captions from a home connection: 5,984
+ * characters (Spanish, AhkB-Q5K4ZQ) and 17,574 (English, iG9CE55wbtY) on
+ * 2026-09-25. From the DEPLOYED function YouTube answers the player request
+ * with 403 for both, so the input cannot work there. Per the brief, the
+ * scraper is not iterated further: the Studio shows YouTube as "Próximamente"
+ * / "Coming soon" and offers only the Brain Dump while this is false. The
+ * function stays deployed. Flip to true only after the DEPLOYED function has
+ * returned real captions.
+ */
+export const YOUTUBE_INPUT_ENABLED = false;

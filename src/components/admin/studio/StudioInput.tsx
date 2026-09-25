@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Loader2, Mic, Pause, Play, Square } from "lucide-react";
 import type { InputKind } from "./useStudioGeneration";
 import { useVoiceRecorder } from "./useVoiceRecorder";
+import { YOUTUBE_INPUT_ENABLED } from "@/lib/ventures";
 
 /**
  * BLOG.2 — the INPUT column (joeyc.ai InputPanel + YouTubeInput): a Brain Dump
@@ -110,22 +111,29 @@ const StudioInput = ({
       </div>
 
       <div className="st-segment" role="tablist" aria-label={t("admin.studio.input")}>
-        {(["brain_dump", "youtube"] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            role="tab"
-            className="st-tab"
-            data-qa={`studio-input-${k}`}
-            aria-selected={kind === k}
-            onClick={() => onKindChange(k)}
-          >
-            {k === "brain_dump" ? t("admin.studio.tabBrainDump") : t("admin.studio.tabYoutube")}
-          </button>
-        ))}
+        {(["brain_dump", "youtube"] as const).map((k) =>
+          k === "youtube" && !YOUTUBE_INPUT_ENABLED ? (
+            // BLOG.2b — the deployed transcript function cannot reach YouTube yet.
+            <span key={k} className="st-tab st-tab-soon" data-qa="studio-input-youtube-soon" aria-disabled="true">
+              {t("admin.studio.tabYoutube")} · {t("admin.studio.ytComingSoon")}
+            </span>
+          ) : (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              className="st-tab"
+              data-qa={`studio-input-${k}`}
+              aria-selected={kind === k}
+              onClick={() => onKindChange(k)}
+            >
+              {k === "brain_dump" ? t("admin.studio.tabBrainDump") : t("admin.studio.tabYoutube")}
+            </button>
+          ),
+        )}
       </div>
 
-      {kind === "brain_dump" ? (
+      {kind === "brain_dump" || !YOUTUBE_INPUT_ENABLED ? (
         <>
           {recorder.isSupported && (
             <div className="st-recorder" data-live={recorder.isRecording && !recorder.isPaused ? "true" : "false"}>

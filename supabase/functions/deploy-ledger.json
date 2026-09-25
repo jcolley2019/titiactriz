@@ -30,9 +30,9 @@
       "verifiedInSync": "2026-09-25 — first deploy (BLOG.2 step 1): deployed with `supabase functions deploy generate-content`, sha read from `npx supabase functions list` immediately after, slug ledgered in the SAME commit. Live verify_jwt=true; the function re-checks has_role('admin') itself, as translate-text does. Smoke: one ES blog call (web_search off) streamed 200 with a done event."
     },
     "youtube-transcript": {
-      "ezbr_sha256": "8c1622cb5d428642b496e5a9df4130bf92665812187e2d069ec4ff03afb8a476",
-      "version": 1,
-      "verifiedInSync": "2026-09-25 — first deploy (BLOG.2 step 1), same recipe. Live verify_jwt=true plus the has_role('admin') re-check. Smoke: admin call reached YouTube and returned 500 'No captions available' — the ported joeyc.ai scraper, not the gate (see BLOG.2 step 1 report)."
+      "ezbr_sha256": "9e16ece62bf38c9a9bc6ae14124170d6e80d25b3f51666a7580f07ca4e726800",
+      "version": 2,
+      "verifiedInSync": "2026-09-25 — BLOG.2b redeploy: captions via YouTube's player API (Android client) instead of the watch page; sha read from `npx supabase functions list` immediately after the deploy, ledgered in the SAME commit. Live verify_jwt=true plus the has_role('admin') re-check. Deployed test as admin: 500 'YouTube player request failed (403)' for both a Spanish (AhkB-Q5K4ZQ) and an English (iG9CE55wbtY) video — YouTube refuses the function's egress, while the same code returns 5,984 / 17,574 characters from a home connection. The Studio hides the input (YOUTUBE_INPUT_ENABLED=false); the function stays deployed."
     }
   }
 }

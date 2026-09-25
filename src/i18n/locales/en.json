@@ -858,6 +858,7 @@
       "ytFetching": "Fetching…",
       "ytTranscript": "Transcript ({{chars}} characters)",
       "ytError": "Could not get the transcript: {{reason}}",
+      "ytComingSoon": "Coming soon",
       "output": "Output",
       "outputDesc": "Choose formats and platforms, then generate.",
       "format": "Format",

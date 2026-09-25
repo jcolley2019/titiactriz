@@ -858,6 +858,7 @@
       "ytFetching": "Trayendo…",
       "ytTranscript": "Transcripción ({{chars}} caracteres)",
       "ytError": "No se pudo traer la transcripción: {{reason}}",
+      "ytComingSoon": "Próximamente",
       "output": "Salida",
       "outputDesc": "Elige formatos y plataformas, y genera.",
       "format": "Formato",

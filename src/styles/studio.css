@@ -260,6 +260,13 @@
   cursor: pointer;
   white-space: nowrap;
 }
+.studio .st-tab-soon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  opacity: 0.6;
+}
 .studio .st-tab[aria-selected="true"],
 .studio .st-tab[aria-checked="true"] {
   background: var(--st-gold-wash);
