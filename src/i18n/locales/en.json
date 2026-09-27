@@ -875,6 +875,8 @@
       "language": "Content language",
       "langEs": "Spanish",
       "langEn": "English",
+      "webSearchToggle": "Research on the web",
+      "webSearchHint": "Slower, with today's facts",
       "generate": "Generate",
       "generating": "Generating…",
       "statusResearching": "Researching…",

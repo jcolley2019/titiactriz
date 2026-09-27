@@ -203,6 +203,11 @@ Before writing, identify a **primary keyword** (the main search term someone wou
 - Work it into 2-3 H2/H3 headers
 - Use it naturally throughout the body (don't keyword-stuff)
 
+## Links — MANDATORY
+**Links she gives:** if the input contains a web address, or names something she is promoting together with a code or a place to sign up, keep it as a Markdown link in the body where it belongs and again in the CTA. The visible text is her address exactly as she wrote it; the link target is that address with https:// in front when she left it off. Never invent, shorten or "fix" an address, and never add a promotional or sign-up link that is not in the input. Source citations from web research are the one exception.
+
+**Her own pages:** link naturally to one or two of these when the article touches them — https://www.titiactriz.com/#about (who she is), https://www.titiactriz.com/green-world (Green World), https://www.titiactriz.com/events (her lives and appearances), https://www.titiactriz.com/blog (more articles). Never link to any other page of the site.
+
 **OUTPUT THE FOLLOWING AT THE VERY TOP, before the article:**
 
 \`\`\`meta
@@ -274,5 +279,8 @@ export function derivativePrompt(platform: Platform): string {
     "You are reformatting an existing blog article into a different content format. The blog has already been written — your job is to distill and reformat it, NOT to add new information. Keep the author's voice, described in the AUTHOR section at the end of these instructions." +
     SITE_LAWS +
     WRITING_RULES;
-  return `${base}\n\nGive each section a bold label with an emoji on its own line, e.g. **🎬 HOOK**, **💬 CAPTION**, **#️⃣ HASHTAGS**.\n\n${DERIVATIVE_GUIDES[platform]}`;
+  // STUDIO.SPEED.2 — the article keeps her links; the package carries them where the platform allows.
+  const links =
+    'A link from the article goes in the CAPTION/CTA where the platform allows it; on TikTok write "link en la bio" / "link in bio" instead of the URL.';
+  return `${base}\n\nGive each section a bold label with an emoji on its own line, e.g. **🎬 HOOK**, **💬 CAPTION**, **#️⃣ HASHTAGS**.\n\n${links}\n\n${DERIVATIVE_GUIDES[platform]}`;
 }

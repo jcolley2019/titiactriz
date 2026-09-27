@@ -32,6 +32,8 @@ type Props = {
   onPlatformsChange: (p: StudioPlatform[]) => void;
   language: Lang;
   onLanguageChange: (l: Lang) => void;
+  webSearch: boolean;
+  onWebSearchChange: (on: boolean) => void;
   canGenerate: boolean;
   generating: boolean;
   onGenerate: () => void;
@@ -44,6 +46,8 @@ const StudioOutput = ({
   onPlatformsChange,
   language,
   onLanguageChange,
+  webSearch,
+  onWebSearchChange,
   canGenerate,
   generating,
   onGenerate,
@@ -160,6 +164,28 @@ const StudioOutput = ({
           ))}
         </div>
       </div>
+
+      {/* STUDIO.SPEED.2 — web research is off on every mount; a press turns it on for this press only. */}
+      <button
+        type="button"
+        role="switch"
+        className="st-switch"
+        data-qa="studio-web-search"
+        aria-checked={webSearch}
+        aria-describedby="studio-web-search-hint"
+        onClick={() => onWebSearchChange(!webSearch)}
+        disabled={generating}
+      >
+        <span className="st-switch-track" aria-hidden>
+          <span className="st-switch-thumb" />
+        </span>
+        <span className="st-switch-text">
+          <span className="st-switch-label">{t("admin.studio.webSearchToggle")}</span>
+          <span className="st-switch-hint" id="studio-web-search-hint">
+            {t("admin.studio.webSearchHint")}
+          </span>
+        </span>
+      </button>
 
       <button
         type="button"

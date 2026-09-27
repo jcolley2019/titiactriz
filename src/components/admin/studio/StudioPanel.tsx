@@ -55,6 +55,8 @@ const StudioPanel = () => {
   const [formats, setFormats] = useState<StudioFormat[]>(["social"]);
   const [platforms, setPlatforms] = useState<StudioPlatform[]>(["tiktok"]);
   const [language, setLanguage] = useState<Lang>((i18n.language || "es").startsWith("en") ? "en" : "es");
+  // STUDIO.SPEED.2 — false on every mount, never persisted.
+  const [webSearch, setWebSearch] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const generatedRef = useRef<HTMLElement>(null);
 
@@ -79,6 +81,7 @@ const StudioPanel = () => {
       formats,
       platforms,
       language,
+      webSearch,
     });
 
   const saveOutputs = useCallback(
@@ -203,6 +206,8 @@ const StudioPanel = () => {
           onPlatformsChange={setPlatforms}
           language={language}
           onLanguageChange={setLanguage}
+          webSearch={webSearch}
+          onWebSearchChange={setWebSearch}
           canGenerate={!!inputText.trim()}
           generating={g.generating}
           onGenerate={onGenerate}

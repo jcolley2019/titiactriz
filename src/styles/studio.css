@@ -320,6 +320,80 @@
   color: var(--st-text-2);
 }
 
+/* STUDIO.SPEED.2 — the web-research switch: a card like .st-choice, a track+thumb inside. */
+.studio .st-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--st-radius);
+  border: 1px solid var(--st-border);
+  background: var(--st-card);
+  color: var(--st-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.studio .st-switch:hover:not(:disabled) {
+  border-color: var(--st-gold-edge);
+}
+.studio .st-switch:focus-visible {
+  outline: 2px solid var(--st-gold);
+  outline-offset: 2px;
+}
+.studio .st-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.studio .st-switch[aria-checked="true"] {
+  border-color: var(--st-gold);
+  background: var(--st-gold-wash);
+}
+.studio .st-switch-track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: var(--st-radius);
+  border: 1px solid var(--st-border);
+  background: var(--st-field);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.studio .st-switch-thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background: var(--st-border);
+  transition: transform 150ms ease, background-color 150ms ease;
+}
+.studio .st-switch[aria-checked="true"] .st-switch-track {
+  border-color: var(--st-gold);
+  background: var(--st-gold);
+}
+.studio .st-switch[aria-checked="true"] .st-switch-thumb {
+  background: var(--st-gold-ink);
+  transform: translateX(1.25rem);
+}
+.studio .st-switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.studio .st-switch-label {
+  font-size: var(--st-size-body);
+  font-weight: var(--st-weight-strong);
+}
+.studio .st-switch-hint {
+  font-size: var(--st-size-caption);
+  color: var(--st-text-2);
+}
+
 .studio .st-input {
   width: 100%;
   padding: 0.7rem 0.9rem;
@@ -616,7 +690,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .studio .st-btn,
-  .studio .st-choice {
+  .studio .st-choice,
+  .studio .st-switch,
+  .studio .st-switch-track,
+  .studio .st-switch-thumb {
     transition: none;
   }
 }

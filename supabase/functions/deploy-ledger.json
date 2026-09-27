@@ -25,9 +25,9 @@
       "verifiedInSync": "2026-08-04 — first deploy (EVENTS.I18N.1), walked through the UNFURL.DEPLOY.1 recipe: deployed, sha read from `npx supabase functions list` immediately after, slug ledgered in the SAME commit. Live verify_jwt=true, so the admin's own session token is what authorises it — the function then re-checks has_role('admin') itself, exactly as generate-alt-text does."
     },
     "generate-content": {
-      "ezbr_sha256": "508f70880fd08b216629f757ca3976ee7ac71fdb7a5bb950841e307c20713c49",
-      "version": 1,
-      "verifiedInSync": "2026-09-25 — first deploy (BLOG.2 step 1): deployed with `supabase functions deploy generate-content`, sha read from `npx supabase functions list` immediately after, slug ledgered in the SAME commit. Live verify_jwt=true; the function re-checks has_role('admin') itself, as translate-text does. Smoke: one ES blog call (web_search off) streamed 200 with a done event."
+      "ezbr_sha256": "2806b3645c12b3131bfc060045a51883a455240433a04652ae2ab458f4a8ffa0",
+      "version": 2,
+      "verifiedInSync": "2026-09-27 — STUDIO.SPEED.2 redeploy (v2): the blog prompt's link rules (her own addresses kept verbatim as Markdown links; internal links limited to #about, /green-world, /events, /blog) and the derivative prompts' one-line link rule. Only prompts.ts changed; index.ts and validate.ts are byte-identical to v1. Sha read from `npx supabase functions list` immediately after the deploy, ledgered in the SAME commit. Live verify_jwt=true plus the has_role('admin') re-check. Previous v1 sha 508f70880fd08b216629f757ca3976ee7ac71fdb7a5bb950841e307c20713c49 (BLOG.2 step 1, 2026-09-25)."
     },
     "youtube-transcript": {
       "ezbr_sha256": "9e16ece62bf38c9a9bc6ae14124170d6e80d25b3f51666a7580f07ca4e726800",

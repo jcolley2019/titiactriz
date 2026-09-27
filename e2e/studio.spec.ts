@@ -16,10 +16,18 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
  *   S7 1024×768 two columns · 820×1180 stacked · 390×844 no sideways scroll
  *   S8 the rest of the admin's background is untouched by the Studio's theme
  *
+ * STUDIO.SPEED.2 — the web-research switch (off on every mount, no persistence):
+ *   W1 default press: web_search:false on the blog, cascade_source and no web_search on TikTok
+ *   W2 switch on: web_search:true on the blog; social-only, web_search:true on each platform
+ *   W3 a reload turns it off again
+ *   W4 disabled while generating; English copy
+ *   screenshots off/on × light/dark at 1440×900 land in _qa/studio-speed/
+ *
  * Screenshots (light and dark, 1440×900 and 820×1180) land in _qa/blog-2/.
  */
 
 const SHOTS = "_qa/blog-2";
+const SPEED_SHOTS = "_qa/studio-speed";
 
 const ARTICLE = [
   "```meta",
@@ -256,10 +264,13 @@ test.describe("BLOG.2 Content Studio", () => {
     await expect(page.locator('[data-qa="studio-social"]')).not.toContainText("**");
 
     // The cascade: the blog first-hand, each platform distilled from it, all in Spanish.
+    // STUDIO.SPEED.2: the switch is off, so the blog says web_search:false explicitly
+    // (the function treats a missing field as true); derivatives say nothing.
     expect(mock.genCalls).toHaveLength(3);
-    expect(mock.genCalls[0]).toMatchObject({ output_format: "blog", input_kind: "brain_dump", language: "es" });
+    expect(mock.genCalls[0]).toMatchObject({ output_format: "blog", input_kind: "brain_dump", language: "es", web_search: false });
     for (const call of mock.genCalls.slice(1)) {
       expect(call).toMatchObject({ output_format: "social", language: "es", cascade_source: ARTICLE });
+      expect(call).not.toHaveProperty("web_search");
     }
 
     // One history row for the press.
@@ -267,6 +278,116 @@ test.describe("BLOG.2 Content Studio", () => {
     expect(row).toMatchObject({ input_kind: "brain_dump", language: "es", formats: ["blog", "social"], platforms: ["tiktok", "instagram"] });
     expect(row.outputs.blog).toBe(ARTICLE);
     expect(Object.keys(row.outputs.social).sort()).toEqual(["instagram", "tiktok"]);
+  });
+
+  test.describe("STUDIO.SPEED.2 web-research switch", () => {
+    const sw = (page: Page) => page.locator('[data-qa="studio-web-search"]');
+
+    test("W1 default press, Artículo + TikTok: web_search:false on the blog, cascade_source and no web_search on TikTok", async ({ page }) => {
+      const mock = await setup(page);
+      await openStudio(page);
+      await expect(sw(page)).toHaveAttribute("role", "switch");
+      await expect(sw(page)).toHaveAttribute("aria-checked", "false");
+      await expect(sw(page)).toContainText("Investigar en la web");
+      await expect(sw(page)).toContainText("Más lento, con datos de hoy");
+      await page.locator('[data-qa="studio-brain-dump"]').fill("Una noticia sobre mis primeros lives.");
+      await choose(page, ["blog", "social"], ["tiktok"]);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(page.locator('[data-qa="studio-usage"]')).toBeVisible();
+
+      expect(mock.genCalls).toHaveLength(2);
+      expect(mock.genCalls[0]).toMatchObject({ output_format: "blog", web_search: false });
+      expect(mock.genCalls[1]).toMatchObject({ output_format: "social", platform: "tiktok", cascade_source: ARTICLE });
+      expect(mock.genCalls[1]).not.toHaveProperty("web_search");
+    });
+
+    test("W2 switch on: web_search:true on the blog call; social-only press: web_search:true on each platform call", async ({ page }) => {
+      const mock = await setup(page);
+      await openStudio(page);
+      await sw(page).click();
+      await expect(sw(page)).toHaveAttribute("aria-checked", "true");
+      await page.locator('[data-qa="studio-brain-dump"]').fill("Una noticia sobre mis primeros lives.");
+      await choose(page, ["blog"], []);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(page.locator('[data-qa="studio-usage"]')).toBeVisible();
+      expect(mock.genCalls).toEqual([expect.objectContaining({ output_format: "blog", web_search: true })]);
+      // The switch is disabled only while generating; it keeps its state after the press.
+      await expect(sw(page)).toBeEnabled();
+      await expect(sw(page)).toHaveAttribute("aria-checked", "true");
+
+      mock.genCalls.length = 0;
+      await choose(page, ["social"], ["tiktok", "instagram", "pinterest", "youtube"]);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(page.locator('[data-qa^="studio-tab-"]')).toHaveCount(4);
+      expect(mock.genCalls).toHaveLength(4);
+      for (const call of mock.genCalls) {
+        expect(call).toMatchObject({ output_format: "social", web_search: true });
+        expect(call).not.toHaveProperty("cascade_source");
+      }
+      expect(mock.genCalls.map((c) => c.platform).sort()).toEqual(["instagram", "pinterest", "tiktok", "youtube"]);
+    });
+
+    test("W3 after a reload the switch is off", async ({ page }) => {
+      await setup(page);
+      await openStudio(page);
+      await sw(page).click();
+      await expect(sw(page)).toHaveAttribute("aria-checked", "true");
+      await page.reload();
+      await page.locator('[data-qa="admin-nav-studio"]').click();
+      await expect(sw(page)).toHaveAttribute("aria-checked", "false");
+      // Nothing is remembered anywhere.
+      const stored = await page.evaluate(() =>
+        Object.keys(localStorage).concat(Object.keys(sessionStorage)).filter((k) => /search|research/i.test(k)),
+      );
+      expect(stored).toEqual([]);
+    });
+
+    test("W4 the switch is disabled while generating, and in English reads 'Research on the web'", async ({ page }) => {
+      await setup(page, { lang: "en" });
+      await openStudio(page);
+      await expect(sw(page)).toContainText("Research on the web");
+      await expect(sw(page)).toContainText("Slower, with today's facts");
+      // Hold the blog stream open so the generating state can be observed.
+      let release: (() => void) | null = null;
+      await page.route("**/functions/v1/generate-content", async (route) => {
+        await new Promise<void>((r) => (release = r));
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "text/event-stream; charset=utf-8" },
+          body: `event: content_block_delta\ndata: ${JSON.stringify({ text: ARTICLE })}\n\nevent: done\ndata: ${JSON.stringify({ usage: USAGE, web_search_used: false })}\n\n`,
+        });
+      });
+      await page.locator('[data-qa="studio-brain-dump"]').fill("A note about my first lives.");
+      await choose(page, ["blog"], []);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(sw(page)).toBeDisabled();
+      await expect.poll(() => release !== null).toBe(true);
+      release!();
+      await expect(page.locator('[data-qa="studio-usage"]')).toBeVisible();
+      await expect(sw(page)).toBeEnabled();
+    });
+
+    test("screenshots: the switch off and on, light and dark, 1440×900", async ({ page }) => {
+      await setup(page);
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.addInitScript(() => localStorage.removeItem("studio.theme"));
+      await openStudio(page);
+      await page.locator('[data-qa="studio-brain-dump"]').fill("Les tengo una noticia: muy pronto empiezo a transmitir en vivo.");
+      const output = page.locator('[data-qa="studio-output"]');
+      for (const theme of ["light", "dark"] as const) {
+        if (theme === "dark") await page.locator('[data-qa="studio-theme-toggle"]').click();
+        await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", theme);
+        for (const state of ["off", "on"] as const) {
+          const want = state === "on";
+          if (((await sw(page).getAttribute("aria-checked")) === "true") !== want) await sw(page).click();
+          await expect(sw(page)).toHaveAttribute("aria-checked", String(want));
+          await page.mouse.move(0, 0);
+          await page.waitForTimeout(250);
+          await page.screenshot({ path: `${SPEED_SHOTS}/switch-${state}-${theme}-1440x900.png`, fullPage: true });
+          await output.screenshot({ path: `${SPEED_SHOTS}/switch-${state}-${theme}-output.png` });
+        }
+      }
+    });
   });
 
   test("S2 YouTube is 'Próximamente' while YOUTUBE_INPUT_ENABLED is false: no tab, no transcript call", async ({ page }) => {

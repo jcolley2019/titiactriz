@@ -44,6 +44,8 @@ export type GenerateParams = {
   formats: StudioFormat[];
   platforms: StudioPlatform[];
   language: Lang;
+  /** STUDIO.SPEED.2 — the Studio's switch; sent explicitly on every first-hand call (the function treats a missing field as true). */
+  webSearch: boolean;
 };
 
 export type Generation = {
@@ -67,6 +69,7 @@ type Body = {
   platform?: StudioPlatform;
   language: Lang;
   cascade_source?: string;
+  web_search?: boolean;
 };
 
 /** A readable message from a failed functions.invoke. */
@@ -242,7 +245,7 @@ export function useStudioGeneration() {
 
       if (wantsBlog) {
         const res = await streamBlog(
-          { ...base, output_format: "blog" },
+          { ...base, output_format: "blog", web_search: p.webSearch },
           token,
           signal,
           (soFar) => {
@@ -264,7 +267,7 @@ export function useStudioGeneration() {
           p.platforms.map(async (platform) => {
             const body: Body = wantsBlog && outputs.blog
               ? { ...base, output_format: "social", platform, cascade_source: outputs.blog }
-              : { ...base, output_format: "social", platform };
+              : { ...base, output_format: "social", platform, web_search: p.webSearch };
             const res = await callOnce(body, signal);
             outputs.social![platform] = res.content;
             usages.push(res.usage);
