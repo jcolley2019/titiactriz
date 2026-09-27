@@ -32,15 +32,15 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 
 ## Environment
 
-- Dev: `npm run dev` — PC at localhost:8080, phone at 192.168.4.27:8080. The physical test
+- Dev: `npm run dev` — PC at localhost:8080, phone at 192.168.4.53:8080. The physical test
   device is Joey's iPhone 17 Pro Max; phone-rendered truth outranks any emulator.
 - Gates before commit: `npx tsc --noEmit`, `npm run guard`, and
-  `npx impeccable detect src --json` — 0 new vs 46 (baseline, .impeccable/config.json).
+  `npx impeccable detect src --json` — 0 new vs 40 (baseline, .impeccable/config.json).
   When edge functions are in play, also `npm run drift` (compares deployed function shas
   against `supabase/functions/deploy-ledger.json`; needs an authenticated Supabase CLI).
 - Known flakes (pass on retry; treat as a regression only if they repeat): framesplit capture,
   marquee/Lenis momentum, reel wide-ES, titilinks-act TA.8 mobile ("About unobstructed"),
-  seq-lab gw-port-1080 scrub.
+  seq-lab gw-port-1080 scrub, events-video "a social card is a poster and a play control…".
 - Supabase: live project ref `nsmstwkjbjicpdclgecq` ("TitiActriz"). Deploys: Vercel →
   titiactriz.com. Everything under `public/` deploys publicly — no stray files.
 
