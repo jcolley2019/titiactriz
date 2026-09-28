@@ -763,11 +763,11 @@
     },
     "blog": {
       "title": "Blog",
-      "subtitle": "Write, translate and publish your posts.",
-      "newPost": "New post",
+      "shelfHint": "Articles from the Studio land here as drafts. Review them, add a cover and publish.",
+      "newPost": "Write by hand",
+      "newPostTitle": "New post",
       "editPost": "Edit post",
-      "empty": "No posts yet.",
-      "emptyHelp": "Create the first one with “New post”.",
+      "emptyHelp": "Create the first one with “Write by hand”.",
       "loadError": "Couldn't load the posts. Reload the page.",
       "untitled": "(untitled)",
       "statusDraft": "Draft",
@@ -958,8 +958,8 @@
       },
       "blog": {
         "new": {
-          "title": "New post",
-          "body": "Start an article from scratch. The drafts the Studio creates also land in this list."
+          "title": "Write by hand",
+          "body": "Articles from the Studio land here as drafts. Review them, add a cover and publish. Start an article from scratch."
         },
         "edit": {
           "title": "Edit",
@@ -1023,7 +1023,7 @@
         },
         "publish": {
           "title": "Publish as draft",
-          "body": "Creates the draft in the Blog tab and takes you there. It publishes nothing on the site: you decide when, from Blog."
+          "body": "Creates the draft in the Blog tab and takes you there. It publishes nothing on the site: you decide when, from Blog. You'll find it in the Blog tab."
         },
         "history": {
           "title": "History",

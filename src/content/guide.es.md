@@ -51,10 +51,10 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 
 ## Blog
 
-Úsalo cuando… quieras revisar, publicar o borrar una entrada del blog, por ejemplo el borrador que creó el Estudio.
+Úsalo cuando… los artículos del Estudio lleguen aquí como borradores: revísalos, ponles portada y publícalos.
 
 1. Abre **Blog**. Verás la lista de entradas, cada una con su estado: **Borrador** o **Publicada**.
-2. Toca **Editar** en la entrada que quieras abrir, o **Nueva entrada** para empezar una desde cero.
+2. Toca **Editar** en la entrada que quieras abrir, o **Escribir a mano** para empezar una desde cero.
 3. Revisa el **Título**, el **Resumen** (una o dos líneas para la lista del blog) y la **Descripción para buscadores** (lo que Google muestra bajo el título; entre 150 y 160 caracteres es lo ideal).
 4. **Portada**: toca **Elegir foto** y escoge una de la Galería. Aquí no se suben fotos; si necesitas una nueva, súbela primero en la pestaña Galería.
 5. **Texto** es el cuerpo del artículo. Al lado, o en **Vista previa**, ves cómo queda.
@@ -88,7 +88,7 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 10. Cuando termine, baja a **Contenido generado**. Hay una pestaña por cada cosa que pediste: **Artículo**, TikTok, Instagram, Pinterest o YouTube. Léelas todas.
 11. Si quieres cambiar algo del artículo, toca **Editar**, corrige directamente sobre el texto y toca **Listo**. El cambio queda guardado.
 12. En las pestañas de redes, **Copiar** copia el post listo para pegarlo en la app. **Copiar Markdown** y **Descargar .md** son para llevarte el texto a otro lugar; no los necesitas en el día a día.
-13. **Publicar como borrador** crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: la entrada queda como Borrador hasta que tú la publiques desde Blog. Después de crearlo, el botón cambia a **Abrir borrador en Blog**.
+13. **Publicar como borrador** crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: la entrada queda como Borrador hasta que tú la publiques desde Blog. Después de crearlo, el botón cambia a **Abrir borrador en Blog**. Lo encontrarás en la pestaña Blog.
 
 **Historial**
 

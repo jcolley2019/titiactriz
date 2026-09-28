@@ -763,11 +763,11 @@
     },
     "blog": {
       "title": "Blog",
-      "subtitle": "Escribe, traduce y publica tus entradas.",
-      "newPost": "Nueva entrada",
+      "shelfHint": "Los artículos del Estudio llegan aquí como borradores. Revísalos, ponles portada y publícalos.",
+      "newPost": "Escribir a mano",
+      "newPostTitle": "Nueva entrada",
       "editPost": "Editar entrada",
-      "empty": "Aún no hay entradas.",
-      "emptyHelp": "Crea la primera con «Nueva entrada».",
+      "emptyHelp": "Crea la primera con «Escribir a mano».",
       "loadError": "No se pudieron cargar las entradas. Recarga la página.",
       "untitled": "(sin título)",
       "statusDraft": "Borrador",
@@ -958,8 +958,8 @@
       },
       "blog": {
         "new": {
-          "title": "Nueva entrada",
-          "body": "Empieza un artículo desde cero. Los borradores que crea el Estudio también llegan a esta lista."
+          "title": "Escribir a mano",
+          "body": "Los artículos del Estudio llegan aquí como borradores. Revísalos, ponles portada y publícalos. Empieza un artículo desde cero."
         },
         "edit": {
           "title": "Editar",
@@ -1023,7 +1023,7 @@
         },
         "publish": {
           "title": "Publicar como borrador",
-          "body": "Crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: tú decides cuándo, desde Blog."
+          "body": "Crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: tú decides cuándo, desde Blog. Lo encontrarás en la pestaña Blog."
         },
         "history": {
           "title": "Historial",

@@ -51,10 +51,10 @@ Use it when… you have an event to feature or want to put a notice in the strip
 
 ## Blog
 
-Use it when… you want to review, publish or delete a blog post, for example the draft the Studio created.
+Use it when… articles from the Studio land here as drafts: review them, add a cover and publish.
 
 1. Open **Blog**. You will see the list of posts, each with its status: **Draft** or **Published**.
-2. Tap **Edit** on the post you want to open, or **New post** to start one from scratch.
+2. Tap **Edit** on the post you want to open, or **Write by hand** to start one from scratch.
 3. Check the **Title**, the **Excerpt** (one or two lines for the blog list) and the **Search description** (what Google shows under the title; 150 to 160 characters is ideal).
 4. **Cover**: tap **Choose photo** and pick one from the Gallery. Photos are not uploaded here; if you need a new one, upload it first in the Gallery tab.
 5. **Body** is the article itself. Beside it, or under **Preview**, you see how it looks.
@@ -88,7 +88,7 @@ Use it when… you have an idea in your head and want to turn it into a blog art
 10. When it finishes, scroll down to **Generated content**. There is one tab for each thing you asked for: **Article**, TikTok, Instagram, Pinterest or YouTube. Read them all.
 11. If you want to change something in the article, tap **Edit**, correct it right on the text and tap **Done**. The change is saved.
 12. On the social tabs, **Copy** copies the post ready to paste into the app. **Copy Markdown** and **Download .md** are for taking the text somewhere else; you do not need them day to day.
-13. **Publish as draft** creates the draft in the Blog tab and takes you there. It publishes nothing on the site: the post stays a Draft until you publish it from Blog. Once created, the button changes to **Open draft in Blog**.
+13. **Publish as draft** creates the draft in the Blog tab and takes you there. It publishes nothing on the site: the post stays a Draft until you publish it from Blog. Once created, the button changes to **Open draft in Blog**. You'll find it in the Blog tab.
 
 **History**
 

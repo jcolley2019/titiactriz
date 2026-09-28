@@ -297,16 +297,19 @@ const BlogList = ({
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3">
         <div>
           <h2 className="font-serif text-base text-foreground leading-tight">{t("admin.blog.title")}</h2>
-          <p className="text-xs text-muted-foreground">{t("admin.blog.subtitle")}</p>
+          <p className="text-xs text-muted-foreground">{t("admin.blog.shelfHint")}</p>
         </div>
+        {/* ADMIN.BLOG.CLARITY.1 — the Studio writes; this is the side door, so it
+            wears the secondary (outline) style and keeps to the row's right end. */}
         <Button
           type="button"
           size="sm"
+          variant="outline"
           data-qa="blog-new"
           data-coach={loading || loadFailed ? undefined : "blog.new"}
           onClick={onNew}
           disabled={loading || loadFailed}
-          className="bg-accent text-accent-foreground hover:bg-accent/90"
+          className="ml-auto"
         >
           <Plus className="w-4 h-4 mr-1" aria-hidden />
           {t("admin.blog.newPost")}
@@ -324,7 +327,7 @@ const BlogList = ({
           </p>
         ) : posts.length === 0 ? (
           <div data-qa="blog-empty" className="px-6 py-10 text-center">
-            <p className="text-sm text-foreground">{t("admin.blog.empty")}</p>
+            <p className="text-sm text-foreground">{t("admin.blog.shelfHint")}</p>
             <p className="text-xs text-muted-foreground mt-1">{t("admin.blog.emptyHelp")}</p>
           </div>
         ) : (
@@ -733,7 +736,7 @@ const BlogEditor = ({
             {t("admin.blog.back")}
           </Button>
           <h2 className="font-serif text-base text-foreground leading-tight truncate">
-            {postId ? t("admin.blog.editPost") : t("admin.blog.newPost")}
+            {postId ? t("admin.blog.editPost") : t("admin.blog.newPostTitle")}
           </h2>
         </div>
         {postId && (

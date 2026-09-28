@@ -5,7 +5,7 @@ import { forceLanguage, injectAdminSession, MOCK_PHOTOS, routeSupabase, type Wri
  * BLOG.1 — Titi writes, translates and publishes blog posts from the admin, and
  * visitors read them at /blog and /blog/:slug.
  *
- *  P1  Admin list, no posts → the empty state, and "New post" is offered.
+ *  P1  Admin list, no posts → the empty state, and "Write by hand" is offered.
  *  P2  A post typed in Spanish: the slug follows the title ("Mi primera
  *      entrada" → mi-primera-entrada), Save calls translate-text, and the row
  *      written carries both locales and status draft.

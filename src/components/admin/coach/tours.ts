@@ -59,7 +59,7 @@ export const TOURS: Record<string, CoachTour> = {
   blog: {
     steps: [step("blog", "new", "✍️"), step("blog", "edit", "📂")],
   },
-  // The editor: fires the first time an entry is open (Nueva entrada, Editar,
+  // The editor: fires the first time an entry is open (Escribir a mano, Editar,
   // or the Studio's Publicar como borrador landing here).
   blogEditor: {
     section: "blog",
