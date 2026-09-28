@@ -493,6 +493,7 @@
         "events": "Events",
         "blog": "Blog",
         "studio": "Studio",
+        "guide": "Guide",
         "settings": "Settings",
         "submissions": "Submissions"
       },
@@ -936,6 +937,9 @@
       "voiceDiscard": "Discard",
       "voiceClose": "Close",
       "voiceLoadError": "Could not load the voice."
+    },
+    "guide": {
+      "contents": "In this guide"
     },
     "settings": {},
     "cinematicHero": {

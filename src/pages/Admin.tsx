@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, MoreVertical, ChevronUp, ChevronDown, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, Drama, Link2, CalendarDays, Settings2, Inbox, PenLine } from "lucide-react";
+import { GripVertical, MoreVertical, ChevronUp, ChevronDown, Sparkles, Loader2, Eye, EyeOff, Images, Clapperboard, Drama, Link2, CalendarDays, Settings2, Inbox, PenLine, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   BUCKET,
@@ -73,6 +73,7 @@ import PortfolioManager from "@/components/admin/PortfolioManager";
 import LinksManager from "@/components/admin/LinksManager";
 import BlogManager from "@/components/admin/blog/BlogManager";
 import StudioPanel from "@/components/admin/studio/StudioPanel";
+import GuidePanel from "@/components/admin/guide/GuidePanel";
 
 type Photo = {
   id: string;
@@ -1401,6 +1402,13 @@ const adminSections = (t: (key: string) => string): AdminSection[] => [
     label: t("admin.shell.sections.studio"),
     icon: <Sparkles />,
     content: <StudioPanel />,
+  },
+  {
+    // ADMIN.GUIDE.1 — how Titi uses the admin, in her words.
+    id: "guide",
+    label: t("admin.shell.sections.guide"),
+    icon: <BookOpen />,
+    content: <GuidePanel />,
   },
   {
     id: "settings",

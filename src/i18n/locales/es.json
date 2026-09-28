@@ -493,6 +493,7 @@
         "events": "Eventos",
         "blog": "Blog",
         "studio": "Estudio",
+        "guide": "Guía",
         "settings": "Ajustes",
         "submissions": "Mensajes"
       },
@@ -936,6 +937,9 @@
       "voiceDiscard": "Descartar",
       "voiceClose": "Cerrar",
       "voiceLoadError": "No se pudo cargar la voz."
+    },
+    "guide": {
+      "contents": "En esta guía"
     },
     "settings": {},
     "cinematicHero": {
