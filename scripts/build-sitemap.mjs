@@ -12,11 +12,10 @@
  * It must never fail a build. No network, no env, a bad answer, missing markers:
  * the file is kept as it is, a warning is printed, and the exit code is 0.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { ROOT, readEnv } from "./prebuild-env.mjs";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITEMAP = resolve(ROOT, "public/sitemap.xml");
 const SITE = "https://titiactriz.com";
 const START = "<!-- BLOG-POSTS:START";
@@ -24,24 +23,6 @@ const END = "<!-- BLOG-POSTS:END -->";
 const TIMEOUT_MS = 8000;
 
 const warn = (msg) => console.warn(`[build-sitemap] WARNING: ${msg} — public/sitemap.xml kept as is.`);
-
-/** Vite's precedence, lowest first: .env, .env.local, .env.production, .env.production.local. */
-function readEnv() {
-  const env = {};
-  for (const name of [".env", ".env.local", ".env.production", ".env.production.local"]) {
-    const file = resolve(ROOT, name);
-    if (!existsSync(file)) continue;
-    for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-      if (!m) continue;
-      env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, "$2");
-    }
-  }
-  return {
-    url: process.env.VITE_SUPABASE_URL || env.VITE_SUPABASE_URL,
-    key: process.env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY,
-  };
-}
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

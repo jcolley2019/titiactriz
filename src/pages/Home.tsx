@@ -4,15 +4,18 @@ import HomeClassic from "./HomeClassic";
 import HomeEditorial from "./HomeEditorial";
 import { useHomeVariant } from "@/hooks/useHomeVariant";
 
-// Lazy so the cinematic variant's gsap/lenis bundle never loads on the default
-// (editorial/classic) home. Only pulled in when the variant is actually chosen.
+// Lazy so the cinematic variant's gsap/lenis bundle stays out of the editorial
+// and classic homes. Pulled in when cinematic is chosen — or plausible: the hook
+// preloads it whenever the built or cached variant is cinematic.
 const HomeCinematic = lazy(() => import("./HomeCinematic"));
 
 /**
  * Neutral hold — a full-viewport screen in the site background colour, shown
- * only on a true first visit while the variant fetch is in flight (TA.6c), and
- * as the cinematic chunk's Suspense fallback. Both home variants are dark, so a
- * charcoal hold ends seamlessly in the real page with no white flash between.
+ * only as the cinematic chunk's Suspense fallback. Until HOME.DEFAULT.1 it also
+ * covered a first visit while the variant fetch was in flight (TA.6c); now the
+ * built variant renders at once, so nothing holds on the network. Both home
+ * variants are dark, so a charcoal hold ends seamlessly in the real page with
+ * no white flash between.
  *
  * TA.7e: the hold is PORTALED to <body>, not rendered in place. The `/` route is
  * wrapped in <PageTransition>, a framer-motion `motion.div` that animates opacity
@@ -48,13 +51,11 @@ const HomeHold = () => {
  * (Settings → Home variant). Stored in public.site_settings.
  *
  * A repeat visitor renders their cached variant immediately; a first visitor
- * sees the neutral hold (variant === null) until the fetch resolves, so the
- * page never flashes the default before swapping.
+ * renders the variant the build was made with (HOME.DEFAULT.1), which is the
+ * live one unless the admin flipped since — and then the fetch swaps it live.
  */
 const Home = () => {
   const { variant } = useHomeVariant();
-
-  if (variant === null) return <HomeHold />;
 
   if (variant === "cinematic") {
     return (

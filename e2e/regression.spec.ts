@@ -3,8 +3,9 @@ import { attachDiagnostics, shot } from "./_helpers";
 
 /**
  * FINAL-GATE regression proof: the additive cinematic sprint must not change
- * anything visible on existing routes. Loads the live editorial home (/) and
- * the admin login screen and asserts a clean console on both.
+ * anything visible on existing routes. Loads the live home (/) — whichever
+ * variant the build and site_settings serve (HOME.DEFAULT.1) — and the admin
+ * login screen and asserts a clean console on both.
  */
 async function settle(page: import("@playwright/test").Page, ms = 800) {
   await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
@@ -14,7 +15,7 @@ async function settle(page: import("@playwright/test").Page, ms = 800) {
 test.describe("regression — existing routes unchanged", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("editorial home (/) renders clean", async ({ page }) => {
+  test("home (/) renders clean", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await settle(page);

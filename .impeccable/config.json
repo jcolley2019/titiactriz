@@ -5,7 +5,8 @@
       "src/components/events/**",
       "src/_archive/**",
       "src/pages/HomeEditorial.tsx",
-      "src/components/brandMarks.generated.ts"
+      "src/components/brandMarks.generated.ts",
+      "src/generated/homeVariant.ts"
     ],
     "ignoreValues": [
       {
