@@ -6,6 +6,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 import type { Lang } from "@/hooks/useEventsBoard";
 import { useAdminNav } from "@/components/admin/AdminShell";
+import { useCoachHold } from "@/components/admin/coach/CoachProvider";
 import { studioDraft, uniqueSlug } from "@/lib/studio/publish";
 import { stripThinkingText } from "@/lib/studio/narration";
 import StudioInput from "./StudioInput";
@@ -61,6 +62,8 @@ const StudioPanel = () => {
   const generatedRef = useRef<HTMLElement>(null);
 
   const g = useStudioGeneration();
+  // ADMIN.COACH.1 — no tip ever sits over a running generation.
+  useCoachHold(g.generating);
   const inputText = kind === "youtube" ? transcript : brainDump;
 
   const flipTheme = () => {
@@ -175,7 +178,13 @@ const StudioPanel = () => {
           <h2 className="st-title">{t("admin.studio.title")}</h2>
         </div>
         <div className="st-header-actions">
-          <button type="button" className="st-btn" data-qa="studio-voice-open" onClick={() => setVoiceOpen(true)}>
+          <button
+            type="button"
+            className="st-btn"
+            data-qa="studio-voice-open"
+            data-coach="studio.voice"
+            onClick={() => setVoiceOpen(true)}
+          >
             <Mic2 className="w-4 h-4" aria-hidden />
             {t("admin.studio.voiceButton")}
           </button>
@@ -246,10 +255,12 @@ const StudioPanel = () => {
       )}
 
       <section className="st-section" ref={generatedRef} aria-labelledby="studio-generated-title">
-        <h3 id="studio-generated-title" className="st-section-title">
+        <h3 id="studio-generated-title" className="st-section-title" data-coach="studio.output">
           {t("admin.studio.drafts")}
         </h3>
-        <p className="st-section-desc mb-4">{t("admin.studio.draftsDesc")}</p>
+        <p className="st-section-desc mb-4" data-coach="studio.output">
+          {t("admin.studio.draftsDesc")}
+        </p>
         {hasOutputs ? (
           <GeneratedContent
             key={g.generation?.id ?? "live"}
@@ -262,7 +273,9 @@ const StudioPanel = () => {
             onOpenDraft={() => g.generation?.blogPostId && nav.goTo("blog", { postId: g.generation.blogPostId })}
           />
         ) : (
-          <p className="st-empty">{t("admin.studio.none")}</p>
+          <p className="st-empty" data-coach="studio.output">
+            {t("admin.studio.none")}
+          </p>
         )}
       </section>
 

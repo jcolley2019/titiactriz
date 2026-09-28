@@ -941,6 +941,100 @@
     "guide": {
       "contents": "In this guide"
     },
+    "coach": {
+      "ui": {
+        "progress": "Step {{n}} of {{total}}",
+        "back": "Back",
+        "next": "Next",
+        "done": "Done",
+        "skip": "Skip",
+        "title": "Tips",
+        "intro": "The first time you open a tab, a tip walks you through its buttons in order. You can see them again here.",
+        "replay": "See again",
+        "resetAll": "Reset all tips",
+        "resetDone": "Tips reset",
+        "resetDoneDesc": "Each tip shows again the first time you open its tab.",
+        "blogEditor": "Blog editor"
+      },
+      "blog": {
+        "new": {
+          "title": "New post",
+          "body": "Start an article from scratch. The drafts the Studio creates also land in this list."
+        },
+        "edit": {
+          "title": "Edit",
+          "body": "Opens a post so you can review, publish or delete it. Each one says whether it is a Draft or Published."
+        }
+      },
+      "blogEditor": {
+        "fields": {
+          "title": "Title and text",
+          "body": "Fill in the Title, the Excerpt, the Body and the Search description, which is what Google shows under the title."
+        },
+        "cover": {
+          "title": "Cover",
+          "body": "Tap Choose photo and pick one from the Gallery. Photos are not uploaded here: if you need a new one, upload it first in Gallery."
+        },
+        "translation": {
+          "title": "The other language",
+          "body": "Write in just one language; when you save, the other one is translated on its own. Open “English” (or “Spanish”) under each field to read and correct the translation."
+        },
+        "status": {
+          "title": "Published",
+          "body": "Off is Draft: only you can see it. On, it shows at titiactriz.com/blog; it works once the post has been saved."
+        },
+        "save": {
+          "title": "Save changes",
+          "body": "Saves what you wrote and translates the other language. If you leave without saving, it asks first."
+        },
+        "viewDelete": {
+          "title": "View on site and Delete post",
+          "body": "With the post published, View on site opens it in a new tab. Delete post removes it from the site too and cannot be undone."
+        }
+      },
+      "studio": {
+        "brainDump": {
+          "title": "Tell your idea",
+          "body": "Type your idea here the way you would tell a friend, or tap Record and talk. Include names, dates and exact links: the Studio keeps them as they are."
+        },
+        "format": {
+          "title": "Format",
+          "body": "Choose Blog Article, Social Post or both. At least one always stays chosen."
+        },
+        "platforms": {
+          "title": "Platforms",
+          "body": "Tick TikTok, Instagram, Pinterest or YouTube, or tap All. You get a post made for each one."
+        },
+        "language": {
+          "title": "Content language",
+          "body": "Choose Spanish or English. The content comes out in this language, whichever one you wrote your idea in."
+        },
+        "webSearch": {
+          "title": "Research on the web",
+          "body": "Leave it off almost always: it is slower. Turn it on only when the topic is something outside of you, like a new platform, a trend or facts you did not give."
+        },
+        "generate": {
+          "title": "Generate",
+          "body": "Tap Generate and wait about a minute. If you change your mind, tap Cancel."
+        },
+        "output": {
+          "title": "Generated content",
+          "body": "What you asked for shows up here, with one tab for each thing. On the Article, Edit lets you correct it; on the social tabs, Copy gets it ready to paste into the app."
+        },
+        "publish": {
+          "title": "Publish as draft",
+          "body": "Creates the draft in the Blog tab and takes you there. It publishes nothing on the site: you decide when, from Blog."
+        },
+        "history": {
+          "title": "History",
+          "body": "Your past generations stay here. Reopen shows one again above; Delete removes it from the history without touching the Blog draft."
+        },
+        "voice": {
+          "title": "Voice",
+          "body": "Optional: here you tell the Studio how you talk, your tone and what to avoid, so it writes like you."
+        }
+      }
+    },
     "settings": {},
     "cinematicHero": {
       "title": "Cinematic hero photo",

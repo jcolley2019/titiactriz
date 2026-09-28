@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { CoachProvider } from "@/components/admin/coach/CoachProvider";
 
 /**
  * ADMIN.MEDIA.1 (ITEM 0) — modern sectioned admin shell.
@@ -26,6 +27,8 @@ type Props = {
   logOutLabel: string;
   sections: AdminSection[];
   onSignOut: () => void;
+  /** ADMIN.COACH.1 — whose coaching tips have been seen (the Supabase user). */
+  userId?: string | null;
 };
 
 /**
@@ -81,7 +84,7 @@ function rememberedSection(sections: AdminSection[]) {
   return sections[0]?.id ?? "";
 }
 
-const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props) => {
+const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut, userId = null }: Props) => {
   const [activeId, setActiveId] = useState(() => rememberedSection(sections));
   const [intent, setIntent] = useState<AdminIntent | null>(null);
   const pick = useCallback((id: string) => {
@@ -108,6 +111,7 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props
 
   return (
     <AdminNavContext.Provider value={nav}>
+    <CoachProvider userId={userId} section={active?.id ?? ""} goTo={nav.goTo}>
     <div data-qa="admin-shell" className="max-w-6xl mx-auto px-4 pt-28 pb-16">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
@@ -163,6 +167,7 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut }: Props
         </section>
       )}
     </div>
+    </CoachProvider>
     </AdminNavContext.Provider>
   );
 };

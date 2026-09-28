@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { guideSections, headingId } from "@/lib/guide";
+import CoachTipsCard from "@/components/admin/coach/CoachTipsCard";
 import guideEs from "@/content/guide.es.md?raw";
 import guideEn from "@/content/guide.en.md?raw";
 
@@ -18,6 +19,8 @@ import guideEn from "@/content/guide.en.md?raw";
  * Every H2 gets an anchor id from its text, and the table of contents at the
  * top scrolls to it. The site header is fixed, so each heading carries a
  * scroll margin that keeps it out from under the header.
+ *
+ * ADMIN.COACH.1 — the Consejos card sits above the table of contents.
  */
 
 const textOf = (node: ReactNode): string => {
@@ -48,6 +51,7 @@ const GuidePanel = () => {
       data-lang={lang}
       className="bg-card border border-border rounded-lg overflow-clip"
     >
+      <CoachTipsCard />
       <nav
         data-qa="admin-guide-toc"
         aria-label={t("admin.guide.contents")}

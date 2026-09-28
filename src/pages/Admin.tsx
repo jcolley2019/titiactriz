@@ -1512,6 +1512,7 @@ const Admin = () => {
             logOutLabel={t("admin.header.logOut")}
             onSignOut={signOut}
             sections={adminSections(t)}
+            userId={session.user.id}
           />
         ) : (
           <LoginCard />

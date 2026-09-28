@@ -181,6 +181,7 @@ const LocalizedField = ({
   onChange,
   control,
   hint,
+  coach,
 }: {
   name: string;
   label: string;
@@ -190,6 +191,8 @@ const LocalizedField = ({
   onChange: (next: Localized) => void;
   control: ControlRender;
   hint?: (text: string, qa: string) => ReactNode;
+  /** ADMIN.COACH.1 — tip targets for the field and its other-language disclosure. */
+  coach?: { field: string; other: string };
 }) => {
   const { t } = useTranslation();
   const src = localizedSource(value);
@@ -205,7 +208,7 @@ const LocalizedField = ({
   const setOther = (text: string) => onChange({ ...value, [src]: main, [other]: text, src, pending: false });
 
   return (
-    <div className="space-y-1.5" data-qa={`blog-field-${name}`}>
+    <div className="space-y-1.5" data-qa={`blog-field-${name}`} data-coach={coach?.field}>
       <Label htmlFor={id} className="text-foreground text-sm">
         {label}
       </Label>
@@ -217,7 +220,7 @@ const LocalizedField = ({
         </p>
       )}
       {hint?.(main, `blog-count-${name}`)}
-      <details data-qa={`blog-other-${name}`} className="text-xs">
+      <details data-qa={`blog-other-${name}`} data-coach={coach?.other} className="text-xs">
         <summary className="cursor-pointer select-none text-muted-foreground hover:text-foreground">
           {other === "en" ? t("admin.blog.english") : t("admin.blog.spanish")}
           {value.pending && main.trim() && <span className="text-accent"> · {t("admin.blog.translatedOnSave")}</span>}
@@ -300,6 +303,7 @@ const BlogList = ({
           type="button"
           size="sm"
           data-qa="blog-new"
+          data-coach={loading || loadFailed ? undefined : "blog.new"}
           onClick={onNew}
           disabled={loading || loadFailed}
           className="bg-accent text-accent-foreground hover:bg-accent/90"
@@ -325,7 +329,7 @@ const BlogList = ({
           </div>
         ) : (
           <ul className="divide-y divide-border">
-            {posts.map((post) => {
+            {posts.map((post, i) => {
               const title = pickLocalized(post.title, "es").trim();
               return (
                 <li key={post.id} data-qa="blog-row" data-slug={post.slug} className="flex items-center gap-3 px-6 py-3">
@@ -340,7 +344,14 @@ const BlogList = ({
                       </span>
                     </div>
                   </div>
-                  <Button type="button" size="sm" variant="outline" data-qa="blog-row-edit" onClick={() => onEdit(post)}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    data-qa="blog-row-edit"
+                    data-coach={i === 0 ? "blog.edit" : undefined}
+                    onClick={() => onEdit(post)}
+                  >
                     {t("admin.blog.edit")}
                   </Button>
                 </li>
@@ -731,6 +742,7 @@ const BlogEditor = ({
             size="sm"
             variant="ghost"
             data-qa="blog-delete"
+            data-coach="blogEditor.viewDelete"
             onClick={() => setConfirm("delete")}
             disabled={busy}
             className="text-destructive hover:text-destructive"
@@ -743,7 +755,7 @@ const BlogEditor = ({
 
       <div className="px-6 py-4 space-y-6 border-t border-border">
         {/* Status — the one instant control. */}
-        <div className="space-y-1" data-qa="blog-field-status">
+        <div className="space-y-1" data-qa="blog-field-status" data-coach="blogEditor.status">
           <div className="flex flex-wrap items-center gap-3">
             <Switch
               id="blog-status"
@@ -762,6 +774,7 @@ const BlogEditor = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 data-qa="blog-view"
+                data-coach="blogEditor.viewDelete"
                 className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
               >
                 {t("admin.blog.viewPost")}
@@ -799,6 +812,7 @@ const BlogEditor = ({
           error={attempted && titleMissing ? t("admin.blog.titleRequired") : null}
           onChange={setTitle}
           control={input(140)}
+          coach={{ field: "blogEditor.fields", other: "blogEditor.translation" }}
         />
 
         {/* Slug */}
@@ -831,7 +845,7 @@ const BlogEditor = ({
         </div>
 
         {/* Cover — from the gallery only (face law). */}
-        <div className="space-y-1.5" data-qa="blog-field-cover">
+        <div className="space-y-1.5" data-qa="blog-field-cover" data-coach="blogEditor.cover">
           <Label className="text-foreground text-sm">{t("admin.blog.fieldCover")}</Label>
           <p className="text-xs text-muted-foreground">{t("admin.blog.coverHelp")}</p>
           <div className="flex flex-wrap items-center gap-3">
@@ -944,6 +958,7 @@ const BlogEditor = ({
             onClick={onSave}
             disabled={saving || !canSave}
             data-qa="blog-save"
+            data-coach="blogEditor.save"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" aria-hidden />}
@@ -1002,8 +1017,9 @@ const BlogManager = () => {
   const [loadFailed, setLoadFailed] = useState(false);
   /** undefined = the list; null = a new post; a post = editing it. */
   const [editing, setEditing] = useState<BlogPost | null | undefined>(undefined);
-  // BLOG.2 — the Studio's Publish lands here with the new draft to open.
-  const open = useAdminIntent<{ postId: string }>("blog");
+  // BLOG.2 — the Studio's Publish lands here with the new draft to open;
+  // ADMIN.COACH.1 — the editor tour's "Ver de nuevo" lands on a blank entry.
+  const open = useAdminIntent<{ postId?: string; newPost?: boolean }>("blog");
 
   useEffect(() => {
     let cancelled = false;
@@ -1031,6 +1047,7 @@ const BlogManager = () => {
 
   useEffect(() => {
     if (loading || !open.data) return;
+    if (open.data.newPost) setEditing(null);
     const post = posts.find((p) => p.id === open.data?.postId);
     if (post) setEditing(post);
     open.clear();

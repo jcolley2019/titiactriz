@@ -123,7 +123,7 @@ const GeneratedContent = ({ outputs, streaming, onBlogEdited, onPublish, publish
 
   return (
     <div data-qa="studio-generated">
-      <div className="st-tabs" role="tablist">
+      <div className="st-tabs" role="tablist" data-coach="studio.output">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -191,7 +191,13 @@ const GeneratedContent = ({ outputs, streaming, onBlogEdited, onPublish, publish
         )}
         {isBlog &&
           (blogPostId ? (
-            <button type="button" className="st-btn st-btn-primary" data-qa="studio-open-draft" onClick={onOpenDraft}>
+            <button
+              type="button"
+              className="st-btn st-btn-primary"
+              data-qa="studio-open-draft"
+              data-coach="studio.publish"
+              onClick={onOpenDraft}
+            >
               <ExternalLink className="w-4 h-4" aria-hidden />
               {t("admin.studio.openDraft")}
             </button>
@@ -200,6 +206,7 @@ const GeneratedContent = ({ outputs, streaming, onBlogEdited, onPublish, publish
               type="button"
               className="st-btn st-btn-primary"
               data-qa="studio-publish"
+              data-coach="studio.publish"
               onClick={() => {
                 if (editing) finishEditing();
                 onPublish();

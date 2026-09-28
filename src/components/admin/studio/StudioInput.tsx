@@ -138,7 +138,14 @@ const StudioInput = ({
           {recorder.isSupported && (
             <div className="st-recorder" data-live={recorder.isRecording && !recorder.isPaused ? "true" : "false"}>
               {!recorder.isRecording ? (
-                <button type="button" className="st-btn" data-qa="studio-record" onClick={onRecord} disabled={disabled}>
+                <button
+                  type="button"
+                  className="st-btn"
+                  data-qa="studio-record"
+                  data-coach="studio.brainDump"
+                  onClick={onRecord}
+                  disabled={disabled}
+                >
                   <Mic className="w-4 h-4" aria-hidden />
                   {t("admin.studio.record")}
                 </button>
@@ -168,6 +175,7 @@ const StudioInput = ({
             ref={textareaRef}
             className="st-input"
             data-qa="studio-brain-dump"
+            data-coach="studio.brainDump"
             value={shown}
             onChange={(e) => {
               // While a phrase is still being heard, only edits before it count.

@@ -115,7 +115,7 @@ const StudioHistory = ({ version, openId, onReopen, onDeleted }: Props) => {
 
   return (
     <div className="st-history-list" data-qa="studio-history">
-      {rows.map((row) => {
+      {rows.map((row, i) => {
         const open = expanded === row.id;
         const busy = deleting === row.id;
         return (
@@ -123,6 +123,7 @@ const StudioHistory = ({ version, openId, onReopen, onDeleted }: Props) => {
             key={row.id}
             className="st-history-item"
             data-qa="studio-history-item"
+            data-coach={i === 0 ? "studio.history" : undefined}
             data-open={open ? "true" : "false"}
             data-current={openId === row.id ? "true" : "false"}
           >

@@ -1,4 +1,5 @@
 import type { Page, Route } from "@playwright/test";
+import { TOUR_IDS } from "../src/components/admin/coach/tours";
 
 /**
  * ADMIN.MEDIA.1 gate helpers — authenticate the admin and mock the owned
@@ -25,8 +26,37 @@ export const MOCK_PHOTOS = [
   svgPhoto("p4", "navy"),
 ];
 
-/** Inject a valid-looking admin session into localStorage before the app boots. */
-export async function injectAdminSession(page: Page) {
+/** The mocked admin's user id (the session below; coach seen-state is keyed by it). */
+export const MOCK_ADMIN_ID = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * ADMIN.COACH.1 — mark coaching tours as seen before the app boots, merged into
+ * `admin.coach.seen.<uid>` on every navigation, so no tip covers the admin.
+ */
+export async function markCoachSeen(page: Page, ids: readonly string[], userId = MOCK_ADMIN_ID) {
+  if (ids.length === 0) return;
+  await page.addInitScript(
+    ({ key, ids }) => {
+      try {
+        const raw = localStorage.getItem(key);
+        const seen = new Set<string>(raw ? JSON.parse(raw) : []);
+        ids.forEach((id) => seen.add(id));
+        localStorage.setItem(key, JSON.stringify([...seen]));
+      } catch {
+        /* storage disabled — nothing we can do */
+      }
+    },
+    { key: `admin.coach.seen.${userId}`, ids: [...ids] },
+  );
+}
+
+/**
+ * Inject a valid-looking admin session into localStorage before the app boots.
+ * Every coaching tour starts out seen (a spec about something else never meets
+ * a tip); the coach's own spec passes `{ coachSeen: false }`.
+ */
+export async function injectAdminSession(page: Page, opts: { coachSeen?: boolean } = {}) {
+  if (opts.coachSeen !== false) await markCoachSeen(page, TOUR_IDS);
   await page.addInitScript((ref) => {
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 3600;

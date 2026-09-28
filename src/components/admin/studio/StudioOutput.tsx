@@ -78,7 +78,7 @@ const StudioOutput = ({
         <p className="st-section-desc">{t("admin.studio.outputDesc")}</p>
       </div>
 
-      <div>
+      <div data-coach="studio.format">
         <div className="st-label-row">
           <span className="st-field-label">{t("admin.studio.format")}</span>
         </div>
@@ -105,7 +105,7 @@ const StudioOutput = ({
       </div>
 
       {socialOn && (
-        <div>
+        <div data-coach="studio.platforms">
           <div className="st-label-row">
             <span className="st-field-label">{t("admin.studio.platforms")}</span>
             <button
@@ -141,7 +141,7 @@ const StudioOutput = ({
         </div>
       )}
 
-      <div>
+      <div data-coach="studio.language">
         <div className="st-label-row">
           <span className="st-field-label" id="studio-language-label">
             {t("admin.studio.language")}
@@ -171,6 +171,7 @@ const StudioOutput = ({
         role="switch"
         className="st-switch"
         data-qa="studio-web-search"
+        data-coach="studio.webSearch"
         aria-checked={webSearch}
         aria-describedby="studio-web-search-hint"
         onClick={() => onWebSearchChange(!webSearch)}
@@ -191,6 +192,7 @@ const StudioOutput = ({
         type="button"
         className="st-btn st-btn-primary st-generate"
         data-qa="studio-generate"
+        data-coach="studio.generate"
         onClick={onGenerate}
         disabled={!canGenerate || generating}
       >

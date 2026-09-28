@@ -941,6 +941,100 @@
     "guide": {
       "contents": "En esta guía"
     },
+    "coach": {
+      "ui": {
+        "progress": "Paso {{n}} de {{total}}",
+        "back": "Atrás",
+        "next": "Siguiente",
+        "done": "Listo",
+        "skip": "Saltar",
+        "title": "Consejos",
+        "intro": "La primera vez que abres una pestaña, un consejo te muestra sus botones en orden. Aquí puedes verlos otra vez.",
+        "replay": "Ver de nuevo",
+        "resetAll": "Reiniciar todos los consejos",
+        "resetDone": "Consejos reiniciados",
+        "resetDoneDesc": "Cada consejo vuelve a salir la primera vez que abras su pestaña.",
+        "blogEditor": "Editor del blog"
+      },
+      "blog": {
+        "new": {
+          "title": "Nueva entrada",
+          "body": "Empieza un artículo desde cero. Los borradores que crea el Estudio también llegan a esta lista."
+        },
+        "edit": {
+          "title": "Editar",
+          "body": "Abre una entrada para revisarla, publicarla o borrarla. Cada una dice si es Borrador o Publicada."
+        }
+      },
+      "blogEditor": {
+        "fields": {
+          "title": "Título y textos",
+          "body": "Llena el Título, el Resumen, el Texto y la Descripción para buscadores, que es lo que Google muestra bajo el título."
+        },
+        "cover": {
+          "title": "Portada",
+          "body": "Toca Elegir foto y escoge una de la Galería. Aquí no se suben fotos: si necesitas una nueva, súbela primero en Galería."
+        },
+        "translation": {
+          "title": "El otro idioma",
+          "body": "Escribe en un solo idioma; al guardar, el otro se traduce solo. Abre «Inglés» (o «Español») debajo de cada campo para leer y corregir la traducción."
+        },
+        "status": {
+          "title": "Publicada",
+          "body": "Apagado es Borrador: solo tú la ves. Encendido, sale en titiactriz.com/blog; funciona cuando la entrada ya está guardada."
+        },
+        "save": {
+          "title": "Guardar cambios",
+          "body": "Guarda lo que escribiste y traduce el otro idioma. Si sales sin guardar, te pregunta antes."
+        },
+        "viewDelete": {
+          "title": "Ver en el sitio y Eliminar entrada",
+          "body": "Con la entrada publicada, Ver en el sitio la abre en una pestaña nueva. Eliminar entrada la borra también del sitio y no se puede deshacer."
+        }
+      },
+      "studio": {
+        "brainDump": {
+          "title": "Cuenta tu idea",
+          "body": "Escribe aquí tu idea como se la contarías a una amiga, o toca Grabar y habla. Incluye nombres, fechas y enlaces exactos: el Estudio los respeta tal cual."
+        },
+        "format": {
+          "title": "Formato",
+          "body": "Elige Artículo de blog, Post para redes o los dos. Siempre queda al menos uno elegido."
+        },
+        "platforms": {
+          "title": "Plataformas",
+          "body": "Marca TikTok, Instagram, Pinterest o YouTube, o toca Todas. Sale un post pensado para cada una."
+        },
+        "language": {
+          "title": "Idioma del contenido",
+          "body": "Elige Español o Inglés. El contenido sale en este idioma, sin importar en cuál escribiste tu idea."
+        },
+        "webSearch": {
+          "title": "Investigar en la web",
+          "body": "Déjalo apagado casi siempre: es más lento. Enciéndelo solo cuando el tema sea algo externo a ti, como una plataforma nueva, una tendencia o datos que tú no diste."
+        },
+        "generate": {
+          "title": "Generar",
+          "body": "Toca Generar y espera alrededor de un minuto. Si cambias de idea, toca Cancelar."
+        },
+        "output": {
+          "title": "Contenido generado",
+          "body": "Aquí aparece lo que pediste, con una pestaña para cada cosa. En el Artículo, Editar te deja corregirlo; en las redes, Copiar lo deja listo para pegar en la app."
+        },
+        "publish": {
+          "title": "Publicar como borrador",
+          "body": "Crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: tú decides cuándo, desde Blog."
+        },
+        "history": {
+          "title": "Historial",
+          "body": "Aquí quedan tus generaciones anteriores. Reabrir la vuelve a mostrar arriba; Borrar la quita del historial sin tocar el borrador del Blog."
+        },
+        "voice": {
+          "title": "Voz",
+          "body": "Es opcional: aquí le cuentas al Estudio cómo hablas, tu tono y lo que debe evitar, para que escriba como tú."
+        }
+      }
+    },
     "settings": {},
     "cinematicHero": {
       "title": "Foto principal cinemática",
