@@ -29,13 +29,13 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 
 Úsalo cuando… quieras cambiar tus créditos.
 
-- **Portafolio**: los créditos de actuación (cine, TV, teatro, publicidad). **Añadir crédito** agrega uno; el interruptor **Visible** / **Oculto** decide si se ve en el sitio. Con enlace, el crédito muestra VER; sin enlace, PRÓXIMAMENTE.
+- Los créditos de actuación (cine, TV, teatro, publicidad). **Añadir crédito** agrega uno; el interruptor **Visible** / **Oculto** decide si se ve en el sitio. Con enlace, el crédito muestra VER; sin enlace, PRÓXIMAMENTE.
 
 ## Enlaces
 
 Úsalo cuando… quieras cambiar tus redes.
 
-- **Enlaces**: tus redes sociales. **Añadir enlace** agrega una; pega el enlace completo y la plataforma se reconoce sola. **Visible** / **Oculto** decide cuáles aparecen en TitiLinks.
+- Tus redes sociales. **Añadir enlace** agrega una; pega el enlace completo y la plataforma se reconoce sola. **Visible** / **Oculto** decide cuáles aparecen en TitiLinks.
 
 ## Eventos
 
@@ -104,7 +104,7 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 
 Úsalo cuando… quieras cambiar los textos de la portada.
 
-- **Ajustes**: en **Portada — textos** cambias la línea de roles debajo de tu nombre, la frase de introducción y el título y la descripción que muestran los buscadores. Toca **Guardar cambios** y el otro idioma se traduce solo.
+- En **Portada — textos** cambias la línea de roles debajo de tu nombre, la frase de introducción y el título y la descripción que muestran los buscadores. Toca **Guardar cambios** y el otro idioma se traduce solo.
 
 ## Mensajes
 

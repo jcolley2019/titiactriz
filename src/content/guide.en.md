@@ -29,13 +29,13 @@ Use it when… you want to upload photos, change their order or decide which one
 
 Use it when… you want to change your credits.
 
-- **Portfolio**: your acting credits (film, TV, theatre, commercials). **Add credit** adds one; the **Shown** / **Hidden** switch decides whether it appears on the site. With a link the credit reads VIEW; without one it reads COMING SOON.
+- Your acting credits (film, TV, theatre, commercials). **Add credit** adds one; the **Shown** / **Hidden** switch decides whether it appears on the site. With a link the credit reads VIEW; without one it reads COMING SOON.
 
 ## Links
 
 Use it when… you want to change your social links.
 
-- **Links**: your social networks. **Add link** adds one; paste the full link and the platform sets itself. **Shown** / **Hidden** decides which ones appear on TitiLinks.
+- Your social networks. **Add link** adds one; paste the full link and the platform sets itself. **Shown** / **Hidden** decides which ones appear on TitiLinks.
 
 ## Events
 
@@ -104,7 +104,7 @@ Use it when… you have an idea in your head and want to turn it into a blog art
 
 Use it when… you want to change the home page copy.
 
-- **Settings**: under **Hero — copy** you change the roles line under your name, the intro sentence, and the title and description search engines show. Tap **Save changes** and the other language is translated on its own.
+- Under **Hero — copy** you change the roles line under your name, the intro sentence, and the title and description search engines show. Tap **Save changes** and the other language is translated on its own.
 
 ## Submissions
 
