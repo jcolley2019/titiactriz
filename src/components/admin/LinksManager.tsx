@@ -190,12 +190,13 @@ const LinkRow = ({
           {...attributes}
           {...listeners}
           data-qa="links-drag"
+          data-coach={isFirst ? "links.order" : undefined}
           aria-label={t("admin.links.dragToReorder")}
           className="hidden md:flex p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none shrink-0"
         >
           <GripVertical className="w-4 h-4" />
         </button>
-        <div className="flex flex-col gap-1 md:hidden shrink-0">
+        <div className="flex flex-col gap-1 md:hidden shrink-0" data-coach={isFirst ? "links.order" : undefined}>
           <button
             type="button"
             onClick={() => onMove(-1)}
@@ -267,7 +268,7 @@ const LinkRow = ({
           </span>
         )}
 
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 ml-auto" data-coach={isFirst ? "links.visible" : undefined}>
           <Switch data-qa="links-enabled" checked={row.enabled} onCheckedChange={onEnabledChange} />
           <span className="text-xs text-muted-foreground">
             {row.enabled ? t("admin.links.shown") : t("admin.links.hidden")}
@@ -706,6 +707,7 @@ const LinksManager = () => {
                 onClick={addLink}
                 disabled={adding || loading}
                 data-qa="links-add"
+                data-coach={loading ? undefined : "links.add"}
               >
                 {adding ? (
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />

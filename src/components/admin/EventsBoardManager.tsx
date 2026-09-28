@@ -347,7 +347,12 @@ const BannerEditor = ({
   const invalid = textMissing && (attempted || showErrors || !!banner.enabled);
 
   return (
-  <div className="space-y-3 border border-border rounded-lg p-4" data-qa="banner-editor" data-banner={qa}>
+  <div
+    className="space-y-3 border border-border rounded-lg p-4"
+    data-qa="banner-editor"
+    data-banner={qa}
+    data-coach={qa === "main" ? "events.banner" : undefined}
+  >
     <div className="flex items-center gap-3">
       <Switch
         checked={!!banner.enabled}
@@ -429,7 +434,7 @@ const BannerEditor = ({
         whole values (a full date or empty), so it is an ADMIN.QOL.1 instant
         control, exactly like an event's date. The note reads the same rule
         the public bar does, so what it says is what visitors get. */}
-    <div className="space-y-1">
+    <div className="space-y-1" data-coach={qa === "main" ? "events.showUntil" : undefined}>
       <FieldLabel>
         {t("admin.eventsBoard.bannerShowUntilLabel")}
         <SaveFlash state={flash[`banner-${qa}-until`]} qa={`banner-${qa}-until`} />
@@ -774,8 +779,11 @@ const EventFields = ({
   flash,
   item,
   onChange,
+  coachDate = false,
 }: {
   item: EventCardItem;
+  /** ADMIN.COACH.1 — the first card carries the date tip target. */
+  coachDate?: boolean;
   onChange: (patch: Partial<EventCardItem>) => void;
   /** ADMIN.QOL.1 — toggles and selectors write on the spot. */
   onInstant: (patch: Partial<EventItem>, key: string) => void;
@@ -845,7 +853,7 @@ const EventFields = ({
       {/* EVENTS.ARCHIVE.1 — the event's day, and the whole lifecycle behind it.
           A date input commits whole values (a full date or empty), so it is an
           ADMIN.QOL.1 instant control, not text waiting on Save. */}
-      <div className="space-y-1">
+      <div className="space-y-1" data-coach={coachDate ? "events.date" : undefined}>
         <FieldLabel>
           {t("admin.eventsBoard.eventDateLabel")}
           <SaveFlash state={flash[`date-${item.id}`]} qa={`date-${item.id}`} />
@@ -1167,9 +1175,11 @@ type SortableCardProps = {
   /** ADMIN.QOL.1 — toggles and selectors write on the spot. */
   onInstant: (patch: Partial<EventItem>, key: string) => void;
   flash: FlashMap;
+  /** ADMIN.COACH.1 — the first card carries the date tip target. */
+  first?: boolean;
 };
 
-const SortableCard = ({ item, onChange, onDelete, onArchive, onInstant, flash }: SortableCardProps) => {
+const SortableCard = ({ item, onChange, onDelete, onArchive, onInstant, flash, first = false }: SortableCardProps) => {
   const { t } = useTranslation();
   const {
     attributes,
@@ -1267,6 +1277,7 @@ const SortableCard = ({ item, onChange, onDelete, onArchive, onInstant, flash }:
         onChange={(p) => onChange(p as Partial<EventItem>)}
         onInstant={onInstant}
         flash={flash}
+        coachDate={first}
       />
     </li>
   );
@@ -1982,6 +1993,7 @@ const EventsBoardManager = () => {
             variant="outline"
             onClick={addItem}
             disabled={atMax}
+            data-coach={loading ? undefined : "events.add"}
           >
             <Plus className="w-3 h-3 mr-1" />
             {t("admin.eventsBoard.addEvent")}
@@ -2008,10 +2020,11 @@ const EventsBoardManager = () => {
               strategy={verticalListSortingStrategy}
             >
               <ul className="space-y-3">
-                {board.items.map((item) => (
+                {board.items.map((item, i) => (
                   <SortableCard
                     key={item.id}
                     item={item}
+                    first={i === 0}
                     onChange={(patch) => updateItem(item.id, patch)}
                     onDelete={() => deleteItem(item.id)}
                     onArchive={() => archiveItem(item.id)}
@@ -2098,6 +2111,7 @@ const EventsBoardManager = () => {
             onClick={onSave}
             disabled={saving || loading || !canSave}
             data-qa="events-save"
+            data-coach="events.save"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
             {saving ? (

@@ -261,6 +261,7 @@ const SortableRow = memo(({
     <li
       ref={setNodeRef}
       style={style}
+      data-coach={isFirst ? "gallery.list" : undefined}
       className="bg-card border border-border rounded-lg p-3 md:p-4 flex flex-col gap-3 md:grid md:gap-4 md:grid-cols-[auto_auto_auto_88px_1fr_auto_auto] md:items-center"
     >
       <div className="flex items-center gap-2 md:contents">
@@ -301,7 +302,10 @@ const SortableRow = memo(({
         <span className="text-xs text-muted-foreground tabular-nums w-6 text-center shrink-0 md:order-3">
           {position}
         </span>
-        <div className="flex items-center gap-2 ml-auto md:ml-0 md:order-6">
+        <div
+          className="flex items-center gap-2 ml-auto md:ml-0 md:order-6"
+          data-coach={isFirst ? "gallery.published" : undefined}
+        >
           <Switch checked={photo.is_published} onCheckedChange={onPublishedChange} />
           <span className="text-xs text-muted-foreground">
             {photo.is_published ? t("admin.photos.published") : t("admin.photos.hidden")}
@@ -984,6 +988,7 @@ const ManagePanel = () => {
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={onDrop}
+          data-coach={loading ? undefined : "gallery.upload"}
           className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
             isDragging
               ? "border-accent bg-accent/10"

@@ -510,7 +510,11 @@ const CinematicMediaManager = () => {
 
       {/* Hero video management (VID.MODEL.1 — one video, framed per screen type). */}
       {!loading && (
-        <div data-qa="media-hero-video" className="space-y-4 rounded-lg border border-border bg-card p-4">
+        <div
+          data-qa="media-hero-video"
+          data-coach="media.video"
+          className="space-y-4 rounded-lg border border-border bg-card p-4"
+        >
           <div className="flex items-start gap-2">
             <Video className="mt-0.5 h-4 w-4 text-accent" />
             <div>
@@ -606,8 +610,8 @@ const CinematicMediaManager = () => {
       {loading ? (
         <p className="text-sm text-muted-foreground">{t("admin.cinematicHero.loading")}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {SLOTS.map((d) => {
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4" data-coach="media.slots">
+          {SLOTS.map((d, i) => {
             const r = resolvedFor(d);
             const custom = !descIsDefault(config, d);
             const isHeroVideo = d.kind === "hero" && anyHeroVideo;
@@ -661,7 +665,10 @@ const CinematicMediaManager = () => {
                     </span>
                   )}
 
-                  <div className="absolute right-1.5 top-1.5 flex gap-1">
+                  <div
+                    className="absolute right-1.5 top-1.5 flex gap-1"
+                    data-coach={i === 0 ? "media.slotActions" : undefined}
+                  >
                     <button
                       type="button"
                       data-qa="media-slot-pick"

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { forceLanguage, routeSupabase, SUPABASE_REF } from "./_admin";
+import { forceLanguage, markCoachSeen, routeSupabase, SUPABASE_REF } from "./_admin";
+import { TOUR_IDS } from "../src/components/admin/coach/tours";
 
 /**
  * ADMIN.TAB.1 — the admin reopens on the last section; sign-out resets it.
@@ -79,6 +80,9 @@ const activeTab = (page: Page) => page.locator('[data-qa="admin-nav"] [aria-curr
 
 test.beforeEach(async ({ page }) => {
   await forceLanguage(page, "en");
+  // ADMIN.COACH.1b — Gallery, where every sign-in lands, has a tour; this spec
+  // seeds its own session, so it marks the tours seen itself.
+  await markCoachSeen(page, TOUR_IDS);
   await routeSupabase(page);
   await mockTokenGrant(page);
 });

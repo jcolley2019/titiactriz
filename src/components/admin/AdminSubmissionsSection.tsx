@@ -14,6 +14,7 @@ const AdminSubmissionsSection = () => {
   return (
     <div
       data-qa="admin-submissions-empty"
+      data-coach="submissions.soon"
       className="bg-card border border-border rounded-lg px-6 py-14 text-center"
     >
       <Inbox className="mx-auto mb-4 h-8 w-8 text-muted-foreground" aria-hidden />

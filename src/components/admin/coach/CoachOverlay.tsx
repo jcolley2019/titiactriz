@@ -13,8 +13,9 @@ import type { CoachTour } from "./tours";
  *
  * The overlay takes every click while it is open, so nothing on the page moves
  * underneath a tip. Keys: Esc = Saltar, → / Enter = Siguiente, ← = Atrás.
- * The rect is recomputed on resize and scroll (rAF-throttled), and each step
- * scrolls its target into view before it shows.
+ * The rect is recomputed on resize, scroll and page changes (a list that loads
+ * under the tip; rAF-throttled), and each step scrolls its target into view
+ * before it shows.
  */
 
 const PAD = 8; // around the target
@@ -43,6 +44,12 @@ const sameRect = (a: Rect | null, b: Rect | null) =>
     Math.round(a.left) === Math.round(b.left) &&
     Math.round(a.width) === Math.round(b.width) &&
     Math.round(a.height) === Math.round(b.height));
+
+/** The steps whose targets are on the page now, plus the one showing. */
+const shownSteps = (tour: CoachTour, index: number) =>
+  tour.steps.map((_, i) => i).filter((i) => i === index || hasTarget(tour.steps[i].target));
+
+const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 
 /** Scroll so the target sits clear of the header with room for the card, unless it already does. */
 function reveal(id: string, cardH: number) {
@@ -74,13 +81,18 @@ const CoachOverlay = ({ tourId, tour, index, onNext, onBack, onSkip }: Props) =>
   const [rect, setRect] = useState<Rect | null>(null);
   const [cardH, setCardH] = useState(0);
   const [view, setView] = useState(viewport);
+  // "Paso n de N" counts the steps whose targets are on the page right now; a
+  // list that finishes loading under an open tip grows it.
+  const [shown, setShown] = useState(() => shownSteps(tour, index));
 
   const measure = useCallback(() => {
     const r = targetRect(step.target);
     setRect((prev) => (sameRect(prev, r) ? prev : r));
+    const s = shownSteps(tour, index);
+    setShown((prev) => (sameList(prev, s) ? prev : s));
     const now = viewport();
     setView((v) => (v.w === now.w && v.h === now.h ? v : now));
-  }, [step.target]);
+  }, [step.target, tour, index]);
 
   // Each step: bring the target into view, then measure it.
   useLayoutEffect(() => {
@@ -101,11 +113,14 @@ const CoachOverlay = ({ tourId, tour, index, onNext, onBack, onSkip }: Props) =>
     window.addEventListener("scroll", schedule, { capture: true, passive: true });
     const ro = new ResizeObserver(schedule);
     ro.observe(document.body);
+    const mo = new MutationObserver(schedule);
+    mo.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-coach"] });
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, { capture: true });
       ro.disconnect();
+      mo.disconnect();
     };
   }, [measure]);
 
@@ -157,8 +172,6 @@ const CoachOverlay = ({ tourId, tour, index, onNext, onBack, onSkip }: Props) =>
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onNext, onBack, onSkip]);
 
-  // "Paso n de N" counts the steps whose targets are on the page right now.
-  const shown = tour.steps.map((_, i) => i).filter((i) => i === index || hasTarget(tour.steps[i].target));
   const n = shown.indexOf(index) + 1;
   const first = n === 1;
   const last = n === shown.length;

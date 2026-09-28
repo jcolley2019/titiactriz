@@ -148,6 +148,7 @@ const CreditRow = ({
       ref={setNodeRef}
       style={style}
       data-qa="portfolio-credit"
+      data-coach={isFirst ? "portfolio.credit" : undefined}
       data-id={row.id}
       data-enabled={row.enabled ? "true" : "false"}
       className="bg-card border border-border rounded-lg p-3 md:p-4 space-y-3"
@@ -568,6 +569,7 @@ const PortfolioManager = () => {
                 onClick={addCredit}
                 disabled={adding || loading}
                 data-qa="portfolio-add"
+                data-coach={loading ? undefined : "portfolio.add"}
               >
                 {adding ? (
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />

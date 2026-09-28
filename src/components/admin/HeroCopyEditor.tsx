@@ -94,7 +94,10 @@ const FieldEditor = ({
   defaults,
   disabled,
   onChange,
+  coach,
 }: {
+  /** ADMIN.COACH.1 — a tip target on the field wrapper. */
+  coach?: string;
   spec: FieldSpec;
   value: Localized;
   defaults: Record<Lang, HeroCopy>;
@@ -144,7 +147,7 @@ const FieldEditor = ({
     );
 
   return (
-    <div className="space-y-1.5" data-qa={`hero-copy-field-${field}`}>
+    <div className="space-y-1.5" data-qa={`hero-copy-field-${field}`} data-coach={coach}>
       <div className="flex items-baseline justify-between gap-3">
         <Label htmlFor={id} className="text-foreground text-sm">
           {spec.label}
@@ -315,7 +318,10 @@ const HeroCopyEditor = () => {
       // bar's stickiness (ADMIN.QOL.1).
       className="bg-card border border-border rounded-lg mb-10 overflow-clip"
     >
-      <div className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left">
+      <div
+        className="w-full flex items-center justify-between gap-3 px-6 py-3 text-left"
+        data-coach={loading ? undefined : "settings.fields"}
+      >
         <div>
           <h2 className="font-serif text-base text-foreground leading-tight">
             {t("admin.heroCopy.title")}
@@ -338,9 +344,10 @@ const HeroCopyEditor = () => {
           </p>
         )}
 
-        {specs.map((spec) => (
+        {specs.map((spec, i) => (
           <FieldEditor
             key={spec.field}
+            coach={!loading && i === 0 ? "settings.fields" : undefined}
             spec={spec}
             value={fields[spec.field]}
             defaults={defaults}
@@ -401,6 +408,7 @@ const HeroCopyEditor = () => {
             onClick={onSave}
             disabled={saving || loading || loadFailed || !canSave}
             data-qa="hero-copy-save"
+            data-coach="settings.save"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
             {saving ? (

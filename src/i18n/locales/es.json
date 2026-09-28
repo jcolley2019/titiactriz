@@ -1033,6 +1033,96 @@
           "title": "Voz",
           "body": "Es opcional: aquí le cuentas al Estudio cómo hablas, tu tono y lo que debe evitar, para que escriba como tú."
         }
+      },
+      "gallery": {
+        "upload": {
+          "title": "Subir fotos",
+          "body": "Arrastra tus fotos a este recuadro o toca Seleccionar archivos. Súbelas como salen de la cámara: nada de retoques de cara con inteligencia artificial."
+        },
+        "list": {
+          "title": "El orden del sitio",
+          "body": "El orden de esta lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla; en el celular, usa las flechas."
+        },
+        "published": {
+          "title": "Publicada u Oculta",
+          "body": "Solo las fotos con el interruptor en Publicada salen en el sitio. Oculta la guarda aquí sin mostrarla."
+        }
+      },
+      "media": {
+        "video": {
+          "title": "Video de fondo del hero",
+          "body": "Aquí subes el video que abre la portada, con Subir video. Si hay un video, la portada lo muestra en lugar de la foto."
+        },
+        "slots": {
+          "title": "Qué foto va dónde",
+          "body": "Cada tarjeta es un lugar de la portada: la foto del Hero, las del reel y la de Sobre mí."
+        },
+        "slotActions": {
+          "title": "Cambiar foto y Editar encuadre",
+          "body": "La cámara (Cambiar foto) escoge otra foto de la Galería. El lápiz (Editar encuadre) te deja moverla y acercarla para cada tipo de pantalla."
+        }
+      },
+      "portfolio": {
+        "add": {
+          "title": "Añadir crédito",
+          "body": "Agrega un crédito de actuación: cine, TV, teatro o publicidad."
+        },
+        "credit": {
+          "title": "Cada crédito",
+          "body": "Lo que cambias aquí se guarda solo: verás «Guardado». El interruptor Visible / Oculto decide si sale en el sitio."
+        }
+      },
+      "links": {
+        "add": {
+          "title": "Añadir enlace",
+          "body": "Agrega una red social. Pega el enlace completo y la plataforma se reconoce sola."
+        },
+        "order": {
+          "title": "El orden",
+          "body": "Arrastra un enlace por el asa (o usa las flechas en el celular) para cambiar su lugar en TitiLinks."
+        },
+        "visible": {
+          "title": "Visible u Oculto",
+          "body": "Visible / Oculto decide cuáles salen en TitiLinks. Cada cambio se guarda solo: verás «Guardado»."
+        }
+      },
+      "events": {
+        "add": {
+          "title": "Agregar evento",
+          "body": "Crea una tarjeta de evento con su título, descripción, botón e imagen o video. Puedes tener hasta 4 activas."
+        },
+        "date": {
+          "title": "Fecha del evento",
+          "body": "Es opcional. Al día siguiente de esta fecha, el evento se archiva solo; sin fecha, queda hasta que lo archives tú."
+        },
+        "banner": {
+          "title": "La franja del sitio",
+          "body": "En Site banner escribes en Banner text el mensaje que se desplaza arriba de las páginas, lo enciendes y eliges en Show on pages dónde se ve."
+        },
+        "showUntil": {
+          "title": "Mostrar hasta",
+          "body": "Es el último día en que se ve la franja; después se oculta sola. Para volver a usarla, pon una fecha nueva o borra la fecha."
+        },
+        "save": {
+          "title": "Guardar cambios",
+          "body": "Los interruptores y las fechas se guardan al instante. El texto espera a que toques Guardar cambios, y ahí el otro idioma se traduce solo."
+        }
+      },
+      "settings": {
+        "fields": {
+          "title": "Portada — textos",
+          "body": "Aquí cambias la línea de roles debajo de tu nombre, la frase de introducción y lo que muestran los buscadores. Escribe en un idioma; el otro se traduce al guardar."
+        },
+        "save": {
+          "title": "Guardar cambios",
+          "body": "Toca Guardar cambios para que tus textos salgan en el sitio. Mientras haya cambios sin guardar, la barra de abajo te lo recuerda."
+        }
+      },
+      "submissions": {
+        "soon": {
+          "title": "Mensajes",
+          "body": "Próximamente: aquí vas a leer lo que te escriben desde el formulario de contacto."
+        }
       }
     },
     "settings": {},

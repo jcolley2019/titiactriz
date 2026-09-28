@@ -34,6 +34,27 @@ const step = (tour: string, key: string, emoji: string): CoachStep => ({
 });
 
 export const TOURS: Record<string, CoachTour> = {
+  gallery: {
+    steps: [step("gallery", "upload", "📤"), step("gallery", "list", "↕️"), step("gallery", "published", "👁️")],
+  },
+  media: {
+    steps: [step("media", "video", "🎬"), step("media", "slots", "🖼️"), step("media", "slotActions", "📷")],
+  },
+  portfolio: {
+    steps: [step("portfolio", "add", "➕"), step("portfolio", "credit", "🎭")],
+  },
+  links: {
+    steps: [step("links", "add", "➕"), step("links", "order", "↕️"), step("links", "visible", "👁️")],
+  },
+  events: {
+    steps: [
+      step("events", "add", "➕"),
+      step("events", "date", "📅"),
+      step("events", "banner", "📣"),
+      step("events", "showUntil", "⏳"),
+      step("events", "save", "💾"),
+    ],
+  },
   // The list: fires the first time the Blog tab opens on it.
   blog: {
     steps: [step("blog", "new", "✍️"), step("blog", "edit", "📂")],
@@ -66,6 +87,12 @@ export const TOURS: Record<string, CoachTour> = {
       step("studio", "history", "🗂️"),
       step("studio", "voice", "🗣️"),
     ],
+  },
+  settings: {
+    steps: [step("settings", "fields", "✏️"), step("settings", "save", "💾")],
+  },
+  submissions: {
+    steps: [step("submissions", "soon", "📬")],
   },
 };
 

@@ -1033,6 +1033,96 @@
           "title": "Voice",
           "body": "Optional: here you tell the Studio how you talk, your tone and what to avoid, so it writes like you."
         }
+      },
+      "gallery": {
+        "upload": {
+          "title": "Upload photos",
+          "body": "Drag your photos into this box or tap Select files. Upload them as they come out of the camera: no AI face retouching."
+        },
+        "list": {
+          "title": "The order on the site",
+          "body": "The order of this list is the order on the site. Drag a photo by the handle on the left to move it; on your phone, use the arrows."
+        },
+        "published": {
+          "title": "Published or Hidden",
+          "body": "Only photos with the switch on Published appear on the site. Hidden keeps it here without showing it."
+        }
+      },
+      "media": {
+        "video": {
+          "title": "Hero background video",
+          "body": "Upload the video that opens the home page here, with Upload video. When there is a video, the home page shows it instead of the photo."
+        },
+        "slots": {
+          "title": "Which photo goes where",
+          "body": "Each card is a spot on the home page: the Hero photo, the reel photos and the About photo."
+        },
+        "slotActions": {
+          "title": "Change photo and Edit framing",
+          "body": "The camera (Change photo) picks another photo from the Gallery. The pencil (Edit framing) lets you move and zoom it for each kind of screen."
+        }
+      },
+      "portfolio": {
+        "add": {
+          "title": "Add credit",
+          "body": "Adds an acting credit: film, TV, theatre or commercials."
+        },
+        "credit": {
+          "title": "Each credit",
+          "body": "What you change here saves on its own: you will see “Saved”. The Shown / Hidden switch decides whether it appears on the site."
+        }
+      },
+      "links": {
+        "add": {
+          "title": "Add link",
+          "body": "Adds a social network. Paste the full link and the platform sets itself."
+        },
+        "order": {
+          "title": "The order",
+          "body": "Drag a link by its handle (or use the arrows on your phone) to change its place on TitiLinks."
+        },
+        "visible": {
+          "title": "Shown or Hidden",
+          "body": "Shown / Hidden decides which ones appear on TitiLinks. Every change saves on its own: you will see “Saved”."
+        }
+      },
+      "events": {
+        "add": {
+          "title": "Add event",
+          "body": "Creates an event card with its title, description, button and image or video. You can have up to 4 active."
+        },
+        "date": {
+          "title": "Event date",
+          "body": "Optional. The day after this date, the event archives itself; without a date, it stays until you archive it."
+        },
+        "banner": {
+          "title": "The site strip",
+          "body": "In Site banner you write the message that scrolls across the top of the pages in Banner text, turn it on and choose under Show on pages where it shows."
+        },
+        "showUntil": {
+          "title": "Show until",
+          "body": "The last day the strip shows; after that it hides on its own. To use it again, set a new date or clear the date."
+        },
+        "save": {
+          "title": "Save changes",
+          "body": "Switches and dates save instantly. Text waits until you tap Save changes, and then the other language is translated on its own."
+        }
+      },
+      "settings": {
+        "fields": {
+          "title": "Hero — copy",
+          "body": "Here you change the roles line under your name, the intro sentence and what search engines show. Write in one language; the other is translated on save."
+        },
+        "save": {
+          "title": "Save changes",
+          "body": "Tap Save changes so your copy shows on the site. While there are unsaved changes, the bar at the bottom reminds you."
+        }
+      },
+      "submissions": {
+        "soon": {
+          "title": "Submissions",
+          "body": "Coming soon: this is where you will read what people send you through the contact form."
+        }
       }
     },
     "settings": {},
