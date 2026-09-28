@@ -148,6 +148,12 @@ const StudioPanel = () => {
     generatedRef.current?.scrollIntoView({ block: "start" });
   };
 
+  // STUDIO.HISTORY.1 — the deleted generation was the one open in Contenido
+  // generado: back to the empty state.
+  const onDeleted = (id: string) => {
+    if (g.generation?.id === id) g.setGeneration(null);
+  };
+
   const errorText = (e: string) =>
     e === "cancelled" ? t("admin.studio.cancelled") : e === "tooLong" ? t("admin.studio.tooLong") : e;
 
@@ -265,7 +271,7 @@ const StudioPanel = () => {
           {t("admin.studio.history")}
         </h3>
         <p className="st-section-desc mb-4">{t("admin.studio.historyDesc")}</p>
-        <StudioHistory version={g.historyVersion} openId={g.generation?.id ?? null} onReopen={onReopen} />
+        <StudioHistory version={g.historyVersion} openId={g.generation?.id ?? null} onReopen={onReopen} onDeleted={onDeleted} />
       </section>
 
       <VoiceDrawer open={voiceOpen} onClose={closeVoice} />

@@ -23,11 +23,19 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
  *   W4 disabled while generating; English copy
  *   screenshots off/on × light/dark at 1440×900 land in _qa/studio-speed/
  *
+ * STUDIO.HISTORY.1 — Borrar a generation from Historial (inline confirm, no window.confirm):
+ *   H1 expand → Borrar → No leaves the row; collapsing cancels the confirm
+ *   H2 Borrar → Sí sends one DELETE with id=eq.<row id>, the row leaves the list, blog_posts untouched
+ *   H3 reopen a row, then delete it → Contenido generado shows the empty state
+ *   H4 the select returns no row (RLS refusal) → "No se pudo borrar", the row stays
+ *   screenshot of the confirm state, light, 1440×900, in _qa/studio-history/
+ *
  * Screenshots (light and dark, 1440×900 and 820×1180) land in _qa/blog-2/.
  */
 
 const SHOTS = "_qa/blog-2";
 const SPEED_SHOTS = "_qa/studio-speed";
+const HISTORY_SHOTS = "_qa/studio-history";
 
 const ARTICLE = [
   "```meta",
@@ -76,6 +84,10 @@ type Mock = {
   generations: Record<string, unknown>[];
   posts: Record<string, unknown>[];
   blogStream: string;
+  /** Every request that reached /rest/v1/blog_posts, reads included. */
+  blogPostsRequests: number;
+  /** What a DELETE on studio_generations answers: the deleted row (default) or nothing (RLS refusal). */
+  deleteReturnsRow: boolean;
 };
 
 const USAGE = { input_tokens: 1000, output_tokens: 500, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, web_search_requests: 0, cost_usd: 0.0075, model: "claude-sonnet-5" };
@@ -88,6 +100,8 @@ async function setup(page: Page, opts: { lang?: "es" | "en"; generations?: Recor
     generations: opts.generations ?? [],
     posts: [],
     blogStream: opts.blogStream ?? ARTICLE,
+    blogPostsRequests: 0,
+    deleteReturnsRow: true,
   };
   await injectAdminSession(page);
   await forceLanguage(page, opts.lang ?? "es");
@@ -121,12 +135,22 @@ async function setup(page: Page, opts: { lang?: "es" | "en"; generations?: Recor
       mock.generations = mock.generations.map((g) => (g.id === id ? { ...g, ...patch } : g));
       return route.fulfill({ status: 204, body: "" });
     }
+    if (method === "DELETE") {
+      // STUDIO.HISTORY.1 — .delete().eq("id", …).select("id"): PostgREST answers
+      // the deleted rows; under an RLS refusal that is [] with status 200.
+      const id = new URL(req.url()).searchParams.get("id")?.replace(/^eq\./, "");
+      const hit = mock.generations.find((g) => g.id === id);
+      if (!mock.deleteReturnsRow || !hit) return json(route, []);
+      mock.generations = mock.generations.filter((g) => g.id !== id);
+      return json(route, [{ id }]);
+    }
     return route.fulfill({ status: 204, body: "" });
   });
 
   await page.route("**/rest/v1/blog_posts*", (route) => {
     const req = route.request();
     const method = req.method();
+    mock.blogPostsRequests += 1;
     if (method === "GET") {
       if (req.url().includes("slug=like")) return json(route, mock.posts.map((p) => ({ slug: p.slug })));
       return json(route, mock.posts);
@@ -491,6 +515,140 @@ test.describe("BLOG.2 Content Studio", () => {
     await expect(page.locator('[data-qa="studio-blog-preview"] h1')).toHaveText("Cómo preparo un personaje antes de una escena");
     await page.locator('[data-qa="studio-tab-pinterest"]').click();
     await expect(page.locator('[data-qa="studio-social"]')).toContainText("Hook de pinterest");
+  });
+
+  test.describe("STUDIO.HISTORY.1 Borrar", () => {
+    const row = (id: string, extra: Record<string, unknown> = {}) => ({
+      id,
+      created_at: "2026-09-20T15:00:00Z",
+      input_kind: "brain_dump",
+      input_text: `Idea ${id} sobre bailar salsa`,
+      source_url: null,
+      language: "es",
+      formats: ["blog", "social"],
+      platforms: ["pinterest"],
+      outputs: { blog: ARTICLE, social: { pinterest: social("pinterest") } },
+      usage: null,
+      blog_post_id: null,
+      ...extra,
+    });
+    const items = (page: Page) => page.locator('[data-qa="studio-history-item"]');
+    const deletes = (mock: Mock) => mock.writes.filter((w) => w.method === "DELETE");
+
+    test("H1 expand → Borrar → No leaves the row; collapsing cancels the confirm", async ({ page }) => {
+      const mock = await setup(page, { generations: [row("old-1")] });
+      await openStudio(page);
+      const item = items(page).first();
+      await item.locator("button").first().click();
+      await expect(item).toHaveAttribute("data-open", "true");
+      await expect(page.locator('[data-qa="studio-history-reopen"]')).toBeVisible();
+
+      const del = page.locator('[data-qa="studio-history-delete"]');
+      await expect(del).toHaveText("Borrar");
+      await del.click();
+      const confirm = page.locator('[data-qa="studio-history-confirm"]');
+      await expect(confirm).toContainText("¿Borrar esta generación?");
+      await expect(confirm).not.toContainText("El borrador en Blog no se borra.");
+      await expect(page.locator('[data-qa="studio-history-delete-yes"]')).toHaveText("Sí, borrar");
+      // The actions row is replaced, not stacked.
+      await expect(page.locator('[data-qa="studio-history-reopen"]')).toHaveCount(0);
+      await expect(del).toHaveCount(0);
+
+      await page.locator('[data-qa="studio-history-delete-no"]').click();
+      await expect(confirm).toHaveCount(0);
+      await expect(page.locator('[data-qa="studio-history-reopen"]')).toBeVisible();
+      await expect(items(page)).toHaveCount(1);
+
+      // Collapsing cancels a pending confirm.
+      await del.click();
+      await expect(confirm).toBeVisible();
+      await item.locator("button").first().click();
+      await expect(item).toHaveAttribute("data-open", "false");
+      await item.locator("button").first().click();
+      await expect(confirm).toHaveCount(0);
+      await expect(page.locator('[data-qa="studio-history-reopen"]')).toBeVisible();
+
+      expect(deletes(mock)).toEqual([]);
+      expect(mock.generations).toHaveLength(1);
+    });
+
+    test("H2 Borrar → Sí sends one DELETE with id=eq.<row id>; the row leaves the list; blog_posts is never touched", async ({ page }) => {
+      const mock = await setup(page, { generations: [row("old-2", { blog_post_id: "post-9" }), row("old-1")] });
+      await openStudio(page);
+      await expect(items(page)).toHaveCount(2);
+      const item = items(page).first();
+      await expect(item).toContainText("Idea old-2");
+      await item.locator("button").first().click();
+      await expect(item).toContainText("Tiene borrador en Blog");
+      await page.locator('[data-qa="studio-history-delete"]').click();
+      const confirm = page.locator('[data-qa="studio-history-confirm"]');
+      await expect(confirm).toContainText("¿Borrar esta generación?");
+      await expect(confirm).toContainText("El borrador en Blog no se borra.");
+
+      const before = mock.blogPostsRequests;
+      await page.locator('[data-qa="studio-history-delete-yes"]').click();
+      await expect(items(page)).toHaveCount(1);
+      await expect(items(page).first()).toContainText("Idea old-1");
+      await expect(page.locator('[data-qa="studio-history-delete-error"]')).toHaveCount(0);
+
+      const sent = deletes(mock);
+      expect(sent).toHaveLength(1);
+      expect(sent[0].url).toContain("/rest/v1/studio_generations");
+      expect(new URL(sent[0].url).searchParams.get("id")).toBe("eq.old-2");
+      expect(mock.generations.map((g) => g.id)).toEqual(["old-1"]);
+      expect(mock.blogPostsRequests).toBe(before);
+      expect(mock.writes.filter((w) => w.url.includes("blog_posts"))).toEqual([]);
+    });
+
+    test("H3 reopen a row, then delete it → Contenido generado shows the empty state", async ({ page }) => {
+      await setup(page, { generations: [row("old-1")] });
+      await openStudio(page);
+      const item = items(page).first();
+      await item.locator("button").first().click();
+      await page.locator('[data-qa="studio-history-reopen"]').click();
+      await expect(page.locator('[data-qa^="studio-tab-"]')).toHaveCount(2);
+      await expect(item).toHaveAttribute("data-current", "true");
+
+      await page.locator('[data-qa="studio-history-delete"]').click();
+      await page.locator('[data-qa="studio-history-delete-yes"]').click();
+      await expect(items(page)).toHaveCount(0);
+      await expect(page.locator('[data-qa="studio-generated"]')).toHaveCount(0);
+      await expect(page.locator('[data-qa^="studio-tab-"]')).toHaveCount(0);
+      await expect(page.locator('[data-qa="studio"] .st-empty').first()).toHaveText("Aún no hay contenido. Genera tu primera pieza arriba.");
+      await expect(page.locator('[data-qa="studio-history"]')).toHaveCount(0);
+    });
+
+    test("H4 the select returns no row (RLS refusal) → 'No se pudo borrar' and the row stays", async ({ page }) => {
+      const mock = await setup(page, { generations: [row("old-1")] });
+      mock.deleteReturnsRow = false;
+      await openStudio(page);
+      const item = items(page).first();
+      await item.locator("button").first().click();
+      await page.locator('[data-qa="studio-history-delete"]').click();
+      await page.locator('[data-qa="studio-history-delete-yes"]').click();
+      await expect(page.locator('[data-qa="studio-history-delete-error"]')).toHaveText("No se pudo borrar");
+      await expect(items(page)).toHaveCount(1);
+      await expect(page.locator('[data-qa="studio-history-confirm"]')).toBeVisible();
+      await expect(page.locator('[data-qa="studio-history-delete-yes"]')).toBeEnabled();
+      expect(deletes(mock)).toHaveLength(1);
+    });
+
+    test("screenshot: the confirm state, light, 1440×900", async ({ page }) => {
+      await setup(page, { generations: [row("old-2", { blog_post_id: "post-9" }), row("old-1")] });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.addInitScript(() => localStorage.removeItem("studio.theme"));
+      await openStudio(page);
+      await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", "light");
+      const item = items(page).first();
+      await item.locator("button").first().click();
+      await page.locator('[data-qa="studio-history-delete"]').click();
+      await expect(page.locator('[data-qa="studio-history-confirm"]')).toBeVisible();
+      await page.mouse.move(0, 0);
+      await page.waitForTimeout(250);
+      await item.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${HISTORY_SHOTS}/confirm-light-1440x900.png`, fullPage: true });
+      await item.screenshot({ path: `${HISTORY_SHOTS}/confirm-light-item.png` });
+    });
   });
 
   test("S6 the theme toggle flips the wrapper's tokens and survives a reload", async ({ page }) => {
