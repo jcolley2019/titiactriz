@@ -41,7 +41,8 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 - Known flakes (pass on retry; treat as a regression only if they repeat): framesplit capture,
   marquee/Lenis momentum, reel wide-ES, titilinks-act TA.8 mobile ("About unobstructed"),
   seq-lab gw-port-1080 scrub, events-video "a social card is a poster and a play control…",
-  events-video "picking a valid video uploads it…", cineflow5-shipped "phone 390x844 EN".
+  events-video "picking a valid video uploads it…", cineflow5-shipped "phone 390x844 EN",
+  webkit events-snap-phone "phone-440x792".
 - Supabase: live project ref `nsmstwkjbjicpdclgecq` ("TitiActriz"). Deploys: Vercel →
   titiactriz.com. Everything under `public/` deploys publicly — no stray files.
 
