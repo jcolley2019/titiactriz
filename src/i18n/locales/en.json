@@ -950,11 +950,24 @@
         "skip": "Skip",
         "title": "Tips",
         "intro": "The first time you open a tab, a tip walks you through its buttons in order. You can see them again here.",
-        "replay": "See again",
         "resetAll": "Reset all tips",
         "resetDone": "Tips reset",
         "resetDoneDesc": "Each tip shows again the first time you open its tab.",
-        "blogEditor": "Blog editor"
+        "blogEditor": "Blog editor",
+        "steps_one": "{{count}} step",
+        "steps_other": "{{count}} steps"
+      },
+      "desc": {
+        "gallery": "Upload photos, reorder them and choose which ones show on the site",
+        "media": "The home page video and photos: what goes where, and how it is framed",
+        "portfolio": "Add and change your credits",
+        "links": "Your social links: add them, order them and choose which ones show",
+        "events": "Feature an event or put a notice in the strip at the top of the site",
+        "blog": "Your articles: review, add a cover and publish",
+        "blogEditor": "An open article: text, cover, the other language and publishing",
+        "studio": "Say what is on your mind and turn it into an article and posts",
+        "settings": "Change the home page copy",
+        "submissions": "Read what people write to you through the contact form"
       },
       "blog": {
         "new": {

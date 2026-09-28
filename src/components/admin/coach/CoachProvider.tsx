@@ -14,7 +14,7 @@ import { TOURS, TOUR_IDS, tourSection } from "./tours";
  * Blog's editor tour waits for an entry to open, not for the tab. One tour at
  * a time; never on the Guía. Finishing or skipping marks the tour seen.
  *
- * `start(id, { force: true })` is "Ver de nuevo": it goes to the tour's
+ * `start(id, { force: true })` is a Consejos card: it goes to the tour's
  * section (with the tour's replay intent), waits up to 3 s for the first
  * target, and gives up silently if it never comes.
  *
@@ -80,7 +80,9 @@ export const CoachProvider = ({ userId, section, goTo, children }: Props) => {
     };
   }, []);
 
-  const seen = useCallback((id: string) => !!userId && readSeen(userId).has(id), [userId]);
+  // `version` moves on every close and reset, so Consejos re-reads its checks.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const seen = useCallback((id: string) => !!userId && readSeen(userId).has(id), [userId, version]);
 
   /** Show the tour from its first step, if that step's target is on the page. */
   const begin = useCallback((id: string) => {
@@ -136,7 +138,7 @@ export const CoachProvider = ({ userId, section, goTo, children }: Props) => {
     setVersion((v) => v + 1);
   }, [userId]);
 
-  // "Ver de nuevo": wait for the tour's section and first target, up to 3 s.
+  // A Consejos card: wait for the tour's section and first target, up to 3 s.
   useEffect(() => {
     if (!pending) return;
     const until = Date.now() + REPLAY_WAIT_MS;

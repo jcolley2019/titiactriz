@@ -950,11 +950,24 @@
         "skip": "Saltar",
         "title": "Consejos",
         "intro": "La primera vez que abres una pestaña, un consejo te muestra sus botones en orden. Aquí puedes verlos otra vez.",
-        "replay": "Ver de nuevo",
         "resetAll": "Reiniciar todos los consejos",
         "resetDone": "Consejos reiniciados",
         "resetDoneDesc": "Cada consejo vuelve a salir la primera vez que abras su pestaña.",
-        "blogEditor": "Editor del blog"
+        "blogEditor": "Editor del blog",
+        "steps_one": "{{count}} paso",
+        "steps_other": "{{count}} pasos"
+      },
+      "desc": {
+        "gallery": "Sube fotos, cámbialas de orden y elige cuáles salen en el sitio",
+        "media": "El video y las fotos de la portada: qué va dónde y con qué encuadre",
+        "portfolio": "Añade y cambia tus créditos",
+        "links": "Tus redes: añadirlas, ordenarlas y elegir cuáles se ven",
+        "events": "Destaca un evento o pon un aviso en la franja de arriba del sitio",
+        "blog": "Tus artículos: revisar, poner portada y publicar",
+        "blogEditor": "Un artículo abierto: textos, portada, el otro idioma y publicar",
+        "studio": "Cuenta lo que tienes en la cabeza y conviértelo en artículo y posts",
+        "settings": "Cambia los textos de la portada",
+        "submissions": "Lee lo que te escriben desde el formulario de contacto"
       },
       "blog": {
         "new": {

@@ -11,12 +11,16 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  *      Siguiente walks to Generar; Listo closes and marks "studio" seen
  *   C2 after a reload, Estudio opens with no overlay
  *   C3 Esc on step 2 marks the tour seen
- *   C4 Guía › Ver de nuevo (Estudio) goes there and shows the tour, switch step
- *      included; Reiniciar todos los consejos removes the key
+ *   C4 Guía › Consejos is a card per tour in tab-bar order (icon, name, one
+ *      line, "N pasos"); the Estudio card goes there and shows the tour,
+ *      switch step included; Reiniciar todos los consejos removes the key
  *   C5 at 820×1180 the card stays inside the viewport on every Estudio step
  *   C6 the Blog tour on an empty blog skips the row step without error
- *   C7 the Blog editor tour fires on the first open entry, and Guía › Ver de
- *      nuevo (Blog · editor) opens a blank entry and walks it
+ *   C7 the Blog editor tour fires on the first open entry, and its Consejos
+ *      card (Editor del blog) opens a blank entry and walks it
+ *   C8 the Estudio card: empty circle, the check once the tour is done, the
+ *      empty circle again after Reiniciar
+ *   grid: 3 columns at 1440, 2 at 1024, 1 at 820 (screenshots)
  *
  * Each test runs in a fresh browser context, so the seen-state starts empty;
  * the tours this spec is not about start seen, so only these ones can fire.
@@ -168,7 +172,7 @@ test("C3: Esc on step 2 marks the tour seen", async ({ page }) => {
   expect(await seenIds(page)).toEqual(["studio"]);
 });
 
-test("C4: Guía › Ver de nuevo (Estudio) shows the tour again; Reiniciar removes the key", async ({ page }) => {
+test("C4: Guía › Consejos cards: the Estudio card shows the tour again; Reiniciar removes the key", async ({ page }) => {
   await markCoachSeen(page, ["studio"]);
   await page.setViewportSize({ width: 1440, height: 900 });
   await openSection(page, "guide");
@@ -176,9 +180,29 @@ test("C4: Guía › Ver de nuevo (Estudio) shows the tour again; Reiniciar remov
   await expect(tips).toBeVisible();
   await expect(tips.locator("h2")).toHaveText("Consejos");
   await expect(overlay(page)).toHaveCount(0);
+
+  // One card per tour, in tab-bar order, each a button with its step count.
+  const cards = tips.locator('[data-qa^="coach-replay-"]');
+  await expect(cards).toHaveCount(TOUR_IDS.length);
+  expect(await cards.evaluateAll((els) => els.map((e) => e.getAttribute("data-qa")))).toEqual(
+    ["gallery", "media", "portfolio", "links", "events", "blog", "blogEditor", "studio", "settings", "submissions"].map(
+      (id) => `coach-replay-${id}`,
+    ),
+  );
+  const studioCard = page.locator('[data-qa="coach-replay-studio"]');
+  expect(await studioCard.evaluate((e) => e.tagName)).toBe("BUTTON");
+  await expect(studioCard).toContainText("Estudio");
+  await expect(studioCard).toContainText("Cuenta lo que tienes en la cabeza y conviértelo en artículo y posts");
+  await expect(studioCard.locator("svg").first()).toHaveClass(/lucide-sparkles/);
+  await expect(page.locator('[data-qa="coach-steps-studio"]')).toHaveText("10 pasos");
+  await expect(page.locator('[data-qa="coach-steps-blogEditor"]')).toHaveText("6 pasos");
+  await expect(page.locator('[data-qa="coach-replay-blogEditor"]').locator("svg").first()).toHaveClass(/lucide-pen-line/);
+  await expect(page.locator('[data-qa="coach-steps-submissions"]')).toHaveText("1 paso");
+  await expect(page.locator('[data-qa="coach-reset"]')).toHaveText("Reiniciar todos los consejos");
+  await expect(page.locator('[data-qa="coach-reset"]').locator("svg")).toHaveClass(/lucide-rotate-ccw/);
   await page.screenshot({ path: `${SHOTS}/consejos-card-1440.png` });
 
-  await page.locator('[data-qa="coach-replay-studio"]').click();
+  await studioCard.click();
   await expect(page.locator('[data-qa="admin-section-studio"]')).toBeVisible();
   await expect(overlay(page)).toHaveAttribute("data-step", "studio.brainDump");
   await page.keyboard.press("Enter");
@@ -228,7 +252,7 @@ test("C6: the Blog tour on an empty blog skips the row step without error", asyn
   expect(errors).toEqual([]);
 });
 
-test("C7: the Blog editor tour fires on the first open entry, and Ver de nuevo opens a blank one", async ({ page }) => {
+test("C7: the Blog editor tour fires on the first open entry, and its card opens a blank one", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await openSection(page, "blog");
   await expect(overlay(page)).toHaveAttribute("data-step", "blog.new");
@@ -248,7 +272,7 @@ test("C7: the Blog editor tour fires on the first open entry, and Ver de nuevo o
   await expect(overlay(page)).toHaveCount(0);
   expect(await seenIds(page)).toEqual(["blog", "blogEditor"]);
 
-  // Guía › Ver de nuevo (Blog · editor): a blank entry, walked again.
+  // Guía › Consejos › Editor del blog: a blank entry, walked again.
   await page.locator('[data-qa="blog-back"]').click();
   await page.locator('[data-qa="admin-nav-guide"]').click();
   await page.locator('[data-qa="coach-replay-blogEditor"]').click();
@@ -269,4 +293,55 @@ test("screenshots: Estudio step 1 and the switch step, dark, 1440×900", async (
   while ((await overlay(page).getAttribute("data-step")) !== "studio.webSearch") await next(page).click();
   await expectSpotlightOn(page, page.locator('[data-qa="studio-web-search"]'));
   await page.screenshot({ path: `${SHOTS}/estudio-switch-dark-1440.png` });
+});
+
+test("C8: the Estudio card shows the empty circle, the check once the tour is done, and the empty circle after Reiniciar", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openSection(page, "guide");
+  const card = page.locator('[data-qa="coach-replay-studio"]');
+  await expect(card).toHaveAttribute("data-seen", "false");
+  await expect(card.locator('[data-qa="coach-unseen-studio"]')).toBeVisible();
+  await expect(card.locator('[data-qa="coach-seen-studio"]')).toHaveCount(0);
+
+  // Walk the whole tour to Listo.
+  await card.click();
+  await expect(overlay(page)).toHaveAttribute("data-step", "studio.brainDump");
+  while ((await next(page).textContent()) !== "Listo") await next(page).click();
+  await next(page).click();
+  await expect(overlay(page)).toHaveCount(0);
+
+  await page.locator('[data-qa="admin-nav-guide"]').click();
+  await expect(card).toHaveAttribute("data-seen", "true");
+  await expect(card.locator('[data-qa="coach-seen-studio"]')).toBeVisible();
+  await expect(card.locator('[data-qa="coach-seen-studio"]')).toHaveClass(/lucide-circle-check|lucide-check-circle/);
+  await expect(card.locator('[data-qa="coach-unseen-studio"]')).toHaveCount(0);
+
+  // Reiniciar flips it back on the spot, no reload.
+  await page.locator('[data-qa="coach-reset"]').click();
+  await expect(card).toHaveAttribute("data-seen", "false");
+  await expect(card.locator('[data-qa="coach-unseen-studio"]')).toBeVisible();
+  expect(await rawSeen(page)).toBeNull();
+});
+
+const gridColumns = (page: Page) =>
+  page
+    .locator('[data-qa="coach-tips"] ul')
+    .evaluate((ul) => getComputedStyle(ul).gridTemplateColumns.split(" ").filter(Boolean).length);
+
+test("grid: 3 columns at 1440, 2 at 1024, 1 at 820; screenshots", async ({ page }) => {
+  await markCoachSeen(page, ["studio", "blog"]);
+  for (const [w, h, cols, name] of [
+    [1440, 900, 3, "consejos-grid-dark-1440x900"],
+    [1024, 1366, 2, "consejos-grid-1024x1366"],
+    [820, 1180, 1, "consejos-grid-820x1180"],
+  ] as const) {
+    await page.setViewportSize({ width: w, height: h });
+    if (w === 1440) await openSection(page, "guide");
+    await expect.poll(() => gridColumns(page)).toBe(cols);
+    const reset = await page.locator('[data-qa="coach-reset"]').boundingBox();
+    const tips = await page.locator('[data-qa="coach-tips"]').boundingBox();
+    // Right-aligned: the button ends where the card's padding ends.
+    expect(Math.abs(reset!.x + reset!.width - (tips!.x + tips!.width - 24))).toBeLessThan(2);
+    await page.locator('[data-qa="coach-tips"]').screenshot({ path: `${SHOTS}/${name}.png` });
+  }
 });

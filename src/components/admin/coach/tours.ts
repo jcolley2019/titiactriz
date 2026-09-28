@@ -9,7 +9,8 @@
  *
  * Copy lives in the locales under admin.coach.<tour>.<step>.{title,body}.
  * Adding a tour = one entry here + its locale strings; the engine never
- * changes. The order here is the order of the Guía's Consejos list.
+ * changes. The order here is the order of the Guía's Consejos cards (tab-bar
+ * order); a card's step count is its steps.length.
  *
  * No imports on purpose: the e2e helpers read TOUR_IDS from this file.
  */
@@ -21,7 +22,7 @@ export type CoachTour = {
   section?: string;
   /** Its name in Consejos; defaults to the section's tab label. */
   nameKey?: string;
-  /** What "Ver de nuevo" hands the section through goTo (the Blog opens a blank entry). */
+  /** What its Consejos card hands the section through goTo (the Blog opens a blank entry). */
   replay?: unknown;
   steps: CoachStep[];
 };
