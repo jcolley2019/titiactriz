@@ -13,6 +13,7 @@ const guideEn = readFileSync(new URL("../src/content/guide.en.md", import.meta.u
  *   G1 the Guía tab renders the ES guide with the Estudio H2
  *   G2 switching the site language to EN renders the EN guide
  *   G3 the TOC link scrolls to Blog
+ *   G4 the TOC follows the tab bar left to right (ADMIN.GUIDE.1c)
  *
  * Screenshots at 1440×900 and 820×1180 land in _qa/admin-guide/.
  */
@@ -55,14 +56,16 @@ test("G1: the Guía tab renders the ES guide with the Estudio H2", async ({ page
     await expect(guide.locator(`h2#${s.id}`)).toHaveText(s.title);
     await expect(guide.locator(`[data-qa="admin-guide-toc-${s.id}"]`)).toBeVisible();
   }
-  // Sections in the brief's order, Reglas de la casa last, Estudio right after Empezar.
+  // Sections follow the tab bar left to right (ADMIN.GUIDE.1c), Reglas de la casa last.
   expect(esSections.map((s) => s.id)).toEqual([
     "empezar",
-    "estudio",
-    "blog",
-    "eventos",
     "galeria-y-medios",
-    "portafolio-enlaces-y-ajustes",
+    "portafolio",
+    "enlaces",
+    "eventos",
+    "blog",
+    "estudio",
+    "ajustes",
     "mensajes",
     "reglas-de-la-casa",
   ]);
@@ -120,8 +123,35 @@ test("G3: the TOC link scrolls to Blog", async ({ page }) => {
   await expect.poll(() => topOf(blog), { timeout: 5000 }).toBeLessThan(200);
   expect(await topOf(blog)).toBeGreaterThanOrEqual(0);
   await expect(blog).toBeInViewport();
-  const estudio = page.locator('[data-qa="admin-guide"] h2#estudio');
-  await expect(estudio).not.toBeInViewport();
+  // The heading before Blog (ADMIN.GUIDE.1c order) has scrolled out above.
+  const eventos = page.locator('[data-qa="admin-guide"] h2#eventos');
+  await expect(eventos).not.toBeInViewport();
 
   await page.screenshot({ path: `${SHOTS}/G3-toc-blog-1440.png`, fullPage: false });
+});
+
+test("G4: the TOC follows the tab bar left to right", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openGuide(page);
+  const toc = page.locator('[data-qa="admin-guide-toc"]');
+  await expect(toc).toBeVisible();
+
+  // Exactly these ten, in this order; each entry reads "N." then its title.
+  const titles = [
+    "Empezar",
+    "Galería y Medios",
+    "Portafolio",
+    "Enlaces",
+    "Eventos",
+    "Blog",
+    "Estudio",
+    "Ajustes",
+    "Mensajes",
+    "Reglas de la casa",
+  ];
+  await expect(toc.locator("li button")).toHaveText(
+    titles.map((t, i) => new RegExp(`^${i + 1}\\.\\s*${t}$`)),
+  );
+
+  await page.screenshot({ path: `${SHOTS}/G4-toc-1440.png`, fullPage: false });
 });

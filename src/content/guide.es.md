@@ -13,6 +13,57 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 5. El admin se ve en el idioma del sitio. Lo cambias en el menú de las tres rayas, arriba a la derecha: **ES** o **EN**.
 6. Para salir, toca **Cerrar sesión** arriba a la derecha. Si pasan 15 minutos sin que toques nada, la sesión se cierra sola.
 
+## Galería y Medios
+
+Úsalo cuando… quieras subir fotos, cambiar su orden o decidir cuáles aparecen en el sitio.
+
+1. En **Galería**, arrastra tus fotos al recuadro o toca **Seleccionar archivos**. Con una sola foto, toca **Previsualizar y subir** y luego **Confirmar y subir**; con varias, suben solas una tras otra.
+2. Cada foto tiene un interruptor **Publicada** / **Oculta**. Solo las publicadas aparecen en el sitio.
+3. El orden de la lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla.
+4. Si una foto ya no va, ábrela con los tres puntos y elige **Archivar** (se puede **Restaurar** después) o **Eliminar** (para siempre).
+5. **Texto alternativo** es la descripción de la foto que leen Google y las personas con lector de pantalla. **Completar todo el texto alternativo** las escribe de una vez; puedes corregirlas.
+6. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
+7. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
+
+## Portafolio
+
+Úsalo cuando… quieras cambiar tus créditos.
+
+- **Portafolio**: los créditos de actuación (cine, TV, teatro, publicidad). **Añadir crédito** agrega uno; el interruptor **Visible** / **Oculto** decide si se ve en el sitio. Con enlace, el crédito muestra VER; sin enlace, PRÓXIMAMENTE.
+
+## Enlaces
+
+Úsalo cuando… quieras cambiar tus redes.
+
+- **Enlaces**: tus redes sociales. **Añadir enlace** agrega una; pega el enlace completo y la plataforma se reconoce sola. **Visible** / **Oculto** decide cuáles aparecen en TitiLinks.
+
+## Eventos
+
+Úsalo cuando… tengas un evento que destacar o quieras poner un aviso en la franja de arriba del sitio.
+
+1. Abre **Eventos**. El interruptor **Mostrar la página de Eventos** enciende o apaga la página de eventos para el público. **Mostrar eventos en portada** los muestra también en la página de inicio.
+2. Toca **Agregar evento**. Puedes tener hasta 4 tarjetas activas.
+3. Llena el **Título** y la **Descripción**. Con **Agregar botón** pones un botón con su texto y su enlace. Puedes subir una imagen o un video a la tarjeta.
+4. **Fecha del evento (opcional)**: al día siguiente de esa fecha, el evento se archiva solo. Sin fecha, se queda hasta que lo archives tú. Los archivados están en **Archivados**, donde puedes **Restaurar** o **Eliminar**.
+5. Los interruptores y las fechas se guardan al instante. El texto espera a que toques **Guardar cambios** en la barra de abajo. Escribe en un idioma; el otro se traduce al guardar.
+6. La franja del sitio es el mensaje que se desplaza arriba de las páginas. Está en el recuadro **Site banner**: escribe el mensaje en **Banner text**, enciende el interruptor y elige en **Show on pages** dónde se ve. Sin texto, no se deja encender.
+7. **Mostrar hasta (opcional)** es el último día en que se ve la franja. Después de esa fecha se oculta sola. Para volver a usarla, pon una fecha nueva o borra la fecha.
+
+## Blog
+
+Úsalo cuando… quieras revisar, publicar o borrar una entrada del blog, por ejemplo el borrador que creó el Estudio.
+
+1. Abre **Blog**. Verás la lista de entradas, cada una con su estado: **Borrador** o **Publicada**.
+2. Toca **Editar** en la entrada que quieras abrir, o **Nueva entrada** para empezar una desde cero.
+3. Revisa el **Título**, el **Resumen** (una o dos líneas para la lista del blog) y la **Descripción para buscadores** (lo que Google muestra bajo el título; entre 150 y 160 caracteres es lo ideal).
+4. **Portada**: toca **Elegir foto** y escoge una de la Galería. Aquí no se suben fotos; si necesitas una nueva, súbela primero en la pestaña Galería.
+5. **Texto** es el cuerpo del artículo. Al lado, o en **Vista previa**, ves cómo queda.
+6. Escribe en el idioma que prefieras. Al tocar **Guardar cambios**, el otro idioma se traduce solo. Debajo de cada campo puedes abrir «Inglés» (o «Español») para leer y corregir la traducción.
+7. El interruptor **Publicada** es el que publica. Apagado: Borrador, solo tú la ves. Encendido: visible en titiactriz.com/blog. Se guarda al instante, pero primero tienes que haber guardado la entrada.
+8. Con la entrada publicada, **Ver en el sitio** la abre en una pestaña nueva del navegador.
+9. Para borrar una prueba, abre la entrada, toca **Eliminar entrada** y confirma con **Eliminar**. Se borra también del sitio y no se puede deshacer.
+10. **Entradas** te devuelve a la lista. Si tienes texto sin guardar, te pregunta antes de salir.
+
 ## Estudio
 
 Úsalo cuando… tengas una idea en la cabeza y quieras convertirla en un artículo del blog o en posts para redes.
@@ -49,51 +100,10 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 - Es opcional. El botón **Voz**, arriba a la derecha del Estudio, abre una ficha con tu **Nombre**, **Roles**, **Audiencia**, **Tono**, **Temas**, qué **Evitar** y **Frases de muestra**. El Estudio la lee en cada generación para escribir como tú.
 - Cambia lo que quieras y toca **Guardar**. Si te arrepientes antes de guardar, toca **Descartar**.
 
-## Blog
+## Ajustes
 
-Úsalo cuando… quieras revisar, publicar o borrar una entrada del blog, por ejemplo el borrador que creó el Estudio.
+Úsalo cuando… quieras cambiar los textos de la portada.
 
-1. Abre **Blog**. Verás la lista de entradas, cada una con su estado: **Borrador** o **Publicada**.
-2. Toca **Editar** en la entrada que quieras abrir, o **Nueva entrada** para empezar una desde cero.
-3. Revisa el **Título**, el **Resumen** (una o dos líneas para la lista del blog) y la **Descripción para buscadores** (lo que Google muestra bajo el título; entre 150 y 160 caracteres es lo ideal).
-4. **Portada**: toca **Elegir foto** y escoge una de la Galería. Aquí no se suben fotos; si necesitas una nueva, súbela primero en la pestaña Galería.
-5. **Texto** es el cuerpo del artículo. Al lado, o en **Vista previa**, ves cómo queda.
-6. Escribe en el idioma que prefieras. Al tocar **Guardar cambios**, el otro idioma se traduce solo. Debajo de cada campo puedes abrir «Inglés» (o «Español») para leer y corregir la traducción.
-7. El interruptor **Publicada** es el que publica. Apagado: Borrador, solo tú la ves. Encendido: visible en titiactriz.com/blog. Se guarda al instante, pero primero tienes que haber guardado la entrada.
-8. Con la entrada publicada, **Ver en el sitio** la abre en una pestaña nueva del navegador.
-9. Para borrar una prueba, abre la entrada, toca **Eliminar entrada** y confirma con **Eliminar**. Se borra también del sitio y no se puede deshacer.
-10. **Entradas** te devuelve a la lista. Si tienes texto sin guardar, te pregunta antes de salir.
-
-## Eventos
-
-Úsalo cuando… tengas un evento que destacar o quieras poner un aviso en la franja de arriba del sitio.
-
-1. Abre **Eventos**. El interruptor **Mostrar la página de Eventos** enciende o apaga la página de eventos para el público. **Mostrar eventos en portada** los muestra también en la página de inicio.
-2. Toca **Agregar evento**. Puedes tener hasta 4 tarjetas activas.
-3. Llena el **Título** y la **Descripción**. Con **Agregar botón** pones un botón con su texto y su enlace. Puedes subir una imagen o un video a la tarjeta.
-4. **Fecha del evento (opcional)**: al día siguiente de esa fecha, el evento se archiva solo. Sin fecha, se queda hasta que lo archives tú. Los archivados están en **Archivados**, donde puedes **Restaurar** o **Eliminar**.
-5. Los interruptores y las fechas se guardan al instante. El texto espera a que toques **Guardar cambios** en la barra de abajo. Escribe en un idioma; el otro se traduce al guardar.
-6. La franja del sitio es el mensaje que se desplaza arriba de las páginas. Está en el recuadro **Site banner**: escribe el mensaje en **Banner text**, enciende el interruptor y elige en **Show on pages** dónde se ve. Sin texto, no se deja encender.
-7. **Mostrar hasta (opcional)** es el último día en que se ve la franja. Después de esa fecha se oculta sola. Para volver a usarla, pon una fecha nueva o borra la fecha.
-
-## Galería y Medios
-
-Úsalo cuando… quieras subir fotos, cambiar su orden o decidir cuáles aparecen en el sitio.
-
-1. En **Galería**, arrastra tus fotos al recuadro o toca **Seleccionar archivos**. Con una sola foto, toca **Previsualizar y subir** y luego **Confirmar y subir**; con varias, suben solas una tras otra.
-2. Cada foto tiene un interruptor **Publicada** / **Oculta**. Solo las publicadas aparecen en el sitio.
-3. El orden de la lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla.
-4. Si una foto ya no va, ábrela con los tres puntos y elige **Archivar** (se puede **Restaurar** después) o **Eliminar** (para siempre).
-5. **Texto alternativo** es la descripción de la foto que leen Google y las personas con lector de pantalla. **Completar todo el texto alternativo** las escribe de una vez; puedes corregirlas.
-6. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
-7. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
-
-## Portafolio, Enlaces y Ajustes
-
-Úsalo cuando… quieras cambiar tus créditos, tus redes o los textos de la portada.
-
-- **Portafolio**: los créditos de actuación (cine, TV, teatro, publicidad). **Añadir crédito** agrega uno; el interruptor **Visible** / **Oculto** decide si se ve en el sitio. Con enlace, el crédito muestra VER; sin enlace, PRÓXIMAMENTE.
-- **Enlaces**: tus redes sociales. **Añadir enlace** agrega una; pega el enlace completo y la plataforma se reconoce sola. **Visible** / **Oculto** decide cuáles aparecen en TitiLinks.
 - **Ajustes**: en **Portada — textos** cambias la línea de roles debajo de tu nombre, la frase de introducción y el título y la descripción que muestran los buscadores. Toca **Guardar cambios** y el otro idioma se traduce solo.
 
 ## Mensajes
