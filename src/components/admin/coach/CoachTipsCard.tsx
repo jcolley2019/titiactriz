@@ -30,33 +30,33 @@ import { TOURS, TOUR_IDS, tourSection } from "./tours";
  * the tour (goes to its tab and starts it). "Reiniciar todos los consejos"
  * under the grid makes each one fire again on the next first visit.
  *
- * ADMIN.COACH.1d — the title row folds the grid and Reiniciar away under a
- * chevron. Open while any tour is unseen, collapsed once all are seen; a
- * manual toggle is remembered (localStorage admin.coach.tipsOpen) and wins
- * over that rule until Reiniciar forgets it. The row is one button: the
- * "Consejos" button inside the heading stretches over the whole row (::after),
- * so the heading stays a heading and a click anywhere on the row toggles.
+ * ADMIN.COACH.1d — the title row folds the card grid away under a chevron.
+ * The row is one button: the "Consejos" button inside the heading stretches
+ * over the whole row (::after), so the heading stays a heading and a click
+ * anywhere on the row toggles.
+ *
+ * ADMIN.COACH.1e — Reiniciar lives in the title row, right-aligned after the
+ * "n/10 vistos" count, so it works open or collapsed; only the grid folds.
+ * Open on the first visit, then whatever was last chosen (localStorage
+ * admin.coach.tipsOpen) — nothing else moves it, Reiniciar included.
  */
 
 const TIPS_OPEN_KEY = "admin.coach.tipsOpen";
 
-/** The remembered choice, or null when there is none (or storage is unavailable). */
-const readTipsOpen = (): boolean | null => {
+/** The last choice; open when there is none (the first visit) or storage is unavailable. */
+const readTipsOpen = (): boolean => {
   try {
-    const v = localStorage.getItem(TIPS_OPEN_KEY);
-    return v === "true" ? true : v === "false" ? false : null;
+    return localStorage.getItem(TIPS_OPEN_KEY) !== "false";
   } catch {
-    return null;
+    return true;
   }
 };
 
-/** null forgets the choice, so the seen-rule decides again. */
-const writeTipsOpen = (open: boolean | null) => {
+const writeTipsOpen = (open: boolean) => {
   try {
-    if (open === null) localStorage.removeItem(TIPS_OPEN_KEY);
-    else localStorage.setItem(TIPS_OPEN_KEY, String(open));
+    localStorage.setItem(TIPS_OPEN_KEY, String(open));
   } catch {
-    /* storage unavailable — the rule decides on the next visit */
+    /* storage unavailable — it opens again on the next visit */
   }
 };
 
@@ -81,10 +81,8 @@ const CoachTipsCard = () => {
   const introId = `${ids}-intro`;
   const bodyId = `${ids}-body`;
   const toggleId = `${ids}-toggle`;
-  const [remembered, setRemembered] = useState<boolean | null>(readTipsOpen);
-
+  const [open, setOpen] = useState(readTipsOpen);
   const seenCount = TOUR_IDS.filter((id) => coach.seen(id)).length;
-  const open = remembered ?? seenCount < TOUR_IDS.length;
 
   // Collapsed is out of reach at once, not when the fade ends (visibility only
   // flips after the transition). React 18 has no inert prop, so set it here.
@@ -94,22 +92,22 @@ const CoachTipsCard = () => {
   }, [open]);
 
   const toggle = () => {
-    setRemembered(!open);
+    setOpen(!open);
     writeTipsOpen(!open);
   };
 
   const reset = () => {
     coach.resetAll();
-    setRemembered(null);
-    writeTipsOpen(null);
     toast({ title: t("admin.coach.ui.resetDone"), description: t("admin.coach.ui.resetDoneDesc") });
   };
 
   return (
     <div data-qa="coach-tips" data-open={open ? "true" : "false"} className="px-6 py-4 border-b border-border">
-      <div className="group relative flex items-start gap-4">
-        <div className="min-w-0 flex-1">
+      {/* Narrow screens: the count and Reiniciar wrap under the intro, still right-aligned. */}
+      <div className="relative flex flex-wrap items-start gap-x-4 gap-y-3">
+        <div className="min-w-0 flex-1 basis-64">
           <h2 className="font-sans text-xs uppercase tracking-[0.18em] text-muted-foreground mb-2">
+            {/* Pointing at the row is pointing at this button (its ::after), so plain hover lights it. */}
             <button
               type="button"
               id={toggleId}
@@ -118,28 +116,42 @@ const CoachTipsCard = () => {
               aria-controls={bodyId}
               aria-describedby={introId}
               onClick={toggle}
-              className="uppercase tracking-[inherit] transition-colors group-hover:text-foreground focus-visible:outline-none after:absolute after:-inset-2 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+              className="inline-flex items-center gap-2 uppercase tracking-[inherit] transition-colors hover:text-foreground focus-visible:outline-none after:absolute after:-inset-2 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
             >
               {t("admin.coach.ui.title")}
+              <ChevronDown
+                data-qa="coach-tips-chevron"
+                aria-hidden
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-transform duration-300 motion-reduce:transition-none",
+                  open && "rotate-180",
+                )}
+              />
             </button>
           </h2>
           <p id={introId} className="text-sm text-foreground max-w-[70ch]">
             {t("admin.coach.ui.intro")}
           </p>
         </div>
-        {!open && (
-          <span data-qa="coach-tips-count" className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {t("admin.coach.ui.seenCount", { seen: seenCount, total: TOUR_IDS.length })}
-          </span>
-        )}
-        <ChevronDown
-          data-qa="coach-tips-chevron"
-          aria-hidden
-          className={cn(
-            "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 group-hover:text-foreground motion-reduce:transition-none",
-            open && "rotate-180",
+        <div className="ml-auto flex items-center gap-3">
+          {!open && (
+            <span data-qa="coach-tips-count" className="text-xs text-muted-foreground tabular-nums">
+              {t("admin.coach.ui.seenCount", { seen: seenCount, total: TOUR_IDS.length })}
+            </span>
           )}
-        />
+          {/* Above the toggle's ::after, so pressing it resets without folding. */}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-qa="coach-reset"
+            onClick={reset}
+            className="relative z-10 border-destructive/60 bg-transparent text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <RotateCcw aria-hidden />
+            {t("admin.coach.ui.resetAll")}
+          </Button>
+        </div>
       </div>
       <div
         ref={bodyRef}
@@ -156,7 +168,7 @@ const CoachTipsCard = () => {
             : "invisible grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity,visibility]",
         )}
       >
-        {/* Room for the cards' and Reiniciar's focus rings, which the clip would cut. */}
+        {/* Room for the cards' focus rings, which the clip would cut. */}
         <div className="-mx-2 -mb-2 min-h-0 overflow-hidden px-2 pb-2">
           <ul className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
             {TOUR_IDS.map((id) => {
@@ -193,19 +205,6 @@ const CoachTipsCard = () => {
               );
             })}
           </ul>
-          <div className="mt-4 flex sm:justify-end">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-qa="coach-reset"
-              onClick={reset}
-              className="w-full sm:w-auto border-destructive/60 bg-transparent text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <RotateCcw aria-hidden />
-              {t("admin.coach.ui.resetAll")}
-            </Button>
-          </div>
         </div>
       </div>
     </div>

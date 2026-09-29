@@ -20,10 +20,11 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  *      card (Editor del blog) opens a blank entry and walks it
  *   C8 the Estudio card: empty circle, the check once the tour is done, the
  *      empty circle again after Reiniciar
- *   C9 Consejos folds under a chevron (ADMIN.COACH.1d): open while no tour is
- *      seen; collapsed with "10/10 vistos" once all are; a click anywhere on
- *      the row opens it and a reload keeps it open; Reiniciar forgets the
- *      remembered choice and it stays open (screenshots collapsed and open)
+ *   C9 Consejos folds under a chevron (ADMIN.COACH.1d/1e): open on the first
+ *      visit; a click anywhere on the row collapses it, "n/10 vistos" shows,
+ *      a reload keeps it collapsed; Reiniciar (in the row, right-aligned)
+ *      works while collapsed — toast, checks cleared, still collapsed; opened,
+ *      a reload keeps it open (screenshots collapsed and open)
  *   grid: 3 columns at 1440, 2 at 1024, 1 at 820 (screenshots)
  *
  * Each test runs in a fresh browser context, so the seen-state starts empty;
@@ -327,84 +328,87 @@ test("C8: the Estudio card shows the empty circle, the check once the tour is do
   expect(await rawSeen(page)).toBeNull();
 });
 
-test("C9: Consejos folds under a chevron — open while a tour is unseen, collapsed once all are, remembered, forgotten by Reiniciar", async ({ page }) => {
+test("C9: Consejos folds under a chevron — open by default, remembered, and Reiniciar works folded without unfolding", async ({ page }) => {
   const TIPS_KEY = "admin.coach.tipsOpen";
-  // No tour seen on the first load: clear what beforeEach marked, once per tab,
-  // and land on the Guía (admin.section) so no tab's own tour covers the nav.
-  await page.addInitScript((key) => {
-    if (sessionStorage.getItem("c9-cleared")) return;
-    localStorage.removeItem(key);
-    localStorage.setItem("admin.section", "guide");
-    sessionStorage.setItem("c9-cleared", "1");
-  }, KEY);
   await page.setViewportSize({ width: 1440, height: 900 });
   const tips = page.locator('[data-qa="coach-tips"]');
   const toggle = page.locator('[data-qa="coach-tips-toggle"]');
   const body = page.locator('[data-qa="coach-tips-body"]');
   const count = page.locator('[data-qa="coach-tips-count"]');
+  const reset = page.locator('[data-qa="coach-reset"]');
   const tipsOpen = () => page.evaluate((k) => localStorage.getItem(k), TIPS_KEY);
   const expectOpen = async () => {
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator('[data-qa="coach-replay-studio"]')).toBeVisible();
-    await expect(page.locator('[data-qa="coach-reset"]')).toBeVisible();
     await expect(count).toHaveCount(0);
+    await expect(reset).toBeVisible();
   };
   const expectCollapsed = async () => {
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator('[data-qa="coach-replay-studio"]')).toBeHidden();
-    await expect(page.locator('[data-qa="coach-reset"]')).toBeHidden();
-    // The region is gone from the layout, not just faded.
+    // The grid is gone from the layout, not just faded; Reiniciar stays in the row.
     await expect.poll(async () => (await body.boundingBox())?.height ?? -1).toBeLessThan(1);
+    await expect(reset).toBeVisible();
+  };
+  // Reiniciar sits at the right of the title row, after the count when there is one.
+  const expectResetInRow = async () => {
+    const r = (await reset.boundingBox())!;
+    const t = (await tips.boundingBox())!;
+    const g = (await toggle.boundingBox())!;
+    expect(Math.abs(r.x + r.width - (t.x + t.width - 24))).toBeLessThan(2);
+    expect(r.y).toBeLessThan(g.y + 40);
+    if (await count.count()) expect((await count.boundingBox())!.x + (await count.boundingBox())!.width).toBeLessThanOrEqual(r.x);
   };
 
-  // No tour seen → open.
+  // First visit: open, nothing remembered yet.
   await openSection(page, "guide");
-  expect(await rawSeen(page)).toBeNull();
   await expect(toggle).toHaveAttribute("aria-controls", (await body.getAttribute("id"))!);
   await expectOpen();
-  await expect(page.locator('[data-qa^="coach-unseen-"]')).toHaveCount(TOUR_IDS.length);
-
-  // All seen → collapsed, with the count at the right of the row.
-  await page.evaluate(({ k, ids }) => localStorage.setItem(k, JSON.stringify(ids)), { k: KEY, ids: [...TOUR_IDS] });
-  await openSection(page, "guide");
-  await expectCollapsed();
-  await expect(count).toHaveText(`${TOUR_IDS.length}/${TOUR_IDS.length} vistos`);
-  const row = await toggle.evaluate((el) => el.closest(".group")!.getBoundingClientRect().toJSON());
-  const countBox = (await count.boundingBox())!;
-  expect(countBox.x + countBox.width).toBeGreaterThan(row.x + row.width - 60);
+  await expectResetInRow();
   expect(await tipsOpen()).toBeNull();
-  await page.mouse.move(0, 0);
-  await tips.screenshot({ path: `${SHOTS}/consejos-collapsed-1440.png` });
 
-  // A click anywhere on the row — here, on the intro sentence — opens it, and it is remembered.
+  // Collapse (by a click on the intro: anywhere on the row toggles), remembered.
   const intro = (await page.getByText("La primera vez que abres una pestaña", { exact: false }).boundingBox())!;
   await page.mouse.click(intro.x + intro.width / 2, intro.y + intro.height / 2);
+  await expectCollapsed();
+  expect(await tipsOpen()).toBe("false");
+  const seenBefore = TOUR_IDS.length - UNDER_TEST.length; // beforeEach marks every other tour seen
+  await expect(count).toHaveText(`${seenBefore}/${TOUR_IDS.length} vistos`);
+  await expectResetInRow();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(350); // the height/opacity transition
+  await tips.screenshot({ path: `${SHOTS}/consejos-collapsed-1440.png` });
+
+  // A reload stays collapsed.
+  await openSection(page, "guide");
+  await expectCollapsed();
+
+  // Reiniciar works while collapsed: the toast, every check cleared, still collapsed.
+  await reset.click();
+  await expect(page.getByText("Consejos reiniciados", { exact: true })).toBeVisible();
+  expect(await rawSeen(page)).toBeNull();
+  await expect(count).toHaveText(`0/${TOUR_IDS.length} vistos`);
+  await expect(page.locator('[data-qa^="coach-replay-"][data-seen="true"]')).toHaveCount(0);
+  await expectCollapsed();
+  expect(await tipsOpen()).toBe("false");
+  // Close the toast so it is not in the open screenshot.
+  await page.locator("[data-toasts] li [toast-close]").first().click({ force: true });
+  await expect(page.locator("[data-toasts] li")).toHaveCount(0);
+
+  // Open it: the empty circles, remembered.
+  await toggle.click();
   await expectOpen();
+  await expect(page.locator('[data-qa^="coach-unseen-"]')).toHaveCount(TOUR_IDS.length);
   await expect(page.locator('[data-qa="coach-tips-chevron"]')).toHaveClass(/rotate-180/);
   expect(await tipsOpen()).toBe("true");
   await page.mouse.move(0, 0);
-  await page.waitForTimeout(350); // the height/opacity transition
+  await page.waitForTimeout(350);
   await tips.screenshot({ path: `${SHOTS}/consejos-open-1440.png` });
 
-  // The reload keeps it open, although every tour is seen.
+  // A reload stays open.
   await openSection(page, "guide");
   await expectOpen();
-
-  // Collapse it by hand, open it by hand, then Reiniciar: the remembered choice
-  // is forgotten and the rule (every tour unseen) keeps it open, after a reload too.
-  await toggle.click();
-  await expectCollapsed();
-  expect(await tipsOpen()).toBe("false");
-  await toggle.click();
-  await expectOpen();
-  await page.locator('[data-qa="coach-reset"]').click();
-  await expect(page.getByText("Consejos reiniciados", { exact: true })).toBeVisible();
-  expect(await tipsOpen()).toBeNull();
-  expect(await rawSeen(page)).toBeNull();
-  await expectOpen();
-  await openSection(page, "guide");
-  await expectOpen();
-  expect(await tipsOpen()).toBeNull();
+  await expectResetInRow();
 });
 
 const gridColumns = (page: Page) =>
