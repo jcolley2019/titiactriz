@@ -119,12 +119,13 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut, userId 
     <CoachProvider userId={userId} section={active?.id ?? ""} goTo={nav.goTo}>
     <div data-qa="admin-shell" className="max-w-6xl mx-auto px-4 pt-28 pb-16">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      {/* Wraps: at phone width the theme toggle and Cerrar sesión drop under the title. */}
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="font-serif text-3xl text-foreground">{title}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+        <div className="flex shrink-0 gap-2">
           {/* ADMIN.THEME.1 — the Studio's Sun/Moon, now for the whole admin: it
               names the theme it switches TO. */}
           <Button

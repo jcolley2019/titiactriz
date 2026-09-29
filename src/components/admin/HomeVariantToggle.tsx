@@ -64,7 +64,7 @@ const HomeVariantToggle = () => {
           </p>
         </div>
         {variant && (
-          <span className="text-xs uppercase tracking-wider text-accent shrink-0">
+          <span className="text-xs uppercase tracking-wider text-accent-ink shrink-0">
             {variant}
           </span>
         )}
@@ -89,9 +89,9 @@ const HomeVariantToggle = () => {
               <div className="flex items-center justify-between mb-1">
                 <Label className="text-foreground text-base cursor-pointer">{opt.label}</Label>
                 {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-accent" />
+                  <Loader2 className="w-4 h-4 animate-spin text-accent-ink" />
                 ) : active ? (
-                  <span className="text-xs uppercase tracking-wider text-accent">{t("admin.homeVariant.active")}</span>
+                  <span className="text-xs uppercase tracking-wider text-accent-ink">{t("admin.homeVariant.active")}</span>
                 ) : null}
               </div>
               <p className="text-xs text-muted-foreground">{opt.description}</p>

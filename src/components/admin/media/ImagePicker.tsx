@@ -121,7 +121,7 @@ const ImagePicker = ({
                 <span aria-hidden className="block w-full" style={{ paddingTop: "125%" }} />
                 <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2 text-center">
                   {uploading ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-accent" />
+                    <Loader2 className="h-5 w-5 animate-spin text-accent-ink" />
                   ) : (
                     <Upload className="h-5 w-5" />
                   )}

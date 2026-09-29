@@ -23,7 +23,7 @@ const LivePreviewDock = ({ photos, isDragging = false }: Props) => {
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            <Eye className="w-3.5 h-3.5 text-accent" />
+            <Eye className="w-3.5 h-3.5 text-accent-ink" />
             {t("admin.livePreview.label")}
             <span className="text-muted-foreground/60 normal-case tracking-normal">
               {t("admin.livePreview.count", { count: photos.length })}

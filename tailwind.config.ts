@@ -56,6 +56,11 @@ export default {
           // --accent-ink; everywhere else it IS the accent.
           ink: "hsl(var(--accent-ink, var(--accent)))",
         },
+        // ADMIN.THEME.1b — the admin's status inks. Only its light theme defines
+        // them; everywhere else they are exactly Tailwind's amber-500 / green-500,
+        // the colours these utilities replaced.
+        warning: "hsl(var(--warning, 37.7 92.1% 50.2%) / <alpha-value>)",
+        success: "hsl(var(--success, 142.1 70.6% 45.3%) / <alpha-value>)",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

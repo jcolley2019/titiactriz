@@ -347,7 +347,7 @@ const SortableRow = memo(({
             {missingAlt && (
               <span
                 title={t("admin.photos.needsAlt")}
-                className="inline-block w-2 h-2 rounded-full bg-amber-500"
+                className="inline-block w-2 h-2 rounded-full bg-warning"
               />
             )}
             {saved && (
@@ -1077,7 +1077,7 @@ const ManagePanel = () => {
                             : q.status === "failed"
                               ? "text-destructive"
                               : q.status === "duplicate"
-                                ? "text-amber-500"
+                                ? "text-warning"
                                 : q.status === "skipped"
                                   ? "text-muted-foreground/70"
                                   : "text-muted-foreground"
@@ -1142,7 +1142,7 @@ const ManagePanel = () => {
             {missingAltCount > 0 && (
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">
-                  <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5 align-middle" />
+                  <span className="inline-block w-2 h-2 rounded-full bg-warning mr-1.5 align-middle" />
                   {t("admin.photos.missingAlt", { count: missingAltCount })}
                 </p>
                 <Button
@@ -1327,7 +1327,7 @@ const ManagePanel = () => {
           {preview && (
             <>
               {preview.duplicateOfId && (
-                <p className="text-xs text-amber-500">
+                <p className="text-xs text-warning">
                   {t("admin.previewDialog.duplicateHint")}
                 </p>
               )}

@@ -230,7 +230,7 @@ const LinkRow = ({
             verified by eye at the moment of choosing, not after publishing. */}
         <span
           data-qa="links-mark"
-          className="flex h-8 w-8 items-center justify-center rounded-md bg-background/60 shrink-0"
+          className="flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--links-mark-ground,hsl(var(--background)/0.6))] shrink-0"
         >
           <PlatformIcon label={row.platform} size={18} />
         </span>
@@ -685,7 +685,7 @@ const LinksManager = () => {
             {!SOCIALS_ACT_ENABLED && (
               <p
                 data-qa="links-dark-notice"
-                className="text-xs text-amber-500 border border-amber-500/30 bg-amber-500/5 rounded-md px-3 py-2"
+                className="text-xs text-warning border border-warning/30 bg-warning/5 rounded-md px-3 py-2"
               >
                 {t("admin.links.darkNotice")}
               </p>
@@ -693,7 +693,7 @@ const LinksManager = () => {
             {!UNFURL_DEPLOYED && (
               <p
                 data-qa="links-unfurl-notice"
-                className="text-xs text-amber-500 border border-amber-500/30 bg-amber-500/5 rounded-md px-3 py-2"
+                className="text-xs text-warning border border-warning/30 bg-warning/5 rounded-md px-3 py-2"
               >
                 {t("admin.links.unfurlNotice")}
               </p>

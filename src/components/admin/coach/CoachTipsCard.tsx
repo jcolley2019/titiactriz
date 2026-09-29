@@ -71,7 +71,7 @@ const CoachTipsCard = () => {
                 onClick={() => coach.start(id, { force: true })}
                 className="flex h-full w-full items-center gap-3 rounded-md border border-border bg-background p-3 text-left transition-colors hover:border-accent/60 hover:bg-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent-ink">
                   <Icon className="h-5 w-5" aria-hidden />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -84,7 +84,7 @@ const CoachTipsCard = () => {
                   </span>
                 </span>
                 {seen ? (
-                  <CheckCircle data-qa={`coach-seen-${id}`} className="h-5 w-5 shrink-0 text-green-500" aria-hidden />
+                  <CheckCircle data-qa={`coach-seen-${id}`} className="h-5 w-5 shrink-0 text-success" aria-hidden />
                 ) : (
                   <Circle data-qa={`coach-unseen-${id}`} className="h-5 w-5 shrink-0 text-muted-foreground/50" aria-hidden />
                 )}

@@ -115,7 +115,7 @@ const SaveFlash = ({ state, qa }: { state: FlashState; qa: string }) => {
       data-qa={`flash-${qa}`}
       data-state={state}
       role="status"
-      className={`inline-flex items-center gap-1 text-[0.7rem] ${failed ? "text-destructive" : "text-accent"}`}
+      className={`inline-flex items-center gap-1 text-[0.7rem] ${failed ? "text-destructive" : "text-accent-ink"}`}
     >
       {failed ? <AlertTriangle className="w-3 h-3" aria-hidden /> : <Check className="w-3 h-3" aria-hidden />}
       {failed ? t("admin.blog.flashFailed") : t("admin.blog.flashSaved")}
@@ -131,7 +131,7 @@ const StatusPill = ({ status }: { status: BlogPost["status"] }) => {
       data-qa="blog-status-pill"
       data-status={status}
       className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.7rem] font-medium ${
-        published ? "border-accent/40 bg-accent/10 text-accent" : "border-border text-muted-foreground"
+        published ? "border-accent/40 bg-accent/10 text-accent-ink" : "border-border text-muted-foreground"
       }`}
     >
       {published ? t("admin.blog.statusPublished") : t("admin.blog.statusDraft")}
@@ -148,7 +148,7 @@ export const AdminMarkdownPreview = ({ markdown }: { markdown: string }) => (
       "[&_h2]:font-serif [&_h2]:text-xl [&_h2]:mt-6 [&_h2]:mb-2",
       "[&_h3]:font-serif [&_h3]:text-lg [&_h3]:mt-5 [&_h3]:mb-2",
       "[&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5",
-      "[&_li]:my-1 [&_a]:text-accent [&_a]:underline [&_strong]:font-semibold",
+      "[&_li]:my-1 [&_a]:text-accent-ink [&_a]:underline [&_strong]:font-semibold",
       "[&_blockquote]:border-l-2 [&_blockquote]:border-accent/50 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground",
       "[&_hr]:my-6 [&_hr]:border-border [&_code]:rounded [&_code]:bg-muted [&_code]:px-1",
       "[&_table]:w-full [&_table]:text-left [&_th]:border-b [&_th]:border-border [&_th]:py-1 [&_td]:py-1",
@@ -223,7 +223,7 @@ const LocalizedField = ({
       <details data-qa={`blog-other-${name}`} data-coach={coach?.other} className="text-xs">
         <summary className="cursor-pointer select-none text-muted-foreground hover:text-foreground">
           {other === "en" ? t("admin.blog.english") : t("admin.blog.spanish")}
-          {value.pending && main.trim() && <span className="text-accent"> · {t("admin.blog.translatedOnSave")}</span>}
+          {value.pending && main.trim() && <span className="text-accent-ink"> · {t("admin.blog.translatedOnSave")}</span>}
         </summary>
         <div className="mt-2 space-y-1">
           {control(`${id}-${other}`, otherText, setOther)}
@@ -319,7 +319,7 @@ const BlogList = ({
       <div className="border-t border-border">
         {loading ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="w-5 h-5 animate-spin text-accent" aria-hidden />
+            <Loader2 className="w-5 h-5 animate-spin text-accent-ink" aria-hidden />
           </div>
         ) : loadFailed ? (
           <p data-qa="blog-load-failed" role="alert" className="px-6 py-6 text-sm text-destructive">
@@ -778,7 +778,7 @@ const BlogEditor = ({
                 rel="noopener noreferrer"
                 data-qa="blog-view"
                 data-coach="blogEditor.viewDelete"
-                className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-accent-ink hover:underline"
               >
                 {t("admin.blog.viewPost")}
                 <ExternalLink className="w-3 h-3" aria-hidden />

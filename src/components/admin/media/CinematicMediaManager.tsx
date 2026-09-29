@@ -516,7 +516,7 @@ const CinematicMediaManager = () => {
           className="space-y-4 rounded-lg border border-border bg-card p-4"
         >
           <div className="flex items-start gap-2">
-            <Video className="mt-0.5 h-4 w-4 text-accent" />
+            <Video className="mt-0.5 h-4 w-4 text-accent-ink" />
             <div>
               <h3 className="text-sm font-medium text-foreground">{t("admin.media.video.title")}</h3>
               <p className="text-xs text-muted-foreground">{t("admin.media.video.subtitle")}</p>
@@ -528,7 +528,7 @@ const CinematicMediaManager = () => {
             className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border/60 bg-background/40 px-3 py-2"
           >
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-medium ${heroVideo ? "text-accent" : "text-foreground"}`}>
+              <span className={`text-xs font-medium ${heroVideo ? "text-accent-ink" : "text-foreground"}`}>
                 {t("admin.media.video.rowLabel")}
               </span>
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -599,7 +599,7 @@ const CinematicMediaManager = () => {
           {anyHeroVideo && !uploadingVideo && (
             <p
               data-qa="media-hero-video-note"
-              className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
+              className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning"
             >
               {t("admin.media.video.precedenceNote")}
             </p>
@@ -623,7 +623,7 @@ const CinematicMediaManager = () => {
                 data-slot={d.key}
                 className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3"
               >
-                <div className="relative aspect-[3/4] overflow-hidden rounded-md border border-border bg-[#141210]">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-md border border-border bg-[color:var(--admin-well,#141210)]">
                   {isHeroVideo && thumbSrc ? (
                     <FramedVideo
                       src={thumbSrc}
@@ -633,7 +633,7 @@ const CinematicMediaManager = () => {
                       fit={thumbFraming.fit}
                       autoPlay
                       videoDataQa="media-slot-video"
-                      fallback={<div className="h-full w-full" style={{ backgroundColor: "#141210" }} />}
+                      fallback={<div className="h-full w-full" style={{ backgroundColor: "var(--admin-well, #141210)" }} />}
                     />
                   ) : r.photo ? (
                     <FramedImage
@@ -703,7 +703,7 @@ const CinematicMediaManager = () => {
 
                   {savingKey === d.key && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/40">
-                      <Loader2 className="h-5 w-5 animate-spin text-accent" />
+                      <Loader2 className="h-5 w-5 animate-spin text-accent-ink" />
                     </div>
                   )}
                 </div>
@@ -714,7 +714,7 @@ const CinematicMediaManager = () => {
                     <span
                       data-qa="media-slot-badge"
                       className={`text-[10px] uppercase tracking-wide ${
-                        custom ? "text-accent" : "text-muted-foreground"
+                        custom ? "text-accent-ink" : "text-muted-foreground"
                       }`}
                     >
                       {custom

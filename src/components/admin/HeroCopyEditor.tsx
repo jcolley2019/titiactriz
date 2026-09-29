@@ -157,7 +157,7 @@ const FieldEditor = ({
           data-qa={`hero-copy-restore-${field}`}
           onClick={() => onChange({ es: "", en: "" })}
           disabled={disabled || !hasOverride}
-          className="shrink-0 text-xs text-accent hover:underline disabled:cursor-default disabled:no-underline disabled:opacity-40"
+          className="shrink-0 text-xs text-accent-ink hover:underline disabled:cursor-default disabled:no-underline disabled:opacity-40"
         >
           {t("admin.heroCopy.restoreDefault")}
         </button>
@@ -180,7 +180,7 @@ const FieldEditor = ({
         <summary className="cursor-pointer select-none text-muted-foreground hover:text-foreground">
           {other === "en" ? t("admin.heroCopy.english") : t("admin.heroCopy.spanish")}
           {value.pending && (
-            <span className="text-accent"> · {t("admin.heroCopy.translatedOnSave")}</span>
+            <span className="text-accent-ink"> · {t("admin.heroCopy.translatedOnSave")}</span>
           )}
         </summary>
         <div className="mt-2 space-y-1">
@@ -392,7 +392,7 @@ const HeroCopyEditor = () => {
               data-state={flash}
               role="status"
               className={`inline-flex items-center gap-1 text-[0.7rem] ${
-                flash === "failed" ? "text-destructive" : "text-accent"
+                flash === "failed" ? "text-destructive" : "text-accent-ink"
               }`}
             >
               {flash === "failed" ? (

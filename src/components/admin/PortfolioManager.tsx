@@ -555,7 +555,7 @@ const PortfolioManager = () => {
             {!ACTING_ACT_ENABLED && (
               <p
                 data-qa="portfolio-dark-notice"
-                className="text-xs text-amber-500 border border-amber-500/30 bg-amber-500/5 rounded-md px-3 py-2"
+                className="text-xs text-warning border border-warning/30 bg-warning/5 rounded-md px-3 py-2"
               >
                 {t("admin.portfolio.darkNotice")}
               </p>

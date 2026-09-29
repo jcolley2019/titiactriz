@@ -492,13 +492,13 @@ const FramingEditor = ({
         </DialogHeader>
 
         {heroVideoActive && (
-          <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500">
+          <p className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
             {t("admin.media.heroVideoNote")}
           </p>
         )}
 
         {isVideo && (
-          <span data-qa="media-editor-source-label" className="text-xs font-medium text-accent">
+          <span data-qa="media-editor-source-label" className="text-xs font-medium text-accent-ink">
             {t(sourceLabelKey)}
           </span>
         )}
@@ -506,7 +506,7 @@ const FramingEditor = ({
         {lowRes && (
           <p
             data-qa="media-editor-lowres"
-            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
+            className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning"
           >
             {t("admin.media.editor.lowRes", { w: natural!.w })}
           </p>
@@ -626,7 +626,7 @@ const FramingEditor = ({
         {mismatch && (
           <p
             data-qa="media-editor-hint"
-            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
+            className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning"
           >
             {t(hintKey)}
           </p>

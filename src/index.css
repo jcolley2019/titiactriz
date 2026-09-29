@@ -122,6 +122,9 @@
   body:has([data-admin-theme="light"]) > :not(#root),
   body:has([data-admin-theme="light"]) [data-toasts] {
     color-scheme: light;
+    /* Inherited text colour: a portal's text with no colour class (a dialog's
+       title, an outline button) would otherwise inherit the dark body's ivory. */
+    color: hsl(var(--foreground));
 
     --background: 36 50% 96.1%; /* #faf6f0 */
     --foreground: 26.7 52.9% 6.7%; /* #1a1008 */
@@ -161,6 +164,15 @@
     --highlight-bg: 41.4 52.7% 89.2%; /* #f2e9d5 — the gold wash rgba(184,134,11,.12) on cream */
 
     --shadow-glow: 0 0 60px hsl(42.7 88.7% 38.2% / 0.15);
+
+    /* ADMIN.THEME.1b — what dark writes as literals (amber-500, green-500, the
+       media well #141210) falls back to exactly that; light sets it here. */
+    --warning: 22.7 82.5% 31.4%; /* #92400e — 6.2:1 on the card */
+    --success: 142.4 71.8% 29.2%; /* #15803d */
+    --admin-well: hsl(37.1 39.6% 89.6%); /* an empty photo well: muted */
+    /* The Links mark previews the act's own mark on the act's own dark ground,
+       so a brand drawn for that ground (TikTok's white) still reads. */
+    --links-mark-ground: hsl(0 0% 7%);
 
     --sidebar-background: 36 50% 96.1%;
     --sidebar-foreground: 26.7 52.9% 6.7%;

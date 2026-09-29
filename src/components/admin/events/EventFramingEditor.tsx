@@ -597,7 +597,7 @@ const EventFramingEditor = ({
 
         {/* Which record this tab edits — the hero editor's orientation caption. */}
         {isVideo && (
-          <span data-qa="event-framing-source-label" className="text-xs font-medium text-accent">
+          <span data-qa="event-framing-source-label" className="text-xs font-medium text-accent-ink">
             {t(sourceLabelKey)}
           </span>
         )}
@@ -711,7 +711,7 @@ const EventFramingEditor = ({
         {mismatch && (
           <p
             data-qa="event-framing-hint"
-            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
+            className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning"
           >
             {t(hintKey)}
           </p>

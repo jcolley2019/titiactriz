@@ -132,7 +132,7 @@ const SaveFlash = ({ state, qa }: { state: FlashState; qa: string }) => {
       data-state={state}
       role="status"
       className={`inline-flex items-center gap-1 text-[0.7rem] ${
-        failed ? "text-destructive" : "text-accent"
+        failed ? "text-destructive" : "text-accent-ink"
       }`}
     >
       {failed ? (
@@ -1215,7 +1215,7 @@ const SortableCard = ({ item, onChange, onDelete, onArchive, onInstant, flash, f
         >
           <GripVertical className="w-4 h-4" />
         </button>
-        <span className="text-xs uppercase tracking-wider text-accent">
+        <span className="text-xs uppercase tracking-wider text-accent-ink">
           {t("admin.eventsBoard.typeEvent")}
         </span>
         <div className="ml-auto flex items-center gap-2">

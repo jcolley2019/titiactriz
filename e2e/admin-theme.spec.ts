@@ -15,6 +15,8 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  *      keeps its charcoal and the header is a solid dark bar from the top.
  *  TH4 a `studio.theme=dark` left by the old Studio toggle (and no `admin.theme`)
  *      opens the admin dark, once, and the old key is gone.
+ *  TH5 what renders outside the wrapper on the admin's behalf wears its theme:
+ *      a menu and a dialog (Radix portals) and the toasts.
  *
  * Screenshots land in _qa/admin-theme/.
  */
@@ -93,6 +95,15 @@ test.describe("signed in", () => {
     expect(t && out).toBeTruthy();
     expect(t!.x + t!.width).toBeLessThanOrEqual(out!.x);
     expect(Math.abs(t!.y - out!.y)).toBeLessThan(2);
+
+    // At phone width both stay whole on screen (the body clips anything past
+    // the edge, so a no-sideways-scroll check alone cannot see this).
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const button of [toggle(page), page.getByRole("button", { name: "Cerrar sesión" })]) {
+      const box = await button.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    }
   });
 
   test("TH2 the Studio's data-theme follows the admin theme both ways", async ({ page }) => {
@@ -155,6 +166,59 @@ test.describe("signed in", () => {
     await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", "dark");
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(root(page)).toHaveAttribute("data-admin-theme", "dark");
+  });
+});
+
+/** Open the first gallery row's menu, archive it (a toast), then ask to delete the next (a dialog). */
+async function walkPortals(page: Page, shoot?: (name: string) => Promise<void>) {
+  await openSection(page, "gallery");
+  await page.getByRole("button", { name: "Más", exact: true }).first().click();
+  const menu = page.getByRole("menu");
+  await expect(menu).toBeVisible();
+  await shoot?.("menu");
+  const menuBg = await menu.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await page.getByRole("menuitem", { name: "Archivar" }).click();
+  const toast = page.locator("[data-toasts] li").first();
+  await expect(toast).toBeVisible();
+  await shoot?.("toast");
+  const toastBg = await toast.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await page.getByRole("button", { name: "Más", exact: true }).first().click();
+  await page.getByRole("menuitem", { name: "Eliminar" }).click();
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toBeVisible();
+  await shoot?.("dialog");
+  const dialogBg = await dialog.evaluate((el) => getComputedStyle(el).backgroundColor);
+  // A dialog's title has no colour class: it inherits, and must inherit the
+  // admin's ink rather than the dark body's ivory.
+  const titleInk = await dialog
+    .getByRole("heading")
+    .evaluate((el) => getComputedStyle(el).color === getComputedStyle(document.querySelector("[data-admin-theme]")!).color);
+  return { menuBg, toastBg, dialogBg, titleInk };
+}
+
+test.describe("portals", () => {
+  test.beforeEach(async ({ page }) => {
+    await injectAdminSession(page);
+    await routeSupabase(page);
+  });
+
+  test("TH5 a menu, a toast and a dialog wear the admin theme, light and dark", async ({ page }) => {
+    await openAdmin(page);
+    expect(await walkPortals(page)).toEqual({
+      menuBg: "rgb(245, 239, 230)", // --popover, #f5efe6
+      toastBg: CREAM, // --background
+      dialogBg: CREAM,
+      titleInk: true,
+    });
+    await page.evaluate(() => localStorage.setItem("admin.theme", "dark"));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(root(page)).toHaveAttribute("data-admin-theme", "dark");
+    expect(await walkPortals(page)).toEqual({
+      menuBg: "rgb(26, 26, 26)", // hsl(0 0% 10%)
+      toastBg: CHARCOAL,
+      dialogBg: CHARCOAL,
+      titleInk: true,
+    });
   });
 });
 
@@ -269,6 +333,52 @@ test.describe("screenshots", () => {
       await expect(overlay).toHaveAttribute("data-step", "studio.brainDump");
       await settle(page);
       await page.screenshot({ path: `${SHOTS}/coach-estudio-step1-${theme}-1440x900.png` });
+    }
+  });
+
+  test("a menu, a toast, a dialog, a failed-write toast and the dirty save bars, light and dark", async ({ page }) => {
+    test.setTimeout(180_000);
+    await injectAdminSession(page);
+    await routeContent(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const theme of ["light", "dark"] as const) {
+      await page.goto("/admin", { waitUntil: "domcontentloaded" });
+      await page.evaluate((t) => {
+        localStorage.setItem("admin.theme", t);
+        localStorage.setItem("admin.section", "gallery");
+      }, theme);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await expect(root(page)).toHaveAttribute("data-admin-theme", theme);
+      await walkPortals(page, async (name) => {
+        await page.waitForTimeout(400);
+        await page.screenshot({ path: `${SHOTS}/portal-${name}-${theme}-1440x900.png` });
+      });
+      await page.keyboard.press("Escape");
+      // A write that fails: the destructive toast.
+      await page.route("**/rest/v1/gallery_photos*", (route) =>
+        route.request().method() === "PATCH"
+          ? route.fulfill({ status: 500, contentType: "application/json", body: '{"message":"boom"}' })
+          : route.fallback(),
+      );
+      await page.getByRole("switch").first().click();
+      await expect(page.locator("[data-toasts] li.destructive").first()).toBeVisible();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${SHOTS}/portal-toast-failed-${theme}-1440x900.png` });
+      await page.unroute("**/rest/v1/gallery_photos*");
+      // Let it close (Radix's 5 s) so it does not cover the save bars below.
+      await expect(page.locator("[data-toasts] li")).toHaveCount(0, { timeout: 15_000 });
+      // The save bars, dirty: the Events board, then Ajustes › Portada.
+      await openSection(page, "events");
+      await page.locator('[data-qa="event-title"]').first().fill("Un evento sin guardar");
+      await expect(page.locator('[data-qa="events-save-bar"]')).toHaveAttribute("data-dirty", "true");
+      await settle(page);
+      await page.screenshot({ path: `${SHOTS}/savebar-events-${theme}-1440x900.png` });
+      await page.getByRole("button", { name: "Descartar" }).first().click();
+      await openSection(page, "settings");
+      await page.locator('[data-qa="hero-copy-intro"]').fill("Una frase sin guardar.");
+      await settle(page);
+      await page.screenshot({ path: `${SHOTS}/savebar-settings-${theme}-1440x900.png` });
+      await page.getByRole("button", { name: "Descartar" }).first().click();
     }
   });
 

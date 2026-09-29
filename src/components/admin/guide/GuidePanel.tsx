@@ -67,7 +67,7 @@ const GuidePanel = () => {
                 type="button"
                 data-qa={`admin-guide-toc-${s.id}`}
                 onClick={() => scrollTo(s.id)}
-                className="text-accent hover:underline underline-offset-4"
+                className="text-accent-ink hover:underline underline-offset-4"
               >
                 <span className="text-muted-foreground tabular-nums mr-1">{i + 1}.</span>
                 {s.title}
@@ -84,7 +84,7 @@ const GuidePanel = () => {
           "[&_h1]:font-serif [&_h1]:text-3xl [&_h1]:mb-3",
           "[&_h2]:font-serif [&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border [&_h2]:scroll-mt-28",
           "[&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5",
-          "[&_li]:my-1.5 [&_a]:text-accent [&_a]:underline [&_strong]:font-semibold [&_strong]:text-foreground",
+          "[&_li]:my-1.5 [&_a]:text-accent-ink [&_a]:underline [&_strong]:font-semibold [&_strong]:text-foreground",
           "[&>*:first-child]:mt-0",
         ].join(" ")}
       >
