@@ -8,6 +8,7 @@ import TagChips from "@/components/blog/TagChips";
 import { GOLD, IVORY, blogRoom } from "@/components/blog/tokens";
 import { useBlogPost } from "@/hooks/useBlogPosts";
 import { formatPostDate, readingTimeMinutes } from "@/lib/blog";
+import { SITE, breadcrumbLd, extractFaq, faqPageLd } from "@/lib/blog/schema";
 import NotFound from "@/pages/NotFound";
 
 /**
@@ -17,10 +18,10 @@ import NotFound from "@/pages/NotFound";
  * unknown slug is the site's ordinary 404, not a bespoke page.
  *
  * SEO per post through the site's SEO component: the post's own title and
- * description, its canonical URL, the cover as og:image, and Article JSON-LD.
+ * description, its canonical URL, the cover as og:image, and Article JSON-LD —
+ * plus (BLOG.SEO.1) FAQPage when the body has a questions section, and
+ * BreadcrumbList always.
  */
-
-const SITE = "https://titiactriz.com";
 
 /** The site's quietest gold grammar — the /events way out, verbatim. */
 const BackLink = ({ label, qa }: { label: string; qa: string }) => (
@@ -68,6 +69,7 @@ const BlogPost = () => {
     author: { "@type": "Person", name: "Cristyna Polentino", url: SITE },
     ...(cover ? { image: [cover.image_url] } : {}),
   };
+  const faq = extractFaq(body);
 
   return (
     <main data-qa="blog-post" className="relative min-h-screen px-6 pb-24" style={blogRoom}>
@@ -79,6 +81,8 @@ const BlogPost = () => {
         {...(cover ? { image: cover.image_url } : {})}
       >
         <script type="application/ld+json">{JSON.stringify(articleLd)}</script>
+        {faq.length >= 2 && <script type="application/ld+json">{JSON.stringify(faqPageLd(faq))}</script>}
+        <script type="application/ld+json">{JSON.stringify(breadcrumbLd(lang, title, path))}</script>
       </SEO>
 
       <article className="mx-auto max-w-3xl">

@@ -1,5 +1,6 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { forceLanguage, injectAdminSession, MOCK_PHOTOS, routeSupabase, type Write } from "./_admin";
+import { extractFaq } from "../src/lib/blog/schema";
 
 /**
  * BLOG.1 — Titi writes, translates and publishes blog posts from the admin, and
@@ -20,6 +21,15 @@ import { forceLanguage, injectAdminSession, MOCK_PHOTOS, routeSupabase, type Wri
  *  P9  390×844: the list and a post have no horizontal overflow, and the
  *      editor's Save bar keeps its rules (pinned, greyed while clean, lit by
  *      typing).
+ *
+ * BLOG.SEO.1 — structured data beside the Article JSON-LD.
+ *  S1  A post whose body has a 3-question FAQ: Article, FAQPage (3 Questions,
+ *      answers in plain text) and BreadcrumbList (Inicio → Blog → the post),
+ *      and the FAQPage has every field schema.org's FAQPage requires.
+ *  S2  A body with no FAQ: Article and BreadcrumbList only.
+ *  S3  English: the first crumb is "Home".
+ *  S4  extractFaq, unit: headings in code fences, lone questions and
+ *      question-less H3s do not make an FAQ.
  */
 
 type Row = Record<string, unknown> & { id: string; slug: string; status: string };
@@ -530,4 +540,174 @@ test("P9b 390×844: the editor fits, and its Save bar is pinned, greyed while cl
   await page.locator('[data-qa="blog-discard"]').click();
   await expect(save).toBeDisabled();
   await expect(bar).toHaveAttribute("data-dirty", "false");
+});
+
+/* ---------------- BLOG.SEO.1 — structured data ---------------- */
+
+const FAQ_ES = [
+  "Un día de rodaje empieza temprano.",
+  "",
+  "## Lo que aprendí",
+  "",
+  "La cámara no perdona la prisa.",
+  "",
+  "## Preguntas frecuentes",
+  "",
+  "Lo que más me preguntan.",
+  "",
+  "### ¿Cuánto dura un día de rodaje?",
+  "",
+  "Entre **diez y doce horas**, casi siempre desde _antes_ del amanecer.",
+  "",
+  "### ¿Qué llevas al set?",
+  "",
+  "- Agua",
+  "- El [guion](https://titiactriz.com/blog) subrayado",
+  "",
+  "### Cómo te preparas para una escena difícil?",
+  "",
+  "Respiro, repaso el texto y `escucho` a mis compañeros.",
+  "> Nunca con prisa.",
+  "",
+  "## Hasta pronto",
+  "",
+  "Gracias por leer.",
+].join("\n");
+
+const FAQ_EN = [
+  "A shoot day starts early.",
+  "",
+  "## FAQ",
+  "",
+  "### How long is a shoot day?",
+  "",
+  "Ten to twelve hours.",
+  "",
+  "### What do you bring to set?",
+  "",
+  "Water and the script.",
+].join("\n");
+
+const faqRow = (): Row => ({
+  id: "b4",
+  slug: "preguntas-de-rodaje",
+  status: "published",
+  published_at: iso("2026-09-24T15:00:00Z"),
+  created_at: iso("2026-09-23T15:00:00Z"),
+  updated_at: iso("2026-09-24T15:00:00Z"),
+  title: { es: "Preguntas de rodaje", en: "Shoot questions", src: "es" },
+  excerpt: { es: "Lo que más me preguntan.", en: "What people ask me most.", src: "es" },
+  body: { es: FAQ_ES, en: FAQ_EN, src: "es" },
+  meta_description: null,
+  tags: [],
+  cover_photo_id: null,
+  cover: null,
+});
+
+/**
+ * The post's own JSON-LD: the helmet's scripts (`data-rh`). index.html's static
+ * Person block, the crawler fallback, is on every page and is not the post's.
+ */
+const postLd = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll('script[type="application/ld+json"][data-rh="true"]')].map((s) =>
+      JSON.parse(s.textContent ?? "null"),
+    ),
+  );
+
+type Ld = Record<string, unknown>;
+
+/** What schema.org (and Google's FAQ rich result) requires of an FAQPage, checked by shape. */
+function faqPageProblems(ld: Ld): string[] {
+  const problems: string[] = [];
+  if (ld["@context"] !== "https://schema.org") problems.push("@context");
+  if (ld["@type"] !== "FAQPage") problems.push("@type");
+  const main = ld.mainEntity;
+  if (!Array.isArray(main) || main.length === 0) return [...problems, "mainEntity"];
+  main.forEach((q: Ld, i) => {
+    if (q?.["@type"] !== "Question") problems.push(`mainEntity[${i}].@type`);
+    if (typeof q?.name !== "string" || !q.name.trim()) problems.push(`mainEntity[${i}].name`);
+    const a = q?.acceptedAnswer as Ld | undefined;
+    if (a?.["@type"] !== "Answer") problems.push(`mainEntity[${i}].acceptedAnswer.@type`);
+    if (typeof a?.text !== "string" || !a.text.trim()) problems.push(`mainEntity[${i}].acceptedAnswer.text`);
+  });
+  return problems;
+}
+
+const crumbs = (ld: Ld) =>
+  (ld.itemListElement as Ld[]).map((c) => ({ type: c["@type"], position: c.position, name: c.name, item: c.item }));
+
+test.describe("BLOG.SEO.1 structured data", () => {
+  test("S1 a post with an FAQ carries Article, FAQPage and BreadcrumbList", async ({ page }) => {
+    await openPublic(page, "/blog/preguntas-de-rodaje", "es", undefined, [...publicRows(), faqRow()]);
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Preguntas de rodaje");
+    await expect.poll(async () => (await postLd(page)).length).toBe(3);
+    const ld: Ld[] = await postLd(page);
+    expect(ld.map((l) => l["@type"])).toEqual(["Article", "FAQPage", "BreadcrumbList"]);
+
+    const faq = ld[1];
+    expect(faqPageProblems(faq)).toEqual([]);
+    const questions = faq.mainEntity as Ld[];
+    expect(questions).toHaveLength(3);
+    expect(questions.map((q) => q.name)).toEqual([
+      "¿Cuánto dura un día de rodaje?",
+      "¿Qué llevas al set?",
+      "Cómo te preparas para una escena difícil?",
+    ]);
+    const answers = questions.map((q) => (q.acceptedAnswer as Ld).text as string);
+    expect(answers).toEqual([
+      "Entre diez y doce horas, casi siempre desde antes del amanecer.",
+      "Agua\nEl guion subrayado",
+      "Respiro, repaso el texto y escucho a mis compañeros. Nunca con prisa.",
+    ]);
+    // No markdown survives: emphasis, code, headings, quotes, links, list markers.
+    for (const a of answers) expect(a).not.toMatch(/[*_`#>[\]]|\]\(|^\s*(?:[-+]|\d+[.)])\s/m);
+
+    expect(ld[2]["@context"]).toBe("https://schema.org");
+    expect(crumbs(ld[2])).toEqual([
+      { type: "ListItem", position: 1, name: "Inicio", item: "https://titiactriz.com/" },
+      { type: "ListItem", position: 2, name: "Blog", item: "https://titiactriz.com/blog" },
+      {
+        type: "ListItem",
+        position: 3,
+        name: "Preguntas de rodaje",
+        item: "https://titiactriz.com/blog/preguntas-de-rodaje",
+      },
+    ]);
+  });
+
+  test("S2 a body with no FAQ carries Article and BreadcrumbList only", async ({ page }) => {
+    await openPublic(page, "/blog/un-dia-en-el-set");
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Un día en el set");
+    await expect
+      .poll(async () => (await postLd(page)).map((l: Ld) => l["@type"]))
+      .toEqual(["Article", "BreadcrumbList"]);
+  });
+
+  test("S3 English: the breadcrumb starts at Home", async ({ page }) => {
+    await openPublic(page, "/blog/preguntas-de-rodaje", "en", undefined, [...publicRows(), faqRow()]);
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Shoot questions");
+    await expect.poll(async () => (await postLd(page)).length).toBe(3);
+    const ld: Ld[] = await postLd(page);
+    const breadcrumb = ld.find((l) => l["@type"] === "BreadcrumbList")!;
+    expect(crumbs(breadcrumb).map((c) => c.name)).toEqual(["Home", "Blog", "Shoot questions"]);
+    const faq = ld.find((l) => l["@type"] === "FAQPage")!;
+    expect((faq.mainEntity as Ld[]).map((q) => q.name)).toEqual(["How long is a shoot day?", "What do you bring to set?"]);
+  });
+
+  test("S4 extractFaq: fences, lone questions and question-less H3s are not an FAQ", () => {
+    // No H2 section at all.
+    expect(extractFaq("### ¿Uno?\n\nSí.\n\n### ¿Dos?\n\nNo.")).toEqual([]);
+    // Question headings inside a code fence are code.
+    expect(extractFaq("## FAQ\n\n```\n### ¿Uno?\nSí.\n### ¿Dos?\nNo.\n```")).toEqual([]);
+    // One question is not an FAQ.
+    expect(extractFaq("## FAQ\n\n### ¿Uno?\n\nSí.\n\n### Nota\n\nAlgo.")).toEqual([]);
+    // An H3 with nothing under it breaks the pattern.
+    expect(extractFaq("## FAQ\n\n### ¿Uno?\n\n### ¿Dos?\n\nNo.")).toEqual([]);
+    // Two questions and a statement: the questions are the FAQ.
+    expect(extractFaq("## FAQ\n\n### ¿Uno?\n\nSí.\n\n### Nota\n\nAlgo.\n\n### Dos?\n\nNo.")).toEqual([
+      { question: "¿Uno?", answer: "Sí." },
+      { question: "Dos?", answer: "No." },
+    ]);
+  });
 });

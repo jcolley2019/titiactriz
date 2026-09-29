@@ -32,6 +32,9 @@
   --st-text-2: #3d2b1f;
   --st-border: #d4c5a9;
   --st-gold: #b8860b;
+  /* Gold as TEXT: #b8860b is 3.0:1 on the cream ground, so text takes the deeper ink
+     (ADMIN.THEME.1's text-accent-ink). --st-gold stays for fills, rules, borders, rings. */
+  --st-gold-text: #835f07;
   --st-gold-hover: #d4a017;
   --st-gold-ink: #1a1008;
   --st-gold-wash: rgba(184, 134, 11, 0.12);
@@ -63,6 +66,7 @@
   --st-text-2: rgba(240, 233, 218, 0.78);
   --st-border: rgba(201, 165, 92, 0.35);
   --st-gold: #c9a55c;
+  --st-gold-text: #c9a55c;
   --st-gold-hover: #c9a55c;
   --st-gold-ink: #0b0a08;
   --st-gold-wash: rgba(201, 165, 92, 0.12);
@@ -97,7 +101,7 @@
   font-size: var(--st-size-eyebrow);
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--st-gold);
+  color: var(--st-gold-text);
   font-weight: var(--st-weight-strong);
 }
 .studio .st-title {
@@ -188,7 +192,7 @@
 }
 .studio .st-btn:hover:not(:disabled) {
   border-color: var(--st-gold);
-  color: var(--st-gold);
+  color: var(--st-gold-text);
 }
 .studio .st-btn:focus-visible,
 .studio .st-choice:focus-visible,
@@ -219,11 +223,11 @@
 }
 .studio[data-theme="dark"] .st-btn-primary {
   background: transparent;
-  color: var(--st-gold);
+  color: var(--st-gold-text);
 }
 .studio[data-theme="dark"] .st-btn-primary:hover:not(:disabled) {
   background: var(--st-gold-wash);
-  color: var(--st-gold);
+  color: var(--st-gold-text);
 }
 .studio .st-btn-danger:hover:not(:disabled) {
   border-color: var(--st-error);
@@ -545,7 +549,7 @@
   font-weight: var(--st-weight-strong);
 }
 .studio .st-prose a {
-  color: var(--st-gold);
+  color: var(--st-gold-text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -586,7 +590,7 @@
   font-size: var(--st-size-label);
   font-weight: var(--st-weight-strong);
   letter-spacing: 0.04em;
-  color: var(--st-gold);
+  color: var(--st-gold-text);
 }
 .studio .st-social-body {
   padding: 0.75rem 0.9rem;
