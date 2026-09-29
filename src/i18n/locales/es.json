@@ -955,7 +955,8 @@
         "resetDoneDesc": "Cada consejo vuelve a salir la primera vez que abras su pestaña.",
         "blogEditor": "Editor del blog",
         "steps_one": "{{count}} paso",
-        "steps_other": "{{count}} pasos"
+        "steps_other": "{{count}} pasos",
+        "seenCount": "{{seen}}/{{total}} vistos"
       },
       "desc": {
         "gallery": "Sube fotos, cámbialas de orden y elige cuáles salen en el sitio",

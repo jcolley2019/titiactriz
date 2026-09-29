@@ -955,7 +955,8 @@
         "resetDoneDesc": "Each tip shows again the first time you open its tab.",
         "blogEditor": "Blog editor",
         "steps_one": "{{count}} step",
-        "steps_other": "{{count}} steps"
+        "steps_other": "{{count}} steps",
+        "seenCount": "{{seen}}/{{total}} seen"
       },
       "desc": {
         "gallery": "Upload photos, reorder them and choose which ones show on the site",
