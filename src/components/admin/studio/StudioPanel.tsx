@@ -1,11 +1,12 @@
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Moon, Sun, Mic2 } from "lucide-react";
+import { Mic2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 import type { Lang } from "@/hooks/useEventsBoard";
 import { useAdminNav } from "@/components/admin/AdminShell";
+import { useAdminTheme } from "@/components/admin/adminTheme";
 import { useCoachHold } from "@/components/admin/coach/CoachProvider";
 import { studioDraft, uniqueSlug } from "@/lib/studio/publish";
 import { stripThinkingText } from "@/lib/studio/narration";
@@ -25,26 +26,14 @@ import "@/styles/studio.css";
  * Publish never publishes: it writes a BLOG.1 DRAFT in the output language,
  * the other language pending, and lands on the Blog tab with it open.
  *
- * The Studio owns its theme (light Luxe by default, or the site's dark) on its
- * own wrapper; nothing it sets reaches the rest of the admin. Remembered in
- * localStorage `studio.theme`.
+ * ADMIN.THEME.1 — the Studio's wrapper wears the admin's theme (the header's
+ * Sun/Moon), so studio.css keeps drawing both palettes from .studio[data-theme].
  */
-
-export const STUDIO_THEME_KEY = "studio.theme";
-type Theme = "light" | "dark";
-
-const readTheme = (): Theme => {
-  try {
-    return localStorage.getItem(STUDIO_THEME_KEY) === "dark" ? "dark" : "light";
-  } catch {
-    return "light";
-  }
-};
 
 const StudioPanel = () => {
   const { t, i18n } = useTranslation();
   const nav = useAdminNav();
-  const [theme, setTheme] = useState<Theme>(readTheme);
+  const { theme } = useAdminTheme();
   const [voiceOpen, setVoiceOpen] = useState(false);
   const closeVoice = useCallback(() => setVoiceOpen(false), []);
 
@@ -65,16 +54,6 @@ const StudioPanel = () => {
   // ADMIN.COACH.1 — no tip ever sits over a running generation.
   useCoachHold(g.generating);
   const inputText = kind === "youtube" ? transcript : brainDump;
-
-  const flipTheme = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    try {
-      localStorage.setItem(STUDIO_THEME_KEY, next);
-    } catch {
-      /* storage unavailable — the choice lasts for this visit */
-    }
-  };
 
   const onGenerate = () =>
     g.generate({
@@ -187,16 +166,6 @@ const StudioPanel = () => {
           >
             <Mic2 className="w-4 h-4" aria-hidden />
             {t("admin.studio.voiceButton")}
-          </button>
-          <button
-            type="button"
-            className="st-btn"
-            data-qa="studio-theme-toggle"
-            aria-label={`${t("admin.studio.theme")}: ${theme === "dark" ? t("admin.studio.themeDark") : t("admin.studio.themeLight")}`}
-            onClick={flipTheme}
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4" aria-hidden /> : <Moon className="w-4 h-4" aria-hidden />}
-            {theme === "dark" ? t("admin.studio.themeLight") : t("admin.studio.themeDark")}
           </button>
         </div>
       </header>

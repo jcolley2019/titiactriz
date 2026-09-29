@@ -498,7 +498,10 @@
         "submissions": "Submissions"
       },
       "submissionsEmptyTitle": "No submissions yet",
-      "submissionsEmptyBody": "Contact-form messages will show up here in a future update."
+      "submissionsEmptyBody": "Contact-form messages will show up here in a future update.",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark"
     },
     "portfolio": {
       "sectionTitle": "Acting",
@@ -835,9 +838,6 @@
     "studio": {
       "eyebrow": "Studio",
       "title": "Content Studio",
-      "theme": "Theme",
-      "themeLight": "Light",
-      "themeDark": "Dark",
       "voiceButton": "Voice",
       "input": "Input",
       "inputDesc": "Your ideas go in here; polished content comes out below.",

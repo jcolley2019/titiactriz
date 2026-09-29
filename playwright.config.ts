@@ -54,6 +54,15 @@ const CI = !!process.env.CI;
  */
 const PHONE_SPECS = /events-(snap|carousel)-phone\.spec\.ts/;
 
+/**
+ * ADMIN.THEME.1 — the admin opens LIGHT, so the whole battery exercises light.
+ * The theme-sensitive admin specs run once more with the admin dark: the gallery
+ * and media manager, the blog, the events board, and the coach's C1. The dark is
+ * seeded by injectAdminSession (e2e/_admin.ts) from this project's metadata.
+ * Screenshot tests are skipped here: they write fixed paths the light run owns.
+ */
+const ADMIN_DARK_SPECS = /(admin-media|blog|admin-qol|admin-coach)\.spec\.ts/;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -100,6 +109,15 @@ export default defineConfig({
       name: "chromium",
       use: { browserName: "chromium" },
       testIgnore: PHONE_SPECS,
+    },
+    {
+      name: "chromium-admin-dark",
+      use: { browserName: "chromium" },
+      testMatch: ADMIN_DARK_SPECS,
+      // Every test in the matched files, except that admin-coach runs only C1.
+      grep: /^(?!.*admin-coach\.spec\.ts)|C1:/,
+      grepInvert: /screenshot/i,
+      metadata: { adminTheme: "dark" },
     },
     {
       name: "webkit-iphone",

@@ -498,7 +498,10 @@
         "submissions": "Mensajes"
       },
       "submissionsEmptyTitle": "Aún no hay mensajes",
-      "submissionsEmptyBody": "Los mensajes del formulario de contacto aparecerán aquí en una próxima actualización."
+      "submissionsEmptyBody": "Los mensajes del formulario de contacto aparecerán aquí en una próxima actualización.",
+      "theme": "Tema",
+      "themeLight": "Claro",
+      "themeDark": "Oscuro"
     },
     "portfolio": {
       "sectionTitle": "Actuación",
@@ -835,9 +838,6 @@
     "studio": {
       "eyebrow": "Estudio",
       "title": "Estudio de contenido",
-      "theme": "Tema",
-      "themeLight": "Claro",
-      "themeDark": "Oscuro",
       "voiceButton": "Voz",
       "input": "Entrada",
       "inputDesc": "Tus ideas entran aquí; el contenido pulido sale abajo.",

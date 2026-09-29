@@ -106,6 +106,80 @@
     --sidebar-primary: 38 45% 72%;
     --sidebar-ring: 40 50% 62%;
   }
+
+  /**
+   * ADMIN.THEME.1 — the admin's light theme: the Studio's Luxe palette
+   * (studio.css) as shadcn tokens. Only the /admin page's root wrapper carries
+   * `data-admin-theme`; dark is the admin exactly as it was, so nothing is
+   * declared for it. The `body:has()` selectors carry the same tokens to what
+   * renders outside the wrapper on the admin's behalf: Radix portals, which
+   * land beside #root (dialogs, menus, popovers, the coach), and the toasts.
+   * The site's own header, footer and body are NOT in scope — they stay the
+   * site's dark (Joey's ruling). No public page ever has the attribute, so
+   * none of these selectors can match there.
+   */
+  [data-admin-theme="light"],
+  body:has([data-admin-theme="light"]) > :not(#root),
+  body:has([data-admin-theme="light"]) [data-toasts] {
+    color-scheme: light;
+
+    --background: 36 50% 96.1%; /* #faf6f0 */
+    --foreground: 26.7 52.9% 6.7%; /* #1a1008 */
+
+    --card: 36 42.9% 93.1%; /* #f5efe6 */
+    --card-foreground: 26.7 52.9% 6.7%;
+
+    --popover: 36 42.9% 93.1%;
+    --popover-foreground: 26.7 52.9% 6.7%;
+
+    --primary: 42.7 88.7% 38.2%; /* #b8860b */
+    --primary-foreground: 26.7 52.9% 6.7%;
+
+    --secondary: 38.4 43.9% 88.8%; /* #efe6d6 */
+    --secondary-foreground: 26.7 52.9% 6.7%;
+
+    --muted: 37.1 39.6% 89.6%; /* #efe7da */
+    --muted-foreground: 24 32.6% 18%; /* #3d2b1f */
+
+    --accent: 42.7 88.7% 38.2%; /* #b8860b — fills, rules, rings */
+    --accent-foreground: 26.7 52.9% 6.7%;
+    /* Gold as TEXT: #b8860b is 3.0:1 on #faf6f0, so text takes this ink (>=4.6:1 on every cream ground). */
+    --accent-ink: 42.6 89.9% 27.1%; /* #835f07 */
+
+    --destructive: 0 55.8% 39%; /* #9b2c2c */
+    --destructive-foreground: 36 50% 96.1%;
+
+    --border: 39.1 33.3% 74.7%; /* #d4c5a9 */
+    --input: 39.1 33.3% 74.7%;
+    --ring: 42.7 88.7% 38.2%;
+
+    --gold: 42.7 88.7% 38.2%;
+    --gold-light: 42.6 89.9% 27.1%; /* the emphasis step reads as text, so it is the ink */
+    --gold-dark: 43.5 80.4% 46.1%; /* #d4a017 — hover / border only */
+
+    --highlight: 42.6 89.9% 27.1%;
+    --highlight-bg: 41.4 52.7% 89.2%; /* #f2e9d5 — the gold wash rgba(184,134,11,.12) on cream */
+
+    --shadow-glow: 0 0 60px hsl(42.7 88.7% 38.2% / 0.15);
+
+    --sidebar-background: 36 50% 96.1%;
+    --sidebar-foreground: 26.7 52.9% 6.7%;
+    --sidebar-primary: 42.7 88.7% 38.2%;
+    --sidebar-primary-foreground: 26.7 52.9% 6.7%;
+    --sidebar-accent: 38.4 43.9% 88.8%;
+    --sidebar-accent-foreground: 26.7 52.9% 6.7%;
+    --sidebar-border: 39.1 33.3% 74.7%;
+    --sidebar-ring: 42.7 88.7% 38.2%;
+  }
+
+  /* Over a light admin the site header is transparent over cream at the top,
+     where its ivory links and monogram vanish. It wears the solid bar it
+     otherwise takes once scrolled (Header.tsx), in the site's own dark. */
+  body:has([data-admin-theme="light"]) [data-site-header] {
+    background-color: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
 }
 
 @layer base {

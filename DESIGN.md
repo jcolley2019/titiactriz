@@ -421,8 +421,14 @@ for display, Jost 400 for text (the site's 300 is too light for a working
 screen). One Filament holds: in dark, Generate is a gold outline, never a gold
 fill.
 
-The theme toggle lives in the Studio header and is remembered per browser
-(`localStorage` `studio.theme`).
+ADMIN.THEME.1 — the Studio wears the whole admin's theme. The toggle lives in
+the admin header, left of Cerrar sesión, and is remembered per browser
+(`localStorage` `admin.theme`; an old `studio.theme` is adopted once). The rest
+of the admin carries the same Luxe light as shadcn tokens (`src/index.css`,
+`[data-admin-theme="light"]`), with one addition the Studio never needed: gold
+as TEXT is `#835f07` (`text-accent-ink`), because `#b8860b` is 3.0:1 on
+`#faf6f0`. `#b8860b` stays for fills, rules, borders and focus rings. The
+site's header and footer keep the site's dark on the admin page.
 
 ## Layout
 

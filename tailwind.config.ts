@@ -52,6 +52,9 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          // ADMIN.THEME.1 — gold as text. Only the admin's light theme defines
+          // --accent-ink; everywhere else it IS the accent.
+          ink: "hsl(var(--accent-ink, var(--accent)))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",

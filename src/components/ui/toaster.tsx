@@ -18,7 +18,8 @@ export function Toaster() {
           </Toast>
         );
       })}
-      <ToastViewport />
+      {/* ADMIN.THEME.1 — the admin's light theme reaches its toasts through this hook (index.css). */}
+      <ToastViewport data-toasts="" />
     </ToastProvider>
   );
 }

@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CoachProvider } from "@/components/admin/coach/CoachProvider";
+import { useAdminTheme } from "@/components/admin/adminTheme";
 
 /**
  * ADMIN.MEDIA.1 (ITEM 0) — modern sectioned admin shell.
@@ -85,6 +88,8 @@ function rememberedSection(sections: AdminSection[]) {
 }
 
 const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut, userId = null }: Props) => {
+  const { t } = useTranslation();
+  const { theme, flip } = useAdminTheme();
   const [activeId, setActiveId] = useState(() => rememberedSection(sections));
   const [intent, setIntent] = useState<AdminIntent | null>(null);
   const pick = useCallback((id: string) => {
@@ -119,9 +124,23 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut, userId 
           <h1 className="font-serif text-3xl text-foreground">{title}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <Button variant="outline" onClick={onSignOut} className="shrink-0">
-          {logOutLabel}
-        </Button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          {/* ADMIN.THEME.1 — the Studio's Sun/Moon, now for the whole admin: it
+              names the theme it switches TO. */}
+          <Button
+            variant="outline"
+            data-qa="admin-theme-toggle"
+            aria-label={`${t("admin.shell.theme")}: ${theme === "dark" ? t("admin.shell.themeDark") : t("admin.shell.themeLight")}`}
+            onClick={flip}
+            className="gap-2 bg-card hover:bg-card hover:border-accent hover:text-accent-ink"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" aria-hidden /> : <Moon className="w-4 h-4" aria-hidden />}
+            {theme === "dark" ? t("admin.shell.themeLight") : t("admin.shell.themeDark")}
+          </Button>
+          <Button variant="outline" onClick={onSignOut}>
+            {logOutLabel}
+          </Button>
+        </div>
       </div>
 
       {/* Section navigation */}
@@ -144,7 +163,7 @@ const AdminShell = ({ title, subtitle, logOutLabel, sections, onSignOut, userId 
               aria-current={isActive ? "page" : undefined}
               className={`relative flex items-center gap-2 whitespace-nowrap rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "text-accent"
+                  ? "text-accent-ink"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >

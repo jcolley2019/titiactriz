@@ -1,4 +1,4 @@
-import type { Page, Route } from "@playwright/test";
+import { test, type Page, type Route } from "@playwright/test";
 import { TOUR_IDS } from "../src/components/admin/coach/tours";
 
 /**
@@ -51,11 +51,29 @@ export async function markCoachSeen(page: Page, ids: readonly string[], userId =
 }
 
 /**
+ * ADMIN.THEME.1 — the admin opens light. The theme-sensitive specs run a second
+ * time in the `chromium-admin-dark` project (playwright.config.ts), whose
+ * metadata asks for dark; every session injected there seeds `admin.theme`.
+ */
+async function seedProjectAdminTheme(page: Page) {
+  const theme = test.info().project.metadata?.adminTheme as string | undefined;
+  if (!theme) return;
+  await page.addInitScript((t) => {
+    try {
+      localStorage.setItem("admin.theme", t);
+    } catch {
+      /* storage disabled — nothing we can do */
+    }
+  }, theme);
+}
+
+/**
  * Inject a valid-looking admin session into localStorage before the app boots.
  * Every coaching tour starts out seen (a spec about something else never meets
  * a tip); the coach's own spec passes `{ coachSeen: false }`.
  */
 export async function injectAdminSession(page: Page, opts: { coachSeen?: boolean } = {}) {
+  await seedProjectAdminTheme(page);
   if (opts.coachSeen !== false) await markCoachSeen(page, TOUR_IDS);
   await page.addInitScript((ref) => {
     const now = Math.floor(Date.now() / 1000);

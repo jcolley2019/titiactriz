@@ -283,7 +283,7 @@ test("C7: the Blog editor tour fires on the first open entry, and its card opens
 });
 
 test("screenshots: Estudio step 1 and the switch step, dark, 1440×900", async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("studio.theme", "dark"));
+  await page.addInitScript(() => localStorage.setItem("admin.theme", "dark"));
   await page.setViewportSize({ width: 1440, height: 900 });
   await openSection(page, "studio");
   await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", "dark");

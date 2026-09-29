@@ -74,6 +74,12 @@ import LinksManager from "@/components/admin/LinksManager";
 import BlogManager from "@/components/admin/blog/BlogManager";
 import StudioPanel from "@/components/admin/studio/StudioPanel";
 import GuidePanel from "@/components/admin/guide/GuidePanel";
+import {
+  AdminThemeContext,
+  readAdminTheme,
+  saveAdminTheme,
+  type AdminTheme,
+} from "@/components/admin/adminTheme";
 
 type Photo = {
   id: string;
@@ -1440,6 +1446,19 @@ const Admin = () => {
   const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
   const [checking, setChecking] = useState(true);
+  // ADMIN.THEME.1 — light by default; the sign-in screen wears it too.
+  const [theme, setTheme] = useState<AdminTheme>(readAdminTheme);
+  const themeState = useMemo(
+    () => ({
+      theme,
+      flip: () => {
+        const next: AdminTheme = theme === "dark" ? "light" : "dark";
+        setTheme(next);
+        saveAdminTheme(next);
+      },
+    }),
+    [theme],
+  );
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
@@ -1505,7 +1524,8 @@ const Admin = () => {
         <title>Admin – Cristina Polentino</title>
         <meta name="robots" content="noindex,nofollow" />
       </Helmet>
-      <div className="min-h-[80vh] bg-background">
+      <AdminThemeContext.Provider value={themeState}>
+      <div data-admin-theme={theme} className="min-h-[80vh] bg-background text-foreground">
         {checking ? (
           <div className="min-h-[60vh] flex items-center justify-center">
             <div className="h-8 w-8 rounded-full border-2 border-accent/30 border-t-accent animate-spin" />
@@ -1523,6 +1543,7 @@ const Admin = () => {
           <LoginCard />
         )}
       </div>
+      </AdminThemeContext.Provider>
     </>
   );
 };

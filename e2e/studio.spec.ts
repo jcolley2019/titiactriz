@@ -12,9 +12,11 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
  *   S3 narration leaked into the stream → the article shows without it
  *   S4 Publish → a blog_posts DRAFT, Blog tab open on it, other language pending
  *   S5 History lists a generation and reopens it
- *   S6 theme toggle flips the wrapper's tokens and survives a reload
+ *   S6 the admin header's theme toggle flips the Studio's tokens and survives a
+ *      reload (ADMIN.THEME.1 — the Studio no longer has a toggle of its own)
  *   S7 1024×768 two columns · 820×1180 stacked · 390×844 no sideways scroll
- *   S8 the rest of the admin's background is untouched by the Studio's theme
+ *   S8 the whole admin follows the theme (ADMIN.THEME.1 retired the old "the
+ *      rest of the admin stays dark" assertion on purpose)
  *
  * STUDIO.SPEED.2 — the web-research switch (off on every mount, no persistence):
  *   W1 default press: web_search:false on the blog, cascade_source and no web_search on TikTok
@@ -394,12 +396,12 @@ test.describe("BLOG.2 Content Studio", () => {
     test("screenshots: the switch off and on, light and dark, 1440×900", async ({ page }) => {
       await setup(page);
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.addInitScript(() => localStorage.removeItem("studio.theme"));
+      await page.addInitScript(() => localStorage.removeItem("admin.theme"));
       await openStudio(page);
       await page.locator('[data-qa="studio-brain-dump"]').fill("Les tengo una noticia: muy pronto empiezo a transmitir en vivo.");
       const output = page.locator('[data-qa="studio-output"]');
       for (const theme of ["light", "dark"] as const) {
-        if (theme === "dark") await page.locator('[data-qa="studio-theme-toggle"]').click();
+        if (theme === "dark") await page.locator('[data-qa="admin-theme-toggle"]').click();
         await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", theme);
         for (const state of ["off", "on"] as const) {
           const want = state === "on";
@@ -636,7 +638,7 @@ test.describe("BLOG.2 Content Studio", () => {
     test("screenshot: the confirm state, light, 1440×900", async ({ page }) => {
       await setup(page, { generations: [row("old-2", { blog_post_id: "post-9" }), row("old-1")] });
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.addInitScript(() => localStorage.removeItem("studio.theme"));
+      await page.addInitScript(() => localStorage.removeItem("admin.theme"));
       await openStudio(page);
       await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", "light");
       const item = items(page).first();
@@ -651,7 +653,7 @@ test.describe("BLOG.2 Content Studio", () => {
     });
   });
 
-  test("S6 the theme toggle flips the wrapper's tokens and survives a reload", async ({ page }) => {
+  test("S6 the header's theme toggle flips the Studio's tokens and survives a reload", async ({ page }) => {
     await setup(page);
     await openStudio(page);
     const studio = page.locator('[data-qa="studio"]');
@@ -661,11 +663,11 @@ test.describe("BLOG.2 Content Studio", () => {
     expect(await bg()).toBe("rgb(250, 246, 240)");
     expect(await gold()).toBe("#b8860b");
 
-    await page.locator('[data-qa="studio-theme-toggle"]').click();
+    await page.locator('[data-qa="admin-theme-toggle"]').click();
     await expect(studio).toHaveAttribute("data-theme", "dark");
     expect(await bg()).toBe("rgb(11, 10, 8)");
     expect(await gold()).toBe("#c9a55c");
-    expect(await page.evaluate(() => localStorage.getItem("studio.theme"))).toBe("dark");
+    expect(await page.evaluate(() => localStorage.getItem("admin.theme"))).toBe("dark");
 
     await page.reload();
     await page.locator('[data-qa="admin-nav-studio"]').click();
@@ -700,28 +702,34 @@ test.describe("BLOG.2 Content Studio", () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 
-  test("S8 the rest of the admin keeps its own background with the Studio in light", async ({ page }) => {
+  test("S8 the whole admin follows the theme, the Studio with it", async ({ page }) => {
     await setup(page);
     await page.goto("/admin");
-    await page.locator('[data-qa="admin-nav-blog"]').click();
+    await page.locator('[data-qa="admin-nav-studio"]').click();
     const surfaces = () =>
       page.evaluate(() => {
         const shell = document.querySelector('[data-qa="admin-shell"]')!;
         const pick = (el: Element) => getComputedStyle(el).backgroundColor;
         return {
-          body: pick(document.body),
           page: pick(shell.parentElement!),
-          shell: pick(shell),
-          nav: pick(document.querySelector('[data-qa="admin-nav"]')!),
-          rootBackground: getComputedStyle(document.documentElement).getPropertyValue("--background").trim(),
+          studio: pick(document.querySelector('[data-qa="studio"]')!),
+          studioTheme: document.querySelector('[data-qa="studio"]')!.getAttribute("data-theme"),
+          adminTheme: shell.parentElement!.getAttribute("data-admin-theme"),
         };
       });
-    const before = await surfaces();
-    await page.locator('[data-qa="admin-nav-studio"]').click();
-    await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", "light");
-    expect(await surfaces()).toEqual(before);
-    await page.locator('[data-qa="studio-theme-toggle"]').click();
-    expect(await surfaces()).toEqual(before);
+    expect(await surfaces()).toEqual({
+      page: "rgb(250, 246, 240)",
+      studio: "rgb(250, 246, 240)",
+      studioTheme: "light",
+      adminTheme: "light",
+    });
+    await page.locator('[data-qa="admin-theme-toggle"]').click();
+    expect(await surfaces()).toEqual({
+      page: "rgb(18, 18, 18)",
+      studio: "rgb(11, 10, 8)",
+      studioTheme: "dark",
+      adminTheme: "dark",
+    });
   });
 
   test("screenshots: light and dark at 1440×900 and 820×1180", async ({ page }) => {
@@ -731,7 +739,7 @@ test.describe("BLOG.2 Content Studio", () => {
       [820, 1180],
     ] as const) {
       await page.setViewportSize({ width: w, height: h });
-      await page.addInitScript(() => localStorage.removeItem("studio.theme"));
+      await page.addInitScript(() => localStorage.removeItem("admin.theme"));
       await openStudio(page);
       await page.locator('[data-qa="studio-brain-dump"]').fill(
         "Esta semana grabé un en vivo desde Medellín y mi comunidad me pidió que contara cómo preparo un personaje antes de una escena.",
@@ -740,7 +748,7 @@ test.describe("BLOG.2 Content Studio", () => {
       await page.locator('[data-qa="studio-generate"]').click();
       await expect(page.locator('[data-qa="studio-usage"]')).toBeVisible();
       await page.screenshot({ path: `${SHOTS}/studio-light-${w}x${h}.png`, fullPage: true });
-      await page.locator('[data-qa="studio-theme-toggle"]').click();
+      await page.locator('[data-qa="admin-theme-toggle"]').click();
       await page.screenshot({ path: `${SHOTS}/studio-dark-${w}x${h}.png`, fullPage: true });
     }
   });

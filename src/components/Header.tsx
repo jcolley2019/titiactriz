@@ -295,6 +295,8 @@ const Header = () => {
 
   return (
     <header
+      // ADMIN.THEME.1 — named so a light admin can give the bar its solid dark (index.css).
+      data-site-header=""
       // MOBILE.EDGE.1 D — the page now paints under Safari's bars
       // (viewport-fit=cover), so a `top-0` fixed bar starts at the physical
       // screen edge and its first row lands behind the notch / Dynamic Island.
