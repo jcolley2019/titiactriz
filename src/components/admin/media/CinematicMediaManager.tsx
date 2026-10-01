@@ -433,7 +433,9 @@ const CinematicMediaManager = () => {
     if (!file) return;
 
     const check = await validateHeroVideo(file);
-    if (!check.ok) {
+    // `=== false`, not `!check.ok`: with strictNullChecks off, only an equality
+    // test narrows the union to the branch that carries `reason`.
+    if (check.ok === false) {
       toast({
         title: t("admin.media.video.uploadFailed"),
         description: t(`admin.media.video.reject.${check.reason}`),

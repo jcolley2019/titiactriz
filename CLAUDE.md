@@ -34,7 +34,7 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 
 - Dev: `npm run dev` — PC at localhost:8080, phone at 192.168.4.53:8080. The physical test
   device is Joey's iPhone 17 Pro Max; phone-rendered truth outranks any emulator.
-- Gates before commit: `npx tsc --noEmit`, `npm run guard`, and
+- Gates before commit: `npm run typecheck`, `npm run guard`, and
   `npx impeccable detect src --json` — 0 new vs 40 (baseline, .impeccable/config.json).
   When edge functions are in play, also `npm run drift` (compares deployed function shas
   against `supabase/functions/deploy-ledger.json`; needs an authenticated Supabase CLI).

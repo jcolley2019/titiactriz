@@ -162,7 +162,9 @@ export function studioDraft(
 ): { ok: true; draft: StudioDraft } | { ok: false; error: string } {
   const { meta, body: withoutMeta } = parseMetaFence(article);
   const derived = deriveTitleAndSlug(withoutMeta);
-  if (!derived.ok) return { ok: false, error: derived.error };
+  // `=== false`, not `!derived.ok`: with strictNullChecks off, only an equality
+  // test narrows the union to the branch that carries `error`.
+  if (derived.ok === false) return { ok: false, error: derived.error };
   const { title, slug, body } = derived.post;
   const excerpt = firstParagraph(body);
   const metaDescription = meta?.metaDescription ?? "";

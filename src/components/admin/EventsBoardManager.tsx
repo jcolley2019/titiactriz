@@ -590,7 +590,9 @@ const MediaUploader = ({
     // size) with its exact refusal messages.
     if (socialSet) return;
     const check = validateEventVideo(file);
-    if (!check.ok) {
+    // `=== false`, not `!check.ok`: with strictNullChecks off, only an equality
+    // test narrows the union to the branch that carries `reason`.
+    if (check.ok === false) {
       setRejected(check.reason);
       return;
     }

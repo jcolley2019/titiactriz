@@ -106,11 +106,14 @@ const BakeoffPage = () => {
   const resolved = getCinematicMedia(photos, media, heroPhotoSetting, heroVideo);
   const reel = resolved.reel;
 
-  // Identical slide construction to HomeCinematic's <CinematicReel> call.
+  // Slide construction as HomeCinematic's <CinematicReel> call stood at
+  // CINE.FLOW.2. FRAME.SPLIT.1 (2026-07-27) moved reel framing onto per-class
+  // records this frozen harness never adopted, so no slide carries framing and
+  // every one paints ReelPhoto's REEL_DEFAULT_FOCAL / DEFAULT_ZOOM fallback.
   const slides: BakeoffSlide[] = [
-    { photo: reel[0].photo, title: t("hero.roles.actress"), focal: reel[0].focal, zoom: reel[0].zoom },
-    { photo: reel[1].photo, title: t("hero.roles.streamer"), focal: reel[1].focal, zoom: reel[1].zoom },
-    { photo: reel[2].photo, title: t("hero.roles.entrepreneur"), focal: reel[2].focal, zoom: reel[2].zoom },
+    { photo: reel[0].photo, title: t("hero.roles.actress") },
+    { photo: reel[1].photo, title: t("hero.roles.streamer") },
+    { photo: reel[2].photo, title: t("hero.roles.entrepreneur") },
   ];
 
   const lang = i18n.language?.startsWith("es") ? "es" : "en";
