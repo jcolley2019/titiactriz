@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { AlertTriangle, ArrowLeft, Check, ExternalLink, ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, ExternalLink, ImageIcon, Link2, Loader2, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ import {
   slugify,
   type BlogPost,
 } from "@/lib/blog";
+import { SITE } from "@/lib/blog/schema";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import ImagePicker from "@/components/admin/media/ImagePicker";
 import { useAdminIntent } from "@/components/admin/AdminShell";
@@ -62,6 +63,7 @@ import { useAdminIntent } from "@/components/admin/AdminShell";
  */
 
 const FLASH_MS = 1800;
+const COPIED_MS = 2000;
 const META_MIN = 150;
 const META_MAX = 160;
 
@@ -136,6 +138,76 @@ const StatusPill = ({ status }: { status: BlogPost["status"] }) => {
     >
       {published ? t("admin.blog.statusPublished") : t("admin.blog.statusDraft")}
     </span>
+  );
+};
+
+/**
+ * The Clipboard API, or — where it is missing or refused — a hidden input and
+ * execCommand("copy"). True when either one copied.
+ */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Refused (no permission, an insecure origin): the old path may still work.
+  }
+  const before = document.activeElement as HTMLElement | null;
+  const input = document.createElement("input");
+  input.value = text;
+  input.readOnly = true;
+  input.setAttribute("aria-hidden", "true");
+  // 16px: iOS zooms into a focused field set smaller than that.
+  input.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none;font-size:16px";
+  document.body.appendChild(input);
+  input.select();
+  input.setSelectionRange(0, text.length);
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  }
+  input.remove();
+  before?.focus();
+  return copied;
+}
+
+/**
+ * BLOG.LINK.1 — a published post's public address, on the clipboard. The host
+ * is the site's one canonical host (SITE, SEO.HOST.1), never the admin's own.
+ */
+const CopyLinkButton = ({ slug }: { slug: string }) => {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const onCopy = async () => {
+    if (!(await copyText(`${SITE}/blog/${slug}`))) {
+      toast({ title: t("admin.blog.copyLinkFailed"), variant: "destructive" });
+      return;
+    }
+    setCopied(true);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setCopied(false), COPIED_MS);
+  };
+
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      data-qa="blog-copy-link"
+      data-state={copied ? "copied" : "idle"}
+      onClick={onCopy}
+    >
+      {copied ? <Check className="w-4 h-4 mr-1" aria-hidden /> : <Link2 className="w-4 h-4 mr-1" aria-hidden />}
+      <span aria-live="polite">{copied ? t("admin.blog.copied") : t("admin.blog.copyLink")}</span>
+    </Button>
   );
 };
 
@@ -335,8 +407,15 @@ const BlogList = ({
             {posts.map((post, i) => {
               const title = pickLocalized(post.title, "es").trim();
               return (
-                <li key={post.id} data-qa="blog-row" data-slug={post.slug} className="flex items-center gap-3 px-6 py-3">
-                  <div className="min-w-0 flex-1">
+                <li
+                  key={post.id}
+                  data-qa="blog-row"
+                  data-slug={post.slug}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 px-6 py-3"
+                >
+                  {/* basis-48: on a phone a published row's two buttons drop
+                      under the title instead of squeezing it (BLOG.LINK.1). */}
+                  <div className="min-w-0 flex-1 basis-48">
                     <p data-qa="blog-row-title" className="truncate text-sm font-medium text-foreground">
                       {title || t("admin.blog.untitled")}
                     </p>
@@ -347,16 +426,19 @@ const BlogList = ({
                       </span>
                     </div>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    data-qa="blog-row-edit"
-                    data-coach={i === 0 ? "blog.edit" : undefined}
-                    onClick={() => onEdit(post)}
-                  >
-                    {t("admin.blog.edit")}
-                  </Button>
+                  <div className="ml-auto flex items-center gap-3">
+                    {post.status === "published" && <CopyLinkButton slug={post.slug} />}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-qa="blog-row-edit"
+                      data-coach={i === 0 ? "blog.edit" : undefined}
+                      onClick={() => onEdit(post)}
+                    >
+                      {t("admin.blog.edit")}
+                    </Button>
+                  </div>
                 </li>
               );
             })}
@@ -772,17 +854,20 @@ const BlogEditor = ({
             </Label>
             <SaveFlash state={statusFlash} qa="blog-status" />
             {published && committed.slug && (
-              <a
-                href={`/blog/${committed.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-qa="blog-view"
-                data-coach="blogEditor.viewDelete"
-                className="inline-flex items-center gap-1 text-xs text-accent-ink hover:underline"
-              >
-                {t("admin.blog.viewPost")}
-                <ExternalLink className="w-3 h-3" aria-hidden />
-              </a>
+              <>
+                <a
+                  href={`/blog/${committed.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-qa="blog-view"
+                  data-coach="blogEditor.viewDelete"
+                  className="inline-flex items-center gap-1 text-xs text-accent-ink hover:underline"
+                >
+                  {t("admin.blog.viewPost")}
+                  <ExternalLink className="w-3 h-3" aria-hidden />
+                </a>
+                <CopyLinkButton slug={committed.slug} />
+              </>
             )}
           </div>
           <p className="text-xs text-muted-foreground" data-qa="blog-status-help">

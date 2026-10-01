@@ -779,6 +779,9 @@
       "edit": "Editar",
       "back": "Entradas",
       "viewPost": "Ver en el sitio",
+      "copyLink": "Copiar enlace",
+      "copied": "Copiado",
+      "copyLinkFailed": "No se pudo copiar el enlace",
       "autoTranslateHelp": "Escribe en el idioma que prefieras. Al guardar, el otro idioma se traduce automáticamente; puedes abrir la traducción y corregirla.",
       "fieldTitle": "Título",
       "fieldSlug": "Dirección (slug)",
@@ -977,7 +980,7 @@
         },
         "edit": {
           "title": "Editar",
-          "body": "Abre una entrada para revisarla, publicarla o borrarla. Cada una dice si es Borrador o Publicada."
+          "body": "Abre una entrada para revisarla, publicarla o borrarla. Cada una dice si es Borrador o Publicada. En las publicadas, Copiar enlace copia su dirección para que la compartas."
         }
       },
       "blogEditor": {

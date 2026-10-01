@@ -779,6 +779,9 @@
       "edit": "Edit",
       "back": "Posts",
       "viewPost": "View on site",
+      "copyLink": "Copy link",
+      "copied": "Copied",
+      "copyLinkFailed": "Couldn't copy the link",
       "autoTranslateHelp": "Type in whichever language you prefer. On save, the other language is translated automatically; you can open the translation and correct it.",
       "fieldTitle": "Title",
       "fieldSlug": "Address (slug)",
@@ -977,7 +980,7 @@
         },
         "edit": {
           "title": "Edit",
-          "body": "Opens a post so you can review, publish or delete it. Each one says whether it is a Draft or Published."
+          "body": "Opens a post so you can review, publish or delete it. Each one says whether it is a Draft or Published. On published ones, Copy link copies its address so you can share it."
         }
       },
       "blogEditor": {

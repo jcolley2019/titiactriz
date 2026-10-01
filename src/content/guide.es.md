@@ -61,8 +61,9 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 6. Escribe en el idioma que prefieras. Al tocar **Guardar cambios**, el otro idioma se traduce solo. Debajo de cada campo puedes abrir «Inglés» (o «Español») para leer y corregir la traducción.
 7. El interruptor **Publicada** es el que publica. Apagado: Borrador, solo tú la ves. Encendido: visible en titiactriz.com/blog. Se guarda al instante, pero primero tienes que haber guardado la entrada.
 8. Con la entrada publicada, **Ver en el sitio** la abre en una pestaña nueva del navegador.
-9. Para borrar una prueba, abre la entrada, toca **Eliminar entrada** y confirma con **Eliminar**. Se borra también del sitio y no se puede deshacer.
-10. **Entradas** te devuelve a la lista. Si tienes texto sin guardar, te pregunta antes de salir.
+9. En la lista y junto a **Ver en el sitio**, las entradas publicadas tienen **Copiar enlace**: copia la dirección de la entrada para que la pegues en WhatsApp o en tus redes, y dice **Copiado** cuando ya la tienes.
+10. Para borrar una prueba, abre la entrada, toca **Eliminar entrada** y confirma con **Eliminar**. Se borra también del sitio y no se puede deshacer.
+11. **Entradas** te devuelve a la lista. Si tienes texto sin guardar, te pregunta antes de salir.
 
 ## Estudio
 

@@ -30,6 +30,15 @@ import { extractFaq } from "../src/lib/blog/schema";
  *  S3  English: the first crumb is "Home".
  *  S4  extractFaq, unit: headings in code fences, lone questions and
  *      question-less H3s do not make an FAQ.
+ *
+ * BLOG.LINK.1 — Copiar enlace.
+ *  L1  The list: a published row has the button and a draft row does not; a
+ *      click puts https://www.titiactriz.com/blog/<slug> on the clipboard,
+ *      reads Copiado, and is back to Copiar enlace after 2 s. Nothing written.
+ *  L2  The editor: the button sits right after Ver en el sitio while the post
+ *      is published, copies the same address, and leaves with the switch.
+ *  L3  No Clipboard API: the hidden input + execCommand fallback copies the
+ *      same address and leaves no input behind (EN: Copy link → Copied).
  */
 
 type Row = Record<string, unknown> & { id: string; slug: string; status: string };
@@ -709,5 +718,103 @@ test.describe("BLOG.SEO.1 structured data", () => {
       { question: "¿Uno?", answer: "Sí." },
       { question: "Dos?", answer: "No." },
     ]);
+  });
+});
+
+/* ---------------- BLOG.LINK.1 — Copiar enlace ---------------- */
+
+const POST_URL = "https://www.titiactriz.com/blog/un-dia-en-el-set";
+
+const blogRow = (page: Page, slug: string) => page.locator(`[data-qa="blog-row"][data-slug="${slug}"]`);
+
+const clipboardText = (page: Page) => page.evaluate(() => navigator.clipboard.readText());
+
+test.describe("BLOG.LINK.1 Copiar enlace", () => {
+  test("L1 a published row copies its www address and says Copiado; a draft row has no button", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const writes: Write[] = [];
+    await openBlogAdmin(page, publicRows(), writes);
+    await expect(page.locator('[data-qa="blog-row"]')).toHaveCount(3);
+
+    await expect(blogRow(page, "borrador-secreto").locator('[data-qa="blog-copy-link"]')).toHaveCount(0);
+    await expect(blogRow(page, "bailar-en-medellin").locator('[data-qa="blog-copy-link"]')).toHaveCount(1);
+    const copy = blogRow(page, "un-dia-en-el-set").locator('[data-qa="blog-copy-link"]');
+    await expect(copy).toHaveText("Copiar enlace");
+    await expect(copy.locator("svg")).toHaveClass(/lucide-link2|lucide-link-2/);
+
+    await copy.click();
+    await expect(copy).toHaveText("Copiado");
+    await expect(copy).toHaveAttribute("data-state", "copied");
+    await expect(copy.locator("svg")).toHaveClass(/lucide-check/);
+    expect(await clipboardText(page)).toBe(POST_URL);
+
+    // Two seconds, then it is a Copy button again.
+    await expect(copy).toHaveText("Copiar enlace", { timeout: 4_000 });
+    await expect(copy).toHaveAttribute("data-state", "idle");
+    expect(blogWrites(writes, "PATCH"), "copying writes nothing").toHaveLength(0);
+  });
+
+  test("L2 the editor: right after Ver en el sitio while published, gone with the switch", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const writes: Write[] = [];
+    await openBlogAdmin(page, publicRows(), writes);
+
+    // A draft's editor has neither link.
+    await blogRow(page, "borrador-secreto").locator('[data-qa="blog-row-edit"]').click();
+    await expect(page.locator('[data-qa="blog-editor"]')).toBeVisible();
+    await expect(page.locator('[data-qa="blog-view"]')).toHaveCount(0);
+    await expect(page.locator('[data-qa="blog-copy-link"]')).toHaveCount(0);
+    await page.locator('[data-qa="blog-back"]').click();
+
+    await blogRow(page, "un-dia-en-el-set").locator('[data-qa="blog-row-edit"]').click();
+    const status = page.locator('[data-qa="blog-field-status"]');
+    await expect(status.locator('[data-qa="blog-view"] + [data-qa="blog-copy-link"]')).toHaveCount(1);
+    const copy = status.locator('[data-qa="blog-copy-link"]');
+    await copy.click();
+    await expect(copy).toHaveText("Copiado");
+    expect(await clipboardText(page)).toBe(POST_URL);
+
+    // Back to draft: the address is no longer public, and neither link is offered.
+    await page.locator('[data-qa="blog-status"]').click();
+    await expect(page.locator('[data-qa="blog-status"]')).toHaveAttribute("data-state", "unchecked");
+    await expect(page.locator('[data-qa="blog-view"]')).toHaveCount(0);
+    await expect(page.locator('[data-qa="blog-copy-link"]')).toHaveCount(0);
+  });
+
+  test("L3 without the Clipboard API, the hidden-input fallback copies the same address", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, "clipboard", { get: () => undefined, configurable: true });
+      const w = window as unknown as { __copied: { value: string; selected: string }[] };
+      w.__copied = [];
+      const original = document.execCommand.bind(document);
+      document.execCommand = (command: string, ...rest: [boolean?, string?]) => {
+        if (command !== "copy") return original(command, ...rest);
+        const el = document.activeElement as HTMLInputElement | null;
+        const value = el?.value ?? "";
+        w.__copied.push({ value, selected: value.slice(el?.selectionStart ?? 0, el?.selectionEnd ?? 0) });
+        return true;
+      };
+    });
+    const writes: Write[] = [];
+    await openBlogAdmin(page, publicRows(), writes, { lang: "en" });
+    expect(await page.evaluate(() => typeof navigator.clipboard)).toBe("undefined");
+
+    const copy = blogRow(page, "un-dia-en-el-set").locator('[data-qa="blog-copy-link"]');
+    await expect(copy).toHaveText("Copy link");
+    await copy.click();
+    await expect(copy).toHaveText("Copied");
+    const copied = await page.evaluate(
+      () => (window as unknown as { __copied: { value: string; selected: string }[] }).__copied,
+    );
+    expect(copied).toEqual([{ value: POST_URL, selected: POST_URL }]);
+    // The helper input is gone, and focus came back to the button.
+    await expect(page.locator("body > input[readonly]")).toHaveCount(0);
+    await expect(copy).toBeFocused();
   });
 });

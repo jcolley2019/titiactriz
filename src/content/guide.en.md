@@ -61,8 +61,9 @@ Use it when… articles from the Studio land here as drafts: review them, add a 
 6. Write in whichever language you prefer. When you tap **Save changes**, the other language is translated on its own. Under each field you can open "English" (or "Spanish") to read and correct the translation.
 7. The **Published** switch is the one that publishes. Off: Draft, only you can see it. On: visible at titiactriz.com/blog. It saves instantly, but you have to have saved the post first.
 8. With the post published, **View on site** opens it in a new browser tab.
-9. To delete a test, open the post, tap **Delete post** and confirm with **Delete**. It is deleted from the site too and cannot be undone.
-10. **Posts** takes you back to the list. If you have unsaved text, it asks before leaving.
+9. In the list and beside **View on site**, published posts have **Copy link**: it copies the post's address so you can paste it into WhatsApp or your socials, and says **Copied** once you have it.
+10. To delete a test, open the post, tap **Delete post** and confirm with **Delete**. It is deleted from the site too and cannot be undone.
+11. **Posts** takes you back to the list. If you have unsaved text, it asks before leaving.
 
 ## Studio
 
