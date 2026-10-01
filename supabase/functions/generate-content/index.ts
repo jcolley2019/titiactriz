@@ -2,12 +2,14 @@
 //
 // Titi's Content Studio: turns a brain dump or a YouTube transcript into a
 // blog article and/or social packages for TikTok, Instagram, Pinterest and
-// YouTube, in her voice (site_settings studio.voice), in ES or EN.
+// YouTube, in one of her two voices (site_settings studio.voice.personal or
+// studio.voice.greenworld, STUDIO.VOICES.1), in ES or EN.
 //
 // Contract: POST with the caller's Supabase auth (admin only, the same check
 // translate-text uses) and a body validated by validate.ts:
 //   { input_kind, input_text, output_format: "social"|"blog", platform?,
-//     language: "es"|"en", cascade_source?, web_search? }
+//     language: "es"|"en", voice?: "personal"|"greenworld", cascade_source?,
+//     web_search? }
 //  - social -> JSON { content, usage, web_search_used }
 //  - blog   -> server-sent events:
 //      event: content_block_delta  {"text": "..."}      per released text delta
@@ -27,7 +29,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import Anthropic from "npm:@anthropic-ai/sdk@0.128.0";
 import { validateRequest } from "./validate.ts";
-import { languageBlock, voiceBlock, type StudioVoice } from "./voice.ts";
+import { FALLBACK_VOICE_KEY, languageBlock, pickVoice, voiceBlock, voiceKey } from "./voice.ts";
 import { derivativePrompt, systemPrompt } from "./prompts.ts";
 
 // Model tiers — the same IDs joeyc.ai's generate-content uses today.
@@ -289,17 +291,17 @@ Deno.serve(async (req) => {
     }
     const validation = validateRequest(rawBody);
     if (!validation.ok) return json({ error: validation.error }, 400);
-    const { input_kind, input_text, output_format, platform, language, cascade_source, web_search } =
+    const { input_kind, input_text, output_format, platform, language, voice: voiceName, cascade_source, web_search } =
       validation.value;
 
-    // The voice comes from the database, never from the request body.
-    const { data: voiceRow, error: voiceErr } = await admin
+    // The voice's text comes from the database, never from the request body: the
+    // named voice's document, else the old studio.voice, else the built-in defaults.
+    const { data: voiceRows, error: voiceErr } = await admin
       .from("site_settings")
-      .select("value")
-      .eq("key", "studio.voice")
-      .maybeSingle();
-    if (voiceErr) console.error("studio.voice fetch failed:", voiceErr.message);
-    const voice = (voiceRow?.value ?? null) as StudioVoice | null;
+      .select("key, value")
+      .in("key", [voiceKey(voiceName), FALLBACK_VOICE_KEY]);
+    if (voiceErr) console.error(`${voiceKey(voiceName)} fetch failed:`, voiceErr.message);
+    const voice = pickVoice(voiceRows, voiceName);
 
     const isDerivative = !!cascade_source;
     const isBlog = output_format === "blog";
@@ -313,12 +315,12 @@ Deno.serve(async (req) => {
     if (isDerivative) {
       model = MODELS.derivative;
       maxTokens = MAX_TOKENS_DERIVATIVE;
-      formatPrompt = derivativePrompt(platform!);
+      formatPrompt = derivativePrompt(platform!, voiceName);
       userMessage = `Here is the blog article to distill:\n\n${cascade_source}\n\nReformat this into the requested format. Stay faithful to the blog's content.`;
     } else if (isBlog) {
       model = MODELS.research;
       maxTokens = MAX_TOKENS_BLOG;
-      formatPrompt = systemPrompt("blog");
+      formatPrompt = systemPrompt("blog", undefined, voiceName);
       userMessage = `Here is the raw input (${source}):\n\n${input_text}\n\n` +
         (web_search
           ? "Research the topic (not the author) using web search, then write the blog article."
@@ -326,14 +328,15 @@ Deno.serve(async (req) => {
     } else {
       model = MODELS.research;
       maxTokens = MAX_TOKENS_SOCIAL;
-      formatPrompt = systemPrompt("social", platform);
+      formatPrompt = systemPrompt("social", platform, voiceName);
       userMessage = `Here is the raw input (${source}):\n\n${input_text}\n\n` +
         (web_search
           ? `Before writing, use web search to check any facts about the topic and to find hashtags that are active on ${platform} right now. Then write the package.`
           : "Transform this into the requested format. Web search is not available.");
     }
 
-    // Static part first so the cache hits; the voice and language vary.
+    // Static part first so the cache hits; the voice text and language vary.
+    // (The Green World law rides on the static part, so that voice caches on its own.)
     const system: Anthropic.TextBlockParam[] = [
       { type: "text", text: formatPrompt, cache_control: { type: "ephemeral" } },
       { type: "text", text: `${voiceBlock(voice)}\n\n${languageBlock(language)}` },

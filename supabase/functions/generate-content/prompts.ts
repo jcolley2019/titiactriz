@@ -14,9 +14,14 @@
  * (no book), no health claims near Green World, the roles law, no invented
  * biography, and the face law as it applies to text (no AI images of her).
  * The image-prompt wizard is not ported at all (face law).
+ *
+ * STUDIO.VOICES.1 — for the Green World voice ONE more line is appended to the
+ * format prompt (GREEN_WORLD_LAW below). The voice's own avoid-list says the
+ * same thing; the law is belt and braces, so it does not depend on the text an
+ * admin can edit.
  */
 
-import type { OutputFormat, Platform } from "./validate.ts";
+import type { OutputFormat, Platform, Voice } from "./validate.ts";
 
 const PREAMBLE =
   'You are a content creation assistant. The AUTHOR section at the end of these instructions says whose voice you write in; "the author" below always means that person.';
@@ -255,11 +260,18 @@ Do not include images or image placeholders; the article's cover is chosen from 
 - Aim for 1500-2500 words
 - No fluff, no filler, every sentence earns its place`;
 
+/** The no-health-claims law, said once more at the end of every Green World prompt. */
+export const GREEN_WORLD_LAW =
+  "Green World is described only as bienestar y nutrición natural: never treatment, cure, prevention or relief of any disease or symptom, never compared with medicine, never income claims.";
+
+const withVoiceLaw = (prompt: string, voice: Voice): string =>
+  voice === "greenworld" ? `${prompt}\n\n${GREEN_WORLD_LAW}` : prompt;
+
 /** Static system prompt for a first-hand generation (from the brain dump or transcript). */
-export function systemPrompt(format: OutputFormat, platform?: Platform): string {
+export function systemPrompt(format: OutputFormat, platform?: Platform, voice: Voice = "personal"): string {
   const base = PREAMBLE + SITE_LAWS + WRITING_RULES;
-  if (format === "blog") return `${base}\n\n${BLOG_GUIDE}`;
-  return `${base}\n\n${PLATFORM_GUIDES[platform ?? "tiktok"]}`;
+  const guide = format === "blog" ? BLOG_GUIDE : PLATFORM_GUIDES[platform ?? "tiktok"];
+  return withVoiceLaw(`${base}\n\n${guide}`, voice);
 }
 
 const DERIVATIVE_GUIDES: Record<Platform, string> = {
@@ -274,7 +286,7 @@ const DERIVATIVE_GUIDES: Record<Platform, string> = {
 };
 
 /** Static system prompt for a derivative: a social package distilled from the finished blog. */
-export function derivativePrompt(platform: Platform): string {
+export function derivativePrompt(platform: Platform, voice: Voice = "personal"): string {
   const base =
     "You are reformatting an existing blog article into a different content format. The blog has already been written — your job is to distill and reformat it, NOT to add new information. Keep the author's voice, described in the AUTHOR section at the end of these instructions." +
     SITE_LAWS +
@@ -282,5 +294,8 @@ export function derivativePrompt(platform: Platform): string {
   // STUDIO.SPEED.2 — the article keeps her links; the package carries them where the platform allows.
   const links =
     'A link from the article goes in the CAPTION/CTA where the platform allows it; on TikTok write "link en la bio" / "link in bio" instead of the URL.';
-  return `${base}\n\nGive each section a bold label with an emoji on its own line, e.g. **🎬 HOOK**, **💬 CAPTION**, **#️⃣ HASHTAGS**.\n\n${links}\n\n${DERIVATIVE_GUIDES[platform]}`;
+  return withVoiceLaw(
+    `${base}\n\nGive each section a bold label with an emoji on its own line, e.g. **🎬 HOOK**, **💬 CAPTION**, **#️⃣ HASHTAGS**.\n\n${links}\n\n${DERIVATIVE_GUIDES[platform]}`,
+    voice,
+  );
 }

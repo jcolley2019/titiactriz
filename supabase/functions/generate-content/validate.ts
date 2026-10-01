@@ -3,14 +3,16 @@
  *
  * Every field that ends up inside a prompt is an enum or length-capped, so a
  * caller cannot smuggle instructions through a label or run up a max-size call
- * with an unbounded body. The voice is NOT accepted from the body: the
- * function reads site_settings studio.voice itself.
+ * with an unbounded body. The voice's CONTENT is never accepted from the body:
+ * the body names one of two voices (STUDIO.VOICES.1) and the function reads that
+ * voice's document from site_settings itself.
  */
 
 export const INPUT_KINDS = ["brain_dump", "youtube"] as const;
 export const OUTPUT_FORMATS = ["social", "blog"] as const;
 export const PLATFORMS = ["tiktok", "instagram", "pinterest", "youtube"] as const;
 export const LANGUAGES = ["es", "en"] as const;
+export const VOICES = ["personal", "greenworld"] as const;
 
 export const MAX_INPUT_CHARS = 30_000; // input_text and cascade_source
 
@@ -18,6 +20,7 @@ export type InputKind = typeof INPUT_KINDS[number];
 export type OutputFormat = typeof OUTPUT_FORMATS[number];
 export type Platform = typeof PLATFORMS[number];
 export type Language = typeof LANGUAGES[number];
+export type Voice = typeof VOICES[number];
 
 export interface GenerateRequest {
   input_kind: InputKind;
@@ -25,6 +28,8 @@ export interface GenerateRequest {
   output_format: OutputFormat;
   platform?: Platform;
   language: Language;
+  /** Which of her two voices writes: site_settings studio.voice.<voice>. Default personal. */
+  voice: Voice;
   /** Blog article to derive this social package from (the cascade). */
   cascade_source?: string;
   /** Let the model research the topic on the web. Default on for first-hand calls; never for derivatives. */
@@ -49,6 +54,10 @@ export function validateRequest(body: unknown): ValidationResult {
   }
   if (!isOneOf(LANGUAGES, b.language)) {
     return { ok: false, error: `language must be one of: ${LANGUAGES.join(", ")}` };
+  }
+
+  if (b.voice !== undefined && b.voice !== null && !isOneOf(VOICES, b.voice)) {
+    return { ok: false, error: `voice must be one of: ${VOICES.join(", ")}` };
   }
 
   const inputKind = b.input_kind ?? (b.cascade_source ? "brain_dump" : undefined);
@@ -96,6 +105,7 @@ export function validateRequest(body: unknown): ValidationResult {
       output_format: b.output_format,
       platform: (b.platform ?? undefined) as Platform | undefined,
       language: b.language,
+      voice: b.voice ?? "personal",
       cascade_source: cascadeSource,
       web_search: cascadeSource ? false : b.web_search !== false,
     },

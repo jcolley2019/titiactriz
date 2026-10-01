@@ -1,15 +1,20 @@
 /**
  * Whose voice the Studio writes in (BLOG.2, ported from joeyc.ai voice.ts).
  *
- * joeyc.ai read a per-user brand_profiles row. Titi's voice is one JSON
- * document in site_settings key `studio.voice`:
+ * joeyc.ai read a per-user brand_profiles row. Titi's voices are JSON
+ * documents in site_settings, one per named voice (STUDIO.VOICES.1):
+ * `studio.voice.personal` and `studio.voice.greenworld`, each
  *   { name, roles, audience, tone, topics[], avoid[], samplePhrases[] }
+ * The bare key `studio.voice` stays as the fallback for a named voice that has
+ * no document yet (and for old clients).
  * The format instructions are the same on every call and go first, so the
  * prompt cache can reuse them. This block is appended after them.
  *
  * The voice is admin-editable text that lands in a prompt, so every field is
  * capped. `avoid` only ADDS to the site laws in prompts.ts; it cannot lift one.
  */
+
+import type { Voice } from "./validate.ts";
 
 export interface StudioVoice {
   name?: unknown;
@@ -31,7 +36,26 @@ const clip = (v: unknown, max = MAX_FIELD_CHARS): string =>
 const list = (v: unknown): string[] =>
   (Array.isArray(v) ? v : []).map((x) => clip(x, MAX_ITEM_CHARS)).filter(Boolean).slice(0, MAX_ITEMS);
 
-// Used only if studio.voice is missing or has no name: the shipped identity, nothing more.
+/** The document a named voice is read from, and the one it falls back to. */
+export const voiceKey = (voice: Voice): string => `studio.voice.${voice}`;
+export const FALLBACK_VOICE_KEY = "studio.voice";
+
+const isDocument = (v: unknown): v is StudioVoice => !!v && typeof v === "object" && !Array.isArray(v);
+
+/**
+ * The voice's document out of the site_settings rows fetched for it: the named
+ * voice's own, else studio.voice, else null (voiceBlock then writes the built-in
+ * defaults below).
+ */
+export function pickVoice(rows: { key: string; value: unknown }[] | null | undefined, voice: Voice): StudioVoice | null {
+  for (const key of [voiceKey(voice), FALLBACK_VOICE_KEY]) {
+    const value = rows?.find((r) => r.key === key)?.value;
+    if (isDocument(value)) return value;
+  }
+  return null;
+}
+
+// Used only if no voice document exists or it has no name: the shipped identity, nothing more.
 const DEFAULT_NAME = "Cristyna Polentino (Titi, TitiActriz)";
 const DEFAULT_ROLES = "Actriz · Streamer · Empresaria";
 
