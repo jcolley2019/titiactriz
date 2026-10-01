@@ -55,7 +55,70 @@ jobs:
       # WebKit itself. CI.1b: installing Chromium alone left every WebKit test
       # failing at browser launch from e2d7522 (2026-08-10) until 1a2c670.
       # Firefox is not used anywhere, so it is still not installed.
-      - run: npx playwright install --with-deps chromium webkit
+      #
+      # CI.INSTALL.1 — the install is cached, retried, and capped at 10 minutes.
+      # Run 36892763552 showed where the time goes: the four browser downloads
+      # take ~14 s on every runner, while `--with-deps` pulls 125 MB of apt
+      # packages from azure.archive.ubuntu.com — 8 s on one shard, 15½ min on
+      # another, and a stall past the 30-minute job budget on a third, all from
+      # the same mirror. So the cache holds the browsers AND those .deb files:
+      # on a hit, `install-deps` finds every package already downloaded and asks
+      # the mirror for nothing but the index. The key follows the locked
+      # @playwright/test version, so a Playwright bump re-downloads both.
+      - name: Read the locked Playwright version
+        id: pw
+        run: |
+          echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+
+      # apt keeps what it downloads in a directory the cache can save. apt
+      # normally downloads as its sandbox user `_apt`, which may not be able to
+      # reach a directory under /home/runner; downloading as root sidesteps that
+      # on a throwaway runner.
+      - name: Point apt's download directory at the cache
+        run: |
+          mkdir -p "$HOME/.cache/apt-archives/partial"
+          printf '%s\n' \
+            "Dir::Cache::Archives \"$HOME/.cache/apt-archives/\";" \
+            'APT::Keep-Downloaded-Packages "true";' \
+            'APT::Sandbox::User "root";' \
+            | sudo tee /etc/apt/apt.conf.d/99ci-archives
+
+      - name: Cache Playwright browsers and their apt packages
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.cache/apt-archives
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      # A hit already has the browsers, so only the system libraries install.
+      # Three attempts with a short backoff ride out a failed download; the
+      # 10-minute cap makes a stalled mirror fail the shard fast instead of
+      # spending the job's 30.
+      - name: Install Playwright (system deps only on a cache hit)
+        timeout-minutes: 10
+        env:
+          CACHE_HIT: ${{ steps.pw-cache.outputs.cache-hit }}
+        run: |
+          if [ "$CACHE_HIT" = "true" ]; then
+            set -- npx playwright install-deps chromium webkit
+          else
+            set -- npx playwright install --with-deps chromium webkit
+          fi
+          for attempt in 1 2 3; do
+            if "$@"; then exit 0; fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::'$*' failed (attempt $attempt of 3); retrying in $((attempt * 10)) s"
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "::error::'$*' failed 3 times"
+          exit 1
+
+      # apt wrote the .deb files as root; hand them back so the cache can save.
+      - name: Let the cache read apt's downloads
+        run: sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache/apt-archives"
 
       # No serve step: playwright.config.ts owns the webServer and boots
       # `npm run dev` itself. It must be the DEV server, not a build+preview —
