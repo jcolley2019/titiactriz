@@ -18,12 +18,13 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 Úsalo cuando… quieras subir fotos, cambiar su orden o decidir cuáles aparecen en el sitio.
 
 1. En **Galería**, arrastra tus fotos al recuadro o toca **Seleccionar archivos**. Con una sola foto, toca **Previsualizar y subir** y luego **Confirmar y subir**; con varias, suben solas una tras otra.
-2. Cada foto tiene un interruptor **Publicada** / **Oculta**. Solo las publicadas aparecen en el sitio.
-3. El orden de la lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla.
-4. Si una foto ya no va, ábrela con los tres puntos y elige **Archivar** (se puede **Restaurar** después) o **Eliminar** (para siempre).
-5. **Texto alternativo** es la descripción de la foto que leen Google y las personas con lector de pantalla. **Completar todo el texto alternativo** las escribe de una vez; puedes corregirlas.
-6. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
-7. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
+2. El original se guarda a resolución completa y el sitio se lo muestra a las pantallas que pueden aprovecharlo; no se pierde nada.
+3. Cada foto tiene un interruptor **Publicada** / **Oculta**. Solo las publicadas aparecen en el sitio.
+4. El orden de la lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla.
+5. Si una foto ya no va, ábrela con los tres puntos y elige **Archivar** (se puede **Restaurar** después) o **Eliminar** (para siempre).
+6. **Texto alternativo** es la descripción de la foto que leen Google y las personas con lector de pantalla. **Completar todo el texto alternativo** las escribe de una vez; puedes corregirlas.
+7. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
+8. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
 
 ## Portafolio
 

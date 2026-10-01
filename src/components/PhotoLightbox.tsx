@@ -7,6 +7,7 @@ import {
   resolveHeroGeometry,
   useElementAspect,
 } from "@/lib/hero-framing";
+import { masterSources, type MasterFields } from "@/lib/photo-srcset";
 
 /**
  * GALLERY.TOUCH.1 — the shared gallery lightbox, in the site's language: the
@@ -38,11 +39,12 @@ const SWIPE_DOWN_COMMIT = 72;
 /** The lightbox plate is always the WHOLE photo: centred, unzoomed, contain. */
 const PLATE_FRAMING = { scale: 1, posX: 50, posY: 50, fit: "fit" as const };
 
+/** MEDIA.PHOTO.1 — with a kept master, the plate offers the full-resolution original. */
 export type LightboxPhoto = {
   id: string;
   image_url: string;
   alt_text: string | null;
-};
+} & MasterFields;
 
 type Props = {
   photos: LightboxPhoto[];
@@ -164,6 +166,9 @@ const PhotoLightbox = ({ photos, open, initialIndex, onClose }: Props) => {
   // re-letterbox inside the resolver's own maths — FramedImage's rule).
   const styleInput = { mediaAspect, containerAspect: stageAspect, framing: PLATE_FRAMING };
   const geo = resolveHeroGeometry(mediaAspect, stageAspect, PLATE_FRAMING);
+  // The probe and the plate ask for the same candidate, so the plate paints
+  // from the probe's decode.
+  const sources = masterSources(photo);
 
   const entrance = reduced
     ? "lightbox-fade-in 220ms ease-out"
@@ -212,6 +217,7 @@ const PhotoLightbox = ({ photos, open, initialIndex, onClose }: Props) => {
           >
             <img
               src={photo.image_url}
+              {...sources}
               alt={altText}
               data-qa="lightbox-img"
               data-hero-framing={heroFramingAttr(styleInput)}
@@ -225,6 +231,7 @@ const PhotoLightbox = ({ photos, open, initialIndex, onClose }: Props) => {
           // Aspect not yet measured: decode invisibly, then the plate mounts.
           <img
             src={photo.image_url}
+            {...sources}
             alt=""
             aria-hidden
             data-qa="lightbox-img-probe"

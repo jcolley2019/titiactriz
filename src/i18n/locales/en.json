@@ -1318,7 +1318,9 @@
       "converting": "Converting…",
       "optimizing": "Optimizing…",
       "uploading": "Uploading…",
-      "fileError": "{{count}} file(s) skipped — unsupported type. Allowed: JPEG, PNG, WebP, HEIC/HEIF."
+      "fileError": "{{count}} file(s) skipped — unsupported type. Allowed: JPEG, PNG, WebP, HEIC/HEIF.",
+      "tooLargeTitle": "Photo too large",
+      "tooLarge": "The original is {{size}} and the limit is {{max}} MB. It wasn't uploaded: we never shrink it without telling you. Export a lighter copy and try again."
     },
     "queue": {
       "summary": "{{done}} of {{total}} uploaded",
@@ -1414,7 +1416,11 @@
       "hiddenSelected": "Hidden selected",
       "bulkDesc": "{{count}} photo(s) updated",
       "signedOut": "Signed out",
-      "signedOutDesc": "You were logged out after 15 minutes of inactivity."
+      "signedOutDesc": "You were logged out after 15 minutes of inactivity.",
+      "masterFailed": "Photo uploaded without its original",
+      "masterFailedDesc": "The web version is on the site, but the full-resolution original couldn't be saved.",
+      "masterFailedBatch_one": "{{count}} photo was uploaded without its full-resolution original.",
+      "masterFailedBatch_other": "{{count}} photos were uploaded without their full-resolution original."
     },
     "livePreview": {
       "label": "Live preview",

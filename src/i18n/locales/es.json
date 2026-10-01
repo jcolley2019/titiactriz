@@ -1318,7 +1318,9 @@
       "converting": "Convirtiendo…",
       "optimizing": "Optimizando…",
       "uploading": "Subiendo…",
-      "fileError": "{{count}} archivo(s) omitidos — tipo no permitido. Permitidos: JPEG, PNG, WebP, HEIC/HEIF."
+      "fileError": "{{count}} archivo(s) omitidos — tipo no permitido. Permitidos: JPEG, PNG, WebP, HEIC/HEIF.",
+      "tooLargeTitle": "Foto demasiado pesada",
+      "tooLarge": "El original pesa {{size}} y el límite es {{max}} MB. No se subió: nunca lo reducimos sin avisarte. Exporta una copia más ligera y vuelve a intentarlo."
     },
     "queue": {
       "summary": "{{done}} de {{total}} subidos",
@@ -1414,7 +1416,11 @@
       "hiddenSelected": "Selección oculta",
       "bulkDesc": "{{count}} foto(s) actualizadas",
       "signedOut": "Sesión cerrada",
-      "signedOutDesc": "Se cerró tu sesión tras 15 minutos de inactividad."
+      "signedOutDesc": "Se cerró tu sesión tras 15 minutos de inactividad.",
+      "masterFailed": "Foto subida sin su original",
+      "masterFailedDesc": "La versión web ya está en el sitio, pero el original a resolución completa no se pudo guardar.",
+      "masterFailedBatch_one": "{{count}} foto se subió sin su original a resolución completa.",
+      "masterFailedBatch_other": "{{count}} fotos se subieron sin su original a resolución completa."
     },
     "livePreview": {
       "label": "Vista previa en vivo",

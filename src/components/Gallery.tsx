@@ -4,12 +4,16 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import ScrollReveal from "@/components/ScrollReveal";
+import type { MasterFields } from "@/lib/photo-srcset";
 
+/** The tiles paint image_url; the master fields are for the lightbox (MEDIA.PHOTO.1). */
 type Photo = {
   id: string;
   image_url: string;
   alt_text: string | null;
-};
+} & MasterFields;
+
+const PHOTO_COLUMNS = "id, image_url, alt_text, master_url, master_width, master_height";
 
 type GalleryProps = {
   photos?: Photo[];
@@ -42,7 +46,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       // Try with is_archived filter; fall back if column doesn't exist yet.
       const base = supabase
         .from("gallery_photos")
-        .select("id, image_url, alt_text")
+        .select(PHOTO_COLUMNS)
         .eq("is_published", true);
       let result = await (base as unknown as {
         eq: (c: string, v: unknown) => typeof base;
@@ -53,7 +57,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       if (result.error && /is_archived/i.test(result.error.message)) {
         result = await supabase
           .from("gallery_photos")
-          .select("id, image_url, alt_text")
+          .select(PHOTO_COLUMNS)
           .eq("is_published", true)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true });
@@ -61,7 +65,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
       if (result.error && /is_archived/i.test(result.error.message)) {
         result = await supabase
           .from("gallery_photos")
-          .select("id, image_url, alt_text")
+          .select(PHOTO_COLUMNS)
           .eq("is_published", true)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true });

@@ -217,6 +217,9 @@ export type Database = {
           image_url: string
           is_archived: boolean
           is_published: boolean
+          master_height: number | null
+          master_url: string | null
+          master_width: number | null
           sort_order: number
         }
         Insert: {
@@ -227,6 +230,9 @@ export type Database = {
           image_url: string
           is_archived?: boolean
           is_published?: boolean
+          master_height?: number | null
+          master_url?: string | null
+          master_width?: number | null
           sort_order?: number
         }
         Update: {
@@ -237,6 +243,9 @@ export type Database = {
           image_url?: string
           is_archived?: boolean
           is_published?: boolean
+          master_height?: number | null
+          master_url?: string | null
+          master_width?: number | null
           sort_order?: number
         }
         Relationships: []

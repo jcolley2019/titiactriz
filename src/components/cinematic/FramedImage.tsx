@@ -41,10 +41,20 @@ type FramedImageProps = {
   fallback?: ReactNode;
   /** Omitted by default (matches the hero LCP image); the reel passes "lazy". */
   loading?: "lazy" | "eager";
+  /**
+   * MEDIA.PHOTO.1 — responsive candidates (web file + full-resolution master)
+   * and their slot size, from `masterSources`. Absent → plain src. The
+   * resolver is unaffected: every candidate is the same photo, so the measured
+   * natural aspect is the same whichever one the browser picks.
+   */
+  srcSet?: string;
+  sizes?: string;
 };
 
 const FramedImage = ({
   src,
+  srcSet,
+  sizes,
   alt = "",
   focal,
   zoom,
@@ -81,6 +91,8 @@ const FramedImage = ({
         <img
           ref={imgRef}
           src={src}
+          srcSet={srcSet}
+          sizes={sizes}
           alt={alt}
           data-qa={imgDataQa}
           data-hero-framing={heroFramingAttr(styleInput)}

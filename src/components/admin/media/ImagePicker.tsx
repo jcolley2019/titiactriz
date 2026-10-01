@@ -9,7 +9,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { ACCEPT_ATTR, isAcceptedFile, uploadGalleryPhoto } from "@/lib/gallery-upload";
+import {
+  ACCEPT_ATTR,
+  MASTER_MAX_MB,
+  MasterTooLargeError,
+  isAcceptedFile,
+  uploadGalleryPhoto,
+} from "@/lib/gallery-upload";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 
 /**
@@ -53,9 +59,21 @@ const ImagePicker = ({
     if (!file || !isAcceptedFile(file)) return;
     setUploading(true);
     try {
-      const photo = await uploadGalleryPhoto(file);
+      const { photo, masterFailed } = await uploadGalleryPhoto(file);
       onUploaded?.(photo); // auto-select the new photo
+      // MEDIA.PHOTO.1 — the photo is in; only its full-resolution original isn't.
+      if (masterFailed) {
+        toast({ title: t("admin.toasts.masterFailed"), description: t("admin.toasts.masterFailedDesc") });
+      }
     } catch (err) {
+      if (err instanceof MasterTooLargeError) {
+        toast({
+          title: t("admin.upload.tooLargeTitle"),
+          description: t("admin.upload.tooLarge", { size: err.size, max: MASTER_MAX_MB }),
+          variant: "destructive",
+        });
+        return;
+      }
       const msg = err instanceof Error ? err.message : t("admin.media.picker.uploadFailed");
       toast({ title: t("admin.media.picker.uploadFailed"), description: msg, variant: "destructive" });
     } finally {

@@ -9,6 +9,7 @@ import {
   type VideoSourceFraming,
 } from "@/hooks/useCinematicMedia";
 import { useViewportOrientation } from "@/hooks/useViewportOrientation";
+import { masterSources } from "@/lib/photo-srcset";
 
 type Props = {
   photo?: CinematicPhoto;
@@ -69,9 +70,11 @@ const CinematicHeroMedia = ({
         // TA.6d framing preserved via the focal default (center 8%); paired with
         // the `center top` Ken Burns origin the slow zoom still pushes
         // downward/outward and never clips her head. A saved admin focal/zoom
-        // overrides it.
+        // overrides it. MEDIA.PHOTO.1: screens that can show more than the web
+        // file get the full-resolution master.
         <FramedImage
           src={photo?.image_url}
+          {...masterSources(photo)}
           focal={focal}
           zoom={zoom}
           imgClassName={reduced ? "" : "cine-kenburns"}

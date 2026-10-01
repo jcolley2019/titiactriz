@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FramedImage from "./FramedImage";
 import type { CinematicPhoto } from "./useCinematicData";
+import { masterSources } from "@/lib/photo-srcset";
 import {
   defaultClassFraming,
   plateAspectOf,
@@ -72,10 +73,13 @@ const framingFor = (slide: ReelSlide, cls: "phone" | "wide"): ClassFraming =>
  *
  * The framing is passed in, never read off the slide: the caller is the act,
  * and the act is what knows its device class.
+ *
+ * MEDIA.PHOTO.1: the full-resolution master rides as a srcset candidate.
  */
 const SlidePhoto = ({ slide, framing }: { slide: ReelSlide; framing: ClassFraming }) => (
   <FramedImage
     src={slide.photo?.image_url}
+    {...masterSources(slide.photo)}
     alt={slide.photo?.alt_text ?? ""}
     focal={framing.focal}
     zoom={framing.zoom}

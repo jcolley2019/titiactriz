@@ -18,12 +18,13 @@ Use it when… you want to get into the admin, move between tabs or sign out.
 Use it when… you want to upload photos, change their order or decide which ones appear on the site.
 
 1. In **Gallery**, drag your photos into the box or tap **Select files**. With a single photo, tap **Preview & upload** and then **Confirm & upload**; with several, they upload one after another on their own.
-2. Each photo has a **Published** / **Hidden** switch. Only published ones appear on the site.
-3. The order of the list is the order on the site. Drag a photo by the handle on the left to move it.
-4. If a photo no longer belongs, open it with the three dots and choose **Archive** (you can **Restore** it later) or **Delete** (for good).
-5. **Alt text** is the description of the photo that Google and people using a screen reader read. **Fill all missing alt text** writes them in one go; you can correct them.
-6. In **Media** you choose which photo opens the home page (**Hero**), which ones go in the reel and which one sits beside **About**. **Change photo** picks another from the Gallery; **Edit framing** lets you move and zoom the photo for each kind of screen, and **Save framing** applies it.
-7. House rule: photos go up as they come out of the camera. No AI face retouching, here or anywhere else on the site.
+2. The original is kept at full resolution and the site serves it to screens that can show it; nothing is lost.
+3. Each photo has a **Published** / **Hidden** switch. Only published ones appear on the site.
+4. The order of the list is the order on the site. Drag a photo by the handle on the left to move it.
+5. If a photo no longer belongs, open it with the three dots and choose **Archive** (you can **Restore** it later) or **Delete** (for good).
+6. **Alt text** is the description of the photo that Google and people using a screen reader read. **Fill all missing alt text** writes them in one go; you can correct them.
+7. In **Media** you choose which photo opens the home page (**Hero**), which ones go in the reel and which one sits beside **About**. **Change photo** picks another from the Gallery; **Edit framing** lets you move and zoom the photo for each kind of screen, and **Save framing** applies it.
+8. House rule: photos go up as they come out of the camera. No AI face retouching, here or anywhere else on the site.
 
 ## Portfolio
 

@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { REEL_CHAPTER_KEYS } from "./reelChapters";
+import type { MasterFields } from "@/lib/photo-srcset";
 
+/**
+ * MEDIA.PHOTO.1 — the master fields ride along so the hero, reel and lightbox
+ * can offer the full-resolution original (photo-srcset.ts). Optional: admin
+ * surfaces build photos without them and keep image_url only.
+ */
 export type CinematicPhoto = {
   id: string;
   image_url: string;
   alt_text: string | null;
-};
+} & MasterFields;
 
 /**
  * Data for the cinematic home page — published gallery photos ordered by
@@ -54,7 +60,7 @@ export function useCinematicData() {
       const [photosRes, resolvedVideo, heroSetting, ...chapterSettings] = await Promise.all([
         supabase
           .from("gallery_photos")
-          .select("id, image_url, alt_text")
+          .select("id, image_url, alt_text, master_url, master_width, master_height")
           .eq("is_published", true)
           .eq("is_archived", false)
           .order("sort_order", { ascending: true })

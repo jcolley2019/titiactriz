@@ -974,3 +974,116 @@ test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", ()
     await page.screenshot({ path: shot("MEDIA3-hint.png") });
   });
 });
+
+/* ---------- MEDIA.PHOTO.1 — the full-resolution master is kept and served ---------- */
+test.describe("MEDIA.PHOTO.1 — full-resolution master", () => {
+  test("an upload over 600 KB keeps a stripped master under masters/ and the hero offers it", async ({
+    page,
+    context,
+  }) => {
+    const writes: Write[] = [];
+    await injectAdminSession(page);
+    await forceLanguage(page, "en");
+    await routeSupabase(page, { media: null, photos: MOCK_PHOTOS, writes });
+    // Registered after routeSupabase, so it wins for uploads: keep each body so
+    // the master's bytes can be inspected, and the order web → master.
+    const uploads: { path: string; body: Buffer }[] = [];
+    await page.route("**/storage/v1/object/gallery/**", (route) => {
+      const req = route.request();
+      if (req.method() !== "POST" && req.method() !== "PUT") return route.fallback();
+      uploads.push({ path: new URL(req.url()).pathname, body: req.postDataBuffer() ?? Buffer.alloc(0) });
+      return route.fulfill({ status: 200, contentType: "application/json", body: '{"Key":"gallery/mock"}' });
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await settle(page, 800);
+
+    // The fixture: a 4000×3000 grained JPEG carrying EXIF Orientation 6 (so it
+    // DISPLAYS 3000×4000, like a camera portrait), an EXIF Make and an XMP packet
+    // that must not survive into the master. Built in the page, so no binary
+    // fixture lives in the repo.
+    const fixture = await page.locator('input[type="file"][multiple]').evaluate(async (input: HTMLInputElement) => {
+      const c = document.createElement("canvas");
+      c.width = 4000;
+      c.height = 3000;
+      const ctx = c.getContext("2d")!;
+      const g = ctx.createLinearGradient(0, 0, 4000, 3000);
+      g.addColorStop(0, "#5a3d2b");
+      g.addColorStop(1, "#c9a55c");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 4000, 3000);
+      const px = ctx.getImageData(0, 0, 4000, 3000);
+      let seed = 7;
+      for (let i = 0; i < px.data.length; i += 4) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        const n = (seed % 13) - 6;
+        px.data[i] += n;
+        px.data[i + 1] += n;
+        px.data[i + 2] += n;
+      }
+      ctx.putImageData(px, 0, 0);
+      const jpeg = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), "image/jpeg", 0.9));
+
+      const enc = new TextEncoder();
+      const u16 = (n: number) => [(n >> 8) & 255, n & 255];
+      const u32 = (n: number) => [(n >>> 24) & 255, (n >> 16) & 255, (n >> 8) & 255, n & 255];
+      const make = [...enc.encode("TestCam-SECRET"), 0];
+      const tiff = [
+        0x4d, 0x4d, 0, 42, ...u32(8), ...u16(2),
+        ...u16(0x010f), ...u16(2), ...u32(make.length), ...u32(38), // Make → data at 38
+        ...u16(0x0112), ...u16(3), ...u32(1), ...u16(6), 0, 0, // Orientation 6
+        ...u32(0), ...make,
+      ];
+      const exif = [...enc.encode("Exif"), 0, 0, ...tiff];
+      const xmp = [...enc.encode("http://ns.adobe.com/xap/1.0/"), 0, ...enc.encode("<x:xmpmeta>XMP-SECRET</x:xmpmeta>")];
+      const segment = (payload: number[]) => new Uint8Array([0xff, 0xe1, ...u16(payload.length + 2), ...payload]);
+      const bytes = new Uint8Array(await jpeg.arrayBuffer());
+      const file = new File([bytes.subarray(0, 2), segment(exif), segment(xmp), bytes.subarray(2)], "retrato.jpg", {
+        type: "image/jpeg",
+      });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      // The scan data's tail: a master that is not re-encoded still ends in these bytes.
+      return { size: file.size, tail: Array.from(bytes.subarray(bytes.length - 256)) };
+    });
+    expect(fixture.size, "fixture is past the 600 KB skip path").toBeGreaterThan(600 * 1024);
+
+    await page.getByRole("button", { name: "Preview & upload" }).click();
+    await page.getByRole("button", { name: "Confirm & upload" }).click({ timeout: 60_000 });
+
+    const isInsert = (w: Write) => w.method === "POST" && w.url.includes("gallery_photos");
+    await expect.poll(() => writes.some(isInsert), { timeout: 30_000 }).toBe(true);
+    const row = JSON.parse(writes.find(isInsert)!.body ?? "{}");
+
+    // Web first, then master — and the row carries both.
+    expect(uploads.map((u) => u.path.replace(/[0-9a-f-]{36}/, "<uuid>"))).toEqual([
+      "/storage/v1/object/gallery/photos/<uuid>.webp",
+      "/storage/v1/object/gallery/masters/<uuid>.jpg",
+    ]);
+    expect(row.image_url).toContain("/storage/v1/object/public/gallery/photos/");
+    expect(row.master_url).toContain("/storage/v1/object/public/gallery/masters/");
+    expect(row.master_width, "master decoded at its DISPLAY size (orientation kept)").toBe(3000);
+    expect(row.master_height).toBe(4000);
+
+    // The master: metadata gone, orientation kept, scan data untouched.
+    const master = uploads[1].body;
+    expect(master.includes("TestCam-SECRET"), "EXIF Make stripped").toBe(false);
+    expect(master.includes("XMP-SECRET"), "XMP stripped").toBe(false);
+    expect(master.includes(Buffer.from([0xff, 0xe1, 0x00, 0x22])), "orientation-only APP1").toBe(true);
+    expect(master.includes(Buffer.from(fixture.tail)), "no re-encode").toBe(true);
+
+    // The hero paints that row with two candidates: the web file at its real
+    // width (3000 × 3200/4000 = 2400) and the master at 3000.
+    const site = await context.newPage();
+    await routeSupabase(site, { media: null, photos: [{ ...row, id: "fresh" }] });
+    await site.setViewportSize({ width: 1440, height: 900 });
+    await site.goto(CINE, { waitUntil: "domcontentloaded" });
+    const hero = site.locator(HERO);
+    await expect(hero).toHaveAttribute("srcset", /, /);
+    const candidates = ((await hero.getAttribute("srcset")) ?? "").split(",").map((s) => s.trim());
+    expect(candidates).toEqual([`${row.image_url} 2400w`, `${row.master_url} 3000w`]);
+    await expect(hero).toHaveAttribute("sizes", "100vw");
+  });
+});

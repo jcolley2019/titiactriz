@@ -29,8 +29,11 @@ import {
   isAcceptedFile,
   formatBytes,
   sha256Hex,
-  optimizeFile,
-  uploadBlob,
+  MASTER_MAX_MB,
+  MasterTooLargeError,
+  prepareGalleryUpload,
+  uploadGalleryAssets,
+  type PreparedGalleryUpload,
 } from "@/lib/gallery-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,11 +93,16 @@ type Photo = {
   is_archived: boolean;
   content_hash: string | null;
   created_at: string;
+  /** MEDIA.PHOTO.1 — the full-resolution original, when one was kept. */
+  master_url: string | null;
+  master_width: number | null;
+  master_height: number | null;
 };
 
 
-/* Upload pipeline (BUCKET, accept lists, isHeic, optimizeFile, uploadBlob, …)
-   lives in @/lib/gallery-upload so the cinematic media picker can reuse it. */
+/* Upload pipeline (BUCKET, accept lists, isHeic, prepareGalleryUpload,
+   uploadGalleryAssets, …) lives in @/lib/gallery-upload so the cinematic media
+   picker can reuse it. */
 
 /* ---------------- Login ---------------- */
 const LoginCard = () => {
@@ -404,7 +412,8 @@ const ManagePanel = () => {
   const [singleStage, setSingleStage] = useState<"idle" | "converting" | "optimizing" | "uploading">("idle");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<{
-    blob: Blob;
+    /** MEDIA.PHOTO.1 — web + master, prepared once; the preview shows `web`. */
+    prepared: PreparedGalleryUpload;
     url: string;
     originalSize: number;
     optimizedSize: number;
@@ -453,17 +462,29 @@ const ManagePanel = () => {
     setQueue((prev) => prev.map((q) => (q.id === id ? { ...q, ...patch } : q)));
   };
 
-  const processItem = async (item: QueueItem) => {
+  /** MEDIA.PHOTO.1 — a refused (too large) original reads the same everywhere. */
+  const tooLargeMessage = (e: MasterTooLargeError) =>
+    t("admin.upload.tooLarge", { size: e.size, max: MASTER_MAX_MB });
+
+  /** The photo is in, but its full-resolution original didn't make it. */
+  const warnMasterFailed = () =>
+    toast({ title: t("admin.toasts.masterFailed"), description: t("admin.toasts.masterFailedDesc") });
+
+  /**
+   * "done" | "webOnly" (row written, master upload failed) | "failed".
+   * Toasts are capped at one on screen, so callers decide how to warn.
+   */
+  const processItem = async (item: QueueItem): Promise<"done" | "webOnly" | "failed"> => {
     try {
       updateQueueItem(item.id, {
         status: isHeic(item.file) ? "converting" : "optimizing",
         error: undefined,
       });
-      const { blob } = await optimizeFile(item.file);
-      updateQueueItem(item.id, { status: "uploading", optimizedSize: blob.size });
-      const image_url = await uploadBlob(blob);
+      const prepared = await prepareGalleryUpload(item.file);
+      updateQueueItem(item.id, { status: "uploading", optimizedSize: prepared.web.size });
+      const { masterFailed, ...assets } = await uploadGalleryAssets(prepared);
       const { error: insErr } = await supabase.from("gallery_photos").insert({
-        image_url,
+        ...assets,
         alt_text: null,
         sort_order: item.sortOrder,
         is_published: true,
@@ -471,27 +492,31 @@ const ManagePanel = () => {
       });
       if (insErr) throw insErr;
       updateQueueItem(item.id, { status: "done" });
-      return true;
+      return masterFailed ? "webOnly" : "done";
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed";
+      const msg =
+        e instanceof MasterTooLargeError ? tooLargeMessage(e) : e instanceof Error ? e.message : "Failed";
       updateQueueItem(item.id, { status: "failed", error: msg });
-      return false;
+      return "failed";
     }
   };
 
+  /** Runs the queue; resolves to how many photos were saved without their master. */
   const startBatch = async (items: QueueItem[]) => {
     let nextIndex = 0;
+    let webOnly = 0;
     const worker = async () => {
       while (true) {
         const idx = nextIndex++;
         if (idx >= items.length) return;
         const it = items[idx];
         if (it.status === "duplicate" || it.status === "skipped") continue;
-        await processItem(it);
+        if ((await processItem(it)) === "webOnly") webOnly++;
       }
     };
     const concurrency = Math.min(3, items.length);
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
+    return webOnly;
   };
 
   const runBatch = async (files: File[]) => {
@@ -536,11 +561,20 @@ const ManagePanel = () => {
     }
     setQueue(items);
 
-    await startBatch(items);
+    const webOnly = await startBatch(items);
 
     setBatchRunning(false);
     await load();
-    toast({ title: t("admin.queue.batchComplete") });
+    // MEDIA.PHOTO.1 — one toast fits on screen, so the batch's closing toast
+    // carries any master failures rather than letting it overwrite them.
+    toast(
+      webOnly > 0
+        ? {
+            title: t("admin.queue.batchComplete"),
+            description: t("admin.toasts.masterFailedBatch", { count: webOnly }),
+          }
+        : { title: t("admin.queue.batchComplete") },
+    );
   };
 
   const skipQueueItem = (id: string) => {
@@ -560,15 +594,17 @@ const ManagePanel = () => {
       return next;
     });
     if (target) {
-      const ok = await processItem(target);
-      if (ok) await load();
+      const result = await processItem(target);
+      if (result !== "failed") await load();
+      if (result === "webOnly") warnMasterFailed();
     }
   };
 
   const retryItem = async (item: QueueItem) => {
     updateQueueItem(item.id, { status: "queued", error: undefined });
-    const ok = await processItem(item);
-    if (ok) await load();
+    const result = await processItem(item);
+    if (result !== "failed") await load();
+    if (result === "webOnly") warnMasterFailed();
   };
 
 
@@ -622,10 +658,14 @@ const ManagePanel = () => {
         ? photos.find((p) => p.content_hash === contentHash)?.id
         : undefined;
       setSingleStage(isHeic(pendingFile) ? "converting" : "optimizing");
-      const { blob } = await optimizeFile(pendingFile);
-      const url = URL.createObjectURL(blob);
-      setPreview({ blob, url, originalSize, optimizedSize: blob.size, contentHash, duplicateOfId });
+      const prepared = await prepareGalleryUpload(pendingFile);
+      const url = URL.createObjectURL(prepared.web);
+      setPreview({ prepared, url, originalSize, optimizedSize: prepared.web.size, contentHash, duplicateOfId });
     } catch (e: unknown) {
+      if (e instanceof MasterTooLargeError) {
+        toast({ title: t("admin.upload.tooLargeTitle"), description: tooLargeMessage(e), variant: "destructive" });
+        return;
+      }
       const msg = e instanceof Error ? e.message : t("admin.toasts.optimizationFailedFallback");
       toast({ title: t("admin.toasts.optimizationFailed"), description: msg, variant: "destructive" });
     } finally {
@@ -639,7 +679,7 @@ const ManagePanel = () => {
     setSingleUploading(true);
     setSingleStage("uploading");
     try {
-      const image_url = await uploadBlob(preview.blob);
+      const { masterFailed, ...assets } = await uploadGalleryAssets(preview.prepared);
 
       // Append at end
       const { data: maxRow } = await supabase
@@ -651,7 +691,7 @@ const ManagePanel = () => {
       const nextSort = (maxRow?.sort_order ?? 0) + 1;
 
       const { error: insErr } = await supabase.from("gallery_photos").insert({
-        image_url,
+        ...assets,
         alt_text: null,
         sort_order: nextSort,
         is_published: true,
@@ -661,7 +701,8 @@ const ManagePanel = () => {
 
       const reduction = `${formatBytes(preview.originalSize)} → ${formatBytes(preview.optimizedSize)}`;
       setLastReduction(reduction);
-      toast({ title: t("admin.toasts.photoUploaded"), description: t("admin.toasts.optimizedDesc", { reduction }) });
+      if (masterFailed) warnMasterFailed();
+      else toast({ title: t("admin.toasts.photoUploaded"), description: t("admin.toasts.optimizedDesc", { reduction }) });
       setPendingFile(null);
       resetFileInput();
       closePreview();
@@ -829,10 +870,14 @@ const ManagePanel = () => {
     if (!deleteTarget) return;
     const photo = deleteTarget;
     setDeleteTarget(null);
-    const path = pathFromUrl(photo.image_url);
+    // MEDIA.PHOTO.1 — the full-resolution master goes with it (Joey's ruling):
+    // a deleted photo must not stay online at its masters/ URL.
+    const paths = [photo.image_url, photo.master_url]
+      .map((url) => (url ? pathFromUrl(url) : null))
+      .filter((p): p is string => !!p);
     try {
-      if (path) {
-        const { error: stErr } = await supabase.storage.from(BUCKET).remove([path]);
+      if (paths.length > 0) {
+        const { error: stErr } = await supabase.storage.from(BUCKET).remove(paths);
         if (stErr) throw stErr;
       }
       const { error: dbErr } = await supabase.from("gallery_photos").delete().eq("id", photo.id);
