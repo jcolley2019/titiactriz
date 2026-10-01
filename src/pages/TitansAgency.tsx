@@ -329,7 +329,7 @@ const TitansAgency = () => {
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": "Titans Agency Latam",
-          "url": "https://titiactriz.com/titans-agency",
+          "url": "https://www.titiactriz.com/titans-agency",
           "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
           "founder": {
             "@type": "Person",

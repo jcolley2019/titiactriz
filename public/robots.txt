@@ -51,4 +51,4 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://titiactriz.com/sitemap.xml
+Sitemap: https://www.titiactriz.com/sitemap.xml

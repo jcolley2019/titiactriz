@@ -46,7 +46,7 @@ const Book = () => {
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Cristyna Polentino",
-    url: "https://titiactriz.com",
+    url: "https://www.titiactriz.com",
     jobTitle: lang === "en" ? "Actress, streamer, entrepreneur" : "Actriz, streamer y empresaria",
   };
 

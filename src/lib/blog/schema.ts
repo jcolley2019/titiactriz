@@ -8,7 +8,7 @@ import { plainText } from "@/lib/studio/publish";
  * Pure: no React, no Supabase, so the Playwright runner can unit-test it.
  */
 
-export const SITE = "https://titiactriz.com";
+export const SITE = "https://www.titiactriz.com";
 
 export interface FaqItem {
   question: string;

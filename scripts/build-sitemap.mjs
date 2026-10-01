@@ -17,7 +17,7 @@ import { resolve } from "node:path";
 import { ROOT, readEnv } from "./prebuild-env.mjs";
 
 const SITEMAP = resolve(ROOT, "public/sitemap.xml");
-const SITE = "https://titiactriz.com";
+const SITE = "https://www.titiactriz.com";
 const START = "<!-- BLOG-POSTS:START";
 const END = "<!-- BLOG-POSTS:END -->";
 const TIMEOUT_MS = 8000;

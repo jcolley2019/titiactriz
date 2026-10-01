@@ -412,7 +412,7 @@ test.describe("BLOG.1 public", () => {
     await expect(page.getByText("Borrador secreto")).toHaveCount(0);
 
     await expect.poll(async () => (await head(page)).title).toBe("Blog | Cristyna Polentino");
-    expect((await head(page)).canonical).toBe("https://titiactriz.com/blog");
+    expect((await head(page)).canonical).toBe("https://www.titiactriz.com/blog");
 
     // The nav and the footer both lead here.
     await expect(page.locator('[data-qa="nav-blog"]')).toHaveAttribute("href", "/blog");
@@ -444,7 +444,7 @@ test.describe("BLOG.1 public", () => {
     await expect.poll(async () => (await head(page)).title).toBe("Un día en el set | Cristyna Polentino");
     const h = await head(page);
     expect(h.description).toBe("Café y guion subrayado."); // no meta_description → the excerpt
-    expect(h.canonical).toBe("https://titiactriz.com/blog/un-dia-en-el-set");
+    expect(h.canonical).toBe("https://www.titiactriz.com/blog/un-dia-en-el-set");
     expect(h.ogImage).toBe(COVER_SET.image_url);
     expect(h.ogType).toBe("article");
     const article = h.ld.find((l) => l?.["@type"] === "Article");
@@ -562,7 +562,7 @@ const FAQ_ES = [
   "### ¿Qué llevas al set?",
   "",
   "- Agua",
-  "- El [guion](https://titiactriz.com/blog) subrayado",
+  "- El [guion](https://www.titiactriz.com/blog) subrayado",
   "",
   "### Cómo te preparas para una escena difícil?",
   "",
@@ -665,13 +665,13 @@ test.describe("BLOG.SEO.1 structured data", () => {
 
     expect(ld[2]["@context"]).toBe("https://schema.org");
     expect(crumbs(ld[2])).toEqual([
-      { type: "ListItem", position: 1, name: "Inicio", item: "https://titiactriz.com/" },
-      { type: "ListItem", position: 2, name: "Blog", item: "https://titiactriz.com/blog" },
+      { type: "ListItem", position: 1, name: "Inicio", item: "https://www.titiactriz.com/" },
+      { type: "ListItem", position: 2, name: "Blog", item: "https://www.titiactriz.com/blog" },
       {
         type: "ListItem",
         position: 3,
         name: "Preguntas de rodaje",
-        item: "https://titiactriz.com/blog/preguntas-de-rodaje",
+        item: "https://www.titiactriz.com/blog/preguntas-de-rodaje",
       },
     ]);
   });

@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 
-const SITE = "https://titiactriz.com";
+const SITE = "https://www.titiactriz.com";
 const DEFAULT_IMAGE = `${SITE}/og-image.png`;
 
 interface SEOProps {

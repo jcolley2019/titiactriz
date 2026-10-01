@@ -106,12 +106,12 @@ test.describe("PORT.ACT.10 — the retired routes", () => {
     const live = xml.replace(/<!--[\s\S]*?-->/g, "");
     for (const dead of ["/work", "/socials", "/cinematic"]) {
       expect(live, `sitemap does not advertise ${dead}`).not.toContain(
-        `<loc>https://titiactriz.com${dead}</loc>`,
+        `<loc>https://www.titiactriz.com${dead}</loc>`,
       );
     }
-    expect(live, "the home is still listed").toContain("<loc>https://titiactriz.com/</loc>");
+    expect(live, "the home is still listed").toContain("<loc>https://www.titiactriz.com/</loc>");
     expect(live, "Green World is still listed").toContain(
-      "<loc>https://titiactriz.com/green-world</loc>",
+      "<loc>https://www.titiactriz.com/green-world</loc>",
     );
   });
 });
