@@ -84,12 +84,13 @@ Use it when… you have an idea in your head and want to turn it into a blog art
 5. In Output, under **Format**, choose **Blog Article**, **Social Post** or both. At least one always stays chosen.
 6. If you chose Social Post, under **Platforms** tick TikTok, Instagram, Pinterest or YouTube, or tap **All**.
 7. Under **Content language**, choose **Spanish** or **English**. The content comes out in the language you choose here, whichever language you wrote your idea in.
-8. **Research on the web**: leave it off almost always. Turn it on only when the topic is something outside of you, like a new platform, a trend, or dates and facts you did not give. It is slower. It switches itself off every time you come back to the Studio.
-9. Tap **Generate** and wait about a minute. You will see "Generating…" and a **Cancel** button in case you change your mind.
-10. When it finishes, scroll down to **Generated content**. There is one tab for each thing you asked for: **Article**, TikTok, Instagram, Pinterest or YouTube. Read them all.
-11. If you want to change something in the article, tap **Edit**, correct it right on the text and tap **Done**. The change is saved.
-12. On the social tabs, **Copy** copies the post ready to paste into the app. **Copy Markdown** and **Download .md** are for taking the text somewhere else; you do not need them day to day.
-13. **Publish as draft** creates the draft in the Blog tab and takes you there. It publishes nothing on the site: the post stays a Draft until you publish it from Blog. Once created, the button changes to **Open draft in Blog**. You'll find it in the Blog tab.
+8. Under **Voice**, choose **Personal** or **Green World** before you **Generate**; it changes how the Studio writes for you. The Studio remembers your choice on this device.
+9. **Research on the web**: leave it off almost always. Turn it on only when the topic is something outside of you, like a new platform, a trend, or dates and facts you did not give. It is slower. It switches itself off every time you come back to the Studio.
+10. Tap **Generate** and wait about a minute. You will see "Generating…" and a **Cancel** button in case you change your mind.
+11. When it finishes, scroll down to **Generated content**. There is one tab for each thing you asked for: **Article**, TikTok, Instagram, Pinterest or YouTube. Read them all.
+12. If you want to change something in the article, tap **Edit**, correct it right on the text and tap **Done**. The change is saved.
+13. On the social tabs, **Copy** copies the post ready to paste into the app. **Copy Markdown** and **Download .md** are for taking the text somewhere else; you do not need them day to day.
+14. **Publish as draft** creates the draft in the Blog tab and takes you there. It publishes nothing on the site: the post stays a Draft until you publish it from Blog. Once created, the button changes to **Open draft in Blog**. You'll find it in the Blog tab, under the tab of the voice you generated it with.
 
 **History**
 
@@ -98,8 +99,8 @@ Use it when… you have an idea in your head and want to turn it into a blog art
 
 **Voice**
 
-- Optional. The **Voice** button, at the top right of the Studio, opens a card with your **Name**, **Roles**, **Audience**, **Tone**, **Topics**, what to **Avoid** and **Sample phrases**. The Studio reads it on every generation to write like you.
-- Change whatever you like and tap **Save**. If you change your mind before saving, tap **Discard**.
+- Optional. The **Voice** button, at the top right of the Studio, opens a card with two tabs, **Personal** and **Green World**; it opens on the one you have picked. Each has your **Name**, **Roles**, **Audience**, **Tone**, **Topics**, what to **Avoid** and **Sample phrases**. The Studio reads the one for the voice you pick when you generate, to write like you.
+- Change whatever you like and tap **Save**: it saves the tab you have open. If you change your mind before saving, tap **Discard**. A tab with unsaved changes shows a dot.
 
 ## Settings
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { Lang } from "@/hooks/useEventsBoard";
+import type { VoiceName } from "@/lib/voices";
 
 /**
  * BLOG.2 — one Generate press in the Studio (ported from joeyc.ai's
@@ -12,6 +13,10 @@ import type { Lang } from "@/hooks/useEventsBoard";
  * Outputs are kept exactly as the functions returned them; the tabs strip any
  * narration on display (stripThinkingText). The press is stored as ONE
  * studio_generations row once it finishes, whatever succeeded.
+ *
+ * STUDIO.VOICES.1 — every call of a press names the same voice (personal or
+ * greenworld), and the row stores it so a reopened generation publishes into
+ * the matching blog category.
  */
 
 export type StudioFormat = "social" | "blog";
@@ -44,6 +49,8 @@ export type GenerateParams = {
   formats: StudioFormat[];
   platforms: StudioPlatform[];
   language: Lang;
+  /** STUDIO.VOICES.1 — whose voice writes: sent on the blog, first-hand social and derivative calls alike. */
+  voice: VoiceName;
   /** STUDIO.SPEED.2 — the Studio's switch; sent explicitly on every first-hand call (the function treats a missing field as true). */
   webSearch: boolean;
 };
@@ -52,6 +59,7 @@ export type Generation = {
   id: string | null;
   outputs: StudioOutputs;
   language: Lang;
+  voice: VoiceName;
   blogPostId: string | null;
 };
 
@@ -68,6 +76,7 @@ type Body = {
   output_format: StudioFormat;
   platform?: StudioPlatform;
   language: Lang;
+  voice: VoiceName;
   cascade_source?: string;
   web_search?: boolean;
 };
@@ -217,7 +226,7 @@ export function useStudioGeneration() {
     setStatus("generating");
     setError(null);
     setUsage(null);
-    setGeneration({ id: null, outputs: {}, language: p.language, blogPostId: null });
+    setGeneration({ id: null, outputs: {}, language: p.language, voice: p.voice, blogPostId: null });
 
     const outputs: StudioOutputs = {};
     const usages: CallUsage[] = [];
@@ -239,7 +248,7 @@ export function useStudioGeneration() {
       if (!token) throw new Error("Not signed in");
       if (p.inputText.length > MAX_INPUT_CHARS) throw new Error("tooLong");
 
-      const base = { input_kind: p.inputKind, input_text: p.inputText, language: p.language };
+      const base = { input_kind: p.inputKind, input_text: p.inputText, language: p.language, voice: p.voice };
       const wantsBlog = p.formats.includes("blog");
       const wantsSocial = p.formats.includes("social") && p.platforms.length > 0;
 
@@ -294,6 +303,7 @@ export function useStudioGeneration() {
             input_text: p.inputText,
             source_url: p.sourceUrl,
             language: p.language,
+            voice: p.voice,
             formats: p.formats,
             platforms: p.formats.includes("social") ? p.platforms : [],
             outputs: outputs as unknown as Json,
@@ -305,7 +315,7 @@ export function useStudioGeneration() {
         else id = data.id;
         setHistoryVersion((v) => v + 1);
       }
-      setGeneration({ id, outputs: { ...outputs }, language: p.language, blogPostId: null });
+      setGeneration({ id, outputs: { ...outputs }, language: p.language, voice: p.voice, blogPostId: null });
       if (failures.length) setError(failures.join(" · "));
     } catch (e) {
       window.clearTimeout(repaint);

@@ -8,9 +8,13 @@
  * as its source and the other side PENDING, so BLOG.1's Save translates it,
  * exactly as if Titi had typed the post herself.
  *
+ * STUDIO.VOICES.1 — the draft's blog category is the voice the article was
+ * written in (greenworld → 'greenworld', anything else → 'personal').
+ *
  * Pure: no React, no Supabase, so the Playwright runner can unit-test it.
  */
 import type { Lang, Localized } from "@/hooks/useEventsBoard";
+import { asVoice, type VoiceName } from "@/lib/voices";
 
 export const TITLE_MAX_CHARS = 120;
 export const FALLBACK_TITLE_MAX_CHARS = 80;
@@ -142,14 +146,20 @@ export interface StudioDraft {
   body: Localized;
   meta_description: Localized | null;
   tags: string[];
+  category: VoiceName;
   status: "draft";
 }
 
 /**
  * The blog_posts row a Publish writes: always a DRAFT (the Studio never
- * publishes live), language side = the output language, other side pending.
+ * publishes live), language side = the output language, other side pending,
+ * category = the voice it was written in.
  */
-export function studioDraft(article: string, lang: Lang): { ok: true; draft: StudioDraft } | { ok: false; error: string } {
+export function studioDraft(
+  article: string,
+  lang: Lang,
+  voice: VoiceName = "personal",
+): { ok: true; draft: StudioDraft } | { ok: false; error: string } {
   const { meta, body: withoutMeta } = parseMetaFence(article);
   const derived = deriveTitleAndSlug(withoutMeta);
   if (!derived.ok) return { ok: false, error: derived.error };
@@ -165,6 +175,7 @@ export function studioDraft(article: string, lang: Lang): { ok: true; draft: Stu
       body: pendingLocalized(body, lang),
       meta_description: metaDescription ? pendingLocalized(metaDescription, lang) : null,
       tags: [],
+      category: asVoice(voice),
       status: "draft",
     },
   };

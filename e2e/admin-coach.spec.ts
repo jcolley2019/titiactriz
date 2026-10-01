@@ -42,10 +42,11 @@ const STUDIO_STEPS = [
   "studio.format",
   "studio.platforms",
   "studio.language",
+  "studio.voice", // STUDIO.VOICES.1 — the Voz control (Personal | Green World), after Idioma
   "studio.webSearch",
   "studio.generate",
   "studio.output",
-  "studio.voice",
+  "studio.voiceEdit", // the header's Voz button (it was "studio.voice" before STUDIO.VOICES.1)
 ];
 
 test.beforeEach(async ({ page }) => {
@@ -118,10 +119,15 @@ test("C1: first open of Estudio walks from the brain dump to Generar, and Listo 
   await page.screenshot({ path: `${SHOTS}/estudio-step1-light-1440.png` });
 
   // Siguiente walks the controls in order, up to Generar.
-  for (const [i, step] of STUDIO_STEPS.slice(1, 6).entries()) {
+  for (const [i, step] of STUDIO_STEPS.slice(1, 7).entries()) {
     await next(page).click();
     await expect(overlay(page)).toHaveAttribute("data-step", step);
     await expect(page.locator('[data-qa="coach-progress"]')).toHaveText(`Paso ${i + 2} de ${STUDIO_STEPS.length}`);
+    if (step === "studio.voice") {
+      await expectSpotlightOn(page, page.locator('[data-coach="studio.voice"]'));
+      await expect(page.locator('[data-qa="coach-title"]')).toHaveText("Voz");
+      await expectCardInside(page);
+    }
     if (step === "studio.webSearch") {
       await expectSpotlightOn(page, page.locator('[data-qa="studio-web-search"]'));
       await expect(page.locator('[data-qa="coach-title"]')).toHaveText("Investigar en la web");
@@ -132,11 +138,12 @@ test("C1: first open of Estudio walks from the brain dump to Generar, and Listo 
   await expect(overlay(page)).toHaveAttribute("data-step", "studio.generate");
   await expectSpotlightOn(page, page.locator('[data-qa="studio-generate"]'));
 
-  // The rest: Contenido generado, then Voz (Publicar and Historial need a generation).
+  // The rest: Contenido generado, then the header's Voz button (Publicar and Historial need a generation).
   await next(page).click();
   await expect(overlay(page)).toHaveAttribute("data-step", "studio.output");
   await next(page).click();
-  await expect(overlay(page)).toHaveAttribute("data-step", "studio.voice");
+  await expect(overlay(page)).toHaveAttribute("data-step", "studio.voiceEdit");
+  await expectSpotlightOn(page, page.locator('[data-qa="studio-voice-open"]'));
   await expect(next(page)).toHaveText("Listo");
   expect((await seenIds(page)) ?? []).not.toContain("studio");
 
@@ -199,7 +206,7 @@ test("C4: Guía › Consejos cards: the Estudio card shows the tour again; Reini
   await expect(studioCard).toContainText("Estudio");
   await expect(studioCard).toContainText("Cuenta lo que tienes en la cabeza y conviértelo en artículo y posts");
   await expect(studioCard.locator("svg").first()).toHaveClass(/lucide-sparkles/);
-  await expect(page.locator('[data-qa="coach-steps-studio"]')).toHaveText("10 pasos");
+  await expect(page.locator('[data-qa="coach-steps-studio"]')).toHaveText("11 pasos");
   await expect(page.locator('[data-qa="coach-steps-blogEditor"]')).toHaveText("6 pasos");
   await expect(page.locator('[data-qa="coach-replay-blogEditor"]').locator("svg").first()).toHaveClass(/lucide-pen-line/);
   await expect(page.locator('[data-qa="coach-steps-submissions"]')).toHaveText("1 paso");

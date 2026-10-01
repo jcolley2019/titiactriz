@@ -665,6 +665,17 @@
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--st-border);
 }
+/* STUDIO.VOICES.1 — the drawer's Personal | Green World tabs, under the title. */
+.studio .st-drawer-tabs {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--st-border);
+}
+/* A tab whose text is not saved yet says so, even while the other tab is open. */
+.studio .st-tab[data-dirty="true"]::after {
+  content: "•";
+  margin-left: 0.45rem;
+  color: var(--st-error);
+}
 .studio .st-drawer-body {
   flex: 1 1 auto;
   overflow-y: auto;

@@ -25,6 +25,16 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
  *   W4 disabled while generating; English copy
  *   screenshots off/on × light/dark at 1440×900 land in _qa/studio-speed/
  *
+ * STUDIO.VOICES.1 — Voz (Personal / Green World):
+ *   V1 default press: voice:"personal" on the blog call and on every derivative; the row says personal
+ *   V2 pick Green World → voice:"greenworld" on every call (cascade and social-only), the pick survives
+ *      a reload (localStorage studio.voice.pick), the studio_generations row says greenworld
+ *   V3 Publicar como borrador inserts category: the generation's voice; Reopen restores a row's voice
+ *      (and an old row with no voice publishes as personal)
+ *   V4 the Voz drawer: two tabs, opens on the Studio's pick, edits studio.voice.personal /
+ *      studio.voice.greenworld, never writes studio.voice; the unsaved guard is per tab
+ *   screenshots (light, 1440×900) land in _qa/studio-voices/
+ *
  * STUDIO.HISTORY.1 — Borrar a generation from Historial (inline confirm, no window.confirm):
  *   H1 expand → Borrar → No leaves the row; collapsing cancels the confirm
  *   H2 Borrar → Sí sends one DELETE with id=eq.<row id>, the row leaves the list, blog_posts untouched
@@ -38,6 +48,7 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
 const SHOTS = "_qa/blog-2";
 const SPEED_SHOTS = "_qa/studio-speed";
 const HISTORY_SHOTS = "_qa/studio-history";
+const VOICE_SHOTS = "_qa/studio-voices";
 
 const ARTICLE = [
   "```meta",
@@ -78,6 +89,28 @@ const social = (p: string) =>
 const TRANSCRIPT = "Hola a todos, hoy les cuento cómo me preparo para una escena difícil y qué hago cuando me pongo nerviosa.";
 
 type GenCall = Record<string, unknown>;
+
+/** The two voice documents in site_settings (STUDIO.VOICES.1); the bare studio.voice is not served at all. */
+const VOICE_DOCS: Record<string, Record<string, unknown>> = {
+  "studio.voice.personal": {
+    name: "Cristyna Polentino — Titi (TitiActriz)",
+    roles: "Actriz · Streamer · Empresaria",
+    audience: "Su comunidad: quienes la siguen como Titi (TitiActriz).",
+    tone: "Cercano y en primera persona. Autenticidad y disciplina.",
+    topics: ["Actuación en pantalla y escenario", "Streaming en vivo y su comunidad"],
+    avoid: ["Cualquier mención de su libro"],
+    samplePhrases: ["Creo en el poder de contar historias para crear conexión."],
+  },
+  "studio.voice.greenworld": {
+    name: "Cristyna Polentino — Titi (TitiActriz)",
+    roles: "Actriz · Streamer · Empresaria",
+    audience: "Personas curiosas por el bienestar natural y quienes ya conocen Green World.",
+    tone: "Cercano, claro y en primera persona. Entusiasmo real, nunca promesas.",
+    topics: ["Green World: productos de bienestar y nutrición natural, cómo pedirlos paso a paso"],
+    avoid: ["Afirmaciones de salud: Green World se describe solo como bienestar y nutrición"],
+    samplePhrases: ["Bienestar natural, directo de la fuente."],
+  },
+};
 
 type Mock = {
   writes: Write[];
@@ -175,6 +208,14 @@ async function setup(page: Page, opts: { lang?: "es" | "en"; generations?: Recor
     return route.fulfill({ status: 204, body: "" });
   });
 
+  // STUDIO.VOICES.1 — the Voz drawer reads both voice documents in one request; its upserts fall
+  // through to routeSupabase, which records them in mock.writes.
+  await page.route("**/rest/v1/site_settings*", (route) => {
+    const req = route.request();
+    if (req.method() !== "GET" || !decodeURIComponent(req.url()).includes("studio.voice")) return route.fallback();
+    return json(route, Object.entries(VOICE_DOCS).map(([key, value]) => ({ key, value })));
+  });
+
   await page.route("**/functions/v1/generate-content", (route) => {
     const body = JSON.parse(route.request().postData() ?? "{}");
     mock.genCalls.push(body);
@@ -231,6 +272,15 @@ async function choose(page: Page, formats: string[], platforms: string[]) {
   }
 }
 
+/** The site_settings rows written (an upsert is a POST), as {key, value}. */
+const settingsWrites = (mock: Mock) =>
+  mock.writes
+    .filter((w) => w.method === "POST" && w.url.includes("/rest/v1/site_settings"))
+    .map((w) => {
+      const b = JSON.parse(w.body ?? "{}");
+      return (Array.isArray(b) ? b[0] : b) as { key: string; value: Record<string, unknown> };
+    });
+
 const inserts = (mock: Mock, table: string) =>
   mock.writes.filter((w) => w.method === "POST" && w.url.includes(`/rest/v1/${table}`)).map((w) => JSON.parse(w.body ?? "{}"));
 
@@ -255,6 +305,17 @@ test.describe("BLOG.2 publish helpers", () => {
     expect(d.meta_description?.es).toContain("Cómo preparo un personaje");
     expect(studioDraft(ARTICLE, "en").ok && (studioDraft(ARTICLE, "en") as { draft: { body: { src: string } } }).draft.body.src).toBe("en");
     expect(studioDraft("   \n\n", "es").ok).toBe(false);
+  });
+
+  test("STUDIO.VOICES.1 studioDraft: the category is the voice (greenworld → greenworld, anything else → personal)", () => {
+    const category = (voice?: string) => {
+      const res = studioDraft(ARTICLE, "es", voice as never);
+      return res.ok ? res.draft.category : null;
+    };
+    expect(category("greenworld")).toBe("greenworld");
+    expect(category("personal")).toBe("personal");
+    expect(category()).toBe("personal");
+    expect(category("something-else")).toBe("personal");
   });
 
   test("uniqueSlug and firstParagraph", () => {
@@ -517,6 +578,243 @@ test.describe("BLOG.2 Content Studio", () => {
     await expect(page.locator('[data-qa="studio-blog-preview"] h1')).toHaveText("Cómo preparo un personaje antes de una escena");
     await page.locator('[data-qa="studio-tab-pinterest"]').click();
     await expect(page.locator('[data-qa="studio-social"]')).toContainText("Hook de pinterest");
+  });
+
+  test.describe("STUDIO.VOICES.1 Voz", () => {
+    const voiceBtn = (page: Page, v: string) => page.locator(`[data-qa="studio-voice-${v}"]`);
+    const usage = (page: Page) => page.locator('[data-qa="studio-usage"]');
+    const BRAIN_DUMP = "Hoy les cuento cómo pido mis productos paso a paso.";
+
+    test("V1 default press: voice personal on the blog call and on every derivative; the row says personal", async ({ page }) => {
+      const mock = await setup(page);
+      await openStudio(page);
+      await expect(voiceBtn(page, "personal")).toHaveText("Personal");
+      await expect(voiceBtn(page, "greenworld")).toHaveText("Green World");
+      await expect(voiceBtn(page, "personal")).toHaveAttribute("aria-checked", "true");
+      await expect(voiceBtn(page, "greenworld")).toHaveAttribute("aria-checked", "false");
+      await expect(page.locator('[data-coach="studio.voice"] .st-field-label')).toHaveText("Voz");
+      // "Voz" sits above Idioma, the same segmented control.
+      const voice = (await page.locator('[data-coach="studio.voice"]').boundingBox())!;
+      const language = (await page.locator('[data-coach="studio.language"]').boundingBox())!;
+      expect(voice.y + voice.height).toBeLessThanOrEqual(language.y);
+      await expect(page.locator('[data-coach="studio.voice"] .st-segment')).toBeVisible();
+
+      await page.locator('[data-qa="studio-brain-dump"]').fill(BRAIN_DUMP);
+      await choose(page, ["blog", "social"], ["tiktok", "instagram"]);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(usage(page)).toBeVisible();
+
+      expect(mock.genCalls).toHaveLength(3); // the blog, then one derivative per platform
+      for (const call of mock.genCalls) expect(call).toHaveProperty("voice", "personal");
+      expect(inserts(mock, "studio_generations")).toEqual([expect.objectContaining({ voice: "personal" })]);
+    });
+
+    test("V2 Green World: voice greenworld on every call, the pick survives a reload, the row says greenworld", async ({ page }) => {
+      const mock = await setup(page);
+      await openStudio(page);
+      await voiceBtn(page, "greenworld").click();
+      await expect(voiceBtn(page, "greenworld")).toHaveAttribute("aria-checked", "true");
+      await expect(voiceBtn(page, "personal")).toHaveAttribute("aria-checked", "false");
+      expect(await page.evaluate(() => localStorage.getItem("studio.voice.pick"))).toBe("greenworld");
+
+      await page.locator('[data-qa="studio-brain-dump"]').fill(BRAIN_DUMP);
+      await choose(page, ["blog", "social"], ["tiktok", "instagram"]);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(usage(page)).toBeVisible();
+      expect(mock.genCalls).toHaveLength(3);
+      for (const call of mock.genCalls) expect(call).toHaveProperty("voice", "greenworld");
+      expect(inserts(mock, "studio_generations")).toEqual([expect.objectContaining({ voice: "greenworld" })]);
+
+      // Social only: the first-hand calls name it too.
+      mock.genCalls.length = 0;
+      await choose(page, ["social"], ["tiktok", "pinterest"]);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(page.locator('[data-qa^="studio-tab-"]')).toHaveCount(2);
+      await expect(usage(page)).toBeVisible();
+      expect(mock.genCalls).toHaveLength(2);
+      for (const call of mock.genCalls) expect(call).toMatchObject({ output_format: "social", voice: "greenworld" });
+      expect(inserts(mock, "studio_generations").map((r) => r.voice)).toEqual(["greenworld", "greenworld"]);
+
+      // The pick is remembered on this device.
+      await page.reload();
+      await page.locator('[data-qa="admin-nav-studio"]').click();
+      await expect(voiceBtn(page, "greenworld")).toHaveAttribute("aria-checked", "true");
+      await expect(voiceBtn(page, "personal")).toHaveAttribute("aria-checked", "false");
+    });
+
+    test("V2b the control is disabled while a press runs", async ({ page }) => {
+      await setup(page);
+      await openStudio(page);
+      let release: (() => void) | null = null;
+      await page.route("**/functions/v1/generate-content", async (route) => {
+        await new Promise<void>((r) => (release = r));
+        await route.fulfill({
+          status: 200,
+          headers: { "Content-Type": "text/event-stream; charset=utf-8" },
+          body: `event: content_block_delta\ndata: ${JSON.stringify({ text: ARTICLE })}\n\nevent: done\ndata: ${JSON.stringify({ usage: USAGE, web_search_used: false })}\n\n`,
+        });
+      });
+      await page.locator('[data-qa="studio-brain-dump"]').fill(BRAIN_DUMP);
+      await choose(page, ["blog"], []);
+      await page.locator('[data-qa="studio-generate"]').click();
+      await expect(voiceBtn(page, "greenworld")).toBeDisabled();
+      await expect(voiceBtn(page, "personal")).toBeDisabled();
+      await expect.poll(() => release !== null).toBe(true);
+      release!();
+      await expect(usage(page)).toBeVisible();
+      await expect(voiceBtn(page, "greenworld")).toBeEnabled();
+    });
+
+    for (const voice of ["greenworld", "personal"] as const) {
+      test(`V3 Publicar como borrador from a ${voice} generation inserts category: "${voice}"`, async ({ page }) => {
+        const mock = await setup(page);
+        await openStudio(page);
+        if (voice === "greenworld") await voiceBtn(page, "greenworld").click();
+        await page.locator('[data-qa="studio-brain-dump"]').fill(BRAIN_DUMP);
+        await choose(page, ["blog"], []);
+        await page.locator('[data-qa="studio-generate"]').click();
+        await expect(usage(page)).toBeVisible();
+        await page.locator('[data-qa="studio-publish"]').click();
+        await expect(page.locator('[data-qa="admin-nav-blog"]')).toHaveAttribute("aria-current", "page");
+
+        const [post] = inserts(mock, "blog_posts");
+        expect(post.category).toBe(voice);
+        expect(post.status).toBe("draft");
+      });
+    }
+
+    for (const [name, extra, expected] of [
+      ["a Green World row", { voice: "greenworld" }, "greenworld"],
+      ["a Personal row", { voice: "personal" }, "personal"],
+      ["an old row with no voice", {}, "personal"],
+    ] as const) {
+      test(`V3b Reopen restores the voice: Publicar from ${name} inserts category: "${expected}"`, async ({ page }) => {
+        const mock = await setup(page, {
+          generations: [
+            {
+              id: "old-1",
+              created_at: "2026-09-20T15:00:00Z",
+              input_kind: "brain_dump",
+              input_text: "Una idea vieja sobre mi rutina",
+              source_url: null,
+              language: "es",
+              formats: ["blog"],
+              platforms: [],
+              outputs: { blog: ARTICLE },
+              usage: null,
+              blog_post_id: null,
+              ...extra,
+            },
+          ],
+        });
+        await openStudio(page);
+        // The pick on screen is the other voice: what Publicar uses is the row's, not the pick.
+        if (expected === "personal") await voiceBtn(page, "greenworld").click();
+        await page.locator('[data-qa="studio-history-item"] button').first().click();
+        await page.locator('[data-qa="studio-history-reopen"]').click();
+        await page.locator('[data-qa="studio-publish"]').click();
+        await expect(page.locator('[data-qa="admin-nav-blog"]')).toHaveAttribute("aria-current", "page");
+        expect(inserts(mock, "blog_posts")[0].category).toBe(expected);
+      });
+    }
+
+    test("V4 the Voz drawer: two tabs, saves studio.voice.greenworld from the second one, never writes studio.voice", async ({ page }) => {
+      const mock = await setup(page);
+      await openStudio(page);
+      await page.locator('[data-qa="studio-voice-open"]').click();
+      const drawer = page.locator('[data-qa="studio-voice-drawer"]');
+      const tabP = page.locator('[data-qa="studio-voice-tab-personal"]');
+      const tabG = page.locator('[data-qa="studio-voice-tab-greenworld"]');
+      const tone = page.locator('[data-qa="studio-voice-tone"]');
+      const save = page.locator('[data-qa="studio-voice-save"]');
+      await expect(drawer).toBeVisible();
+
+      // Opens on the Studio's pick (Personal), two tabs in the header.
+      await expect(drawer).toHaveAttribute("data-tab", "personal");
+      await expect(page.locator('[data-qa^="studio-voice-tab-"]')).toHaveCount(2);
+      await expect(tabP).toHaveText("Personal");
+      await expect(tabG).toHaveText("Green World");
+      await expect(tabP).toHaveAttribute("aria-selected", "true");
+      await expect(tone).toHaveValue(/Autenticidad/);
+
+      // The second tab holds the Green World document.
+      await tabG.click();
+      await expect(drawer).toHaveAttribute("data-tab", "greenworld");
+      await expect(tabG).toHaveAttribute("aria-selected", "true");
+      await expect(tone).toHaveValue(/nunca promesas/);
+      await expect(save).toBeDisabled();
+      await tone.fill("Cercano, claro y sin promesas. Entusiasmo real.");
+      await expect(save).toBeEnabled();
+      await expect(page.locator('[data-qa="studio-voice-bar"]')).toHaveAttribute("data-dirty", "true");
+      await expect(tabG).toHaveAttribute("data-dirty", "true");
+      await expect(tabP).toHaveAttribute("data-dirty", "false");
+
+      // The guard is per tab: Personal is clean, and the Green World text waits for its owner.
+      await tabP.click();
+      await expect(tone).toHaveValue(/Autenticidad/);
+      await expect(save).toBeDisabled();
+      await expect(page.locator('[data-qa="studio-voice-bar"]')).toHaveAttribute("data-dirty", "false");
+      await expect(tabG).toHaveAttribute("data-dirty", "true");
+      await tabG.click();
+      await expect(tone).toHaveValue("Cercano, claro y sin promesas. Entusiasmo real.");
+
+      await save.click();
+      await expect(page.locator('[data-qa="studio-voice-flash"]')).toHaveText("Guardado");
+      const written = settingsWrites(mock);
+      expect(written).toHaveLength(1);
+      expect(written[0].key).toBe("studio.voice.greenworld");
+      expect(written[0].value).toMatchObject({
+        tone: "Cercano, claro y sin promesas. Entusiasmo real.",
+        roles: "Actriz · Streamer · Empresaria",
+        topics: ["Green World: productos de bienestar y nutrición natural, cómo pedirlos paso a paso"],
+      });
+      expect(written.some((w) => w.key === "studio.voice")).toBe(false);
+      await expect(save).toBeDisabled();
+      await expect(tabG).toHaveAttribute("data-dirty", "false");
+
+      // Personal's own save goes to its own key, and still never to studio.voice.
+      await tabP.click();
+      await tone.fill("Cercano y directo.");
+      await save.click();
+      await expect(page.locator('[data-qa="studio-voice-flash"]')).toHaveText("Guardado");
+      expect(settingsWrites(mock).map((w) => w.key)).toEqual(["studio.voice.greenworld", "studio.voice.personal"]);
+    });
+
+    test("V4b the drawer opens on the tab of the Studio's current pick", async ({ page }) => {
+      await setup(page);
+      await openStudio(page);
+      const drawer = page.locator('[data-qa="studio-voice-drawer"]');
+      await voiceBtn(page, "greenworld").click();
+      await page.locator('[data-qa="studio-voice-open"]').click();
+      await expect(drawer).toHaveAttribute("data-tab", "greenworld");
+      await page.keyboard.press("Escape");
+      await expect(drawer).toHaveCount(0);
+      await voiceBtn(page, "personal").click();
+      await page.locator('[data-qa="studio-voice-open"]').click();
+      await expect(drawer).toHaveAttribute("data-tab", "personal");
+    });
+
+    test("screenshots: Voz in the Studio and the drawer's Green World tab, light, 1440×900", async ({ page }) => {
+      await setup(page);
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.addInitScript(() => localStorage.removeItem("admin.theme"));
+      await openStudio(page);
+      await expect(page.locator('[data-qa="studio"]')).toHaveAttribute("data-theme", "light");
+      await page.locator('[data-qa="studio-brain-dump"]').fill("Hoy les cuento cómo pido mis productos de Green World paso a paso.");
+      for (const voice of ["personal", "greenworld"] as const) {
+        await voiceBtn(page, voice).click();
+        await expect(voiceBtn(page, voice)).toHaveAttribute("aria-checked", "true");
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(250);
+        await page.screenshot({ path: `${VOICE_SHOTS}/studio-voz-${voice}-light-1440x900.png`, fullPage: true });
+        await page.locator('[data-qa="studio-output"]').screenshot({ path: `${VOICE_SHOTS}/studio-voz-${voice}-output-light.png` });
+      }
+      await page.locator('[data-qa="studio-voice-open"]').click();
+      await expect(page.locator('[data-qa="studio-voice-drawer"]')).toHaveAttribute("data-tab", "greenworld");
+      await expect(page.locator('[data-qa="studio-voice-tone"]')).toHaveValue(/nunca promesas/);
+      await page.waitForTimeout(250);
+      await page.screenshot({ path: `${VOICE_SHOTS}/voicedrawer-greenworld-light-1440x900.png` });
+    });
   });
 
   test.describe("STUDIO.HISTORY.1 Borrar", () => {

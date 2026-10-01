@@ -84,12 +84,13 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 5. En Salida, en **Formato**, elige **Artículo de blog**, **Post para redes** o los dos. Siempre queda al menos uno elegido.
 6. Si elegiste Post para redes, en **Plataformas** marca TikTok, Instagram, Pinterest o YouTube, o toca **Todas**.
 7. En **Idioma del contenido**, elige **Español** o **Inglés**. El contenido sale en el idioma que elijas aquí, sin importar en cuál escribiste tu idea.
-8. **Investigar en la web**: déjalo apagado casi siempre. Enciéndelo solo cuando el tema sea algo externo a ti, como una plataforma nueva, una tendencia o fechas y datos que tú no diste. Es más lento. Se apaga solo cada vez que vuelves al Estudio.
-9. Toca **Generar** y espera alrededor de un minuto. Verás «Generando…» y un botón **Cancelar** por si cambias de idea.
-10. Cuando termine, baja a **Contenido generado**. Hay una pestaña por cada cosa que pediste: **Artículo**, TikTok, Instagram, Pinterest o YouTube. Léelas todas.
-11. Si quieres cambiar algo del artículo, toca **Editar**, corrige directamente sobre el texto y toca **Listo**. El cambio queda guardado.
-12. En las pestañas de redes, **Copiar** copia el post listo para pegarlo en la app. **Copiar Markdown** y **Descargar .md** son para llevarte el texto a otro lugar; no los necesitas en el día a día.
-13. **Publicar como borrador** crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: la entrada queda como Borrador hasta que tú la publiques desde Blog. Después de crearlo, el botón cambia a **Abrir borrador en Blog**. Lo encontrarás en la pestaña Blog.
+8. En **Voz**, elige **Personal** o **Green World** antes de **Generar**; cambia cómo escribe por ti. El Estudio se acuerda de tu elección en este dispositivo.
+9. **Investigar en la web**: déjalo apagado casi siempre. Enciéndelo solo cuando el tema sea algo externo a ti, como una plataforma nueva, una tendencia o fechas y datos que tú no diste. Es más lento. Se apaga solo cada vez que vuelves al Estudio.
+10. Toca **Generar** y espera alrededor de un minuto. Verás «Generando…» y un botón **Cancelar** por si cambias de idea.
+11. Cuando termine, baja a **Contenido generado**. Hay una pestaña por cada cosa que pediste: **Artículo**, TikTok, Instagram, Pinterest o YouTube. Léelas todas.
+12. Si quieres cambiar algo del artículo, toca **Editar**, corrige directamente sobre el texto y toca **Listo**. El cambio queda guardado.
+13. En las pestañas de redes, **Copiar** copia el post listo para pegarlo en la app. **Copiar Markdown** y **Descargar .md** son para llevarte el texto a otro lugar; no los necesitas en el día a día.
+14. **Publicar como borrador** crea el borrador en la pestaña Blog y te lleva allá. No publica nada en el sitio: la entrada queda como Borrador hasta que tú la publiques desde Blog. Después de crearlo, el botón cambia a **Abrir borrador en Blog**. Lo encontrarás en la pestaña Blog, en la pestaña de la voz con la que lo generaste.
 
 **Historial**
 
@@ -98,8 +99,8 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 
 **Voz**
 
-- Es opcional. El botón **Voz**, arriba a la derecha del Estudio, abre una ficha con tu **Nombre**, **Roles**, **Audiencia**, **Tono**, **Temas**, qué **Evitar** y **Frases de muestra**. El Estudio la lee en cada generación para escribir como tú.
-- Cambia lo que quieras y toca **Guardar**. Si te arrepientes antes de guardar, toca **Descartar**.
+- Es opcional. El botón **Voz**, arriba a la derecha del Estudio, abre una ficha con dos pestañas, **Personal** y **Green World**; se abre en la que tengas elegida. Cada una tiene tu **Nombre**, **Roles**, **Audiencia**, **Tono**, **Temas**, qué **Evitar** y **Frases de muestra**. El Estudio lee la de la voz que elijas al generar, para escribir como tú.
+- Cambia lo que quieras y toca **Guardar**: guarda la pestaña que tienes abierta. Si te arrepientes antes de guardar, toca **Descartar**. Una pestaña con cambios sin guardar muestra un punto.
 
 ## Ajustes
 

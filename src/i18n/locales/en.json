@@ -879,6 +879,9 @@
       "language": "Content language",
       "langEs": "Spanish",
       "langEn": "English",
+      "voiceLabel": "Voice",
+      "voicePersonal": "Personal",
+      "voiceGreenWorld": "Green World",
       "webSearchToggle": "Research on the web",
       "webSearchHint": "Slower, with today's facts",
       "generate": "Generate",
@@ -924,7 +927,7 @@
       "kindBrainDump": "Brain Dump",
       "kindYoutube": "YouTube",
       "voiceTitle": "Voice",
-      "voiceDesc": "How the Studio writes for you. Used on every generation.",
+      "voiceDesc": "How the Studio writes for you. There is a Personal voice and a Green World one; the one you pick when you generate is used.",
       "voiceName": "Name",
       "voiceRoles": "Roles",
       "voiceAudience": "Audience",
@@ -1048,7 +1051,11 @@
         },
         "voice": {
           "title": "Voice",
-          "body": "Optional: here you tell the Studio how you talk, your tone and what to avoid, so it writes like you."
+          "body": "Pick Personal or Green World before you Generate. Each writes with its own tone and topics, and the draft you publish lands under that voice's tab in Blog."
+        },
+        "voiceEdit": {
+          "title": "Your voices",
+          "body": "Optional: the Voice button is where you tell the Studio how you talk, your tone and what to avoid, with one tab for Personal and one for Green World."
         }
       },
       "gallery": {

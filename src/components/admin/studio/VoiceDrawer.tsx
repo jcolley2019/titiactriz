@@ -3,20 +3,27 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, Check, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
+import { VOICES, voiceSettingKey, type VoiceName } from "@/lib/voices";
 
 /**
- * BLOG.2 — "Voz" / "Voice": the drawer that edits site_settings studio.voice,
- * the document generate-content reads for every generation.
+ * BLOG.2 — "Voz" / "Voice": the drawer that edits the voice documents
+ * generate-content reads for every generation.
  *
- * ADMIN.SAVEBAR.1c's rule: Save is greyed until something differs from what
- * is stored, lit while it does. The drawer stays mounted while closed, so an
- * unsaved edit survives closing and reopening it.
+ * STUDIO.VOICES.1 — there are two, one per tab: Personal (site_settings
+ * studio.voice.personal) and Green World (studio.voice.greenworld). The drawer
+ * opens on the tab of the Studio's current Voz pick. The bare `studio.voice` is
+ * never written here any more; it stays in the database only as the function's
+ * fallback for old clients.
+ *
+ * ADMIN.SAVEBAR.1c's rule, per tab: Save is greyed until the tab's text differs
+ * from what is stored, lit while it does, and Discard goes back to the stored
+ * text. Each tab keeps its own text, so switching tabs loses nothing, and a tab
+ * with unsaved text says so on its tab. The drawer stays mounted while closed,
+ * so an unsaved edit survives closing and reopening it.
  *
  * It renders INSIDE the Studio's themed wrapper (fixed-position, not a portal),
  * so it takes the Studio's light or dark tokens.
  */
-
-export const VOICE_KEY = "studio.voice";
 
 type Voice = {
   name: string;
@@ -31,6 +38,15 @@ type Voice = {
 type Form = Record<keyof Voice, string>;
 
 const EMPTY: Form = { name: "", roles: "", audience: "", tone: "", topics: "", avoid: "", samplePhrases: "" };
+
+/** One voice's text as typed, and as stored. */
+type Slot = { form: Form; stored: Form };
+type Slots = Record<VoiceName, Slot>;
+
+const EMPTY_SLOTS: Slots = {
+  personal: { form: EMPTY, stored: EMPTY },
+  greenworld: { form: EMPTY, stored: EMPTY },
+};
 
 const lines = (v: unknown): string =>
   Array.isArray(v) ? v.filter((x) => typeof x === "string").join("\n") : "";
@@ -71,10 +87,13 @@ const FIELDS: { key: keyof Form; label: string; rows?: number }[] = [
   { key: "samplePhrases", label: "admin.studio.voicePhrases", rows: 6 },
 ];
 
-const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+// Compare what would be SAVED, so a trailing space or blank line is not "work".
+const isDirty = (slot: Slot) => JSON.stringify(toVoice(slot.form)) !== JSON.stringify(toVoice(slot.stored));
+
+const VoiceDrawer = ({ open, onClose, voice }: { open: boolean; onClose: () => void; voice: VoiceName }) => {
   const { t } = useTranslation();
-  const [form, setForm] = useState<Form>(EMPTY);
-  const [stored, setStored] = useState<Form>(EMPTY);
+  const [slots, setSlots] = useState<Slots>(EMPTY_SLOTS);
+  const [tab, setTab] = useState<VoiceName>(voice);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -86,15 +105,17 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
     let cancelled = false;
     supabase
       .from("site_settings")
-      .select("value")
-      .eq("key", VOICE_KEY)
-      .maybeSingle()
+      .select("key, value")
+      .in("key", VOICES.map(voiceSettingKey))
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) setLoadFailed(true);
-        const f = toForm(data?.value);
-        setForm(f);
-        setStored(f);
+        const next: Slots = { ...EMPTY_SLOTS };
+        for (const v of VOICES) {
+          const f = toForm(data?.find((r) => r.key === voiceSettingKey(v))?.value);
+          next[v] = { form: f, stored: f };
+        }
+        setSlots(next);
         setLoading(false);
       });
     return () => {
@@ -102,6 +123,11 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
       window.clearTimeout(flashTimer.current);
     };
   }, []);
+
+  // Opening the drawer lands on the tab of the Studio's current Voz pick.
+  useEffect(() => {
+    if (open) setTab(voice);
+  }, [open, voice]);
 
   useEffect(() => {
     if (!open) return;
@@ -113,22 +139,34 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Compare what would be SAVED, so a trailing space or blank line is not "work".
-  const dirty = JSON.stringify(toVoice(form)) !== JSON.stringify(toVoice(stored));
+  const { form, stored } = slots[tab];
+  const dirty = isDirty(slots[tab]);
+
+  const setForm = (next: Form) => setSlots((prev) => ({ ...prev, [tab]: { ...prev[tab], form: next } }));
+
+  const selectTab = (v: VoiceName) => {
+    window.clearTimeout(flashTimer.current);
+    setFlash(null);
+    setTab(v);
+  };
 
   const save = async () => {
+    const target = tab;
     setSaving(true);
     const value = toVoice(form);
     const { error } = await supabase
       .from("site_settings")
-      .upsert({ key: VOICE_KEY, value: value as unknown as Json, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      .upsert(
+        { key: voiceSettingKey(target), value: value as unknown as Json, updated_at: new Date().toISOString() },
+        { onConflict: "key" },
+      );
     setSaving(false);
     if (error) {
       setFlash("failed");
     } else {
       const f = toForm(value);
-      setForm(f);
-      setStored(f);
+      // The saved text is now both what the tab shows and what is stored.
+      setSlots((prev) => ({ ...prev, [target]: { form: f, stored: f } }));
       setFlash("saved");
     }
     window.clearTimeout(flashTimer.current);
@@ -146,6 +184,7 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
         aria-modal="true"
         aria-labelledby="studio-voice-title"
         data-qa="studio-voice-drawer"
+        data-tab={tab}
       >
         <div className="st-drawer-head">
           <div>
@@ -159,7 +198,33 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
           </button>
         </div>
 
-        <div className="st-drawer-body">
+        <div className="st-drawer-tabs">
+          <div className="st-segment" role="tablist" aria-label={t("admin.studio.voiceTitle")}>
+            {VOICES.map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="tab"
+                id={`studio-voice-tab-${v}`}
+                className="st-tab"
+                data-qa={`studio-voice-tab-${v}`}
+                data-dirty={isDirty(slots[v]) ? "true" : "false"}
+                aria-selected={tab === v}
+                aria-controls="studio-voice-panel"
+                onClick={() => selectTab(v)}
+              >
+                {v === "personal" ? t("admin.studio.voicePersonal") : t("admin.studio.voiceGreenWorld")}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="st-drawer-body"
+          role="tabpanel"
+          id="studio-voice-panel"
+          aria-labelledby={`studio-voice-tab-${tab}`}
+        >
           {loadFailed && <p className="st-error">{t("admin.studio.voiceLoadError")}</p>}
           {FIELDS.map((f, i) => (
             <div key={f.key}>
@@ -173,7 +238,7 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
                   rows={f.rows}
                   data-qa={`studio-voice-${f.key}`}
                   value={form[f.key]}
-                  onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                   disabled={loading}
                 />
               ) : (
@@ -183,7 +248,7 @@ const VoiceDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) 
                   className="st-input mt-2"
                   data-qa={`studio-voice-${f.key}`}
                   value={form[f.key]}
-                  onChange={(e) => setForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                   disabled={loading}
                 />
               )}

@@ -879,6 +879,9 @@
       "language": "Idioma del contenido",
       "langEs": "Español",
       "langEn": "Inglés",
+      "voiceLabel": "Voz",
+      "voicePersonal": "Personal",
+      "voiceGreenWorld": "Green World",
       "webSearchToggle": "Investigar en la web",
       "webSearchHint": "Más lento, con datos de hoy",
       "generate": "Generar",
@@ -924,7 +927,7 @@
       "kindBrainDump": "Lluvia de ideas",
       "kindYoutube": "YouTube",
       "voiceTitle": "Voz",
-      "voiceDesc": "Cómo escribe el Estudio por ti. Se usa en cada generación.",
+      "voiceDesc": "Cómo escribe el Estudio por ti. Hay una voz Personal y una de Green World; se usa la que eliges al generar.",
       "voiceName": "Nombre",
       "voiceRoles": "Roles",
       "voiceAudience": "Audiencia",
@@ -1048,7 +1051,11 @@
         },
         "voice": {
           "title": "Voz",
-          "body": "Es opcional: aquí le cuentas al Estudio cómo hablas, tu tono y lo que debe evitar, para que escriba como tú."
+          "body": "Elige Personal o Green World antes de Generar. Cada una escribe con su propio tono y sus propios temas, y el borrador que publiques queda en la pestaña de esa voz en Blog."
+        },
+        "voiceEdit": {
+          "title": "Tus voces",
+          "body": "Es opcional: el botón Voz es donde le cuentas al Estudio cómo hablas, tu tono y lo que debe evitar, en una pestaña para Personal y otra para Green World."
         }
       },
       "gallery": {

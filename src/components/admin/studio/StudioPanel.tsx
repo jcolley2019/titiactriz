@@ -9,6 +9,7 @@ import { useAdminNav } from "@/components/admin/AdminShell";
 import { useAdminTheme } from "@/components/admin/adminTheme";
 import { useCoachHold } from "@/components/admin/coach/CoachProvider";
 import { studioDraft, uniqueSlug } from "@/lib/studio/publish";
+import { DEFAULT_VOICE, VOICE_PICK_KEY, asVoice, type VoiceName } from "@/lib/voices";
 import { stripThinkingText } from "@/lib/studio/narration";
 import StudioInput from "./StudioInput";
 import StudioOutput from "./StudioOutput";
@@ -25,6 +26,10 @@ import "@/styles/studio.css";
  *
  * Publish never publishes: it writes a BLOG.1 DRAFT in the output language,
  * the other language pending, and lands on the Blog tab with it open.
+ *
+ * STUDIO.VOICES.1 — Voz (Personal / Green World) is picked above Idioma and
+ * remembered per device. The press is written in it, and the draft a Publish
+ * writes lands in the blog category of the same name.
  *
  * ADMIN.THEME.1 — the Studio's wrapper wears the admin's theme (the header's
  * Sun/Moon), so studio.css keeps drawing both palettes from .studio[data-theme].
@@ -45,6 +50,21 @@ const StudioPanel = () => {
   const [formats, setFormats] = useState<StudioFormat[]>(["social"]);
   const [platforms, setPlatforms] = useState<StudioPlatform[]>(["tiktok"]);
   const [language, setLanguage] = useState<Lang>((i18n.language || "es").startsWith("en") ? "en" : "es");
+  const [voice, setVoice] = useState<VoiceName>(() => {
+    try {
+      return asVoice(localStorage.getItem(VOICE_PICK_KEY));
+    } catch {
+      return DEFAULT_VOICE; // storage blocked
+    }
+  });
+  const pickVoice = (v: VoiceName) => {
+    setVoice(v);
+    try {
+      localStorage.setItem(VOICE_PICK_KEY, v);
+    } catch {
+      /* storage blocked: the pick lasts until the page reloads */
+    }
+  };
   // STUDIO.SPEED.2 — false on every mount, never persisted.
   const [webSearch, setWebSearch] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -63,6 +83,7 @@ const StudioPanel = () => {
       formats,
       platforms,
       language,
+      voice,
       webSearch,
     });
 
@@ -85,7 +106,7 @@ const StudioPanel = () => {
   const onPublish = async () => {
     const gen = g.generation;
     if (!gen?.outputs.blog) return;
-    const res = studioDraft(stripThinkingText(gen.outputs.blog, "blog"), gen.language);
+    const res = studioDraft(stripThinkingText(gen.outputs.blog, "blog"), gen.language, gen.voice);
     if (!res.ok) {
       toast({ title: t("admin.studio.publishEmpty"), variant: "destructive" });
       return;
@@ -125,6 +146,7 @@ const StudioPanel = () => {
       id: row.id,
       outputs: rowOutputs(row),
       language: row.language === "en" ? "en" : "es",
+      voice: asVoice(row.voice),
       blogPostId: row.blog_post_id,
     });
     generatedRef.current?.scrollIntoView({ block: "start" });
@@ -161,7 +183,7 @@ const StudioPanel = () => {
             type="button"
             className="st-btn"
             data-qa="studio-voice-open"
-            data-coach="studio.voice"
+            data-coach="studio.voiceEdit"
             onClick={() => setVoiceOpen(true)}
           >
             <Mic2 className="w-4 h-4" aria-hidden />
@@ -190,6 +212,8 @@ const StudioPanel = () => {
           onPlatformsChange={setPlatforms}
           language={language}
           onLanguageChange={setLanguage}
+          voice={voice}
+          onVoiceChange={pickVoice}
           webSearch={webSearch}
           onWebSearchChange={setWebSearch}
           canGenerate={!!inputText.trim()}
@@ -256,7 +280,7 @@ const StudioPanel = () => {
         <StudioHistory version={g.historyVersion} openId={g.generation?.id ?? null} onReopen={onReopen} onDeleted={onDeleted} />
       </section>
 
-      <VoiceDrawer open={voiceOpen} onClose={closeVoice} />
+      <VoiceDrawer open={voiceOpen} onClose={closeVoice} voice={voice} />
     </div>
   );
 };

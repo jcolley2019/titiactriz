@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { PlatformIcon } from "@/components/PlatformIcon";
 import type { Lang } from "@/hooks/useEventsBoard";
+import { VOICES, type VoiceName } from "@/lib/voices";
 import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useStudioGeneration";
 
 /**
@@ -9,6 +10,9 @@ import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useS
  * Social Post / Blog Article, the four platforms Titi uses with "All", the
  * output language, and Generate. At least one format stays selected; with
  * Social Post on, at least one platform stays selected.
+ *
+ * STUDIO.VOICES.1 — "Voz" sits above the language: Personal or Green World,
+ * the voice the press is written in (the same segmented control as Idioma).
  */
 
 export const PLATFORM_LABEL: Record<StudioPlatform, string> = {
@@ -32,6 +36,8 @@ type Props = {
   onPlatformsChange: (p: StudioPlatform[]) => void;
   language: Lang;
   onLanguageChange: (l: Lang) => void;
+  voice: VoiceName;
+  onVoiceChange: (v: VoiceName) => void;
   webSearch: boolean;
   onWebSearchChange: (on: boolean) => void;
   canGenerate: boolean;
@@ -46,6 +52,8 @@ const StudioOutput = ({
   onPlatformsChange,
   language,
   onLanguageChange,
+  voice,
+  onVoiceChange,
   webSearch,
   onWebSearchChange,
   canGenerate,
@@ -140,6 +148,30 @@ const StudioOutput = ({
           </div>
         </div>
       )}
+
+      <div data-coach="studio.voice">
+        <div className="st-label-row">
+          <span className="st-field-label" id="studio-voice-label">
+            {t("admin.studio.voiceLabel")}
+          </span>
+        </div>
+        <div className="st-segment" role="radiogroup" aria-labelledby="studio-voice-label">
+          {VOICES.map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              className="st-tab"
+              data-qa={`studio-voice-${v}`}
+              aria-checked={voice === v}
+              onClick={() => onVoiceChange(v)}
+              disabled={generating}
+            >
+              {v === "personal" ? t("admin.studio.voicePersonal") : t("admin.studio.voiceGreenWorld")}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div data-coach="studio.language">
         <div className="st-label-row">

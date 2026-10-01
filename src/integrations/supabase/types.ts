@@ -320,6 +320,7 @@ export type Database = {
           platforms: string[]
           source_url: string | null
           usage: Json | null
+          voice: string
         }
         Insert: {
           blog_post_id?: string | null
@@ -333,6 +334,7 @@ export type Database = {
           platforms: string[]
           source_url?: string | null
           usage?: Json | null
+          voice?: string
         }
         Update: {
           blog_post_id?: string | null
@@ -346,6 +348,7 @@ export type Database = {
           platforms?: string[]
           source_url?: string | null
           usage?: Json | null
+          voice?: string
         }
         Relationships: [
           {
