@@ -1382,7 +1382,7 @@
     },
     "previewDialog": {
       "title": "Revisar foto optimizada",
-      "description": "{{from}} → {{to}} · WebP, máx 2400px",
+      "description": "{{from}} → {{to}} · WebP, máx 3200px",
       "duplicateHint": "Parece un duplicado de una foto que ya tienes.",
       "previewAlt": "Vista previa optimizada",
       "cancel": "Cancelar",

@@ -977,7 +977,7 @@ test.describe("VID.MODEL.1 — one hero video, per-viewport framing records", ()
 
 /* ---------- MEDIA.PHOTO.1 — the full-resolution master is kept and served ---------- */
 test.describe("MEDIA.PHOTO.1 — full-resolution master", () => {
-  test("an upload over 600 KB keeps a stripped master under masters/ and the hero offers it", async ({
+  test("uploads over 600 KB keep stripped masters (JPEG, PNG) under masters/ and the hero offers one", async ({
     page,
     context,
   }) => {
@@ -1073,6 +1073,86 @@ test.describe("MEDIA.PHOTO.1 — full-resolution master", () => {
     expect(master.includes("XMP-SECRET"), "XMP stripped").toBe(false);
     expect(master.includes(Buffer.from([0xff, 0xe1, 0x00, 0x22])), "orientation-only APP1").toBe(true);
     expect(master.includes(Buffer.from(fixture.tail)), "no re-encode").toBe(true);
+
+    // MEDIA.PHOTO.1a — a PNG master is stripped too. Fixture: a 1200×900 grained
+    // PNG carrying a tEXt chunk and an eXIf chunk (EXIF Make), both with valid
+    // CRCs, so the decoder reads it like any export that carries them.
+    await expect(page.getByRole("button", { name: "Confirm & upload" }), "first upload closed").toHaveCount(0);
+    const png = await page.locator('input[type="file"][multiple]').evaluate(async (input: HTMLInputElement) => {
+      const c = document.createElement("canvas");
+      c.width = 1200;
+      c.height = 900;
+      const ctx = c.getContext("2d")!;
+      const px = ctx.createImageData(1200, 900);
+      let seed = 11;
+      for (let i = 0; i < px.data.length; i += 4) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        px.data[i] = seed & 255;
+        px.data[i + 1] = (seed >> 8) & 255;
+        px.data[i + 2] = (seed >> 16) & 255;
+        px.data[i + 3] = 255;
+      }
+      ctx.putImageData(px, 0, 0);
+      const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), "image/png"));
+
+      const enc = new TextEncoder();
+      const u32 = (n: number) => [(n >>> 24) & 255, (n >> 16) & 255, (n >> 8) & 255, n & 255];
+      const table = Array.from({ length: 256 }, (_, n) => {
+        let k = n;
+        for (let j = 0; j < 8; j++) k = k & 1 ? 0xedb88320 ^ (k >>> 1) : k >>> 1;
+        return k >>> 0;
+      });
+      const crc32 = (data: number[]) => {
+        let k = 0xffffffff;
+        for (const b of data) k = table[(k ^ b) & 255] ^ (k >>> 8);
+        return (k ^ 0xffffffff) >>> 0;
+      };
+      const chunk = (type: string, data: number[]) => {
+        const typed = [...enc.encode(type), ...data];
+        return new Uint8Array([...u32(data.length), ...typed, ...u32(crc32(typed))]);
+      };
+      const make = [...enc.encode("PNG-EXIF-SECRET"), 0];
+      const tiff = [
+        0x4d, 0x4d, 0, 42, ...u32(8), 0, 1,
+        0x01, 0x0f, 0, 2, ...u32(make.length), ...u32(26), // Make → data at 26
+        ...u32(0), ...make,
+      ];
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      const afterIhdr = 8 + 25;
+      const file = new File(
+        [
+          bytes.subarray(0, afterIhdr),
+          chunk("tEXt", [...enc.encode("Comment"), 0, ...enc.encode("PNG-TEXT-SECRET")]),
+          chunk("eXIf", tiff),
+          bytes.subarray(afterIhdr),
+        ],
+        "escena.png",
+        { type: "image/png" },
+      );
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      // IDAT's tail and IEND: a master that is not re-encoded still ends in these bytes.
+      return { size: file.size, tail: Array.from(bytes.subarray(bytes.length - 256)) };
+    });
+    expect(png.size, "PNG fixture is past the 600 KB skip path").toBeGreaterThan(600 * 1024);
+
+    await page.getByRole("button", { name: "Preview & upload" }).click();
+    await page.getByRole("button", { name: "Confirm & upload" }).click({ timeout: 60_000 });
+    await expect.poll(() => writes.filter(isInsert).length, { timeout: 30_000 }).toBe(2);
+    const pngRow = JSON.parse(writes.filter(isInsert)[1].body ?? "{}");
+
+    expect(uploads.slice(2).map((u) => u.path.replace(/[0-9a-f-]{36}/, "<uuid>"))).toEqual([
+      "/storage/v1/object/gallery/photos/<uuid>.webp",
+      "/storage/v1/object/gallery/masters/<uuid>.png",
+    ]);
+    expect(pngRow.master_url).toMatch(/\/storage\/v1\/object\/public\/gallery\/masters\/[0-9a-f-]{36}\.png$/);
+    expect([pngRow.master_width, pngRow.master_height], "stripped PNG still decodes").toEqual([1200, 900]);
+    const pngMaster = uploads[3].body;
+    expect(pngMaster.includes("PNG-TEXT-SECRET"), "tEXt stripped").toBe(false);
+    expect(pngMaster.includes("PNG-EXIF-SECRET"), "eXIf stripped").toBe(false);
+    expect(pngMaster.includes(Buffer.from(png.tail)), "no re-encode").toBe(true);
 
     // The hero paints that row with two candidates: the web file at its real
     // width (3000 × 3200/4000 = 2400) and the master at 3000.

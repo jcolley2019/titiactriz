@@ -190,6 +190,87 @@ export const stripJpegMetadata = async (blob: Blob): Promise<Blob> => {
   );
 };
 
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+/** The PNG chunks that carry metadata: EXIF and the three text flavours (XMP rides in iTXt). */
+const PNG_METADATA_CHUNKS = new Set(["eXIf", "tEXt", "iTXt", "zTXt"]);
+
+/**
+ * MEDIA.PHOTO.1a — lossless PNG metadata strip: walks the chunks up to IEND
+ * and drops eXIf, tEXt, iTXt and zTXt. Every other chunk (IHDR, IDAT, the colour
+ * chunks, APNG frames) is copied byte-for-byte with its own CRC, so nothing is
+ * re-encoded. A PNG the walk can't read is returned untouched.
+ */
+export const stripPngMetadata = async (blob: Blob): Promise<Blob> => {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.length < 8 || PNG_SIGNATURE.some((b, i) => bytes[i] !== b)) return blob;
+
+  const kept: Uint8Array[] = [bytes.subarray(0, 8)];
+  let stripped = false;
+  let offset = 8;
+  for (;;) {
+    if (offset + 12 > bytes.length) return blob; // no IEND: not a PNG we can walk
+    const end = offset + 12 + view.getUint32(offset); // length, type, data, CRC
+    if (end > bytes.length) return blob;
+    const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+    if (PNG_METADATA_CHUNKS.has(type)) stripped = true;
+    else kept.push(bytes.subarray(offset, end));
+    offset = end;
+    if (type === "IEND") break;
+  }
+  return stripped ? new Blob(kept, { type: "image/png" }) : blob;
+};
+
+/** VP8X flag bits for the metadata chunks: EXIF (E) and XMP (X). */
+const VP8X_EXIF_FLAG = 0x08;
+const VP8X_XMP_FLAG = 0x04;
+
+/**
+ * MEDIA.PHOTO.1a — lossless WebP metadata strip: walks the RIFF chunks, drops
+ * EXIF and "XMP ", clears their two VP8X flag bits and rewrites the RIFF size.
+ * The image chunks (VP8/VP8L, ALPH, ANIM/ANMF, ICCP) are copied byte-for-byte.
+ * A WebP the walk can't read is returned untouched.
+ */
+export const stripWebpMetadata = async (blob: Blob): Promise<Blob> => {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const fourcc = (at: number) => String.fromCharCode(...bytes.subarray(at, at + 4));
+  if (bytes.length < 12 || fourcc(0) !== "RIFF" || fourcc(8) !== "WEBP") return blob;
+
+  const riffEnd = Math.min(bytes.length, 8 + view.getUint32(4, true));
+  const kept: Uint8Array[] = [];
+  let stripped = false;
+  let offset = 12;
+  while (offset + 8 <= riffEnd) {
+    const size = view.getUint32(offset + 4, true);
+    if (offset + 8 + size > riffEnd) return blob;
+    const next = Math.min(riffEnd, offset + 8 + size + (size & 1)); // chunks pad to even
+    const type = fourcc(offset);
+    if (type === "EXIF" || type === "XMP ") {
+      stripped = true;
+    } else if (type === "VP8X" && size >= 10) {
+      const vp8x = bytes.slice(offset, next);
+      vp8x[8] &= ~(VP8X_EXIF_FLAG | VP8X_XMP_FLAG);
+      kept.push(vp8x);
+    } else {
+      kept.push(bytes.subarray(offset, next));
+    }
+    offset = next;
+  }
+  if (!stripped) return blob;
+
+  const header = bytes.slice(0, 12);
+  new DataView(header.buffer).setUint32(4, 4 + kept.reduce((n, c) => n + c.length, 0), true);
+  return new Blob([header, ...kept], { type: "image/webp" });
+};
+
+/** Lossless metadata strip for the three master formats; anything else passes through. */
+const stripMetadata = (source: File): Promise<Blob> | Blob =>
+  source.type === "image/jpeg" ? stripJpegMetadata(source)
+  : source.type === "image/png" ? stripPngMetadata(source)
+  : source.type === "image/webp" ? stripWebpMetadata(source)
+  : source;
+
 /** The master's display size, decoded once (an <img> honours EXIF orientation). */
 const decodeSize = async (blob: Blob): Promise<{ width: number; height: number }> => {
   const url = URL.createObjectURL(blob);
@@ -216,9 +297,9 @@ export type PreparedGalleryUpload = {
 /**
  * MEDIA.PHOTO.1 — two files per upload, Instagram/YouTube style.
  *
- *  - MASTER: the creator's original. HEIC/HEIF → JPEG q0.95 at full size; JPEG
- *    → metadata stripped losslessly (stripJpegMetadata); PNG/WebP as-is. Over
- *    MASTER_MAX_BYTES it is refused with MasterTooLargeError.
+ *  - MASTER: the creator's original. HEIC/HEIF → JPEG q0.95 at full size; JPEG,
+ *    PNG and WebP → metadata stripped losslessly (stripMetadata), so no master
+ *    carries GPS. Over MASTER_MAX_BYTES it is refused with MasterTooLargeError.
  *  - WEB: today's 3200px WebP q0.92 pipeline, from the same source. A HEIC is
  *    converted once and both files come from that one conversion.
  *
@@ -230,7 +311,7 @@ export const prepareGalleryUpload = async (file: File): Promise<PreparedGalleryU
     return { web: file, master: null, width: null, height: null };
   }
   const source = isHeic(file) ? await heicToJpeg(file, 0.95) : file;
-  const master = source.type === "image/jpeg" ? await stripJpegMetadata(source) : source;
+  const master = await stripMetadata(source);
   if (master.size > MASTER_MAX_BYTES) throw new MasterTooLargeError(master.size);
   const { width, height } = await decodeSize(master);
   const web = await toWebFile(source);

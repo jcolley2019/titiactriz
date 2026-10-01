@@ -45,6 +45,8 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
   refused out loud…", cineflow5-shipped "phone 390x844 EN",
   webkit events-snap-phone "phone-440x792", webkit events-snap-phone tablet-portrait 820×1180
   "every card comes to rest in card 1's arrival frame".
+- CI install cap: after a Playwright version bump the first CI run is a cache miss and can lose
+  shards to the 10-minute install cap; `gh run rerun <id> --failed` once a shard has saved the cache.
 - Supabase: live project ref `nsmstwkjbjicpdclgecq` ("TitiActriz"). Deploys: Vercel →
   titiactriz.com. Everything under `public/` deploys publicly — no stray files.
 
