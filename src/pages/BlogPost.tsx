@@ -7,7 +7,7 @@ import PostBody from "@/components/blog/PostBody";
 import TagChips from "@/components/blog/TagChips";
 import { GOLD, IVORY, blogRoom } from "@/components/blog/tokens";
 import { useBlogPost } from "@/hooks/useBlogPosts";
-import { formatPostDate, readingTimeMinutes } from "@/lib/blog";
+import { categorySection, formatPostDate, readingTimeMinutes } from "@/lib/blog";
 import { SITE, breadcrumbLd, extractFaq, faqPageLd } from "@/lib/blog/schema";
 import NotFound from "@/pages/NotFound";
 
@@ -20,7 +20,8 @@ import NotFound from "@/pages/NotFound";
  * SEO per post through the site's SEO component: the post's own title and
  * description, its canonical URL, the cover as og:image, and Article JSON-LD —
  * plus (BLOG.SEO.1) FAQPage when the body has a questions section, and
- * BreadcrumbList always.
+ * BreadcrumbList always. STUDIO.VOICES.1 — the Article names its category as
+ * articleSection ("Personal" | "Green World").
  */
 
 /** The site's quietest gold grammar — the /events way out, verbatim. */
@@ -65,6 +66,7 @@ const BlogPost = () => {
     datePublished: published,
     dateModified: post.updated_at,
     inLanguage: lang,
+    articleSection: categorySection(post.category),
     mainEntityOfPage: `${SITE}${path}`,
     author: { "@type": "Person", name: "Cristyna Polentino", url: SITE },
     ...(cover ? { image: [cover.image_url] } : {}),

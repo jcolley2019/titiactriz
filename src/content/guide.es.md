@@ -54,16 +54,17 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 Úsalo cuando… los artículos del Estudio lleguen aquí como borradores: revísalos, ponles portada y publícalos.
 
 1. Abre **Blog**. Verás la lista de entradas, cada una con su estado: **Borrador** o **Publicada**.
-2. Toca **Editar** en la entrada que quieras abrir, o **Escribir a mano** para empezar una desde cero.
-3. Revisa el **Título**, el **Resumen** (una o dos líneas para la lista del blog) y la **Descripción para buscadores** (lo que Google muestra bajo el título; entre 150 y 160 caracteres es lo ideal).
-4. **Portada**: toca **Elegir foto** y escoge una de la Galería. Aquí no se suben fotos; si necesitas una nueva, súbela primero en la pestaña Galería.
-5. **Texto** es el cuerpo del artículo. Al lado, o en **Vista previa**, ves cómo queda.
-6. Escribe en el idioma que prefieras. Al tocar **Guardar cambios**, el otro idioma se traduce solo. Debajo de cada campo puedes abrir «Inglés» (o «Español») para leer y corregir la traducción.
-7. El interruptor **Publicada** es el que publica. Apagado: Borrador, solo tú la ves. Encendido: visible en titiactriz.com/blog. Se guarda al instante, pero primero tienes que haber guardado la entrada.
-8. Con la entrada publicada, **Ver en el sitio** la abre en una pestaña nueva del navegador.
-9. En la lista y junto a **Ver en el sitio**, las entradas publicadas tienen **Copiar enlace**: copia la dirección de la entrada para que la pegues en WhatsApp o en tus redes, y dice **Copiado** cuando ya la tienes.
-10. Para borrar una prueba, abre la entrada, toca **Eliminar entrada** y confirma con **Eliminar**. Se borra también del sitio y no se puede deshacer.
-11. **Entradas** te devuelve a la lista. Si tienes texto sin guardar, te pregunta antes de salir.
+2. Arriba de la lista hay dos pestañas, **Personal** y **Green World**, cada una con cuántas entradas tiene entre paréntesis; se acuerda de la que abriste. **Escribir a mano** empieza la entrada en la pestaña abierta, y **Categoría**, junto a **Publicada**, la cambia de una a otra (con **Guardar cambios**).
+3. Toca **Editar** en la entrada que quieras abrir, o **Escribir a mano** para empezar una desde cero.
+4. Revisa el **Título**, el **Resumen** (una o dos líneas para la lista del blog) y la **Descripción para buscadores** (lo que Google muestra bajo el título; entre 150 y 160 caracteres es lo ideal).
+5. **Portada**: toca **Elegir foto** y escoge una de la Galería. Aquí no se suben fotos; si necesitas una nueva, súbela primero en la pestaña Galería.
+6. **Texto** es el cuerpo del artículo. Al lado, o en **Vista previa**, ves cómo queda.
+7. Escribe en el idioma que prefieras. Al tocar **Guardar cambios**, el otro idioma se traduce solo. Debajo de cada campo puedes abrir «Inglés» (o «Español») para leer y corregir la traducción.
+8. El interruptor **Publicada** es el que publica. Apagado: Borrador, solo tú la ves. Encendido: visible en titiactriz.com/blog. Se guarda al instante, pero primero tienes que haber guardado la entrada.
+9. Con la entrada publicada, **Ver en el sitio** la abre en una pestaña nueva del navegador.
+10. En la lista y junto a **Ver en el sitio**, las entradas publicadas tienen **Copiar enlace**: copia la dirección de la entrada para que la pegues en WhatsApp o en tus redes, y dice **Copiado** cuando ya la tienes.
+11. Para borrar una prueba, abre la entrada, toca **Eliminar entrada** y confirma con **Eliminar**. Se borra también del sitio y no se puede deshacer.
+12. **Entradas** te devuelve a la lista. Si tienes texto sin guardar, te pregunta antes de salir.
 
 ## Estudio
 

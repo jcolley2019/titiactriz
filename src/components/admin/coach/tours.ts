@@ -58,7 +58,7 @@ export const TOURS: Record<string, CoachTour> = {
   },
   // The list: fires the first time the Blog tab opens on it.
   blog: {
-    steps: [step("blog", "new", "✍️"), step("blog", "edit", "📂")],
+    steps: [step("blog", "new", "✍️"), step("blog", "tabs", "🗂️"), step("blog", "edit", "📂")],
   },
   // The editor: fires the first time an entry is open (Escribir a mano, Editar,
   // or the Studio's Publicar como borrador landing here).

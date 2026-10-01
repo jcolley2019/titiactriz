@@ -15,7 +15,7 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  *      line, "N pasos"); the Estudio card goes there and shows the tour,
  *      switch step included; Reiniciar todos los consejos removes the key
  *   C5 at 820×1180 the card stays inside the viewport on every Estudio step
- *   C6 the Blog tour on an empty blog skips the row step without error
+ *   C6 the Blog tour on an empty blog: Escribir a mano, the category tabs, and no row step, without error
  *   C7 the Blog editor tour fires on the first open entry, and its Consejos
  *      card (Editor del blog) opens a blank entry and walks it
  *   C8 the Estudio card: empty circle, the check once the tour is done, the
@@ -252,11 +252,19 @@ test("C6: the Blog tour on an empty blog skips the row step without error", asyn
 
   await expect(overlay(page)).toHaveAttribute("data-tour", "blog");
   await expect(overlay(page)).toHaveAttribute("data-step", "blog.new");
-  await expect(page.locator('[data-qa="coach-progress"]')).toHaveText("Paso 1 de 1");
+  // Escribir a mano, then the Personal | Green World tabs (STUDIO.VOICES.1); the row step is skipped.
+  await expect(page.locator('[data-qa="coach-progress"]')).toHaveText("Paso 1 de 2");
   await expectSpotlightOn(page, page.locator('[data-qa="blog-new"]'));
   await expectCardInside(page);
-  await expect(next(page)).toHaveText("Listo");
   await page.screenshot({ path: `${SHOTS}/blog-step1-820.png` });
+
+  await next(page).click();
+  await expect(overlay(page)).toHaveAttribute("data-step", "blog.tabs");
+  await expect(page.locator('[data-qa="coach-progress"]')).toHaveText("Paso 2 de 2");
+  await expect(page.locator('[data-qa="coach-title"]')).toHaveText("Personal y Green World");
+  await expectSpotlightOn(page, page.locator('[data-coach="blog.tabs"]'));
+  await expectCardInside(page);
+  await expect(next(page)).toHaveText("Listo");
 
   await next(page).click();
   await expect(overlay(page)).toHaveCount(0);
@@ -268,6 +276,8 @@ test("C7: the Blog editor tour fires on the first open entry, and its card opens
   await page.setViewportSize({ width: 1440, height: 900 });
   await openSection(page, "blog");
   await expect(overlay(page)).toHaveAttribute("data-step", "blog.new");
+  await next(page).click();
+  await expect(overlay(page)).toHaveAttribute("data-step", "blog.tabs");
   await next(page).click();
   await expect(overlay(page)).toHaveCount(0);
 

@@ -1,5 +1,6 @@
 import type { Lang, Localized } from "@/hooks/useEventsBoard";
 import type { Tables } from "@/integrations/supabase/types";
+import { VOICES, asVoice, type VoiceName } from "@/lib/voices";
 
 /**
  * BLOG.1 — Titi's blog posts, shared by the admin editor and the public pages.
@@ -12,6 +13,14 @@ import type { Tables } from "@/integrations/supabase/types";
 export type BlogPostRow = Tables<"blog_posts">;
 export type BlogStatus = "draft" | "published";
 
+/** STUDIO.VOICES.1 — the two kinds of article, named like the voices that write them. */
+export type BlogCategory = VoiceName;
+export const BLOG_CATEGORIES = VOICES;
+/** Anything unreadable (a row from before the column existed) is personal. */
+export const asCategory = asVoice;
+/** The name the site gives a category in structured data (articleSection). */
+export const categorySection = (c: BlogCategory): string => (c === "greenworld" ? "Green World" : "Personal");
+
 export const BLOG_LOCALIZED_FIELDS = ["title", "excerpt", "body", "meta_description"] as const;
 export type BlogLocalizedField = (typeof BLOG_LOCALIZED_FIELDS)[number];
 
@@ -23,6 +32,7 @@ export type BlogPost = {
   body: Localized;
   meta_description: Localized;
   tags: string[];
+  category: BlogCategory;
   cover_photo_id: string | null;
   status: BlogStatus;
   published_at: string | null;
@@ -55,6 +65,7 @@ export const rowToPost = (row: BlogPostRow): BlogPost => ({
   body: toLocalized(row.body),
   meta_description: toLocalized(row.meta_description),
   tags: Array.isArray(row.tags) ? row.tags : [],
+  category: asCategory(row.category),
   cover_photo_id: row.cover_photo_id,
   status: row.status === "published" ? "published" : "draft",
   published_at: row.published_at,

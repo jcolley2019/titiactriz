@@ -475,7 +475,12 @@
     "loadError": "Couldn't load the posts. Please try again later.",
     "readingTime": "{{n}} min read",
     "back": "Blog",
-    "tags": "Tags"
+    "tags": "Tags",
+    "filterLabel": "Filter by category",
+    "filterAll": "All",
+    "filterPersonal": "Personal",
+    "filterGreenWorld": "Green World",
+    "filterEmpty": "Soon, the first post in this category."
   },
   "admin": {
     "gallery": {
@@ -768,6 +773,10 @@
       "title": "Blog",
       "shelfHint": "Articles from the Studio land here as drafts. Review them, add a cover and publish.",
       "newPost": "Write by hand",
+      "tabsLabel": "Categories",
+      "tabPersonal": "Personal",
+      "tabGreenWorld": "Green World",
+      "fieldCategory": "Category",
       "newPostTitle": "New post",
       "editPost": "Edit post",
       "emptyHelp": "Create the first one with “Write by hand”.",
@@ -980,6 +989,10 @@
         "new": {
           "title": "Write by hand",
           "body": "Articles from the Studio land here as drafts. Review them, add a cover and publish. Start an article from scratch."
+        },
+        "tabs": {
+          "title": "Personal and Green World",
+          "body": "Every article is Personal or Green World. The tabs split the list and the number says how many are in each. What you generate with a voice in the Studio lands under that voice's tab."
         },
         "edit": {
           "title": "Edit",

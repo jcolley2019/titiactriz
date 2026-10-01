@@ -71,6 +71,7 @@ export type Database = {
       blog_posts: {
         Row: {
           body: Json
+          category: string
           cover_photo_id: string | null
           created_at: string
           excerpt: Json | null
@@ -85,6 +86,7 @@ export type Database = {
         }
         Insert: {
           body: Json
+          category?: string
           cover_photo_id?: string | null
           created_at?: string
           excerpt?: Json | null
@@ -99,6 +101,7 @@ export type Database = {
         }
         Update: {
           body?: Json
+          category?: string
           cover_photo_id?: string | null
           created_at?: string
           excerpt?: Json | null

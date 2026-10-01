@@ -39,6 +39,18 @@ import { extractFaq } from "../src/lib/blog/schema";
  *      is published, copies the same address, and leaves with the switch.
  *  L3  No Clipboard API: the hidden input + execCommand fallback copies the
  *      same address and leaves no input behind (EN: Copy link → Copied).
+ *
+ * STUDIO.VOICES.1 — a category (Personal / Green World) on every article.
+ *  B-tabs 1  the admin list filters by category, counts in parentheses, and remembers the tab
+ *  B-tabs 2  a post with no category is Personal; an empty tab shows the empty state
+ *  B-tabs 3  Escribir a mano starts in the open tab's category; Categoría round-trips on save
+ *            (POST, then PATCH) and the list comes back on the tab the post now belongs to
+ *  B-tabs 4  an existing post opens with its own category; Discard puts a changed one back
+ *  B-tabs 5/6  English labels · 390×844 fit · screenshots (_qa/studio-voices/)
+ *  F1-F4   /blog?c=greenworld shows only Green World posts; the chips filter with no reload and
+ *          keep the address in step; an unknown ?c= is Todo; empty category, no posts, English
+ *  F5/F6   hairline chips in the room's grammar; 390×844 fit
+ *  F7      Article JSON-LD carries articleSection
  */
 
 type Row = Record<string, unknown> & { id: string; slug: string; status: string };
@@ -816,5 +828,294 @@ test.describe("BLOG.LINK.1 Copiar enlace", () => {
     // The helper input is gone, and focus came back to the button.
     await expect(page.locator("body > input[readonly]")).toHaveCount(0);
     await expect(copy).toBeFocused();
+  });
+});
+
+/* ---------------- STUDIO.VOICES.1 — a category on every article ---------------- */
+
+const VOICE_SHOTS = "_qa/studio-voices";
+
+/** publicRows(), categorised: Bailar (published) is Green World; the other two are Personal. */
+const catRows = (): Row[] =>
+  publicRows().map((r) => ({ ...r, category: r.id === "b2" ? "greenworld" : "personal" }));
+
+const tab = (page: Page, c: string) => page.locator(`[data-qa="blog-tab-${c}"]`);
+const slugsOf = (page: Page, qa: string) =>
+  page.locator(`[data-qa="${qa}"]`).evaluateAll((els) => els.map((e) => e.getAttribute("data-slug")));
+
+test.describe("STUDIO.VOICES.1 Blog admin tabs", () => {
+  test("B-tabs 1: the list filters by category, counts in parentheses, and remembers the tab", async ({ page }) => {
+    const writes: Write[] = [];
+    await openBlogAdmin(page, catRows(), writes);
+
+    await expect(page.locator('[data-qa="blog-tab-personal"], [data-qa="blog-tab-greenworld"]')).toHaveCount(2);
+    await expect(tab(page, "personal")).toHaveText("Personal (2)");
+    await expect(tab(page, "greenworld")).toHaveText("Green World (1)");
+    // Personal is the first visit's tab.
+    await expect(tab(page, "personal")).toHaveAttribute("aria-selected", "true");
+    await expect(tab(page, "greenworld")).toHaveAttribute("aria-selected", "false");
+    expect(await slugsOf(page, "blog-row")).toEqual(["borrador-secreto", "un-dia-en-el-set"]);
+    // The row keeps its status chip and gains no category chip.
+    await expect(blogRow(page, "un-dia-en-el-set").locator('[data-qa="blog-status-pill"]')).toHaveCount(1);
+    await expect(blogRow(page, "un-dia-en-el-set")).not.toContainText("Green World");
+
+    await tab(page, "greenworld").click();
+    await expect(tab(page, "greenworld")).toHaveAttribute("aria-selected", "true");
+    expect(await slugsOf(page, "blog-row")).toEqual(["bailar-en-medellin"]);
+    expect(await page.evaluate(() => localStorage.getItem("admin.blog.tab"))).toBe("greenworld");
+
+    // A reload comes back on the same tab.
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator('[data-qa="admin-nav-blog"]').click();
+    await expect(page.locator('[data-qa="blog-list"]')).toBeVisible();
+    await expect(tab(page, "greenworld")).toHaveAttribute("aria-selected", "true");
+    expect(await slugsOf(page, "blog-row")).toEqual(["bailar-en-medellin"]);
+    expect(blogWrites(writes, "POST").concat(blogWrites(writes, "PATCH"))).toHaveLength(0);
+  });
+
+  test("B-tabs 2: a post with no category is Personal; an empty tab says so", async ({ page }) => {
+    const writes: Write[] = [];
+    // publicRows() carries no category at all: the three of them are Personal.
+    await openBlogAdmin(page, publicRows(), writes);
+    await expect(tab(page, "personal")).toHaveText("Personal (3)");
+    await expect(tab(page, "greenworld")).toHaveText("Green World (0)");
+    await expect(page.locator('[data-qa="blog-row"]')).toHaveCount(3);
+    await tab(page, "greenworld").click();
+    await expect(page.locator('[data-qa="blog-row"]')).toHaveCount(0);
+    await expect(page.locator('[data-qa="blog-empty"]')).toBeVisible();
+    await expect(page.locator('[data-qa="blog-new"]')).toBeEnabled();
+  });
+
+  test("B-tabs 3: Escribir a mano starts in the open tab's category, and Categoría round-trips on save", async ({ page }) => {
+    const writes: Write[] = [];
+    const rows: Row[] = [];
+    await openBlogAdmin(page, rows, writes);
+    await tab(page, "greenworld").click();
+    await page.locator('[data-qa="blog-new"]').click();
+
+    const gw = page.locator('[data-qa="blog-category-greenworld"]');
+    const personal = page.locator('[data-qa="blog-category-personal"]');
+    await expect(page.locator('[data-qa="blog-field-category"]')).toContainText("Categoría");
+    await expect(gw).toHaveAttribute("aria-checked", "true");
+    await expect(personal).toHaveAttribute("aria-checked", "false");
+    await expect(personal).toHaveText("Personal");
+    await expect(gw).toHaveText("Green World");
+    // Beside Estado, on one row.
+    const status = (await page.locator('[data-qa="blog-field-status"]').boundingBox())!;
+    const category = (await page.locator('[data-qa="blog-field-category"]').boundingBox())!;
+    expect(Math.abs(status.y - category.y)).toBeLessThan(4);
+    expect(category.x).toBeGreaterThan(status.x + 100);
+
+    await page.locator('[data-qa="blog-title"]').fill("Cómo pido mis productos");
+    await page.locator('[data-qa="blog-body"]').fill("## Paso a paso\n\nPrimero entro a mi cuenta.");
+    await page.locator('[data-qa="blog-save"]').click();
+    await expect(page.locator('[data-qa="flash-blog-save"]')).toHaveAttribute("data-state", "saved");
+    const posts = blogWrites(writes, "POST");
+    expect(posts).toHaveLength(1);
+    expect(JSON.parse(posts[0].body ?? "{}").category).toBe("greenworld");
+
+    // Change it: Save lights, the PATCH carries the new category.
+    await expect(page.locator('[data-qa="blog-save"]')).toBeDisabled();
+    await personal.click();
+    await expect(personal).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator('[data-qa="blog-save-bar"]')).toHaveAttribute("data-dirty", "true");
+    await page.locator('[data-qa="blog-save"]').click();
+    // The first save's flash may still be on screen: the bar going clean is the second save landing.
+    await expect(page.locator('[data-qa="blog-save-bar"]')).toHaveAttribute("data-dirty", "false");
+    await expect(page.locator('[data-qa="flash-blog-save"]')).toHaveAttribute("data-state", "saved");
+    const patches = blogWrites(writes, "PATCH");
+    expect(patches).toHaveLength(1);
+    expect(JSON.parse(patches[0].body ?? "{}").category).toBe("personal");
+    expect(rows[0].category).toBe("personal");
+
+    // Back in the list the post is under the tab it now belongs to.
+    await page.locator('[data-qa="blog-back"]').click();
+    await expect(tab(page, "personal")).toHaveAttribute("aria-selected", "true");
+    await expect(tab(page, "personal")).toHaveText("Personal (1)");
+    await expect(tab(page, "greenworld")).toHaveText("Green World (0)");
+    await expect(page.locator('[data-qa="blog-row"]')).toHaveCount(1);
+  });
+
+  test("B-tabs 4: an existing post opens with its own category; Discard puts a changed one back", async ({ page }) => {
+    const writes: Write[] = [];
+    await openBlogAdmin(page, catRows(), writes);
+    await tab(page, "greenworld").click();
+    await blogRow(page, "bailar-en-medellin").locator('[data-qa="blog-row-edit"]').click();
+    await expect(page.locator('[data-qa="blog-category-greenworld"]')).toHaveAttribute("aria-checked", "true");
+    await page.locator('[data-qa="blog-category-personal"]').click();
+    await expect(page.locator('[data-qa="blog-save-bar"]')).toHaveAttribute("data-dirty", "true");
+    await page.locator('[data-qa="blog-discard"]').click();
+    await expect(page.locator('[data-qa="blog-category-greenworld"]')).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator('[data-qa="blog-save-bar"]')).toHaveAttribute("data-dirty", "false");
+    expect(blogWrites(writes, "PATCH")).toHaveLength(0);
+  });
+
+  test("B-tabs 5: the English admin reads Category / Personal / Green World", async ({ page }) => {
+    const writes: Write[] = [];
+    await openBlogAdmin(page, catRows(), writes, { lang: "en" });
+    await expect(tab(page, "personal")).toHaveText("Personal (2)");
+    await expect(tab(page, "greenworld")).toHaveText("Green World (1)");
+    await expect(page.locator('[data-qa="blog-list"] [role="tablist"]')).toHaveAttribute("aria-label", "Categories");
+    await page.locator('[data-qa="blog-new"]').click();
+    await expect(page.locator('[data-qa="blog-field-category"]')).toContainText("Category");
+  });
+
+  test("B-tabs 6: 390×844, the tabs and the Categoría field fit", async ({ page }) => {
+    const writes: Write[] = [];
+    await openBlogAdmin(page, catRows(), writes, { width: 390, height: 844 });
+    await expect(tab(page, "greenworld")).toBeVisible();
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    const box = (await tab(page, "greenworld").boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    await page.locator('[data-qa="blog-new"]').click();
+    await expect(page.locator('[data-qa="blog-field-category"]')).toBeVisible();
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    const cat = (await page.locator('[data-qa="blog-category-greenworld"]').boundingBox())!;
+    expect(cat.x + cat.width).toBeLessThanOrEqual(390);
+  });
+
+  test("screenshots: the Blog tabs and the editor's Categoría, light, 1440×900", async ({ page }) => {
+    const writes: Write[] = [];
+    await page.addInitScript(() => localStorage.removeItem("admin.theme"));
+    await openBlogAdmin(page, catRows(), writes, { width: 1440, height: 900 });
+    for (const c of ["personal", "greenworld"] as const) {
+      await tab(page, c).click();
+      await expect(tab(page, c)).toHaveAttribute("aria-selected", "true");
+      await page.mouse.move(0, 0);
+      await page.waitForTimeout(250);
+      await page.screenshot({ path: `${VOICE_SHOTS}/blog-tabs-${c}-light-1440x900.png` });
+    }
+    await blogRow(page, "bailar-en-medellin").locator('[data-qa="blog-row-edit"]').click();
+    await expect(page.locator('[data-qa="blog-category-greenworld"]')).toHaveAttribute("aria-checked", "true");
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: `${VOICE_SHOTS}/blog-editor-categoria-light-1440x900.png` });
+  });
+});
+
+test.describe("STUDIO.VOICES.1 /blog filter", () => {
+  const chip = (page: Page, f: string) => page.locator(`[data-qa="blog-filter-${f}"]`);
+  const pressed = async (page: Page) =>
+    page.locator('[data-qa^="blog-filter-"]').evaluateAll((els) =>
+      els.filter((e) => e.getAttribute("aria-pressed") === "true").map((e) => e.getAttribute("data-qa")),
+    );
+
+  test("F1 /blog?c=greenworld shows only Green World posts; the chips read Todo | Personal | Green World", async ({ page }) => {
+    await openPublic(page, "/blog?c=greenworld", "es", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(1);
+    expect(await slugsOf(page, "blog-card")).toEqual(["bailar-en-medellin"]);
+    await expect(page.locator('[data-qa="blog-filter"] button')).toHaveText(["Todo", "Personal", "Green World"]);
+    expect(await pressed(page)).toEqual(["blog-filter-greenworld"]);
+    // The room's canonical stays /blog, whatever the filter.
+    await expect.poll(async () => (await head(page)).canonical).toBe("https://www.titiactriz.com/blog");
+  });
+
+  test("F2 the chips filter with no reload and keep the address in step; Todo clears it", async ({ page }) => {
+    await openPublic(page, "/blog", "es", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+    expect(await pressed(page)).toEqual(["blog-filter-all"]);
+    await page.evaluate(() => ((window as unknown as { __alive: number }).__alive = 1));
+
+    await chip(page, "personal").click();
+    await expect(page).toHaveURL(/\/blog\?c=personal$/);
+    expect(await slugsOf(page, "blog-card")).toEqual(["un-dia-en-el-set"]);
+    expect(await pressed(page)).toEqual(["blog-filter-personal"]);
+
+    await chip(page, "greenworld").click();
+    await expect(page).toHaveURL(/\/blog\?c=greenworld$/);
+    expect(await slugsOf(page, "blog-card")).toEqual(["bailar-en-medellin"]);
+
+    await chip(page, "all").click();
+    await expect(page).toHaveURL(/\/blog$/);
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+    expect(await pressed(page)).toEqual(["blog-filter-all"]);
+    // None of it was a page load.
+    expect(await page.evaluate(() => (window as unknown as { __alive?: number }).__alive)).toBe(1);
+  });
+
+  test("F3 an unknown ?c= is Todo; a category with no published post says so; no posts, no chips", async ({ page }) => {
+    await openPublic(page, "/blog?c=nope", "es", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+    expect(await pressed(page)).toEqual(["blog-filter-all"]);
+
+    // Only Personal posts are published: Green World is an empty room, chips still offered.
+    const personalOnly = catRows().map((r) => ({ ...r, category: "personal" }));
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await openPublic(page, "/blog?c=greenworld", "es", undefined, personalOnly);
+    await expect(page.locator('[data-qa="blog-filter-empty"]')).toHaveText("Pronto, la primera entrada de esta categoría.");
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(0);
+    await expect(chip(page, "all")).toBeVisible();
+    await chip(page, "all").click();
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await openPublic(page, "/blog", "es", undefined, []);
+    await expect(page.locator('[data-qa="blog-empty"]')).toBeVisible();
+    await expect(page.locator('[data-qa="blog-filter"]')).toHaveCount(0);
+  });
+
+  test("F4 English: All | Personal | Green World, and the group is named", async ({ page }) => {
+    await openPublic(page, "/blog?c=personal", "en", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-filter"] button')).toHaveText(["All", "Personal", "Green World"]);
+    await expect(page.locator('[data-qa="blog-filter"]')).toHaveAttribute("aria-label", "Filter by category");
+    expect(await slugsOf(page, "blog-card")).toEqual(["un-dia-en-el-set"]);
+  });
+
+  test("F5 the filter row is hairline chips in the room's grammar: gold edge, hard corners, no fill at rest", async ({ page }) => {
+    await openPublic(page, "/blog", "es", undefined, catRows());
+    const style = (f: string) =>
+      chip(page, f).evaluate((el) => {
+        const s = getComputedStyle(el);
+        return { border: s.borderTopColor, width: s.borderTopWidth, radius: s.borderTopLeftRadius, bg: s.backgroundColor, h: el.getBoundingClientRect().height };
+      });
+    const rest = await style("personal");
+    expect(rest.border).toBe("rgba(201, 165, 92, 0.4)");
+    expect(rest.width).toBe("1px");
+    expect(rest.radius).toBe("0px");
+    expect(rest.bg).toBe("rgba(0, 0, 0, 0)");
+    expect(rest.h).toBeGreaterThanOrEqual(44); // a thumb-sized target
+    const on = await style("all");
+    expect(on.border).toBe("rgb(201, 165, 92)");
+    expect(on.bg).toBe("rgba(201, 165, 92, 0.08)");
+  });
+
+  test("F6 390×844: the chips fit on the phone and the page does not scroll sideways", async ({ page }) => {
+    await openPublic(page, "/blog", "es", { width: 390, height: 844 }, catRows());
+    await expect(chip(page, "greenworld")).toBeVisible();
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    for (const f of ["all", "personal", "greenworld"]) {
+      const box = (await chip(page, f).boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(390);
+    }
+  });
+
+  test("F7 Article JSON-LD carries articleSection: Green World / Personal", async ({ page }) => {
+    await openPublic(page, "/blog/bailar-en-medellin", "es", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Bailar en Medellín");
+    await expect.poll(async () => (await head(page)).ld.some((l) => l?.["@type"] === "Article")).toBe(true);
+    const article = (await head(page)).ld.find((l) => l?.["@type"] === "Article");
+    expect(article.articleSection).toBe("Green World");
+
+    await page.goto("/blog/un-dia-en-el-set", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Un día en el set");
+    await expect
+      .poll(async () => (await head(page)).ld.find((l) => l?.["@type"] === "Article")?.articleSection)
+      .toBe("Personal");
+  });
+
+  test("screenshots: the /blog filter row, 1440×900 and 390×844", async ({ page }) => {
+    await openPublic(page, "/blog?c=greenworld", "es", { width: 1440, height: 900 }, catRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(1);
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${VOICE_SHOTS}/blog-public-greenworld-1440x900.png` });
+    await chip(page, "all").click();
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${VOICE_SHOTS}/blog-public-todo-1440x900.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${VOICE_SHOTS}/blog-public-todo-390x844.png` });
   });
 });

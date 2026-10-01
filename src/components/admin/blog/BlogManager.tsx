@@ -29,14 +29,17 @@ import {
 } from "@/hooks/useEventsBoard";
 import { syncLocalizedLong, syncLocalizedRecord } from "@/lib/translate-copy";
 import {
+  BLOG_CATEGORIES,
   EMPTY_LOCALIZED,
   SLUG_PATTERN,
+  asCategory,
   formatPostDate,
   localizedIsEmpty,
   parseTags,
   pickLocalized,
   rowToPost,
   slugify,
+  type BlogCategory,
   type BlogPost,
 } from "@/lib/blog";
 import { SITE } from "@/lib/blog/schema";
@@ -60,9 +63,15 @@ import { useAdminIntent } from "@/components/admin/AdminShell";
  *
  * The cover is picked from the gallery and only from the gallery — face law: the
  * picker's upload tile is switched off here.
+ *
+ * STUDIO.VOICES.1 — every article has a category, Personal or Green World. The
+ * list has one tab per category (counts in parentheses, the open tab remembered
+ * on this device); the editor's Categoría sits beside Estado and saves with the
+ * text; "Escribir a mano" starts in the open tab's category.
  */
 
 const FLASH_MS = 1800;
+const TAB_KEY = "admin.blog.tab";
 const COPIED_MS = 2000;
 const META_MIN = 150;
 const META_MAX = 160;
@@ -76,6 +85,7 @@ type Draft = {
   meta_description: Localized;
   slug: string;
   tags: string;
+  category: BlogCategory;
   cover_photo_id: string | null;
 };
 
@@ -86,6 +96,7 @@ const EMPTY_DRAFT: Draft = {
   meta_description: EMPTY_LOCALIZED,
   slug: "",
   tags: "",
+  category: "personal",
   cover_photo_id: null,
 };
 
@@ -96,6 +107,7 @@ const postToDraft = (p: BlogPost): Draft => ({
   meta_description: p.meta_description,
   slug: p.slug,
   tags: p.tags.join(", "),
+  category: p.category,
   cover_photo_id: p.cover_photo_id,
 });
 
@@ -107,6 +119,13 @@ const chars = (s: string) => [...s].length;
 const uiLang = (language: string | undefined): Lang => ((language || "es").startsWith("en") ? "en" : "es");
 
 /* ---------------- Small parts ---------------- */
+
+/** The two categories' segmented look, shared by the list's tabs and the editor's Categoría. */
+const SEG_WRAP = "inline-flex rounded-md bg-muted p-1 text-sm";
+const segClass = (selected: boolean) =>
+  `rounded-sm px-3 py-1 transition-colors ${
+    selected ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+  }`;
 
 const SaveFlash = ({ state, qa }: { state: FlashState; qa: string }) => {
   const { t } = useTranslation();
@@ -352,17 +371,23 @@ const BlogList = ({
   posts,
   loading,
   loadFailed,
+  tab,
+  onTab,
   onNew,
   onEdit,
 }: {
   posts: BlogPost[];
   loading: boolean;
   loadFailed: boolean;
+  tab: BlogCategory;
+  onTab: (c: BlogCategory) => void;
   onNew: () => void;
   onEdit: (post: BlogPost) => void;
 }) => {
   const { t, i18n } = useTranslation();
   const lang = uiLang(i18n.language);
+  const shown = posts.filter((p) => p.category === tab);
+  const count = (c: BlogCategory) => posts.filter((p) => p.category === c).length;
 
   return (
     <section data-qa="blog-list" className="bg-card border border-border rounded-lg overflow-clip">
@@ -388,6 +413,27 @@ const BlogList = ({
         </Button>
       </div>
 
+      {/* STUDIO.VOICES.1 — one tab per category, above the list. */}
+      {!loading && !loadFailed && (
+        <div className="border-t border-border px-6 py-3" data-coach="blog.tabs">
+          <div role="tablist" aria-label={t("admin.blog.tabsLabel")} className={SEG_WRAP}>
+            {BLOG_CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="tab"
+                aria-selected={tab === c}
+                data-qa={`blog-tab-${c}`}
+                onClick={() => onTab(c)}
+                className={segClass(tab === c)}
+              >
+                {c === "personal" ? t("admin.blog.tabPersonal") : t("admin.blog.tabGreenWorld")} ({count(c)})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="border-t border-border">
         {loading ? (
           <div className="flex justify-center py-10">
@@ -397,14 +443,14 @@ const BlogList = ({
           <p data-qa="blog-load-failed" role="alert" className="px-6 py-6 text-sm text-destructive">
             {t("admin.blog.loadError")}
           </p>
-        ) : posts.length === 0 ? (
+        ) : shown.length === 0 ? (
           <div data-qa="blog-empty" className="px-6 py-10 text-center">
             <p className="text-sm text-foreground">{t("admin.blog.shelfHint")}</p>
             <p className="text-xs text-muted-foreground mt-1">{t("admin.blog.emptyHelp")}</p>
           </div>
         ) : (
           <ul className="divide-y divide-border">
-            {posts.map((post, i) => {
+            {shown.map((post, i) => {
               const title = pickLocalized(post.title, "es").trim();
               return (
                 <li
@@ -453,12 +499,15 @@ const BlogList = ({
 
 const BlogEditor = ({
   post,
+  newCategory,
   photos,
   onBack,
   onSaved,
   onDeleted,
 }: {
   post: BlogPost | null;
+  /** A new post starts in this category: the list tab "Escribir a mano" was pressed from. */
+  newCategory: BlogCategory;
   photos: CinematicPhoto[];
   onBack: () => void;
   onSaved: (post: BlogPost) => void;
@@ -466,7 +515,7 @@ const BlogEditor = ({
 }) => {
   const { t, i18n } = useTranslation();
   const lang = uiLang(i18n.language);
-  const initial = post ? postToDraft(post) : EMPTY_DRAFT;
+  const initial = post ? postToDraft(post) : { ...EMPTY_DRAFT, category: newCategory };
 
   const [postId, setPostId] = useState<string | null>(post?.id ?? null);
   const [fields, setFields] = useState<Draft>(initial);
@@ -623,6 +672,7 @@ const BlogEditor = ({
         body: translated.body,
         meta_description: localizedIsEmpty(translated.meta_description) ? null : translated.meta_description,
         tags: parseTags(translated.tags),
+        category: translated.category,
         cover_photo_id: translated.cover_photo_id,
       };
       const res = postId
@@ -839,50 +889,78 @@ const BlogEditor = ({
       </div>
 
       <div className="px-6 py-4 space-y-6 border-t border-border">
-        {/* Status — the one instant control. */}
-        <div className="space-y-1" data-qa="blog-field-status" data-coach="blogEditor.status">
-          <div className="flex flex-wrap items-center gap-3">
-            <Switch
-              id="blog-status"
-              checked={published}
-              onCheckedChange={onStatus}
-              disabled={!postId || statusBusy || busy}
-              data-qa="blog-status"
-            />
-            <Label htmlFor="blog-status" className="text-foreground text-sm font-medium">
-              {t("admin.blog.fieldStatus")}
-            </Label>
-            <SaveFlash state={statusFlash} qa="blog-status" />
-            {published && committed.slug && (
-              <>
-                <a
-                  href={`/blog/${committed.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-qa="blog-view"
-                  data-coach="blogEditor.viewDelete"
-                  className="inline-flex items-center gap-1 text-xs text-accent-ink hover:underline"
-                >
-                  {t("admin.blog.viewPost")}
-                  <ExternalLink className="w-3 h-3" aria-hidden />
-                </a>
-                <CopyLinkButton slug={committed.slug} />
-              </>
-            )}
+        {/* Estado — the one instant control — and, beside it, Categoría (saves with the text). */}
+        <div className="flex flex-wrap items-start gap-x-10 gap-y-5">
+          <div
+            className="min-w-0 flex-1 basis-80 space-y-1"
+            data-qa="blog-field-status"
+            data-coach="blogEditor.status"
+          >
+            <div className="flex flex-wrap items-center gap-3">
+              <Switch
+                id="blog-status"
+                checked={published}
+                onCheckedChange={onStatus}
+                disabled={!postId || statusBusy || busy}
+                data-qa="blog-status"
+              />
+              <Label htmlFor="blog-status" className="text-foreground text-sm font-medium">
+                {t("admin.blog.fieldStatus")}
+              </Label>
+              <SaveFlash state={statusFlash} qa="blog-status" />
+              {published && committed.slug && (
+                <>
+                  <a
+                    href={`/blog/${committed.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-qa="blog-view"
+                    data-coach="blogEditor.viewDelete"
+                    className="inline-flex items-center gap-1 text-xs text-accent-ink hover:underline"
+                  >
+                    {t("admin.blog.viewPost")}
+                    <ExternalLink className="w-3 h-3" aria-hidden />
+                  </a>
+                  <CopyLinkButton slug={committed.slug} />
+                </>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground" data-qa="blog-status-help">
+              {!postId
+                ? t("admin.blog.statusNeedsSave")
+                : published
+                  ? t("admin.blog.statusHelpPublished")
+                  : t("admin.blog.statusHelpDraft")}
+              {publishedAt && (
+                <span data-qa="blog-published-at">
+                  {" · "}
+                  {t("admin.blog.publishedOn", { date: formatPostDate(publishedAt, lang) })}
+                </span>
+              )}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground" data-qa="blog-status-help">
-            {!postId
-              ? t("admin.blog.statusNeedsSave")
-              : published
-                ? t("admin.blog.statusHelpPublished")
-                : t("admin.blog.statusHelpDraft")}
-            {publishedAt && (
-              <span data-qa="blog-published-at">
-                {" · "}
-                {t("admin.blog.publishedOn", { date: formatPostDate(publishedAt, lang) })}
-              </span>
-            )}
-          </p>
+
+          <div className="flex flex-col items-start gap-1.5" data-qa="blog-field-category">
+            <Label id="blog-category-label" className="text-foreground text-sm font-medium">
+              {t("admin.blog.fieldCategory")}
+            </Label>
+            <div role="radiogroup" aria-labelledby="blog-category-label" className={SEG_WRAP}>
+              {BLOG_CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={fields.category === c}
+                  data-qa={`blog-category-${c}`}
+                  onClick={() => setField("category", c)}
+                  disabled={busy}
+                  className={segClass(fields.category === c)}
+                >
+                  {c === "personal" ? t("admin.blog.tabPersonal") : t("admin.blog.tabGreenWorld")}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <p className="text-xs text-muted-foreground">{t("admin.blog.autoTranslateHelp")}</p>
@@ -1100,6 +1178,22 @@ const BlogEditor = ({
 
 const BlogManager = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  // STUDIO.VOICES.1 — the open list tab, remembered on this device.
+  const [tab, setTabState] = useState<BlogCategory>(() => {
+    try {
+      return asCategory(localStorage.getItem(TAB_KEY));
+    } catch {
+      return "personal";
+    }
+  });
+  const setTab = useCallback((c: BlogCategory) => {
+    setTabState(c);
+    try {
+      localStorage.setItem(TAB_KEY, c);
+    } catch {
+      /* storage blocked: the tab lasts until the page reloads */
+    }
+  }, []);
   const [photos, setPhotos] = useState<CinematicPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -1137,21 +1231,30 @@ const BlogManager = () => {
     if (loading || !open.data) return;
     if (open.data.newPost) setEditing(null);
     const post = posts.find((p) => p.id === open.data?.postId);
-    if (post) setEditing(post);
+    if (post) {
+      setTab(post.category); // "Entradas" then lands on the tab the post lives in
+      setEditing(post);
+    }
     open.clear();
-  }, [loading, posts, open]);
+  }, [loading, posts, open, setTab]);
 
-  const onSaved = useCallback((saved: BlogPost) => {
-    setPosts((prev) =>
-      prev.some((p) => p.id === saved.id) ? prev.map((p) => (p.id === saved.id ? saved : p)) : [saved, ...prev],
-    );
-  }, []);
+  const onSaved = useCallback(
+    (saved: BlogPost) => {
+      setPosts((prev) =>
+        prev.some((p) => p.id === saved.id) ? prev.map((p) => (p.id === saved.id ? saved : p)) : [saved, ...prev],
+      );
+      // A post saved under another category is found under that tab when the list comes back.
+      setTab(saved.category);
+    },
+    [setTab],
+  );
 
   if (editing !== undefined) {
     return (
       <BlogEditor
         key={editing?.id ?? "new"}
         post={editing}
+        newCategory={tab}
         photos={photos}
         onBack={() => setEditing(undefined)}
         onSaved={onSaved}
@@ -1168,6 +1271,8 @@ const BlogManager = () => {
       posts={posts}
       loading={loading}
       loadFailed={loadFailed}
+      tab={tab}
+      onTab={setTab}
       onNew={() => setEditing(null)}
       onEdit={(post) => setEditing(post)}
     />

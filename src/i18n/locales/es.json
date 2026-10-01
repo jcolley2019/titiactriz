@@ -475,7 +475,12 @@
     "loadError": "No se pudieron cargar las entradas. Intenta de nuevo más tarde.",
     "readingTime": "{{n}} min de lectura",
     "back": "Blog",
-    "tags": "Etiquetas"
+    "tags": "Etiquetas",
+    "filterLabel": "Filtrar por categoría",
+    "filterAll": "Todo",
+    "filterPersonal": "Personal",
+    "filterGreenWorld": "Green World",
+    "filterEmpty": "Pronto, la primera entrada de esta categoría."
   },
   "admin": {
     "gallery": {
@@ -768,6 +773,10 @@
       "title": "Blog",
       "shelfHint": "Los artículos del Estudio llegan aquí como borradores. Revísalos, ponles portada y publícalos.",
       "newPost": "Escribir a mano",
+      "tabsLabel": "Categorías",
+      "tabPersonal": "Personal",
+      "tabGreenWorld": "Green World",
+      "fieldCategory": "Categoría",
       "newPostTitle": "Nueva entrada",
       "editPost": "Editar entrada",
       "emptyHelp": "Crea la primera con «Escribir a mano».",
@@ -980,6 +989,10 @@
         "new": {
           "title": "Escribir a mano",
           "body": "Los artículos del Estudio llegan aquí como borradores. Revísalos, ponles portada y publícalos. Empieza un artículo desde cero."
+        },
+        "tabs": {
+          "title": "Personal y Green World",
+          "body": "Cada artículo es Personal o Green World. Las pestañas separan la lista y el número dice cuántos hay en cada una. Lo que generas con una voz en el Estudio llega a la pestaña de esa voz."
         },
         "edit": {
           "title": "Editar",

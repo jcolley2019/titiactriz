@@ -54,16 +54,17 @@ Use it when… you have an event to feature or want to put a notice in the strip
 Use it when… articles from the Studio land here as drafts: review them, add a cover and publish.
 
 1. Open **Blog**. You will see the list of posts, each with its status: **Draft** or **Published**.
-2. Tap **Edit** on the post you want to open, or **Write by hand** to start one from scratch.
-3. Check the **Title**, the **Excerpt** (one or two lines for the blog list) and the **Search description** (what Google shows under the title; 150 to 160 characters is ideal).
-4. **Cover**: tap **Choose photo** and pick one from the Gallery. Photos are not uploaded here; if you need a new one, upload it first in the Gallery tab.
-5. **Body** is the article itself. Beside it, or under **Preview**, you see how it looks.
-6. Write in whichever language you prefer. When you tap **Save changes**, the other language is translated on its own. Under each field you can open "English" (or "Spanish") to read and correct the translation.
-7. The **Published** switch is the one that publishes. Off: Draft, only you can see it. On: visible at titiactriz.com/blog. It saves instantly, but you have to have saved the post first.
-8. With the post published, **View on site** opens it in a new browser tab.
-9. In the list and beside **View on site**, published posts have **Copy link**: it copies the post's address so you can paste it into WhatsApp or your socials, and says **Copied** once you have it.
-10. To delete a test, open the post, tap **Delete post** and confirm with **Delete**. It is deleted from the site too and cannot be undone.
-11. **Posts** takes you back to the list. If you have unsaved text, it asks before leaving.
+2. Above the list are two tabs, **Personal** and **Green World**, each with how many posts it has in parentheses; it remembers the one you opened. **Write by hand** starts the post in the open tab, and **Category**, next to **Published**, moves it from one to the other (with **Save changes**).
+3. Tap **Edit** on the post you want to open, or **Write by hand** to start one from scratch.
+4. Check the **Title**, the **Excerpt** (one or two lines for the blog list) and the **Search description** (what Google shows under the title; 150 to 160 characters is ideal).
+5. **Cover**: tap **Choose photo** and pick one from the Gallery. Photos are not uploaded here; if you need a new one, upload it first in the Gallery tab.
+6. **Body** is the article itself. Beside it, or under **Preview**, you see how it looks.
+7. Write in whichever language you prefer. When you tap **Save changes**, the other language is translated on its own. Under each field you can open "English" (or "Spanish") to read and correct the translation.
+8. The **Published** switch is the one that publishes. Off: Draft, only you can see it. On: visible at titiactriz.com/blog. It saves instantly, but you have to have saved the post first.
+9. With the post published, **View on site** opens it in a new browser tab.
+10. In the list and beside **View on site**, published posts have **Copy link**: it copies the post's address so you can paste it into WhatsApp or your socials, and says **Copied** once you have it.
+11. To delete a test, open the post, tap **Delete post** and confirm with **Delete**. It is deleted from the site too and cannot be undone.
+12. **Posts** takes you back to the list. If you have unsaved text, it asks before leaving.
 
 ## Studio
 

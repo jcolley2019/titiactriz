@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import SEO from "@/components/SEO";
 import CoverPlate from "@/components/blog/CoverPlate";
 import TagChips from "@/components/blog/TagChips";
-import { BODY_TEXT, GOLD, blogRoom } from "@/components/blog/tokens";
+import { BODY_TEXT, GOLD, GOLD_AIR, GOLD_RULE, IVORY, IVORY_DIM, blogRoom } from "@/components/blog/tokens";
 import { useBlogPosts, type BlogView } from "@/hooks/useBlogPosts";
-import { formatPostDate } from "@/lib/blog";
+import { BLOG_CATEGORIES, formatPostDate, type BlogCategory } from "@/lib/blog";
 import type { Lang } from "@/hooks/useEventsBoard";
 
 /**
@@ -19,7 +19,61 @@ import type { Lang } from "@/hooks/useEventsBoard";
  * No fill, no shadow, no radius. The newest post leads as a spread from md up.
  *
  * No pin and no dwell: this is an ordinary page, and it scrolls like one.
+ *
+ * STUDIO.VOICES.1 — a filter row under the eyebrow: Todo | Personal | Green
+ * World, three quiet hairline chips (the tags' own grammar). The pick lives in
+ * the address (?c=personal|greenworld), so a filtered list can be shared, and it
+ * changes with no reload; anything else in ?c= is Todo.
  */
+
+type Filter = "all" | BlogCategory;
+
+const readFilter = (c: string | null): Filter => (c === "personal" || c === "greenworld" ? c : "all");
+
+const FILTERS: Filter[] = ["all", ...BLOG_CATEGORIES];
+
+const FILTER_LABEL: Record<Filter, string> = {
+  all: "blog.filterAll",
+  personal: "blog.filterPersonal",
+  greenworld: "blog.filterGreenWorld",
+};
+
+/** Quiet at rest: a 0.4 gold hairline, no fill. The chosen one takes the filament and the wash. */
+const FilterChips = ({
+  active,
+  onPick,
+  label,
+}: {
+  active: Filter;
+  onPick: (f: Filter) => void;
+  label: string;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div role="group" aria-label={label} data-qa="blog-filter" className="mt-8 flex flex-wrap gap-2">
+      {FILTERS.map((f) => {
+        const on = f === active;
+        return (
+          <button
+            key={f}
+            type="button"
+            data-qa={`blog-filter-${f}`}
+            aria-pressed={on}
+            onClick={() => onPick(f)}
+            className="text-caps min-h-11 px-4 py-2 transition-opacity duration-300 hover:opacity-70"
+            style={{
+              color: on ? IVORY : IVORY_DIM,
+              border: `1px solid ${on ? GOLD : GOLD_RULE}`,
+              backgroundColor: on ? GOLD_AIR : "transparent",
+            }}
+          >
+            {t(FILTER_LABEL[f])}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 const Entry = ({
   view,
@@ -73,7 +127,21 @@ const Entry = ({
 const Blog = () => {
   const { t } = useTranslation();
   const { posts, loading, failed, lang } = useBlogPosts();
-  const [lead, ...rest] = posts;
+  const [params, setParams] = useSearchParams();
+  const filter = readFilter(params.get("c"));
+  const shown = filter === "all" ? posts : posts.filter((v) => v.post.category === filter);
+  const [lead, ...rest] = shown;
+
+  const pick = (f: Filter) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (f === "all") next.delete("c");
+        else next.set("c", f);
+        return next;
+      },
+      { replace: true },
+    );
 
   return (
     <main data-qa="blog-page" className="relative min-h-screen px-6 pb-24" style={blogRoom}>
@@ -86,6 +154,9 @@ const Blog = () => {
           </h1>
           {/* The one gold hairline the room allows: a rule, not a fill. */}
           <span aria-hidden className="mt-5 block h-px w-16" style={{ backgroundColor: GOLD }} />
+          {!loading && !failed && posts.length > 0 && (
+            <FilterChips active={filter} onPick={pick} label={t("blog.filterLabel")} />
+          )}
         </header>
 
         {loading ? (
@@ -96,13 +167,17 @@ const Blog = () => {
           <p data-qa="blog-load-failed" role="alert" style={BODY_TEXT}>
             {t("blog.loadError")}
           </p>
-        ) : !lead ? (
+        ) : posts.length === 0 ? (
           <p
             data-qa="blog-empty"
             className="min-h-[30vh]"
             style={BODY_TEXT}
           >
             {t("blog.empty")}
+          </p>
+        ) : !lead ? (
+          <p data-qa="blog-filter-empty" className="min-h-[30vh]" style={BODY_TEXT}>
+            {t("blog.filterEmpty")}
           </p>
         ) : (
           <>

@@ -680,6 +680,13 @@ test.describe("BLOG.2 Content Studio", () => {
         const [post] = inserts(mock, "blog_posts");
         expect(post.category).toBe(voice);
         expect(post.status).toBe("draft");
+
+        // The editor shows it, and Entradas comes back on the tab the draft lives in.
+        await expect(page.locator(`[data-qa="blog-category-${voice}"]`)).toHaveAttribute("aria-checked", "true");
+        await page.locator('[data-qa="blog-back"]').click();
+        await expect(page.locator(`[data-qa="blog-tab-${voice}"]`)).toHaveAttribute("aria-selected", "true");
+        await expect(page.locator(`[data-qa="blog-tab-${voice}"]`)).toHaveText(/\(1\)$/);
+        await expect(page.locator('[data-qa="blog-row"]')).toHaveCount(1);
       });
     }
 
