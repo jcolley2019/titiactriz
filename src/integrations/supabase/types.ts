@@ -75,6 +75,9 @@ export type Database = {
           cover_photo_id: string | null
           created_at: string
           excerpt: Json | null
+          gw_kind: string | null
+          gw_product_name: string | null
+          gw_product_url: string | null
           id: string
           meta_description: Json | null
           published_at: string | null
@@ -90,6 +93,9 @@ export type Database = {
           cover_photo_id?: string | null
           created_at?: string
           excerpt?: Json | null
+          gw_kind?: string | null
+          gw_product_name?: string | null
+          gw_product_url?: string | null
           id?: string
           meta_description?: Json | null
           published_at?: string | null
@@ -105,6 +111,9 @@ export type Database = {
           cover_photo_id?: string | null
           created_at?: string
           excerpt?: Json | null
+          gw_kind?: string | null
+          gw_product_name?: string | null
+          gw_product_url?: string | null
           id?: string
           meta_description?: Json | null
           published_at?: string | null
@@ -324,6 +333,7 @@ export type Database = {
           blog_post_id: string | null
           created_at: string
           formats: string[]
+          gw_kind: string | null
           id: string
           input_kind: string
           input_text: string
@@ -338,6 +348,7 @@ export type Database = {
           blog_post_id?: string | null
           created_at?: string
           formats: string[]
+          gw_kind?: string | null
           id?: string
           input_kind: string
           input_text: string
@@ -352,6 +363,7 @@ export type Database = {
           blog_post_id?: string | null
           created_at?: string
           formats?: string[]
+          gw_kind?: string | null
           id?: string
           input_kind?: string
           input_text?: string
