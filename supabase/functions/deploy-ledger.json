@@ -1,7 +1,7 @@
 {
   "comment": "BUILD.GATE.3 — last-known-synced state of deployed edge functions. ezbr_sha256 comes from `npx supabase functions list`; it hashes the deployed bundle, so it cannot be recomputed from source — it changes on every deploy. `npm run drift` compares live values against this file: a mismatch means someone deployed (e.g. via dashboard) since the repo was last synced, i.e. the repo copy may be stale. After any intentional deploy or repo re-sync, update the sha here in the same commit.",
   "pendingDeployComment": "A function that is written and committed but NOT yet deployed goes here, not in `functions` below: the drift gate fails a ledgered function that is not live, and it equally fails a live function that is not ledgered. Deploying is a supervised step — deploy, read its ezbr_sha256 from `npx supabase functions list`, move the slug into `functions` in the SAME commit, then `npm run drift` must go green. (Emptied 2026-08-03 by UNFURL.DEPLOY.1, which walked `unfurl` through exactly that path.)",
-  "pendingDeploy": [],
+  "pendingDeploy": ["stream-upload"],
   "projectRef": "nsmstwkjbjicpdclgecq",
   "functions": {
     "generate-alt-text": {

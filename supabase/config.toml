@@ -1,1 +1,4 @@
 project_id = "nsmstwkjbjicpdclgecq"
+
+[functions.stream-upload]
+verify_jwt = true
