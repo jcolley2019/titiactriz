@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 import { framingFromFocalZoom, type Focal, type FitMode } from "@/hooks/useCinematicMedia";
+import { useStreamVideo } from "@/hooks/useStreamVideo";
 import {
   heroFramingAttr,
   resolveHeroGeometry,
@@ -39,6 +40,12 @@ import {
  * changes (Replace video) so a stale frame never lingers. Under reduced
  * motion — or before a decodable src exists — the `poster` still renders
  * instead (identical across fit modes).
+ *
+ * MEDIA.VIDEO.2: `src` may be a Cloudflare Stream ref (`cfstream:<uid>`). It
+ * plays as HLS — native on Safari, hls.js elsewhere — through useStreamVideo,
+ * and still carries NO poster attribute (Joey's ruling: FIX.MEDIA.B holds for
+ * Stream too). The dark hold, the fade and the reduced-motion still are
+ * unchanged; the manifest's own size seeds the aspect before metadata lands.
  *
  * The video is always muted / loop / playsInline (autoplay gated by
  * `autoPlay`). This same component powers the live hero, the editor drag
@@ -120,6 +127,13 @@ const FramedVideo = ({
     setMediaAspect(src ? videoAspect(videoRef.current) : null);
   }, [src]);
 
+  // A Stream ref attaches only while the <video> is mounted (not under reduced
+  // motion), so passing null there keeps the attach in step with the element.
+  const stream = useStreamVideo(videoRef, reduced ? null : src, {
+    autoLoad: autoPlay,
+    onSize: (w, h) => setMediaAspect(w / h),
+  });
+
   const objectPosition = `${focal.x * 100}% ${focal.y * 100}%`;
 
   // Reduced motion (or no decodable src) → the poster still, framed identically.
@@ -143,7 +157,8 @@ const FramedVideo = ({
   }
 
   const videoBase = {
-    src,
+    src: stream.src,
+    "data-stream-src": stream.manifest,
     muted: true,
     loop: true,
     playsInline: true,

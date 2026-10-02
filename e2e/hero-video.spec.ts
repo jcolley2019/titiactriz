@@ -1,6 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
 import { attachDiagnostics, shot } from "./_helpers";
-import { routeSupabase, stubHeroVideoMedia, MOCK_PHOTOS } from "./_admin";
+import {
+  routeSupabase,
+  routeStreamPlayback,
+  stubHeroVideoMedia,
+  streamTestUrls,
+  MOCK_PHOTOS,
+  STREAM_TEST_CODE,
+  STREAM_TEST_UID,
+} from "./_admin";
 
 /**
  * VID.MODEL.1 — the live cinematic hero renders ONE background video. The same
@@ -205,6 +213,49 @@ test.describe("VID.MODEL.1 — one video, framing by viewport orientation", () =
     expect(diag.consoleErrors, "console errors — reduced motion").toEqual([]);
     expect(diag.failedResponses, "failed requests — reduced motion").toEqual([]);
   });
+});
+
+/* ---------- MEDIA.VIDEO.2: a hero stored as a Cloudflare Stream ref ---------- */
+test("a cfstream: hero plays its Stream manifest, and still carries no poster", async ({ page }) => {
+  const diag = attachDiagnostics(page);
+  await stubHeroVideoMedia(page);
+  const requested = await routeStreamPlayback(page);
+  await routeSupabase(page, {
+    media: MEDIA_TWO_RECORDS,
+    photos: MOCK_PHOTOS,
+    heroVideo: `cfstream:${STREAM_TEST_UID}`,
+    streamCustomerCode: STREAM_TEST_CODE,
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(CINE, { waitUntil: "domcontentloaded" });
+  await settle(page, 700);
+
+  const { manifest } = streamTestUrls();
+  await expect(page.locator(VIDEO), "the Stream video leads the hero").toHaveCount(1);
+  await expect(page.locator(HERO_IMG)).toHaveCount(0);
+  await expect(page.locator(VIDEO), "the surface names its Stream manifest").toHaveAttribute(
+    "data-stream-src",
+    manifest,
+  );
+  // The manifest is the source the player actually loaded: hls.js fetches it,
+  // native HLS takes it as `src` (mirrored to data-src by the media stub).
+  await expect
+    .poll(async () => requested.includes(manifest) || (await dataSrc(page, VIDEO)) === manifest, {
+      timeout: 10_000,
+    })
+    .toBe(true);
+  // Framing still applies to a Stream clip exactly as to a URL one.
+  await expect
+    .poll(async () => (await framingAttr(page, VIDEO)) ?? "absent", { timeout: 10_000 })
+    .toContain("1.50;20;30;fill;");
+
+  // FIX.MEDIA.B holds for Stream too (Joey's ruling): no poster attribute, and
+  // the Stream thumbnail is never even requested for the hero.
+  expect(await page.locator(VIDEO).getAttribute("poster"), "no poster on the video surface").toBeNull();
+  expect(requested.filter((u) => u.includes("/thumbnails/")), "no Stream poster fetched").toEqual([]);
+
+  expect(diag.consoleErrors, "console errors — Stream hero").toEqual([]);
+  expect(diag.failedResponses, "failed requests — Stream hero").toEqual([]);
 });
 
 /* ---------- back-compat: today's prod video lives under the legacy portrait key ---------- */

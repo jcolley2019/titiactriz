@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import type { FitMode, Focal } from "@/hooks/useCinematicMedia";
+import { useStreamVideo } from "@/hooks/useStreamVideo";
 import { useEventFramedBox } from "./event-framed";
 
 /**
@@ -17,7 +18,13 @@ import { useEventFramedBox } from "./event-framed";
  *   - reduced motion keeps the `<video>` ELEMENT: autoplay off, `controls`
  *     on, poster frame held — reachable, not removed (law 7).
  *   - `preload="metadata"` — a card must learn its shape without eagerly
- *     pulling a 60 MB announcement clip.
+ *     pulling a whole announcement clip.
+ *
+ * MEDIA.VIDEO.2: `src` may be a Cloudflare Stream ref (`cfstream:<uid>`),
+ * played as HLS through useStreamVideo. The card image stays the poster; a
+ * clip with no card image is postered by its own Stream thumbnail (Joey's
+ * ruling). Without autoplay (reduced motion) only the manifest loads — its
+ * size reports the shape — and segments start on the visitor's own play.
  */
 type Props = {
   src: string;
@@ -62,6 +69,8 @@ const EventFramedVideo = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
+  const stream = useStreamVideo(videoRef, src, { autoLoad: autoPlay, onSize: box.report });
+
   return (
     <div
       ref={box.boxRef}
@@ -70,8 +79,9 @@ const EventFramedVideo = ({
     >
       <video
         ref={videoRef}
-        src={src}
-        poster={poster || undefined}
+        src={stream.src}
+        data-stream-src={stream.manifest}
+        poster={poster || stream.poster || undefined}
         data-qa={videoDataQa}
         data-hero-framing={box.framingAttr}
         {...mediaAttrs}

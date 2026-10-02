@@ -149,6 +149,8 @@ type RouteOpts = {
    * about translation still saves offline.
    */
   translate?: (text: string) => { source: "es" | "en"; translation: string } | null;
+  /** MEDIA.VIDEO.2 — the `stream.customer_code` value; absent → the row is absent. */
+  streamCustomerCode?: string;
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
 
@@ -266,10 +268,63 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
       }
       if (url.includes("events_board"))
         return opts.eventsBoard === undefined ? asNull() : asJson({ value: opts.eventsBoard });
+      if (url.includes("stream.customer_code"))
+        return opts.streamCustomerCode ? asJson({ value: opts.streamCustomerCode }) : asNull();
       return asNull(); // cinematic_hero_photo / any other key → absent
     }
     return asJson([]); // events tables, user_roles, anything else
   });
+}
+
+/**
+ * MEDIA.VIDEO.2 — the e2e Stream account. Specs serve `stream.customer_code` =
+ * "test" (routeSupabase's streamCustomerCode), so every playback URL lands on
+ * customer-test.cloudflarestream.com, which routeStreamPlayback serves offline.
+ */
+export const STREAM_TEST_CODE = "test";
+export const STREAM_TEST_UID = "0123456789abcdef0123456789abcdef";
+export const streamTestUrls = (uid = STREAM_TEST_UID) => {
+  const base = `https://customer-${STREAM_TEST_CODE}.cloudflarestream.com/${uid}`;
+  return {
+    manifest: `${base}/manifest/video.m3u8`,
+    poster: `${base}/thumbnails/thumbnail.jpg?time=1s&height=1080`,
+  };
+};
+
+/** A 1x1 transparent PNG — a poster that decodes without a network. */
+const PIXEL_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  "base64",
+);
+
+/**
+ * Serve the Stream playback host offline and record what the page asked it for.
+ * The master manifest names one 1280x720 rendition whose playlist is empty, so a
+ * player gets far enough to prove the manifest is its source and no further —
+ * the harness has no real segments, and never needs them.
+ */
+export async function routeStreamPlayback(page: Page): Promise<string[]> {
+  const requested: string[] = [];
+  await page.route(/^https:\/\/customer-[a-z0-9]+\.cloudflarestream\.com\//, (route: Route) => {
+    const url = route.request().url();
+    requested.push(url);
+    if (url.includes("/thumbnails/")) {
+      return route.fulfill({ status: 200, contentType: "image/png", body: PIXEL_PNG });
+    }
+    if (url.endsWith("/manifest/video.m3u8")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/vnd.apple.mpegurl",
+        body: "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=1280x720\nrendition.m3u8\n",
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/vnd.apple.mpegurl",
+      body: "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:4\n#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-ENDLIST\n",
+    });
+  });
+  return requested;
 }
 
 /**

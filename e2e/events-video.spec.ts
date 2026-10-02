@@ -1,6 +1,14 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./_admin";
+import {
+  forceLanguage,
+  injectAdminSession,
+  routeStreamPlayback,
+  routeSupabase,
+  streamTestUrls,
+  STREAM_TEST_CODE,
+  type Write,
+} from "./_admin";
 import { resolveHeroGeometry } from "../src/lib/hero-framing";
 
 /**
@@ -206,6 +214,66 @@ test("an uploaded video renders muted, looping and inline, with the image as its
   // clip (and no codec guarantee), so the falsifiable thing is the CONFIGURATION
   // — which is the whole of what this component controls.
   await expect(video).toHaveAttribute("data-reduced", "false");
+});
+
+/**
+ * MEDIA.VIDEO.2 — a clip stored as a Cloudflare Stream ref plays its HLS
+ * manifest. Joey's poster ruling, both halves: a card WITH an image keeps the
+ * image as the poster (EVENTS.VIDEO.1); a card without one is postered by the
+ * clip's own Stream thumbnail rather than a blank frame.
+ */
+test("a cfstream: clip plays its Stream manifest; the poster is the card image, else the Stream thumbnail", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  const BARE_UID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const IMAGED_UID = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  const bare = streamTestUrls(BARE_UID);
+  const imaged = streamTestUrls(IMAGED_UID);
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await forceLanguage(page, "es");
+  await routeMedia(page);
+  const requested = await routeStreamPlayback(page);
+  await routeSupabase(page, {
+    streamCustomerCode: STREAM_TEST_CODE,
+    eventsBoard: {
+      pageVisible: true,
+      homeVisible: true,
+      items: [
+        card({ id: "e1", videoFileUrl: `cfstream:${BARE_UID}` }),
+        card({ id: "e2", imageUrl: LANDSCAPE_SRC, videoFileUrl: `cfstream:${IMAGED_UID}` }),
+      ],
+    },
+  });
+  await page.goto(PAGE, { waitUntil: "domcontentloaded" });
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
+
+  const bareVideo = page.locator(`${VIDEO}[data-stream-src="${bare.manifest}"]`);
+  const imagedVideo = page.locator(`${VIDEO}[data-stream-src="${imaged.manifest}"]`);
+  await expect(bareVideo, "the image-less Stream clip is a <video> on its manifest").toHaveCount(1);
+  await expect(imagedVideo, "the imaged Stream clip is a <video> on its manifest").toHaveCount(1);
+
+  // The manifest is what the player loaded (hls.js fetches it; native HLS takes it as src).
+  await expect
+    .poll(
+      async () =>
+        requested.includes(bare.manifest) || (await bareVideo.getAttribute("src")) === bare.manifest,
+      { timeout: 10_000 },
+    )
+    .toBe(true);
+
+  expect(await bareVideo.getAttribute("poster"), "no card image → the Stream thumbnail").toBe(bare.poster);
+  expect(await imagedVideo.getAttribute("poster"), "a card image stays the poster").toBe(LANDSCAPE_SRC);
+  expect(
+    requested.filter((u) => u.includes(`${IMAGED_UID}/thumbnails/`)),
+    "the imaged card never asks Stream for a thumbnail",
+  ).toEqual([]);
+
+  // Still STEP 2's grammar: muted, looping, inline, autoplaying.
+  expect(
+    await bareVideo.evaluate((el: HTMLVideoElement) => [el.muted, el.loop, el.playsInline, el.autoplay]),
+  ).toEqual([true, true, true, true]);
 });
 
 /* ─────────────── laws 3 + 4 — consent first, and the box never moves ─────────────── */
