@@ -1,7 +1,10 @@
 import SEO from "@/components/SEO";
 import { ExternalLink, ShoppingBag, Leaf, Heart, Sparkles, Users, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { formatPostDate } from "@/lib/blog";
 import ParallaxImage from "@/components/ParallaxImage";
 import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
 import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
@@ -17,8 +20,13 @@ import premiumImage from "@/assets/greenworld-premium.webp";
 import wealthImage from "@/assets/greenworld-wealth.webp";
 import gwRepIcon from "@/assets/gw-rep-icon.png";
 
+/** BLOG.GW.1 — how many of the lane's posts the page shows. */
+const LATEST_COUNT = 3;
+
 const GreenWorld = () => {
   const { t } = useTranslation();
+  const { posts, lang } = useBlogPosts();
+  const latest = posts.filter((v) => v.post.category === "greenworld").slice(0, LATEST_COUNT);
 
   const employeeInfo = {
     name: "Cristyna Polentino",
@@ -231,6 +239,71 @@ const GreenWorld = () => {
           </div>
         </div>
       </section>
+
+      {/* BLOG.GW.1 — the Green World lane's newest posts, in this page's cream
+          grammar; the whole section is absent until one is published. */}
+      {latest.length > 0 && (
+        <section data-qa="gw-latest" className="py-16 sm:py-24 bg-gw-cream border-t border-gw-green/10">
+          <div className="container-editorial">
+            <div className="flex flex-wrap items-end justify-between gap-6 mb-10 md:mb-14">
+              <div>
+                <p className="text-gw-navy font-bold text-sm uppercase tracking-widest mb-4">
+                  {t("greenWorld.latest.eyebrow")}
+                </p>
+                <h2 className="font-sans font-bold text-3xl md:text-4xl lg:text-5xl text-gw-text uppercase">
+                  {t("greenWorld.latest.title")}
+                </h2>
+                <div className="w-16 h-1 bg-gw-gold mt-4" />
+              </div>
+              <Link
+                to="/blog?c=greenworld"
+                data-qa="gw-latest-all"
+                className="inline-flex min-h-11 items-center gap-2 text-gw-green font-bold text-sm uppercase tracking-wider hover:text-gw-green-dark transition-colors"
+              >
+                {t("greenWorld.latest.viewAll")}
+                <ArrowRight className="w-4 h-4" aria-hidden />
+              </Link>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-3">
+              {latest.map((v) => (
+                <Link
+                  key={v.post.id}
+                  to={`/blog/${v.post.slug}`}
+                  data-qa="gw-latest-card"
+                  data-slug={v.post.slug}
+                  className="group flex flex-col rounded-2xl overflow-hidden bg-gw-white border border-gw-green/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                >
+                  {v.cover && (
+                    <div className="aspect-[3/2] overflow-hidden">
+                      <img
+                        src={v.cover.image_url}
+                        alt={v.cover.alt_text ?? ""}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    {v.post.published_at && (
+                      <p className="text-gw-text/70 text-sm uppercase tracking-wider mb-2">
+                        <time dateTime={v.post.published_at}>{formatPostDate(v.post.published_at, lang)}</time>
+                      </p>
+                    )}
+                    <h3 className="font-sans font-bold text-xl text-gw-text group-hover:text-gw-green transition-colors">
+                      {v.title}
+                    </h3>
+                    {v.excerpt.trim() && (
+                      <p className="mt-2 text-gw-text/70 text-base leading-relaxed">{v.excerpt}</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Disclaimer Section */}
       <section className="py-12 bg-gw-white">

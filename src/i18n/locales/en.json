@@ -426,6 +426,11 @@
       "contactMe": "Contact Me"
     },
     "disclaimer": "These statements have not been evaluated by the FDA. Products are not intended to diagnose, treat, cure, or prevent any disease. Always consult with a healthcare professional before starting any new wellness routine.",
+    "latest": {
+      "eyebrow": "Blog",
+      "title": "Latest articles",
+      "viewAll": "View all"
+    },
     "cta": {
       "title": "Ready to Start Your Wellness Journey?",
       "subtitle": "Contact Cristyna Polentino for personalized product recommendations and business opportunities.",
