@@ -493,6 +493,16 @@
     "moreGreenWorld": "More from Green World",
     "moreBlog": "More from the blog"
   },
+  "home": {
+    "blogAct": {
+      "eyebrow": "Blog",
+      "title": "Latest articles",
+      "labelPersonal": "Personal",
+      "labelGreenWorld": "Green World",
+      "all": "See all articles",
+      "greenWorld": "Green World"
+    }
+  },
   "admin": {
     "gallery": {
       "sectionTitle": "Gallery",

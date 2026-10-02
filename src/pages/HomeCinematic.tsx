@@ -30,6 +30,7 @@ import {
 } from "@/lib/ventures";
 import CinematicTitiLinks from "@/components/cinematic/CinematicTitiLinks";
 import CinematicGallery from "@/components/cinematic/CinematicGallery";
+import CinematicBlog from "@/components/cinematic/CinematicBlog";
 import CinematicAbout from "@/components/cinematic/CinematicAbout";
 import CinematicContact from "@/components/cinematic/CinematicContact";
 import "@/components/cinematic/cinematic.css";
@@ -242,10 +243,13 @@ const HomeCinematic = () => {
 
       <CinematicGallery photos={photos} reduced={prefersReduced} />
 
-      {/* EVENTS.2 — the Events act LEFT THIS SLOT for below-hero (see the
-          mount after CinematicHero above). The Book slot it briefly held
-          (EVENTS.1) is simply empty again: the gallery hands straight to
-          Green World, exactly as it did while the Book act was dark. */}
+      {/* HOME.BLOGACT.1 — the Blog act takes the former Book slot (empty since
+          EVENTS.2 moved the Events act below the hero): the newest published
+          posts, held for the story dwell. Mounted UNCONDITIONALLY — with no
+          published posts its section is empty and takes no height, so the
+          gallery hands straight to Green World (the late-mount law; see
+          CinematicBlog). */}
+      <CinematicBlog reduced={prefersReduced} />
 
       {/* TA.7: ventures acts — full-viewport cinematic sections that replaced
           the old TA.6b split-panel (archived).

@@ -128,3 +128,23 @@ export const formatPostDate = (iso: string | null | undefined, lang: Lang): stri
     year: "numeric",
   }).format(d);
 };
+
+/**
+ * HOME.BLOGACT.1 — the same date, short enough to share one text-caps line with
+ * a category label on a phone tile: "24 sept 2026" / "Sep 24, 2026". Spanish
+ * drops the "de" joins its short form carries ("24 de sept de 2026").
+ */
+export const formatPostDateShort = (iso: string | null | undefined, lang: Lang): string => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const fmt = new Intl.DateTimeFormat(lang === "en" ? "en-US" : "es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  if (lang === "en") return fmt.format(d);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    fmt.formatToParts(d).find((p) => p.type === type)?.value ?? "";
+  return `${part("day")} ${part("month").replace(/\.$/, "")} ${part("year")}`;
+};
