@@ -480,7 +480,8 @@
     "filterAll": "Todo",
     "filterPersonal": "Personal",
     "filterGreenWorld": "Green World",
-    "filterEmpty": "Pronto, la primera entrada de esta categoría."
+    "filterEmpty": "Pronto, la primera entrada de esta categoría.",
+    "gwLabel": "Green World"
   },
   "admin": {
     "gallery": {

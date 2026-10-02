@@ -10,6 +10,7 @@ colors:
   ground-field: "#12100c"
   ground-chrome: "#141210"
   gw-deep-green: "#0B5D2A"
+  gw-lane: "#12A03B"
   admin-charcoal: "#121212"
   admin-tan: "#C4A86C"
   studio-luxe-bg: "#faf6f0"
@@ -249,6 +250,18 @@ as `#121212` on a public surface would be.
   plate. Scope: the Green World act's bright-water surfaces only. This is the
   One Filament Rule's single ratified exception; see the amendment below and
   the Green World grammar under Layout.
+- **Lane Green** (`#12A03B`, the logo's own green; `--gw-lane`, Tailwind
+  `gw-lane`, `LANE_GREEN` in `src/components/blog/tokens.ts`) — scoped
+  amendment BLOG.GW.1 (2026-10-02). **Green World lane on dark: /blog cards and
+  /blog/<slug> for category greenworld only.** The blog is the dark room, the
+  opposite of the act's bright plate, so the logo green holds here: `5.3:1` at
+  the top of the blog field (`FIELD_GROUND` under `FIELD_LIGHT`), `5.8:1` on
+  the bare ground, where Deep Green measures only `2.3–2.5:1`. It marks the lane
+  and nothing else: a greenworld card's 1px left hairline, its date line and
+  "Green World" text-caps label; a greenworld post's meta line, label and the
+  hairline under its title. Line and letter only, never a fill. No other green
+  anywhere on the blog — the chips, back links, cover frames, tags and every
+  personal post stay in the room's gold grammar.
 
 ### The gold alpha ladder
 
@@ -293,7 +306,10 @@ Green World act sets its type accent in Deep Green (`#0B5D2A`), because that
 act flips polarity to dark ink on bright water and gold cannot survive there at
 any weight (measured `1.0:1`). The exception belongs to that single act — on
 every other cinematic surface, gold remains the only accent, and the venture
-reds stay behind their own gate.
+reds stay behind their own gate. **A second exception, scoped the same way
+(BLOG.GW.1, 2026-10-02):** a Green World post on the blog walks a lane in Lane
+Green (`#12A03B`) — see Venture accents. It lives only on /blog cards and
+/blog/<slug> pages whose category is greenworld.
 
 **The Warm Dark Rule.** The ground is `#0b0a08` and its veils are
 `rgba(11,10,8,α)`. Pure `#000` and cool blue-blacks are both regressions: the

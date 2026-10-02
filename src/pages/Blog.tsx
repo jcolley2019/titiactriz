@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import SEO from "@/components/SEO";
 import CoverPlate from "@/components/blog/CoverPlate";
 import TagChips from "@/components/blog/TagChips";
-import { BODY_TEXT, GOLD, GOLD_AIR, GOLD_RULE, IVORY, IVORY_DIM, blogRoom } from "@/components/blog/tokens";
+import { BODY_TEXT, GOLD, GOLD_AIR, GOLD_RULE, IVORY, IVORY_DIM, LANE_GREEN, blogRoom } from "@/components/blog/tokens";
 import { useBlogPosts, type BlogView } from "@/hooks/useBlogPosts";
 import { BLOG_CATEGORIES, formatPostDate, type BlogCategory } from "@/lib/blog";
 import type { Lang } from "@/hooks/useEventsBoard";
@@ -75,6 +75,12 @@ const FilterChips = ({
   );
 };
 
+/**
+ * BLOG.GW.1 — a Green World post walks its own lane: a 1px hairline down the
+ * card's left edge (the gold-hairline grammar, in the lane green), the date line
+ * in the lane green, and "Green World" in text caps before the date. A personal
+ * card is exactly what it was.
+ */
 const Entry = ({
   view,
   lang,
@@ -85,44 +91,69 @@ const Entry = ({
   lang: Lang;
   lead: boolean;
   tagsLabel: string;
-}) => (
-  <article data-qa="blog-card" data-slug={view.post.slug} className="group">
-    <Link
-      to={`/blog/${view.post.slug}`}
-      className={lead ? "grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-center md:gap-12" : "block"}
+}) => {
+  const { t } = useTranslation();
+  const lane = view.post.category;
+  const gw = lane === "greenworld";
+  const published = view.post.published_at;
+  return (
+    <article
+      data-qa="blog-card"
+      data-slug={view.post.slug}
+      data-blog-card-lane={lane}
+      className={gw ? "group relative pl-5" : "group"}
     >
-      {view.cover && <CoverPlate cover={view.cover} qa="blog-card-cover" eager={lead} />}
-      <div className={view.cover && !lead ? "mt-6" : undefined}>
-        {view.post.published_at && (
-          <p data-qa="blog-card-date" className="text-caps" style={{ color: GOLD }}>
-            <time dateTime={view.post.published_at}>{formatPostDate(view.post.published_at, lang)}</time>
-          </p>
-        )}
-        <h2
-          data-qa="blog-card-title"
-          className="mt-3 leading-tight transition-colors duration-300 group-hover:text-gold-light"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 400,
-            fontSize: lead ? "clamp(1.75rem, 4vw, 3.25rem)" : "1.75rem",
-          }}
-        >
-          {view.title}
-        </h2>
-        {view.excerpt.trim() && (
-          <p data-qa="blog-card-excerpt" className="mt-3" style={BODY_TEXT}>
-            {view.excerpt}
-          </p>
-        )}
-        {view.post.tags.length > 0 && (
-          <div className="mt-5">
-            <TagChips tags={view.post.tags} qa="blog-card-tags" label={tagsLabel} />
-          </div>
-        )}
-      </div>
-    </Link>
-  </article>
-);
+      {gw && (
+        <span
+          aria-hidden
+          data-qa="blog-card-lane-rule"
+          className="absolute inset-y-0 left-0 w-px"
+          style={{ backgroundColor: LANE_GREEN }}
+        />
+      )}
+      <Link
+        to={`/blog/${view.post.slug}`}
+        className={lead ? "grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-center md:gap-12" : "block"}
+      >
+        {view.cover && <CoverPlate cover={view.cover} qa="blog-card-cover" eager={lead} />}
+        <div className={view.cover && !lead ? "mt-6" : undefined}>
+          {(published || gw) && (
+            <p data-qa="blog-card-date" className="text-caps" style={{ color: gw ? LANE_GREEN : GOLD }}>
+              {gw && (
+                <span data-qa="blog-card-label" translate="no">
+                  {t("blog.gwLabel")}
+                </span>
+              )}
+              {gw && published && " · "}
+              {published && <time dateTime={published}>{formatPostDate(published, lang)}</time>}
+            </p>
+          )}
+          <h2
+            data-qa="blog-card-title"
+            className="mt-3 leading-tight transition-colors duration-300 group-hover:text-gold-light"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 400,
+              fontSize: lead ? "clamp(1.75rem, 4vw, 3.25rem)" : "1.75rem",
+            }}
+          >
+            {view.title}
+          </h2>
+          {view.excerpt.trim() && (
+            <p data-qa="blog-card-excerpt" className="mt-3" style={BODY_TEXT}>
+              {view.excerpt}
+            </p>
+          )}
+          {view.post.tags.length > 0 && (
+            <div className="mt-5">
+              <TagChips tags={view.post.tags} qa="blog-card-tags" label={tagsLabel} />
+            </div>
+          )}
+        </div>
+      </Link>
+    </article>
+  );
+};
 
 const Blog = () => {
   const { t } = useTranslation();

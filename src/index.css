@@ -68,6 +68,9 @@
     --gw-cream: 45 20% 96%; /* Off-white background */
     --gw-gray: 150 5% 95%;
     --gw-text: 160 30% 15%;
+    /* BLOG.GW.1 — the logo green #12A03B, exact: the Green World lane on the dark blog
+       (/blog cards and /blog/<slug>, category greenworld only — DESIGN.md, Venture accents). */
+    --gw-lane: 137.3 79.8% 34.9%;
 
     /* Typography */
     --font-serif: 'Cormorant Garamond', Georgia, serif;

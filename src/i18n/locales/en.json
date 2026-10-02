@@ -480,7 +480,8 @@
     "filterAll": "All",
     "filterPersonal": "Personal",
     "filterGreenWorld": "Green World",
-    "filterEmpty": "Soon, the first post in this category."
+    "filterEmpty": "Soon, the first post in this category.",
+    "gwLabel": "Green World"
   },
   "admin": {
     "gallery": {

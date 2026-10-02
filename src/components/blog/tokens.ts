@@ -13,6 +13,14 @@ export const GOLD_RULE = "rgba(201,165,92,0.4)";
 /** The atmosphere band: a chip's fill, no edge of its own. */
 export const GOLD_AIR = "rgba(201,165,92,0.08)";
 
+/**
+ * BLOG.GW.1 — the Green World lane: the logo green (#12A03B, --gw-lane), 5.3:1
+ * on this room where Deep Green is 2.3:1. Only a greenworld post's lane wears it
+ * (the card's left hairline, its date line and label; the post's meta line and
+ * title rule) — everything else on the blog stays gold.
+ */
+export const LANE_GREEN = "hsl(var(--gw-lane))";
+
 /** --font-display is page-scoped on this site: every surface declares its own. */
 export const blogFontVars: React.CSSProperties = {
   ["--font-display" as never]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",

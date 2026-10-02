@@ -118,6 +118,8 @@ export default {
           cream: "hsl(var(--gw-cream))",
           gray: "hsl(var(--gw-gray))",
           text: "hsl(var(--gw-text))",
+          // BLOG.GW.1 — the Green World lane on the dark blog only (DESIGN.md).
+          lane: "hsl(var(--gw-lane))",
         },
       },
       borderRadius: {

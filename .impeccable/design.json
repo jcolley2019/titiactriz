@@ -52,6 +52,12 @@
         "canonical": "#0B5D2A",
         "tonalRamp": ["#041d0e", "#073019", "#094722", "#0B5D2A", "#1f7a3e", "#459a5f", "#7dbd90", "#c0e2cb"]
       },
+      "gw-lane": {
+        "role": "secondary",
+        "displayName": "Lane Green (BLOG.GW.1 - the Green World lane on the dark blog only: /blog cards and /blog/<slug> for category greenworld)",
+        "canonical": "#12A03B",
+        "tonalRamp": ["#04200c", "#063815", "#0a5820", "#0e7d2e", "#12A03B", "#59bd76", "#94d4a7", "#d0ecd8"]
+      },
       "admin-charcoal": {
         "role": "neutral",
         "displayName": "Legacy Charcoal (admin-exempt, not normative)",
@@ -172,7 +178,7 @@
       "Spanish and English at exact parity on every surface"
     ],
     "rules": [
-      { "name": "The One Filament Rule (amended PIPELINE.2)", "body": "Exactly one accent lights the room. Gold appears as line, letter, or rule - never as a filled surface, never as a second accent alongside it, and never blended into another hue. One exception is ratified, and it is scoped: the Green World act sets its type accent in Deep Green (#0B5D2A), because that act flips polarity to dark ink on bright water and gold cannot survive there at any weight. The exception belongs to that single act; the venture reds stay behind their own gate.", "section": "colors" },
+      { "name": "The One Filament Rule (amended PIPELINE.2)", "body": "Exactly one accent lights the room. Gold appears as line, letter, or rule - never as a filled surface, never as a second accent alongside it, and never blended into another hue. One exception is ratified, and it is scoped: the Green World act sets its type accent in Deep Green (#0B5D2A), because that act flips polarity to dark ink on bright water and gold cannot survive there at any weight. The exception belongs to that single act; the venture reds stay behind their own gate. A second exception is scoped the same way (BLOG.GW.1, 2026-10-02): a Green World post on the blog walks a lane in Lane Green (#12A03B, the logo green, 5.3:1 on the blog field) - the card hairline, date line and label, the post meta line and title rule - only on /blog cards and /blog/<slug> pages whose category is greenworld.", "section": "colors" },
       { "name": "The Dwell Law", "body": "A story act pins for +=120%; a showcase pins for +=300%; the footer never pins. A new act chooses one of the two prices - a third duration is a design-system change, not a tuning.", "section": "layout" },
       { "name": "The Owned Ground Rule (BOOK.ACT.2)", "body": "An act that holds the frame must cover the frame: a pinned act's ground reaches the bottom edge at its settled position and at every point of the hold, so no strip of the next act shows beneath it. A held act is therefore a full-viewport stage on .cine-act-vh, with min-height and never height. The svh-on-pinned rule protects a scrubbed stage's playhead, which would jump if the stage re-measured mid-scrub; a held act has no playhead, so a story act's dwell takes dvh and only the scrub showcases stay on svh.", "section": "layout" },
       { "name": "The Publisher Law", "body": "The book act is a coming-soon teaser only: no title, no date, no cover, no way to buy. Every string is the /book page's own bilingual copy via the same locale keys - a census, not new claims.", "section": "components" },
