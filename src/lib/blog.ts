@@ -1,6 +1,7 @@
 import type { Lang, Localized } from "@/hooks/useEventsBoard";
 import type { Tables } from "@/integrations/supabase/types";
 import { VOICES, asVoice, type VoiceName } from "@/lib/voices";
+import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
 
 /**
  * BLOG.1 — Titi's blog posts, shared by the admin editor and the public pages.
@@ -21,6 +22,36 @@ export const asCategory = asVoice;
 /** The name the site gives a category in structured data (articleSection). */
 export const categorySection = (c: BlogCategory): string => (c === "greenworld" ? "Green World" : "Personal");
 
+/**
+ * BLOG.GW.2 — the three kinds of Green World article. A kind means something
+ * only on a greenworld post: a personal post carries none (rowToPost reads it as
+ * null whatever the row says, and the editor writes NULL when a post is saved as
+ * Personal). Mirrors blog_posts_gw_kind_check and GW_KINDS in
+ * supabase/functions/generate-content/validate.ts.
+ */
+export const GW_KINDS = ["producto", "capacitacion", "negocio"] as const;
+export type GwKind = (typeof GW_KINDS)[number];
+/** Anything unreadable is no kind at all, never a crash. */
+export const asGwKind = (v: unknown): GwKind | null =>
+  typeof v === "string" && (GW_KINDS as readonly string[]).includes(v) ? (v as GwKind) : null;
+/** The kind's label key: blog.kind.producto → "Producto" / "Product". */
+export const gwKindLabelKey = (k: GwKind): string => `blog.kind.${k}`;
+
+/** A product link the editor accepts: http(s) with a host, nothing else. Empty is the caller's call. */
+export const isHttpUrl = (text: string): boolean => {
+  const s = text.trim();
+  if (!/^https?:\/\/\S+$/i.test(s)) return false;
+  try {
+    return !!new URL(s).hostname;
+  } catch {
+    return false;
+  }
+};
+
+/** Where a Producto post's product card goes: its own link, else the Green World shop. */
+export const gwProductHref = (post: Pick<BlogPost, "gwProductUrl">): string =>
+  post.gwProductUrl && isHttpUrl(post.gwProductUrl) ? post.gwProductUrl.trim() : GREEN_WORLD_SHOP_URL;
+
 export const BLOG_LOCALIZED_FIELDS = ["title", "excerpt", "body", "meta_description"] as const;
 export type BlogLocalizedField = (typeof BLOG_LOCALIZED_FIELDS)[number];
 
@@ -33,6 +64,10 @@ export type BlogPost = {
   meta_description: Localized;
   tags: string[];
   category: BlogCategory;
+  /** BLOG.GW.2 — a greenworld post's kind and product; null on every personal post. */
+  gwKind: GwKind | null;
+  gwProductName: string | null;
+  gwProductUrl: string | null;
   cover_photo_id: string | null;
   status: BlogStatus;
   published_at: string | null;
@@ -57,21 +92,31 @@ export const toLocalized = (v: unknown): Localized => {
   return out;
 };
 
-export const rowToPost = (row: BlogPostRow): BlogPost => ({
-  id: row.id,
-  slug: row.slug,
-  title: toLocalized(row.title),
-  excerpt: toLocalized(row.excerpt),
-  body: toLocalized(row.body),
-  meta_description: toLocalized(row.meta_description),
-  tags: Array.isArray(row.tags) ? row.tags : [],
-  category: asCategory(row.category),
-  cover_photo_id: row.cover_photo_id,
-  status: row.status === "published" ? "published" : "draft",
-  published_at: row.published_at,
-  created_at: row.created_at,
-  updated_at: row.updated_at,
-});
+/** A text cell, trimmed; blank is null. */
+const textOrNull = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+export const rowToPost = (row: BlogPostRow): BlogPost => {
+  const category = asCategory(row.category);
+  const gw = category === "greenworld";
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: toLocalized(row.title),
+    excerpt: toLocalized(row.excerpt),
+    body: toLocalized(row.body),
+    meta_description: toLocalized(row.meta_description),
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    category,
+    gwKind: gw ? asGwKind(row.gw_kind) : null,
+    gwProductName: gw ? textOrNull(row.gw_product_name) : null,
+    gwProductUrl: gw ? textOrNull(row.gw_product_url) : null,
+    cover_photo_id: row.cover_photo_id,
+    status: row.status === "published" ? "published" : "draft",
+    published_at: row.published_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+};
 
 /** A field that says nothing in either language is stored as NULL. */
 export const localizedIsEmpty = (v: Localized): boolean => !v.es.trim() && !v.en.trim();

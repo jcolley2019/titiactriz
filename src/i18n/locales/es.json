@@ -491,7 +491,12 @@
     "gwSeoDescription": "Bienestar y nutrición con Green World: los artículos de Titi Polentino sobre los productos que usa, lo que aprende y su camino como representante independiente.",
     "gwIntro": "Bienestar y nutrición con Green World: lo que uso, lo que aprendo y lo que comparto.",
     "moreGreenWorld": "Más de Green World",
-    "moreBlog": "Más del blog"
+    "moreBlog": "Más del blog",
+    "kind": {
+      "producto": "Producto",
+      "capacitacion": "Capacitación",
+      "negocio": "Negocio"
+    }
   },
   "home": {
     "blogAct": {
@@ -797,6 +802,11 @@
       "tabPersonal": "Personal",
       "tabGreenWorld": "Green World",
       "fieldCategory": "Categoría",
+      "fieldKind": "Tipo",
+      "fieldProductName": "Producto",
+      "fieldProductUrl": "Enlace del producto",
+      "productUrlHelp": "Si lo dejas vacío, la tarjeta del producto lleva a la tienda de Green World.",
+      "productUrlInvalid": "El enlace debe empezar por http:// o https://",
       "newPostTitle": "Nueva entrada",
       "editPost": "Editar entrada",
       "emptyHelp": "Crea la primera con «Escribir a mano».",

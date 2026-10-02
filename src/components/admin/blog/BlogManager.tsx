@@ -31,9 +31,12 @@ import { syncLocalizedLong, syncLocalizedRecord } from "@/lib/translate-copy";
 import {
   BLOG_CATEGORIES,
   EMPTY_LOCALIZED,
+  GW_KINDS,
   SLUG_PATTERN,
   asCategory,
   formatPostDate,
+  gwKindLabelKey,
+  isHttpUrl,
   localizedIsEmpty,
   parseTags,
   pickLocalized,
@@ -41,6 +44,7 @@ import {
   slugify,
   type BlogCategory,
   type BlogPost,
+  type GwKind,
 } from "@/lib/blog";
 import { SITE } from "@/lib/blog/schema";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
@@ -68,6 +72,15 @@ import { useAdminIntent } from "@/components/admin/AdminShell";
  * list has one tab per category (counts in parentheses, the open tab remembered
  * on this device); the editor's Categoría sits beside Estado and saves with the
  * text; "Escribir a mano" starts in the open tab's category.
+ *
+ * BLOG.GW.2 — under Green World, a Tipo control beside Categoría (Producto,
+ * Capacitación, Negocio; same look), and for Producto the product's name and
+ * link (http(s) or empty — empty sends the post page's card to the Green World
+ * shop). They save with the text. A post saved as Personal writes NULL to all
+ * three columns, and one saved as a kind other than Producto writes NULL to the
+ * two product columns: the draft keeps what was typed until that Save, so
+ * switching back and forth loses nothing. The Green World tab's rows name their
+ * kind under the title.
  */
 
 const FLASH_MS = 1800;
@@ -86,6 +99,9 @@ type Draft = {
   slug: string;
   tags: string;
   category: BlogCategory;
+  gw_kind: GwKind | null;
+  gw_product_name: string;
+  gw_product_url: string;
   cover_photo_id: string | null;
 };
 
@@ -97,6 +113,9 @@ const EMPTY_DRAFT: Draft = {
   slug: "",
   tags: "",
   category: "personal",
+  gw_kind: null,
+  gw_product_name: "",
+  gw_product_url: "",
   cover_photo_id: null,
 };
 
@@ -108,8 +127,25 @@ const postToDraft = (p: BlogPost): Draft => ({
   slug: p.slug,
   tags: p.tags.join(", "),
   category: p.category,
+  gw_kind: p.gwKind,
+  gw_product_name: p.gwProductName ?? "",
+  gw_product_url: p.gwProductUrl ?? "",
   cover_photo_id: p.cover_photo_id,
 });
+
+/**
+ * BLOG.GW.2 — the kind and product columns a Save writes: a kind only on a
+ * Green World post, a product only on a Producto post; blank is NULL.
+ */
+const gwColumns = (d: Draft) => {
+  const kind = d.category === "greenworld" ? d.gw_kind : null;
+  const product = kind === "producto";
+  return {
+    gw_kind: kind,
+    gw_product_name: product ? d.gw_product_name.trim() || null : null,
+    gw_product_url: product ? d.gw_product_url.trim() || null : null,
+  };
+};
 
 const LOCALIZED_KEYS = ["title", "excerpt", "body", "meta_description"] as const;
 
@@ -467,6 +503,12 @@ const BlogList = ({
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <StatusPill status={post.status} />
+                      {/* BLOG.GW.2 — the Green World tab names each post's kind. */}
+                      {tab === "greenworld" && post.gwKind && (
+                        <span data-qa="blog-row-kind" data-kind={post.gwKind} className="font-medium text-foreground">
+                          {t(gwKindLabelKey(post.gwKind))}
+                        </span>
+                      )}
                       <span data-qa="blog-row-date">
                         {post.published_at ? formatPostDate(post.published_at, lang) : t("admin.blog.notPublished")}
                       </span>
@@ -592,6 +634,11 @@ const BlogEditor = ({
 
   const titleMissing = !localizedText(fields.title).trim();
   const bodyMissing = !localizedText(fields.body).trim();
+  // BLOG.GW.2 — the product link is checked only where it is saved: a Producto post.
+  const gw = fields.category === "greenworld";
+  const productShown = gw && fields.gw_kind === "producto";
+  const productUrlInvalid =
+    productShown && !!fields.gw_product_url.trim() && !isHttpUrl(fields.gw_product_url);
 
   const showFlash = (state: Exclude<FlashState, undefined>) => {
     setFlash(state);
@@ -625,7 +672,7 @@ const BlogEditor = ({
   const onSave = async () => {
     setAttempted(true);
     setSlugError(null);
-    if (titleMissing || bodyMissing) return;
+    if (titleMissing || bodyMissing || productUrlInvalid) return;
     if (slugTouched && !SLUG_PATTERN.test(fields.slug.trim())) {
       setSlugError("invalid");
       return;
@@ -673,6 +720,7 @@ const BlogEditor = ({
         meta_description: localizedIsEmpty(translated.meta_description) ? null : translated.meta_description,
         tags: parseTags(translated.tags),
         category: translated.category,
+        ...gwColumns(translated),
         cover_photo_id: translated.cover_photo_id,
       };
       const res = postId
@@ -961,7 +1009,79 @@ const BlogEditor = ({
               ))}
             </div>
           </div>
+
+          {/* BLOG.GW.2 — Tipo, only under Green World: Categoría's own look. */}
+          {gw && (
+            <div className="flex flex-col items-start gap-1.5" data-qa="blog-field-kind">
+              <Label id="blog-kind-label" className="text-foreground text-sm font-medium">
+                {t("admin.blog.fieldKind")}
+              </Label>
+              <div role="radiogroup" aria-labelledby="blog-kind-label" className={SEG_WRAP}>
+                {GW_KINDS.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    role="radio"
+                    aria-checked={fields.gw_kind === k}
+                    data-qa={`blog-kind-${k}`}
+                    onClick={() => setField("gw_kind", k)}
+                    disabled={busy}
+                    className={segClass(fields.gw_kind === k)}
+                  >
+                    {t(gwKindLabelKey(k))}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* BLOG.GW.2 — the product a Producto post is about: a name, and a link
+            (http(s), or empty for the Green World shop). */}
+        {productShown && (
+          <div className="grid gap-4 md:grid-cols-2" data-qa="blog-field-product">
+            <div className="space-y-1.5">
+              <Label htmlFor="blog-product-name" className="text-foreground text-sm font-medium">
+                {t("admin.blog.fieldProductName")}
+              </Label>
+              <Input
+                id="blog-product-name"
+                data-qa="blog-product-name"
+                maxLength={120}
+                value={fields.gw_product_name}
+                onChange={(e) => setField("gw_product_name", e.target.value)}
+                disabled={busy}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="blog-product-url" className="text-foreground text-sm font-medium">
+                {t("admin.blog.fieldProductUrl")}
+              </Label>
+              <Input
+                id="blog-product-url"
+                data-qa="blog-product-url"
+                type="url"
+                inputMode="url"
+                maxLength={500}
+                placeholder="https://"
+                value={fields.gw_product_url}
+                onChange={(e) => setField("gw_product_url", e.target.value)}
+                disabled={busy}
+                aria-invalid={attempted && productUrlInvalid ? true : undefined}
+                aria-describedby="blog-product-url-help"
+              />
+              {attempted && productUrlInvalid ? (
+                <p id="blog-product-url-help" data-qa="blog-product-url-error" role="alert" className="text-xs text-destructive">
+                  {t("admin.blog.productUrlInvalid")}
+                </p>
+              ) : (
+                <p id="blog-product-url-help" className="text-xs text-muted-foreground">
+                  {t("admin.blog.productUrlHelp")}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         <p className="text-xs text-muted-foreground">{t("admin.blog.autoTranslateHelp")}</p>
 
