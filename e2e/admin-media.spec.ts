@@ -861,7 +861,12 @@ test.describe("MEDIA.VIDEO.2 — a Stream hero is deleted from Stream once nothi
     await page.locator('[data-qa="media-hero-remove"]').click();
     await expect(toastSaying(page, /Hero video removed/i)).toBeVisible();
 
-    // The site lets go of the ref BEFORE Stream is asked to delete it.
+    // The site lets go of the ref BEFORE Stream is asked to delete it. The
+    // delete is sent just after the toast, so wait for it to arrive before
+    // reading the order (read too early on a slow CI runner, it was -1).
+    await expect
+      .poll(() => streamCalls(writes).some((c) => c.action === "delete"), { timeout: 8000 })
+      .toBe(true);
     const settingDelete = writes.findIndex(
       (w) => w.method === "DELETE" && /cinematic_hero_video(?!_portrait)/.test(w.url),
     );
