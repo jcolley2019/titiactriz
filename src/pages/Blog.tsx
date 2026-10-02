@@ -162,6 +162,9 @@ const Blog = () => {
   const filter = readFilter(params.get("c"));
   const shown = filter === "all" ? posts : posts.filter((v) => v.post.category === filter);
   const [lead, ...rest] = shown;
+  // BLOG.GW.1 — the Green World lane is its own search result, with its own head.
+  // Todo and Personal keep the room's.
+  const gwLane = filter === "greenworld";
 
   const pick = (f: Filter) =>
     setParams(
@@ -176,7 +179,11 @@ const Blog = () => {
 
   return (
     <main data-qa="blog-page" className="relative min-h-screen px-6 pb-24" style={blogRoom}>
-      <SEO path="/blog" title={t("blog.seoTitle")} description={t("blog.seoDescription")} />
+      <SEO
+        path={gwLane ? "/blog?c=greenworld" : "/blog"}
+        title={t(gwLane ? "blog.gwSeoTitle" : "blog.seoTitle")}
+        description={t(gwLane ? "blog.gwSeoDescription" : "blog.seoDescription")}
+      />
 
       <div className="mx-auto max-w-6xl">
         <header className="mb-12 md:mb-16">
@@ -185,6 +192,11 @@ const Blog = () => {
           </h1>
           {/* The one gold hairline the room allows: a rule, not a fill. */}
           <span aria-hidden className="mt-5 block h-px w-16" style={{ backgroundColor: GOLD }} />
+          {gwLane && (
+            <p data-qa="blog-intro" className="mt-6 max-w-xl" style={BODY_TEXT}>
+              {t("blog.gwIntro")}
+            </p>
+          )}
           {!loading && !failed && posts.length > 0 && (
             <FilterChips active={filter} onPick={pick} label={t("blog.filterLabel")} />
           )}

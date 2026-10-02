@@ -9,6 +9,11 @@
  * (VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY, from the environment or
  * the .env files Vite would read). RLS serves the anon key published posts only.
  *
+ * BLOG.GW.1 — the Green World lane (/blog?c=greenworld) is its own search
+ * result with its own head, so the region opens with it as a static entry,
+ * listed whatever the posts are. The committed file carries it too, so a build
+ * that cannot reach Supabase still lists it.
+ *
  * It must never fail a build. No network, no env, a bad answer, missing markers:
  * the file is kept as it is, a warning is printed, and the exit code is 0.
  */
@@ -26,21 +31,29 @@ const warn = (msg) => console.warn(`[build-sitemap] WARNING: ${msg} — public/s
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-const entry = ({ slug, updated_at }) => {
-  const loc = `${SITE}/blog/${slug}`;
-  const day = typeof updated_at === "string" ? updated_at.slice(0, 10) : "";
-  return [
+const urlEntry = ({ loc, day = "", changefreq, priority }) =>
+  [
     "  <url>",
     `    <loc>${loc}</loc>`,
     `    <xhtml:link rel="alternate" hreflang="es" href="${loc}" />`,
     `    <xhtml:link rel="alternate" hreflang="en" href="${loc}" />`,
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${loc}" />`,
     ...(/^\d{4}-\d{2}-\d{2}$/.test(day) ? [`    <lastmod>${day}</lastmod>`] : []),
-    "    <changefreq>monthly</changefreq>",
-    "    <priority>0.6</priority>",
+    `    <changefreq>${changefreq}</changefreq>`,
+    `    <priority>${priority}</priority>`,
     "  </url>",
   ].join("\n");
-};
+
+/** Listed first, every build, posts or not. No `&` in any loc: nothing to escape. */
+const STATIC = [{ loc: `${SITE}/blog?c=greenworld`, changefreq: "weekly", priority: "0.6" }];
+
+const entry = ({ slug, updated_at }) =>
+  urlEntry({
+    loc: `${SITE}/blog/${slug}`,
+    day: typeof updated_at === "string" ? updated_at.slice(0, 10) : "",
+    changefreq: "monthly",
+    priority: "0.6",
+  });
 
 async function main() {
   let xml;
@@ -75,7 +88,7 @@ async function main() {
   if (!Array.isArray(rows)) return warn("blog_posts answered something that is not a list");
 
   const posts = rows.filter((r) => r && typeof r.slug === "string" && SLUG.test(r.slug));
-  const block = posts.map(entry).join("\n");
+  const block = [...STATIC.map(urlEntry), ...posts.map(entry)].join("\n");
   const region = `${eol}${block ? block.replace(/\n/g, eol) + eol : ""}  `;
   const next = xml.slice(0, startLineEnd) + region + xml.slice(end);
   if (next === xml) {

@@ -1006,8 +1006,10 @@ test.describe("STUDIO.VOICES.1 /blog filter", () => {
     expect(await slugsOf(page, "blog-card")).toEqual(["bailar-en-medellin"]);
     await expect(page.locator('[data-qa="blog-filter"] button')).toHaveText(["Todo", "Personal", "Green World"]);
     expect(await pressed(page)).toEqual(["blog-filter-greenworld"]);
-    // The room's canonical stays /blog, whatever the filter.
-    await expect.poll(async () => (await head(page)).canonical).toBe("https://www.titiactriz.com/blog");
+    // BLOG.GW.1 — the Green World lane is its own search result (G2 has the rest of its head).
+    await expect
+      .poll(async () => (await head(page)).canonical)
+      .toBe("https://www.titiactriz.com/blog?c=greenworld");
   });
 
   test("F2 the chips filter with no reload and keep the address in step; Todo clears it", async ({ page }) => {

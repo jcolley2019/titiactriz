@@ -481,7 +481,10 @@
     "filterPersonal": "Personal",
     "filterGreenWorld": "Green World",
     "filterEmpty": "Pronto, la primera entrada de esta categoría.",
-    "gwLabel": "Green World"
+    "gwLabel": "Green World",
+    "gwSeoTitle": "Green World · Blog de Titi Polentino",
+    "gwSeoDescription": "Bienestar y nutrición con Green World: los artículos de Titi Polentino sobre los productos que usa, lo que aprende y su camino como representante independiente.",
+    "gwIntro": "Bienestar y nutrición con Green World: lo que uso, lo que aprendo y lo que comparto."
   },
   "admin": {
     "gallery": {
