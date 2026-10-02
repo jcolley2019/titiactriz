@@ -2,11 +2,12 @@ import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import SEO from "@/components/SEO";
+import BlogEntry from "@/components/blog/BlogEntry";
 import CoverPlate from "@/components/blog/CoverPlate";
 import PostBody from "@/components/blog/PostBody";
 import TagChips from "@/components/blog/TagChips";
-import { GOLD, IVORY, blogRoom } from "@/components/blog/tokens";
-import { useBlogPost } from "@/hooks/useBlogPosts";
+import { GOLD, IVORY, LANE_GREEN, blogRoom } from "@/components/blog/tokens";
+import { useBlogPost, useBlogPosts } from "@/hooks/useBlogPosts";
 import { categorySection, formatPostDate, readingTimeMinutes } from "@/lib/blog";
 import { SITE, breadcrumbLd, extractFaq, faqPageLd } from "@/lib/blog/schema";
 import NotFound from "@/pages/NotFound";
@@ -22,7 +23,16 @@ import NotFound from "@/pages/NotFound";
  * plus (BLOG.SEO.1) FAQPage when the body has a questions section, and
  * BreadcrumbList always. STUDIO.VOICES.1 — the Article names its category as
  * articleSection ("Personal" | "Green World").
+ *
+ * BLOG.GW.1 — a Green World post wears its lane: "Green World" in text caps
+ * above the date, the meta line and the rule under the title in the lane green,
+ * and a Green World crumb (→ /blog?c=greenworld) in its BreadcrumbList. Above
+ * the tags, up to three more posts from the same lane, newest first, as /blog's
+ * own cards: "Más de Green World", or "Más del blog" for a personal post.
  */
+
+/** How many other posts the "Más de…" row shows. */
+const MORE_COUNT = 3;
 
 /** The site's quietest gold grammar — the /events way out, verbatim. */
 const BackLink = ({ label, qa }: { label: string; qa: string }) => (
@@ -41,6 +51,7 @@ const BlogPost = () => {
   const { t } = useTranslation();
   const { slug } = useParams();
   const { view, loading, notFound, lang } = useBlogPost(slug);
+  const { posts } = useBlogPosts();
 
   if (notFound) return <NotFound />;
 
@@ -72,6 +83,9 @@ const BlogPost = () => {
     ...(cover ? { image: [cover.image_url] } : {}),
   };
   const faq = extractFaq(body);
+  const gw = post.category === "greenworld";
+  const lane = gw ? LANE_GREEN : GOLD;
+  const more = posts.filter((v) => v.post.category === post.category && v.post.slug !== post.slug).slice(0, MORE_COUNT);
 
   return (
     <main data-qa="blog-post" className="relative min-h-screen px-6 pb-24" style={blogRoom}>
@@ -84,7 +98,7 @@ const BlogPost = () => {
       >
         <script type="application/ld+json">{JSON.stringify(articleLd)}</script>
         {faq.length >= 2 && <script type="application/ld+json">{JSON.stringify(faqPageLd(faq))}</script>}
-        <script type="application/ld+json">{JSON.stringify(breadcrumbLd(lang, title, path))}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbLd(lang, title, path, post.category))}</script>
       </SEO>
 
       <article className="mx-auto max-w-3xl">
@@ -98,7 +112,12 @@ const BlogPost = () => {
           </div>
         )}
 
-        <p data-qa="blog-post-meta" className="text-caps" style={{ color: GOLD }}>
+        {gw && (
+          <p data-qa="blog-post-label" className="text-caps mb-3" style={{ color: LANE_GREEN }} translate="no">
+            {t("blog.gwLabel")}
+          </p>
+        )}
+        <p data-qa="blog-post-meta" className="text-caps" style={{ color: lane }}>
           {post.published_at && (
             <time dateTime={post.published_at}>{formatPostDate(post.published_at, lang)}</time>
           )}
@@ -119,10 +138,36 @@ const BlogPost = () => {
         >
           {title}
         </h1>
-        {/* The one gold hairline under the title: a rule, not a fill. */}
-        <span aria-hidden className="mt-6 mb-4 block h-px w-16" style={{ backgroundColor: GOLD }} />
+        {/* The one hairline under the title: a rule, not a fill — gold, or the lane green. */}
+        <span
+          aria-hidden
+          data-qa="blog-post-rule"
+          className="mt-6 mb-4 block h-px w-16"
+          style={{ backgroundColor: lane }}
+        />
 
         <PostBody markdown={body} />
+
+        {more.length > 0 && (
+          <section data-qa="blog-more" data-lane={post.category} aria-labelledby="blog-more-title" className="mt-16">
+            <h2 id="blog-more-title" data-qa="blog-more-title" className="text-caps" style={{ color: GOLD }}>
+              {t(gw ? "blog.moreGreenWorld" : "blog.moreBlog")}
+            </h2>
+            <span aria-hidden className="mt-5 block h-px w-16" style={{ backgroundColor: GOLD }} />
+            <div className="mt-10 grid gap-x-12 gap-y-16 md:grid-cols-2">
+              {more.map((v) => (
+                <BlogEntry
+                  key={v.post.id}
+                  view={v}
+                  lang={lang}
+                  lead={false}
+                  tagsLabel={t("blog.tags")}
+                  titleAs="h3"
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {post.tags.length > 0 && (
           <div className="mt-12">

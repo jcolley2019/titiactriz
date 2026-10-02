@@ -1,12 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import SEO from "@/components/SEO";
-import CoverPlate from "@/components/blog/CoverPlate";
-import TagChips from "@/components/blog/TagChips";
-import { BODY_TEXT, GOLD, GOLD_AIR, GOLD_RULE, IVORY, IVORY_DIM, LANE_GREEN, blogRoom } from "@/components/blog/tokens";
-import { useBlogPosts, type BlogView } from "@/hooks/useBlogPosts";
-import { BLOG_CATEGORIES, formatPostDate, type BlogCategory } from "@/lib/blog";
-import type { Lang } from "@/hooks/useEventsBoard";
+import BlogEntry from "@/components/blog/BlogEntry";
+import { BODY_TEXT, GOLD, GOLD_AIR, GOLD_RULE, IVORY, IVORY_DIM, blogRoom } from "@/components/blog/tokens";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { BLOG_CATEGORIES, type BlogCategory } from "@/lib/blog";
 
 /**
  * BLOG.1 — /blog, a tonal room in the cinematic grammar.
@@ -24,6 +22,10 @@ import type { Lang } from "@/hooks/useEventsBoard";
  * World, three quiet hairline chips (the tags' own grammar). The pick lives in
  * the address (?c=personal|greenworld), so a filtered list can be shared, and it
  * changes with no reload; anything else in ?c= is Todo.
+ *
+ * BLOG.GW.1 — one blog, two lanes. A Green World card wears the lane green
+ * (BlogEntry), and ?c=greenworld is its own search result: its own canonical,
+ * title, description and intro line. Todo and Personal keep the room's head.
  */
 
 type Filter = "all" | BlogCategory;
@@ -72,86 +74,6 @@ const FilterChips = ({
         );
       })}
     </div>
-  );
-};
-
-/**
- * BLOG.GW.1 — a Green World post walks its own lane: a 1px hairline down the
- * card's left edge (the gold-hairline grammar, in the lane green), the date line
- * in the lane green, and "Green World" in text caps before the date. A personal
- * card is exactly what it was.
- */
-const Entry = ({
-  view,
-  lang,
-  lead,
-  tagsLabel,
-}: {
-  view: BlogView;
-  lang: Lang;
-  lead: boolean;
-  tagsLabel: string;
-}) => {
-  const { t } = useTranslation();
-  const lane = view.post.category;
-  const gw = lane === "greenworld";
-  const published = view.post.published_at;
-  return (
-    <article
-      data-qa="blog-card"
-      data-slug={view.post.slug}
-      data-blog-card-lane={lane}
-      className={gw ? "group relative pl-5" : "group"}
-    >
-      {gw && (
-        <span
-          aria-hidden
-          data-qa="blog-card-lane-rule"
-          className="absolute inset-y-0 left-0 w-px"
-          style={{ backgroundColor: LANE_GREEN }}
-        />
-      )}
-      <Link
-        to={`/blog/${view.post.slug}`}
-        className={lead ? "grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-center md:gap-12" : "block"}
-      >
-        {view.cover && <CoverPlate cover={view.cover} qa="blog-card-cover" eager={lead} />}
-        <div className={view.cover && !lead ? "mt-6" : undefined}>
-          {(published || gw) && (
-            <p data-qa="blog-card-date" className="text-caps" style={{ color: gw ? LANE_GREEN : GOLD }}>
-              {gw && (
-                <span data-qa="blog-card-label" translate="no">
-                  {t("blog.gwLabel")}
-                </span>
-              )}
-              {gw && published && " · "}
-              {published && <time dateTime={published}>{formatPostDate(published, lang)}</time>}
-            </p>
-          )}
-          <h2
-            data-qa="blog-card-title"
-            className="mt-3 leading-tight transition-colors duration-300 group-hover:text-gold-light"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 400,
-              fontSize: lead ? "clamp(1.75rem, 4vw, 3.25rem)" : "1.75rem",
-            }}
-          >
-            {view.title}
-          </h2>
-          {view.excerpt.trim() && (
-            <p data-qa="blog-card-excerpt" className="mt-3" style={BODY_TEXT}>
-              {view.excerpt}
-            </p>
-          )}
-          {view.post.tags.length > 0 && (
-            <div className="mt-5">
-              <TagChips tags={view.post.tags} qa="blog-card-tags" label={tagsLabel} />
-            </div>
-          )}
-        </div>
-      </Link>
-    </article>
   );
 };
 
@@ -224,11 +146,11 @@ const Blog = () => {
           </p>
         ) : (
           <>
-            <Entry view={lead} lang={lang} lead tagsLabel={t("blog.tags")} />
+            <BlogEntry view={lead} lang={lang} lead tagsLabel={t("blog.tags")} />
             {rest.length > 0 && (
               <div className="mt-20 grid gap-x-12 gap-y-16 md:grid-cols-2">
                 {rest.map((view) => (
-                  <Entry key={view.post.id} view={view} lang={lang} lead={false} tagsLabel={t("blog.tags")} />
+                  <BlogEntry key={view.post.id} view={view} lang={lang} lead={false} tagsLabel={t("blog.tags")} />
                 ))}
               </div>
             )}

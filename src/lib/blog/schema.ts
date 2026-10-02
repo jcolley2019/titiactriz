@@ -1,4 +1,5 @@
 import type { Lang } from "@/hooks/useEventsBoard";
+import type { BlogCategory } from "@/lib/blog";
 import { plainText } from "@/lib/studio/publish";
 
 /**
@@ -120,13 +121,18 @@ export const faqPageLd = (items: FaqItem[]) => ({
   })),
 });
 
-/** schema.org BreadcrumbList: Inicio|Home → Blog → the post, as absolute URLs. */
-export const breadcrumbLd = (lang: Lang, title: string, path: string) => ({
+/**
+ * schema.org BreadcrumbList: Inicio|Home → Blog → the post, as absolute URLs.
+ * BLOG.GW.1 — a Green World post walks through its lane: Inicio → Blog → Green
+ * World (/blog?c=greenworld) → the post.
+ */
+export const breadcrumbLd = (lang: Lang, title: string, path: string, category: BlogCategory) => ({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
     { name: lang === "en" ? "Home" : "Inicio", item: `${SITE}/` },
     { name: "Blog", item: `${SITE}/blog` },
+    ...(category === "greenworld" ? [{ name: "Green World", item: `${SITE}/blog?c=greenworld` }] : []),
     { name: title, item: `${SITE}${path}` },
   ].map((crumb, i) => ({ "@type": "ListItem", position: i + 1, ...crumb })),
 });

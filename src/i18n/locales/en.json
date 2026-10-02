@@ -484,7 +484,9 @@
     "gwLabel": "Green World",
     "gwSeoTitle": "Green World · Titi Polentino's Blog",
     "gwSeoDescription": "Wellness and nutrition with Green World: Titi Polentino's articles on the products she uses, what she learns and her path as an independent representative.",
-    "gwIntro": "Wellness and nutrition with Green World: what I use, what I learn and what I share."
+    "gwIntro": "Wellness and nutrition with Green World: what I use, what I learn and what I share.",
+    "moreGreenWorld": "More from Green World",
+    "moreBlog": "More from the blog"
   },
   "admin": {
     "gallery": {
