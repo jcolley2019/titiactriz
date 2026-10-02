@@ -1,6 +1,11 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { forceLanguage, injectAdminSession, MOCK_PHOTOS, routeSupabase, type Write } from "./_admin";
 import { extractFaq } from "../src/lib/blog/schema";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
 
 /**
  * BLOG.1 — Titi writes, translates and publishes blog posts from the admin, and
@@ -51,6 +56,21 @@ import { extractFaq } from "../src/lib/blog/schema";
  *          keep the address in step; an unknown ?c= is Todo; empty category, no posts, English
  *  F5/F6   hairline chips in the room's grammar; 390×844 fit
  *  F7      Article JSON-LD carries articleSection
+ *
+ * BLOG.GW.1 — the Green World lane, on the one blog.
+ *  G1  a greenworld card carries the lane (1px left rule, date line in #12A03B, a
+ *      "Green World" text-caps label before the date, data-blog-card-lane); a
+ *      personal card does not, and the chips and eyebrow stay gold
+ *  G2  ?c=greenworld: title/description blog.gwSeo*, canonical /blog?c=greenworld,
+ *      the gwIntro line, a sitemap entry; Todo and Personal keep today's head (ES + EN)
+ *  G3  a greenworld post: label above the date, lane-green meta and rule, "Más de
+ *      Green World" with up to 3 other published greenworld posts only, newest
+ *      first, and Inicio → Blog → Green World → the post; a personal post: gold,
+ *      "Más del blog" with personal posts only, above the tags, 3 crumbs
+ *  G4  /green-world: "Últimos artículos" with the 3 newest greenworld posts and
+ *      Ver todos → /blog?c=greenworld, just above the Disclaimer; none published,
+ *      no section
+ *  G5  390×844: lane cards, the post's row and the strip fit with no sideways scroll
  */
 
 type Row = Record<string, unknown> & { id: string; slug: string; status: string };
@@ -1119,5 +1139,304 @@ test.describe("STUDIO.VOICES.1 /blog filter", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(400);
     await page.screenshot({ path: `${VOICE_SHOTS}/blog-public-todo-390x844.png` });
+  });
+});
+
+/* ---------------- BLOG.GW.1 — the Green World lane ---------------- */
+
+const LANE_RGB = "rgb(18, 160, 59)"; // #12A03B, the logo green
+const GOLD_RGB = "rgb(201, 165, 92)";
+
+const lanePost = (id: string, slug: string, category: string, day: string, es: string, en: string): Row => ({
+  id,
+  slug,
+  category,
+  status: "published",
+  published_at: iso(`2026-09-${day}T15:00:00Z`),
+  created_at: iso(`2026-09-${day}T12:00:00Z`),
+  updated_at: iso(`2026-09-${day}T15:00:00Z`),
+  title: { es, en, src: "es" },
+  excerpt: { es: `Sobre ${es.toLowerCase()}.`, en: `About ${en.toLowerCase()}.`, src: "es" },
+  body: { es: "Un texto corto.", en: "A short text.", src: "es" },
+  meta_description: null,
+  tags: [],
+  cover_photo_id: null,
+  cover: null,
+});
+
+/**
+ * catRows() (Un día: personal 09-20 · Bailar: Green World 09-12 · a personal
+ * draft) plus four more Green World posts — one a draft — and one more personal
+ * post. Published Green World, newest first: Té verde 24, Lista 16, Bailar 12,
+ * Rutina 05. Published personal: Un día 20, Cuaderno 08.
+ */
+const laneRows = (): Row[] => [
+  ...catRows(),
+  {
+    ...lanePost("g1", "te-verde-en-casa", "greenworld", "24", "Té verde en casa", "Green tea at home"),
+    cover_photo_id: "c2",
+    cover: COVER_CITY,
+  },
+  lanePost("g2", "mi-lista-de-compras", "greenworld", "16", "Mi lista de compras", "My shopping list"),
+  lanePost("g3", "rutina-de-la-manana", "greenworld", "05", "Rutina de la mañana", "Morning routine"),
+  {
+    ...lanePost("g4", "borrador-verde", "greenworld", "28", "Borrador verde", "Green draft"),
+    status: "draft",
+    published_at: null,
+  },
+  lanePost("p2", "cuaderno-de-rodaje", "personal", "08", "Cuaderno de rodaje", "Shoot notebook"),
+];
+
+const card = (page: Page, slug: string) => page.locator(`[data-qa="blog-card"][data-slug="${slug}"]`);
+
+/** Everything the lane changes on one card, read off the rendered page. */
+const laneOf = (page: Page, slug: string) =>
+  card(page, slug).evaluate((el) => {
+    const rule = el.querySelector<HTMLElement>('[data-qa="blog-card-lane-rule"]');
+    const date = el.querySelector<HTMLElement>('[data-qa="blog-card-date"]')!;
+    const label = el.querySelector<HTMLElement>('[data-qa="blog-card-label"]');
+    const box = el.getBoundingClientRect();
+    const r = rule?.getBoundingClientRect();
+    return {
+      lane: el.getAttribute("data-blog-card-lane"),
+      rule:
+        rule && r
+          ? {
+              color: getComputedStyle(rule).backgroundColor,
+              width: r.width,
+              left: r.left - box.left,
+              height: r.height,
+              cardHeight: box.height,
+            }
+          : null,
+      dateColor: getComputedStyle(date).color,
+      label: label
+        ? { text: label.textContent, transform: getComputedStyle(label).textTransform, first: date.firstElementChild === label }
+        : null,
+    };
+  });
+
+/** Every match's box starts and ends inside the viewport (body clips overflow-x, so scrollWidth alone can hide a cut). */
+const boxesWithin = async (page: Page, selector: string, width: number) => {
+  const boxes = await page.locator(selector).evaluateAll((els) =>
+    els.map((e) => {
+      const r = e.getBoundingClientRect();
+      return { left: r.left, right: r.right };
+    }),
+  );
+  expect(boxes.length, `${selector} rendered`).toBeGreaterThan(0);
+  for (const b of boxes) {
+    expect(b.left, `${selector} starts on screen`).toBeGreaterThanOrEqual(0);
+    expect(b.right, `${selector} ends on screen`).toBeLessThanOrEqual(width);
+  }
+};
+
+const slugsIn = (page: Page, scope: string) =>
+  page.locator(`${scope} [data-qa="blog-card"]`).evaluateAll((els) => els.map((e) => e.getAttribute("data-slug")));
+
+test.describe("BLOG.GW.1 GW lane", () => {
+  test("G1 a Green World card carries the lane and the label; a personal card does not", async ({ page }) => {
+    await openPublic(page, "/blog", "es", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+
+    const gw = await laneOf(page, "bailar-en-medellin");
+    expect(gw.lane).toBe("greenworld");
+    expect(gw.rule).not.toBeNull();
+    expect(gw.rule!.color).toBe(LANE_RGB);
+    expect(gw.rule!.width).toBe(1); // a hairline
+    expect(gw.rule!.left).toBe(0); // on the card's left edge
+    expect(Math.abs(gw.rule!.height - gw.rule!.cardHeight)).toBeLessThanOrEqual(1); // the whole card
+    expect(gw.dateColor).toBe(LANE_RGB);
+    expect(gw.label).toEqual({ text: "Green World", transform: "uppercase", first: true });
+    await expect(card(page, "bailar-en-medellin").locator('[data-qa="blog-card-date"]')).toHaveText(
+      "Green World · 12 de septiembre de 2026",
+    );
+
+    const personal = await laneOf(page, "un-dia-en-el-set");
+    expect(personal).toEqual({ lane: "personal", rule: null, dateColor: GOLD_RGB, label: null });
+
+    // No other green on the blog: the eyebrow and the chips stay gold.
+    await expect(page.locator('[data-qa="blog-eyebrow"]')).toHaveCSS("color", GOLD_RGB);
+    await expect(page.locator('[data-qa="blog-filter-greenworld"]')).toHaveCSS(
+      "border-top-color",
+      "rgba(201, 165, 92, 0.4)",
+    );
+  });
+
+  test("G2 ?c=greenworld has its own head and a sitemap entry; Todo and Personal keep today's", async ({ page }) => {
+    await openPublic(page, "/blog?c=greenworld", "es", undefined, catRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(1);
+    await expect.poll(async () => (await head(page)).title).toBe("Green World · Blog de Titi Polentino");
+    let h = await head(page);
+    expect(h.canonical).toBe("https://www.titiactriz.com/blog?c=greenworld");
+    expect(h.description).toBe(
+      "Bienestar y nutrición con Green World: los artículos de Titi Polentino sobre los productos que usa, lo que aprende y su camino como representante independiente.",
+    );
+    await expect(page.locator('[data-qa="blog-intro"]')).toHaveText(
+      "Bienestar y nutrición con Green World: lo que uso, lo que aprendo y lo que comparto.",
+    );
+
+    // Todo, by the chip (no reload): the room's own head, and no intro line.
+    await page.locator('[data-qa="blog-filter-all"]').click();
+    await expect.poll(async () => (await head(page)).title).toBe("Blog | Cristyna Polentino");
+    h = await head(page);
+    expect(h.canonical).toBe("https://www.titiactriz.com/blog");
+    expect(h.description).toBe(
+      "El blog de Cristyna Polentino (Titi), actriz colombiana, streamer y empresaria en Medellín.",
+    );
+    await expect(page.locator('[data-qa="blog-intro"]')).toHaveCount(0);
+
+    // Personal: the same head as Todo.
+    await page.locator('[data-qa="blog-filter-personal"]').click();
+    await expect(page).toHaveURL(/\/blog\?c=personal$/);
+    await expect.poll(async () => (await head(page)).canonical).toBe("https://www.titiactriz.com/blog");
+    expect((await head(page)).title).toBe("Blog | Cristyna Polentino");
+    await expect(page.locator('[data-qa="blog-intro"]')).toHaveCount(0);
+
+    // English mirrors the lane's head.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await openPublic(page, "/blog?c=greenworld", "en", undefined, catRows());
+    await expect.poll(async () => (await head(page)).title).toBe("Green World · Titi Polentino's Blog");
+    await expect(page.locator('[data-qa="blog-intro"]')).toHaveText(
+      "Wellness and nutrition with Green World: what I use, what I learn and what I share.",
+    );
+
+    // The lane is a sitemap entry of its own (build-sitemap.mjs writes it; the committed file carries it).
+    const xml = readFileSync(resolve(HERE, "../public/sitemap.xml"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+    expect(xml).toContain("<loc>https://www.titiactriz.com/blog?c=greenworld</loc>");
+    expect(readFileSync(resolve(HERE, "../scripts/build-sitemap.mjs"), "utf8")).toContain(
+      "`${SITE}/blog?c=greenworld`",
+    );
+  });
+
+  test("G3 a Green World post: its lane, 'Más de Green World' with Green World posts only, and 4 crumbs", async ({
+    page,
+  }) => {
+    await openPublic(page, "/blog/te-verde-en-casa", "es", undefined, laneRows());
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Té verde en casa");
+
+    // The label above the date; the meta line and the title rule in the lane green.
+    const label = page.locator('[data-qa="blog-post-label"]');
+    await expect(label).toHaveText("Green World");
+    await expect(label).toHaveCSS("color", LANE_RGB);
+    await expect(label).toHaveCSS("text-transform", "uppercase");
+    const meta = page.locator('[data-qa="blog-post-meta"]');
+    await expect(meta).toHaveCSS("color", LANE_RGB);
+    expect((await label.boundingBox())!.y).toBeLessThan((await meta.boundingBox())!.y);
+    await expect(page.locator('[data-qa="blog-post-rule"]')).toHaveCSS("background-color", LANE_RGB);
+
+    // Up to three OTHER published Green World posts, newest first, as lane cards.
+    await expect(page.locator('[data-qa="blog-more-title"]')).toHaveText("Más de Green World");
+    await expect(page.locator('[data-qa="blog-more"] [data-qa="blog-card"]')).toHaveCount(3);
+    expect(await slugsIn(page, '[data-qa="blog-more"]')).toEqual([
+      "mi-lista-de-compras",
+      "bailar-en-medellin",
+      "rutina-de-la-manana",
+    ]);
+    expect(
+      await page
+        .locator('[data-qa="blog-more"] [data-qa="blog-card"]')
+        .evaluateAll((els) => els.map((e) => e.getAttribute("data-blog-card-lane"))),
+    ).toEqual(["greenworld", "greenworld", "greenworld"]);
+    await expect(page.locator('[data-qa="blog-more"]').getByText("Borrador verde")).toHaveCount(0);
+
+    // Inicio → Blog → Green World → the post.
+    await expect.poll(async () => (await postLd(page)).some((l: Ld) => l["@type"] === "BreadcrumbList")).toBe(true);
+    const breadcrumb = (await postLd(page)).find((l: Ld) => l["@type"] === "BreadcrumbList")!;
+    expect(crumbs(breadcrumb)).toEqual([
+      { type: "ListItem", position: 1, name: "Inicio", item: "https://www.titiactriz.com/" },
+      { type: "ListItem", position: 2, name: "Blog", item: "https://www.titiactriz.com/blog" },
+      { type: "ListItem", position: 3, name: "Green World", item: "https://www.titiactriz.com/blog?c=greenworld" },
+      {
+        type: "ListItem",
+        position: 4,
+        name: "Té verde en casa",
+        item: "https://www.titiactriz.com/blog/te-verde-en-casa",
+      },
+    ]);
+
+    // A personal post: gold, no label, 'Más del blog' with personal posts only — above
+    // the tags — and three crumbs.
+    await page.goto("/blog/un-dia-en-el-set", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-qa="blog-post-title"]')).toHaveText("Un día en el set");
+    await expect(page.locator('[data-qa="blog-more-title"]')).toHaveText("Más del blog");
+    expect(await slugsIn(page, '[data-qa="blog-more"]')).toEqual(["cuaderno-de-rodaje"]);
+    const moreBox = (await page.locator('[data-qa="blog-more"]').boundingBox())!;
+    expect(moreBox.y).toBeLessThan((await page.locator('[data-qa="blog-post-tags"]').boundingBox())!.y);
+    await expect(page.locator('[data-qa="blog-post-label"]')).toHaveCount(0);
+    await expect(page.locator('[data-qa="blog-post-meta"]')).toHaveCSS("color", GOLD_RGB);
+    await expect(page.locator('[data-qa="blog-post-rule"]')).toHaveCSS("background-color", GOLD_RGB);
+    await expect
+      .poll(async () =>
+        crumbs((await postLd(page)).find((l: Ld) => l["@type"] === "BreadcrumbList")!).map((c) => c.name),
+      )
+      .toEqual(["Inicio", "Blog", "Un día en el set"]);
+  });
+
+  test("G4 /green-world shows the latest three Green World posts and the link; none published, no section", async ({
+    page,
+  }) => {
+    await openPublic(page, "/green-world", "es", undefined, laneRows());
+    const strip = page.locator('[data-qa="gw-latest"]');
+    await expect(strip).toBeVisible();
+    await expect(strip.locator("h2")).toHaveText("Últimos artículos");
+    const cards = strip.locator('[data-qa="gw-latest-card"]');
+    await expect(cards).toHaveCount(3);
+    expect(await cards.evaluateAll((els) => els.map((e) => e.getAttribute("href")))).toEqual([
+      "/blog/te-verde-en-casa",
+      "/blog/mi-lista-de-compras",
+      "/blog/bailar-en-medellin",
+    ]);
+    await expect(cards.first().locator("h3")).toHaveText("Té verde en casa");
+    await expect(cards.first()).toContainText("24 de septiembre de 2026");
+    await expect(cards.first()).toContainText("Sobre té verde en casa.");
+    await expect(cards.first().locator("img")).toHaveAttribute("alt", COVER_CITY.alt_text);
+    const all = strip.locator('[data-qa="gw-latest-all"]');
+    await expect(all).toHaveText("Ver todos");
+    await expect(all).toHaveAttribute("href", "/blog?c=greenworld");
+    // Just above the Disclaimer.
+    expect(await strip.evaluate((el) => el.nextElementSibling?.textContent ?? "")).toContain("Disclaimer:");
+
+    // Nothing Green World is published: the section is not there at all.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    const writes: Write[] = [];
+    await routeSupabase(page, { writes });
+    await routeBlog(
+      page,
+      laneRows().filter((r) => r.category !== "greenworld"),
+      writes,
+    );
+    const answered = page.waitForResponse((r) => r.url().includes("/rest/v1/blog_posts"));
+    await page.goto("/green-world", { waitUntil: "domcontentloaded" });
+    await answered;
+    await expect(page.getByText("Disclaimer:")).toBeVisible();
+    await page.waitForTimeout(300);
+    await expect(strip).toHaveCount(0);
+    await expect(page.getByText("Últimos artículos")).toHaveCount(0);
+  });
+
+  test("G5 390×844: a Green World card and the /green-world strip fit with no sideways scroll", async ({ page }) => {
+    const phone = { width: 390, height: 844 };
+    await openPublic(page, "/blog", "es", phone, laneRows());
+    await expect(card(page, "te-verde-en-casa")).toBeVisible();
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    // Every lane piece on screen: the card, its rule, and the date that never breaks.
+    await boxesWithin(page, '[data-blog-card-lane="greenworld"]', phone.width);
+    await boxesWithin(page, '[data-qa="blog-card-lane-rule"]', phone.width);
+    await boxesWithin(page, '[data-blog-card-lane="greenworld"] [data-qa="blog-card-date"] time', phone.width);
+
+    await page.goto("/blog/te-verde-en-casa", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-qa="blog-more"] [data-qa="blog-card"]')).toHaveCount(3);
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    await boxesWithin(page, '[data-qa="blog-more"] [data-qa="blog-card-date"] time', phone.width);
+
+    await page.goto("/green-world", { waitUntil: "domcontentloaded" });
+    const strip = page.locator('[data-qa="gw-latest"]');
+    await expect(strip.locator('[data-qa="gw-latest-card"]')).toHaveCount(3);
+    await strip.scrollIntoViewIfNeeded();
+    expect(await noHorizontalOverflow(page)).toBe(true);
+    await boxesWithin(page, '[data-qa="gw-latest"]', phone.width);
+    await boxesWithin(page, '[data-qa="gw-latest-card"]', phone.width);
+    await boxesWithin(page, '[data-qa="gw-latest-all"]', phone.width);
   });
 });

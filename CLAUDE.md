@@ -44,7 +44,8 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
   events-video "picking a valid video uploads it…", events-video "a video over the 200 MB cap is
   refused out loud…", cineflow5-shipped "phone 390x844 EN",
   webkit events-snap-phone "phone-440x792", webkit events-snap-phone tablet-portrait 820×1180
-  "every card comes to rest in card 1's arrival frame".
+  "every card comes to rest in card 1's arrival frame", admin-coach C9 "Consejos folds under a
+  chevron…", socials-act "the act dwells on the uniform +=120%…".
 - CI install cap: after a Playwright version bump the first CI run is a cache miss and can lose
   shards to the 10-minute install cap; `gh run rerun <id> --failed` once a shard has saved the cache.
 - Supabase: live project ref `nsmstwkjbjicpdclgecq` ("TitiActriz"). Deploys: Vercel →
