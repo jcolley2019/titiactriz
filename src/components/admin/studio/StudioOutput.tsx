@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { PlatformIcon } from "@/components/PlatformIcon";
 import type { Lang } from "@/hooks/useEventsBoard";
 import { VOICES, type VoiceName } from "@/lib/voices";
+import { GW_KINDS, gwKindLabelKey, type GwKind } from "@/lib/blog";
 import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useStudioGeneration";
 
 /**
@@ -13,6 +14,12 @@ import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useS
  *
  * STUDIO.VOICES.1 — "Voz" sits above the language: Personal or Green World,
  * the voice the press is written in (the same segmented control as Idioma).
+ *
+ * BLOG.GW.2 — with Green World picked, "Tipo" stands beside Voz (Producto,
+ * Capacitación, Negocio; the same control; under it when the column is too
+ * narrow for both), and Producto opens two optional fields: the product's name
+ * and its link (http(s) or empty — an empty link points the article at the
+ * Green World shop). A link that is not http(s) holds Generate.
  */
 
 export const PLATFORM_LABEL: Record<StudioPlatform, string> = {
@@ -38,6 +45,13 @@ type Props = {
   onLanguageChange: (l: Lang) => void;
   voice: VoiceName;
   onVoiceChange: (v: VoiceName) => void;
+  gwKind: GwKind;
+  onGwKindChange: (k: GwKind) => void;
+  productName: string;
+  onProductNameChange: (s: string) => void;
+  productUrl: string;
+  onProductUrlChange: (s: string) => void;
+  productUrlInvalid: boolean;
   webSearch: boolean;
   onWebSearchChange: (on: boolean) => void;
   canGenerate: boolean;
@@ -54,6 +68,13 @@ const StudioOutput = ({
   onLanguageChange,
   voice,
   onVoiceChange,
+  gwKind,
+  onGwKindChange,
+  productName,
+  onProductNameChange,
+  productUrl,
+  onProductUrlChange,
+  productUrlInvalid,
   webSearch,
   onWebSearchChange,
   canGenerate,
@@ -149,29 +170,106 @@ const StudioOutput = ({
         </div>
       )}
 
-      <div data-coach="studio.voice">
-        <div className="st-label-row">
-          <span className="st-field-label" id="studio-voice-label">
-            {t("admin.studio.voiceLabel")}
-          </span>
+      <div className="st-pair" data-qa="studio-voice-row">
+        <div data-coach="studio.voice">
+          <div className="st-label-row">
+            <span className="st-field-label" id="studio-voice-label">
+              {t("admin.studio.voiceLabel")}
+            </span>
+          </div>
+          <div className="st-segment" role="radiogroup" aria-labelledby="studio-voice-label">
+            {VOICES.map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                className="st-tab"
+                data-qa={`studio-voice-${v}`}
+                aria-checked={voice === v}
+                onClick={() => onVoiceChange(v)}
+                disabled={generating}
+              >
+                {v === "personal" ? t("admin.studio.voicePersonal") : t("admin.studio.voiceGreenWorld")}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="st-segment" role="radiogroup" aria-labelledby="studio-voice-label">
-          {VOICES.map((v) => (
-            <button
-              key={v}
-              type="button"
-              role="radio"
-              className="st-tab"
-              data-qa={`studio-voice-${v}`}
-              aria-checked={voice === v}
-              onClick={() => onVoiceChange(v)}
-              disabled={generating}
-            >
-              {v === "personal" ? t("admin.studio.voicePersonal") : t("admin.studio.voiceGreenWorld")}
-            </button>
-          ))}
-        </div>
+
+        {/* BLOG.GW.2 — Tipo, only for Green World: the same control as Voz. */}
+        {voice === "greenworld" && (
+          <div className="st-pair-wide" data-qa="studio-kind">
+            <div className="st-label-row">
+              <span className="st-field-label" id="studio-kind-label">
+                {t("admin.studio.kindLabel")}
+              </span>
+            </div>
+            <div className="st-segment" role="radiogroup" aria-labelledby="studio-kind-label">
+              {GW_KINDS.map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  role="radio"
+                  className="st-tab"
+                  data-qa={`studio-kind-${k}`}
+                  aria-checked={gwKind === k}
+                  onClick={() => onGwKindChange(k)}
+                  disabled={generating}
+                >
+                  {t(gwKindLabelKey(k))}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* BLOG.GW.2 — the product a Producto press is about: both optional. */}
+      {voice === "greenworld" && gwKind === "producto" && (
+        <div className="st-pair" data-qa="studio-product">
+          <div>
+            <label className="st-field-label" htmlFor="studio-product-name">
+              {t("admin.blog.fieldProductName")}
+            </label>
+            <input
+              id="studio-product-name"
+              className="st-input mt-2"
+              data-qa="studio-product-name"
+              maxLength={120}
+              value={productName}
+              onChange={(e) => onProductNameChange(e.target.value)}
+              disabled={generating}
+            />
+          </div>
+          <div>
+            <label className="st-field-label" htmlFor="studio-product-url">
+              {t("admin.blog.fieldProductUrl")}
+            </label>
+            <input
+              id="studio-product-url"
+              type="url"
+              inputMode="url"
+              className="st-input mt-2"
+              data-qa="studio-product-url"
+              maxLength={500}
+              placeholder="https://"
+              value={productUrl}
+              onChange={(e) => onProductUrlChange(e.target.value)}
+              disabled={generating}
+              aria-invalid={productUrlInvalid ? true : undefined}
+              aria-describedby="studio-product-help"
+            />
+          </div>
+          {productUrlInvalid ? (
+            <p className="st-error st-pair-full" id="studio-product-help" data-qa="studio-product-url-error" role="alert">
+              {t("admin.blog.productUrlInvalid")}
+            </p>
+          ) : (
+            <p className="st-caption st-pair-full" id="studio-product-help">
+              {t("admin.studio.productHelp")}
+            </p>
+          )}
+        </div>
+      )}
 
       <div data-coach="studio.language">
         <div className="st-label-row">

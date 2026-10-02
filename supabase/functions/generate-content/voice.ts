@@ -14,7 +14,7 @@
  * capped. `avoid` only ADDS to the site laws in prompts.ts; it cannot lift one.
  */
 
-import type { Voice } from "./validate.ts";
+import type { GwKind, GwProduct, Voice } from "./validate.ts";
 
 export interface StudioVoice {
   name?: unknown;
@@ -96,6 +96,46 @@ ${lines.join("\n\n")}
 
 **Author sign-off** — a blog article ends with a --- separator followed by exactly:
 *${name}. ${roles}. [titiactriz.com](${SITE_URL})*`;
+}
+
+/**
+ * Cristyna's Green World storefront — mirrors GREEN_WORLD_SHOP_URL in
+ * src/lib/ventures.ts, where the Green World page's "Shop" button points. A
+ * Producto piece with no product link of its own points here.
+ */
+export const GREEN_WORLD_SHOP_URL =
+  "https://us.world-food.com/#/shareLoginIn&MjI1Mjg0Mjc7MjIyNjUyNDg7MjAyNi0wMy0wNyAxOToyNDo1NQ==";
+
+/**
+ * BLOG.GW.2 — what kind of Green World piece this is, appended after the voice
+ * block for the greenworld voice only (empty otherwise). Not cached: it changes
+ * with the Studio's Tipo. The no-health-claims law still closes the format
+ * prompt (GREEN_WORLD_LAW); each kind restates the part of it that kind is most
+ * likely to trip over. The product name and link reach here validated (one line,
+ * capped; http(s) only).
+ */
+export function kindBlock(kind: GwKind | undefined, product?: GwProduct): string {
+  if (!kind) return "";
+  if (kind === "producto") {
+    const about = product?.name
+      ? `ONE named Green World product: "${product.name}"`
+      : "ONE Green World product, named as the input names it";
+    const url = product?.url ?? GREEN_WORLD_SHOP_URL;
+    const where = product?.url ? "the product's own page" : "the Green World shop";
+    return `## PIECE KIND — Producto (one product)
+
+This piece is about ${about}. Say what it is, who it is for, and how it fits into an everyday routine — from the author's own use, as far as the input gives it. Describe it only in the words of bienestar y nutrición (wellness and nutrition): never say or imply that it treats, cures, prevents, relieves or diagnoses anything, never promise a result, never compare it with medicine. If the input makes such a claim, leave it out.
+
+It ends by pointing the reader to the product: a Markdown link to ${where}, ${url} — in a blog article as its closing line before the author sign-off, in a social package in the CTA or caption. The visible text names the product or says where it goes (e.g. "Ver el producto en Green World"), never the raw address; the target is exactly that address. The author gave this link, so it counts as a link she gives.`;
+  }
+  if (kind === "capacitacion") {
+    return `## PIECE KIND — Capacitación (training)
+
+This piece teaches ONE skill or process to Green World distributors — for example placing an order, following up with a customer, or presenting a product honestly. Say who it is for, then the steps in order, then the mistakes to avoid. Practical and specific, from the author's own experience as far as the input gives it. Any product it mentions is described only as bienestar y nutrición, never with a health claim, and it promises no income.`;
+  }
+  return `## PIECE KIND — Negocio (the business side)
+
+This piece is about the business side of Green World: what being a distributor involves and how the opportunity works — honest and specific about what it takes in time, effort and learning, from the author's own experience as far as the input gives it. Never state, imply or estimate income, earnings or results, and never promise financial freedom or quick success. Any product it mentions is described only as bienestar y nutrición, never with a health claim.`;
 }
 
 /** The per-call language instruction. Not cached: it changes with the ES/EN toggle. */

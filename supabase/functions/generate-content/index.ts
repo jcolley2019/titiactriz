@@ -9,7 +9,12 @@
 // translate-text uses) and a body validated by validate.ts:
 //   { input_kind, input_text, output_format: "social"|"blog", platform?,
 //     language: "es"|"en", voice?: "personal"|"greenworld", cascade_source?,
-//     web_search? }
+//     web_search?, gw_kind?: "producto"|"capacitacion"|"negocio",
+//     gw_product_name?, gw_product_url? }
+//  (v4, BLOG.GW.2: for the greenworld voice, gw_kind adds a kindBlock after the
+//   voice block — Producto about one named product ending on its link or the
+//   Green World shop, Capacitación teaching one skill to distributors, Negocio
+//   the business side with no income claims. Ignored for the personal voice.)
 //  - social -> JSON { content, usage, web_search_used }
 //  - blog   -> server-sent events:
 //      event: content_block_delta  {"text": "..."}      per released text delta
@@ -29,7 +34,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import Anthropic from "npm:@anthropic-ai/sdk@0.128.0";
 import { validateRequest } from "./validate.ts";
-import { FALLBACK_VOICE_KEY, languageBlock, pickVoice, voiceBlock, voiceKey } from "./voice.ts";
+import { FALLBACK_VOICE_KEY, kindBlock, languageBlock, pickVoice, voiceBlock, voiceKey } from "./voice.ts";
 import { derivativePrompt, systemPrompt } from "./prompts.ts";
 
 // Model tiers — the same IDs joeyc.ai's generate-content uses today.
@@ -291,8 +296,18 @@ Deno.serve(async (req) => {
     }
     const validation = validateRequest(rawBody);
     if (!validation.ok) return json({ error: validation.error }, 400);
-    const { input_kind, input_text, output_format, platform, language, voice: voiceName, cascade_source, web_search } =
-      validation.value;
+    const {
+      input_kind,
+      input_text,
+      output_format,
+      platform,
+      language,
+      voice: voiceName,
+      cascade_source,
+      web_search,
+      gw_kind,
+      gw_product,
+    } = validation.value;
 
     // The voice's text comes from the database, never from the request body: the
     // named voice's document, else the old studio.voice, else the built-in defaults.
@@ -337,9 +352,11 @@ Deno.serve(async (req) => {
 
     // Static part first so the cache hits; the voice text and language vary.
     // (The Green World law rides on the static part, so that voice caches on its own.)
+    // BLOG.GW.2 — a Green World call's kind follows the voice block.
+    const kind = voiceName === "greenworld" ? kindBlock(gw_kind, gw_product) : "";
     const system: Anthropic.TextBlockParam[] = [
       { type: "text", text: formatPrompt, cache_control: { type: "ephemeral" } },
-      { type: "text", text: `${voiceBlock(voice)}\n\n${languageBlock(language)}` },
+      { type: "text", text: [voiceBlock(voice), kind, languageBlock(language)].filter(Boolean).join("\n\n") },
     ];
 
     const generation = {

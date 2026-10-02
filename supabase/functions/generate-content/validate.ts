@@ -6,6 +6,11 @@
  * with an unbounded body. The voice's CONTENT is never accepted from the body:
  * the body names one of two voices (STUDIO.VOICES.1) and the function reads that
  * voice's document from site_settings itself.
+ *
+ * BLOG.GW.2 — a Green World call may name its kind (gw_kind) and, for Producto,
+ * the product (gw_product_name, capped and flattened to one line; gw_product_url,
+ * http(s) only). They mean something only for the greenworld voice: on any other
+ * voice they are dropped, and the product pair is dropped on any other kind.
  */
 
 export const INPUT_KINDS = ["brain_dump", "youtube"] as const;
@@ -13,14 +18,25 @@ export const OUTPUT_FORMATS = ["social", "blog"] as const;
 export const PLATFORMS = ["tiktok", "instagram", "pinterest", "youtube"] as const;
 export const LANGUAGES = ["es", "en"] as const;
 export const VOICES = ["personal", "greenworld"] as const;
+/** Mirrors GW_KINDS in src/lib/blog.ts and blog_posts_gw_kind_check. */
+export const GW_KINDS = ["producto", "capacitacion", "negocio"] as const;
 
 export const MAX_INPUT_CHARS = 30_000; // input_text and cascade_source
+export const MAX_PRODUCT_NAME_CHARS = 120;
+export const MAX_PRODUCT_URL_CHARS = 500;
 
 export type InputKind = typeof INPUT_KINDS[number];
 export type OutputFormat = typeof OUTPUT_FORMATS[number];
 export type Platform = typeof PLATFORMS[number];
 export type Language = typeof LANGUAGES[number];
 export type Voice = typeof VOICES[number];
+export type GwKind = typeof GW_KINDS[number];
+
+/** The product a Producto piece is about: both optional. */
+export interface GwProduct {
+  name?: string;
+  url?: string;
+}
 
 export interface GenerateRequest {
   input_kind: InputKind;
@@ -34,6 +50,10 @@ export interface GenerateRequest {
   cascade_source?: string;
   /** Let the model research the topic on the web. Default on for first-hand calls; never for derivatives. */
   web_search: boolean;
+  /** BLOG.GW.2 — the Green World kind; undefined on a personal call. */
+  gw_kind?: GwKind;
+  /** BLOG.GW.2 — the product of a Producto call; undefined otherwise. */
+  gw_product?: GwProduct;
 }
 
 export type ValidationResult =
@@ -97,6 +117,43 @@ export function validateRequest(body: unknown): ValidationResult {
     return { ok: false, error: "web_search must be a boolean" };
   }
 
+  // BLOG.GW.2 — the kind and its product. Shape-checked whatever the voice; used only for greenworld.
+  if (b.gw_kind !== undefined && b.gw_kind !== null && !isOneOf(GW_KINDS, b.gw_kind)) {
+    return { ok: false, error: `gw_kind must be one of: ${GW_KINDS.join(", ")}` };
+  }
+  let productName: string | undefined;
+  if (b.gw_product_name !== undefined && b.gw_product_name !== null) {
+    if (typeof b.gw_product_name !== "string") return { ok: false, error: "gw_product_name must be a string" };
+    // One line of plain text: control characters and runs of whitespace become single spaces.
+    productName = b.gw_product_name.replace(/[\u0000-\u001f\u007f\s]+/g, " ").trim() || undefined;
+    if (productName && productName.length > MAX_PRODUCT_NAME_CHARS) {
+      return { ok: false, error: `gw_product_name is too long (max ${MAX_PRODUCT_NAME_CHARS} characters)` };
+    }
+  }
+  let productUrl: string | undefined;
+  if (b.gw_product_url !== undefined && b.gw_product_url !== null) {
+    if (typeof b.gw_product_url !== "string") return { ok: false, error: "gw_product_url must be a string" };
+    productUrl = b.gw_product_url.trim() || undefined;
+    if (productUrl) {
+      if (productUrl.length > MAX_PRODUCT_URL_CHARS) {
+        return { ok: false, error: `gw_product_url is too long (max ${MAX_PRODUCT_URL_CHARS} characters)` };
+      }
+      let parsed: URL | null = null;
+      try {
+        parsed = /^https?:\/\/\S+$/i.test(productUrl) ? new URL(productUrl) : null;
+      } catch {
+        parsed = null;
+      }
+      if (!parsed || !parsed.hostname) return { ok: false, error: "gw_product_url must be an http(s) link" };
+    }
+  }
+  const voice: Voice = isOneOf(VOICES, b.voice) ? b.voice : "personal";
+  const gwKind = voice === "greenworld" && isOneOf(GW_KINDS, b.gw_kind) ? b.gw_kind : undefined;
+  const gwProduct =
+    gwKind === "producto" && (productName || productUrl)
+      ? { ...(productName ? { name: productName } : {}), ...(productUrl ? { url: productUrl } : {}) }
+      : undefined;
+
   return {
     ok: true,
     value: {
@@ -105,9 +162,11 @@ export function validateRequest(body: unknown): ValidationResult {
       output_format: b.output_format,
       platform: (b.platform ?? undefined) as Platform | undefined,
       language: b.language,
-      voice: b.voice ?? "personal",
+      voice,
       cascade_source: cascadeSource,
       web_search: cascadeSource ? false : b.web_search !== false,
+      gw_kind: gwKind,
+      gw_product: gwProduct,
     },
   };
 }

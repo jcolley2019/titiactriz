@@ -11,9 +11,15 @@
  * STUDIO.VOICES.1 — the draft's blog category is the voice the article was
  * written in (greenworld → 'greenworld', anything else → 'personal').
  *
+ * BLOG.GW.2 — a Green World draft also carries the kind the press was written
+ * as, and a Producto draft the product it was written about (name, and a link
+ * only if it is http(s)). A personal draft carries none of the three, whatever
+ * is passed — the same rule the Blog editor's Save follows.
+ *
  * Pure: no React, no Supabase, so the Playwright runner can unit-test it.
  */
 import type { Lang, Localized } from "@/hooks/useEventsBoard";
+import { asGwKind, isHttpUrl, type GwKind } from "@/lib/blog";
 import { asVoice, type VoiceName } from "@/lib/voices";
 
 export const TITLE_MAX_CHARS = 120;
@@ -147,18 +153,41 @@ export interface StudioDraft {
   meta_description: Localized | null;
   tags: string[];
   category: VoiceName;
+  gw_kind: GwKind | null;
+  gw_product_name: string | null;
+  gw_product_url: string | null;
   status: "draft";
+}
+
+/** BLOG.GW.2 — what a Green World press was written as. */
+export interface StudioGw {
+  kind: GwKind | null;
+  productName?: string | null;
+  productUrl?: string | null;
+}
+
+/** The three gw_* columns of a draft: a kind only on Green World, a product only on Producto. */
+export function studioGwColumns(voice: VoiceName, gw: StudioGw | null | undefined) {
+  const kind = asVoice(voice) === "greenworld" ? asGwKind(gw?.kind) : null;
+  const product = kind === "producto";
+  const url = gw?.productUrl?.trim() ?? "";
+  return {
+    gw_kind: kind,
+    gw_product_name: product ? gw?.productName?.trim() || null : null,
+    gw_product_url: product && url && isHttpUrl(url) ? url : null,
+  };
 }
 
 /**
  * The blog_posts row a Publish writes: always a DRAFT (the Studio never
  * publishes live), language side = the output language, other side pending,
- * category = the voice it was written in.
+ * category = the voice it was written in, and (BLOG.GW.2) its kind and product.
  */
 export function studioDraft(
   article: string,
   lang: Lang,
   voice: VoiceName = "personal",
+  gw: StudioGw | null = null,
 ): { ok: true; draft: StudioDraft } | { ok: false; error: string } {
   const { meta, body: withoutMeta } = parseMetaFence(article);
   const derived = deriveTitleAndSlug(withoutMeta);
@@ -178,6 +207,7 @@ export function studioDraft(
       meta_description: metaDescription ? pendingLocalized(metaDescription, lang) : null,
       tags: [],
       category: asVoice(voice),
+      ...studioGwColumns(voice, gw),
       status: "draft",
     },
   };

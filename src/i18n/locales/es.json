@@ -924,6 +924,8 @@
       "voiceLabel": "Voz",
       "voicePersonal": "Personal",
       "voiceGreenWorld": "Green World",
+      "kindLabel": "Tipo",
+      "productHelp": "Opcional. El artículo termina con el enlace al producto; sin enlace, apunta a la tienda de Green World.",
       "webSearchToggle": "Investigar en la web",
       "webSearchHint": "Más lento, con datos de hoy",
       "generate": "Generar",

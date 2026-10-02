@@ -252,6 +252,24 @@
 .studio .st-segment > .st-tab {
   flex: 1 1 0;
 }
+/* BLOG.GW.2 — two controls side by side when the column holds both, one under
+   the other when it does not (Voz beside Tipo; the product's name beside its link). */
+.studio .st-pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 1rem;
+}
+.studio .st-pair > * {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.studio .st-pair > .st-pair-wide {
+  flex-basis: 20rem;
+}
+.studio .st-pair > .st-pair-full {
+  flex-basis: 100%;
+  margin-top: -0.75rem;
+}
 .studio .st-tab {
   min-height: 2.5rem;
   padding: 0.4rem 0.9rem;

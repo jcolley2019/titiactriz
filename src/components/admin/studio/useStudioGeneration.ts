@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { Lang } from "@/hooks/useEventsBoard";
 import type { VoiceName } from "@/lib/voices";
+import type { GwKind } from "@/lib/blog";
+import { studioGwColumns, type StudioGw } from "@/lib/studio/publish";
 
 /**
  * BLOG.2 — one Generate press in the Studio (ported from joeyc.ai's
@@ -17,6 +19,10 @@ import type { VoiceName } from "@/lib/voices";
  * STUDIO.VOICES.1 — every call of a press names the same voice (personal or
  * greenworld), and the row stores it so a reopened generation publishes into
  * the matching blog category.
+ *
+ * BLOG.GW.2 — a Green World press also names its kind (and, for Producto, the
+ * product) on every call, and the row stores the kind. A personal press sends
+ * none of it.
  */
 
 export type StudioFormat = "social" | "blog";
@@ -53,6 +59,8 @@ export type GenerateParams = {
   voice: VoiceName;
   /** STUDIO.SPEED.2 — the Studio's switch; sent explicitly on every first-hand call (the function treats a missing field as true). */
   webSearch: boolean;
+  /** BLOG.GW.2 — the kind a Green World press is written as; ignored for a personal one. */
+  gw: StudioGw | null;
 };
 
 export type Generation = {
@@ -60,6 +68,8 @@ export type Generation = {
   outputs: StudioOutputs;
   language: Lang;
   voice: VoiceName;
+  /** BLOG.GW.2 — the draft's kind and product for Publicar (a reopened row knows its kind only). */
+  gw: StudioGw | null;
   blogPostId: string | null;
 };
 
@@ -79,6 +89,20 @@ type Body = {
   voice: VoiceName;
   cascade_source?: string;
   web_search?: boolean;
+  gw_kind?: GwKind;
+  gw_product_name?: string;
+  gw_product_url?: string;
+};
+
+/** BLOG.GW.2 — the kind fields a call carries: a Green World press with a kind only, and only what is filled in. */
+const gwBody = (voice: VoiceName, gw: StudioGw | null): Partial<Body> => {
+  const cols = studioGwColumns(voice, gw);
+  if (!cols.gw_kind) return {};
+  return {
+    gw_kind: cols.gw_kind,
+    ...(cols.gw_product_name ? { gw_product_name: cols.gw_product_name } : {}),
+    ...(cols.gw_product_url ? { gw_product_url: cols.gw_product_url } : {}),
+  };
 };
 
 /** A readable message from a failed functions.invoke. */
@@ -226,7 +250,7 @@ export function useStudioGeneration() {
     setStatus("generating");
     setError(null);
     setUsage(null);
-    setGeneration({ id: null, outputs: {}, language: p.language, voice: p.voice, blogPostId: null });
+    setGeneration({ id: null, outputs: {}, language: p.language, voice: p.voice, gw: p.gw, blogPostId: null });
 
     const outputs: StudioOutputs = {};
     const usages: CallUsage[] = [];
@@ -248,7 +272,13 @@ export function useStudioGeneration() {
       if (!token) throw new Error("Not signed in");
       if (p.inputText.length > MAX_INPUT_CHARS) throw new Error("tooLong");
 
-      const base = { input_kind: p.inputKind, input_text: p.inputText, language: p.language, voice: p.voice };
+      const base = {
+        input_kind: p.inputKind,
+        input_text: p.inputText,
+        language: p.language,
+        voice: p.voice,
+        ...gwBody(p.voice, p.gw),
+      };
       const wantsBlog = p.formats.includes("blog");
       const wantsSocial = p.formats.includes("social") && p.platforms.length > 0;
 
@@ -304,6 +334,7 @@ export function useStudioGeneration() {
             source_url: p.sourceUrl,
             language: p.language,
             voice: p.voice,
+            gw_kind: studioGwColumns(p.voice, p.gw).gw_kind,
             formats: p.formats,
             platforms: p.formats.includes("social") ? p.platforms : [],
             outputs: outputs as unknown as Json,
@@ -315,7 +346,7 @@ export function useStudioGeneration() {
         else id = data.id;
         setHistoryVersion((v) => v + 1);
       }
-      setGeneration({ id, outputs: { ...outputs }, language: p.language, voice: p.voice, blogPostId: null });
+      setGeneration({ id, outputs: { ...outputs }, language: p.language, voice: p.voice, gw: p.gw, blogPostId: null });
       if (failures.length) setError(failures.join(" · "));
     } catch (e) {
       window.clearTimeout(repaint);
