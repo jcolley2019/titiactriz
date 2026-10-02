@@ -1,6 +1,7 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { forceLanguage, injectAdminSession, MOCK_PHOTOS, routeSupabase, type Write } from "./_admin";
 import { extractFaq } from "../src/lib/blog/schema";
+import { GREEN_WORLD_SHOP_URL } from "../src/lib/ventures";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -71,6 +72,22 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  *      Ver todos → /blog?c=greenworld, just above the Disclaimer; none published,
  *      no section
  *  G5  390×844: lane cards, the post's row and the strip fit with no sideways scroll
+ *
+ * BLOG.GW.2 — Green World post kinds (Producto / Capacitación / Negocio).
+ *  K1  the editor: Tipo shows only under Green World (Categoría's look, beside it),
+ *      the product fields only under Producto, a non-http(s) link is refused
+ *      before anything is written; the POST carries kind + product, Negocio
+ *      writes NULL product columns, Personal writes NULL to all three, and the
+ *      Green World tab's rows name their kind
+ *  K2  /blog?c=greenworld&k=producto lists only Producto posts (canonical names
+ *      the kind); the kind chips filter with no reload; they are absent under
+ *      Todo and Personal, where ?k= is ignored; a category chip drops ?k=; cards
+ *      and the home act's cards and tiles read "Green World · <kind> · <date>"
+ *  K3  a Producto post: the product card between the body and the tags, its name
+ *      and one line, linking to the given URL (nofollow noopener, new tab) — or
+ *      the Green World shop when the URL is blank; no card on any other post
+ *  K4  Article JSON-LD keywords = the kind label (ES + EN); none without a kind
+ *  K5  390×844: both chip rows (ES + EN) and the product card fit
  */
 
 type Row = Record<string, unknown> & { id: string; slug: string; status: string };
@@ -1438,5 +1455,410 @@ test.describe("BLOG.GW.1 GW lane", () => {
     await boxesWithin(page, '[data-qa="gw-latest"]', phone.width);
     await boxesWithin(page, '[data-qa="gw-latest-card"]', phone.width);
     await boxesWithin(page, '[data-qa="gw-latest-all"]', phone.width);
+  });
+});
+
+/* ---------------- BLOG.GW.2 — Green World post kinds ---------------- */
+
+const KIND_SHOTS = "_qa/blog-gw-2";
+const PRODUCT_URL = "https://shop.example.com/te-verde";
+
+/**
+ * laneRows(), with kinds. Published Green World, newest first: Té verde 24
+ * (Producto, with a link), Lista 16 (Capacitación), Bailar 12 (no kind: written
+ * before kinds), Rutina 05 (Producto, no link), Equipo 02 (Negocio). The Green
+ * World draft is a Producto too, and the personal Cuaderno carries a stray
+ * gw_kind that must count for nothing.
+ */
+const kindRows = (): Row[] => {
+  const kinds: Record<string, Partial<Row>> = {
+    "te-verde-en-casa": {
+      gw_kind: "producto",
+      gw_product_name: "Té verde orgánico",
+      gw_product_url: PRODUCT_URL,
+      tags: ["té", "rutina"],
+    },
+    "mi-lista-de-compras": { gw_kind: "capacitacion" },
+    "rutina-de-la-manana": { gw_kind: "producto", gw_product_name: "Batido de la mañana", gw_product_url: null },
+    "mi-primer-equipo": { gw_kind: "negocio" },
+    "borrador-verde": { gw_kind: "producto" },
+    "cuaderno-de-rodaje": { gw_kind: "producto", gw_product_name: "No soy un producto" },
+  };
+  return [...laneRows(), lanePost("g5", "mi-primer-equipo", "greenworld", "02", "Mi primer equipo", "My first team")].map(
+    (r) => ({ gw_kind: null, gw_product_name: null, gw_product_url: null, ...r, ...(kinds[r.slug] ?? {}) }),
+  );
+};
+
+const kindBtn = (page: Page, k: string) => page.locator(`[data-qa="blog-kind-${k}"]`);
+const kindChip = (page: Page, k: string) => page.locator(`[data-qa="blog-kind-filter-${k}"]`);
+const lastBody = (writes: Write[], method: string) => {
+  const all = blogWrites(writes, method);
+  return JSON.parse(all[all.length - 1].body ?? "{}");
+};
+/** Save, and wait for the bar to go clean: that is this save landing, not an earlier flash. */
+const saveEditor = async (page: Page) => {
+  await page.locator('[data-qa="blog-save"]').click();
+  await expect(page.locator('[data-qa="blog-save-bar"]')).toHaveAttribute("data-dirty", "false");
+  await expect(page.locator('[data-qa="flash-blog-save"]')).toHaveAttribute("data-state", "saved");
+};
+
+test.describe("BLOG.GW.2 GW kinds", () => {
+  test("K1 editor: Tipo only under Green World, the product fields only under Producto; Personal clears all three on save", async ({
+    page,
+  }) => {
+    const writes: Write[] = [];
+    const rows: Row[] = [];
+    await openBlogAdmin(page, rows, writes);
+    await page.locator('[data-qa="blog-new"]').click();
+    const kindField = page.locator('[data-qa="blog-field-kind"]');
+    const product = page.locator('[data-qa="blog-field-product"]');
+
+    // Personal: no Tipo, no product.
+    await expect(page.locator('[data-qa="blog-category-personal"]')).toHaveAttribute("aria-checked", "true");
+    await expect(kindField).toHaveCount(0);
+    await expect(product).toHaveCount(0);
+
+    // Green World: Tipo, beside Categoría, in Categoría's own look; nothing picked yet.
+    await page.locator('[data-qa="blog-category-greenworld"]').click();
+    await expect(kindField).toBeVisible();
+    await expect(kindField.locator("label")).toHaveText("Tipo");
+    expect(await kindField.locator('[role="radio"]').allTextContents()).toEqual(["Producto", "Capacitación", "Negocio"]);
+    for (const k of ["producto", "capacitacion", "negocio"]) {
+      await expect(kindBtn(page, k)).toHaveAttribute("aria-checked", "false");
+    }
+    expect(await kindBtn(page, "producto").getAttribute("class")).toBe(
+      await page.locator('[data-qa="blog-category-personal"]').getAttribute("class"),
+    );
+    const cat = (await page.locator('[data-qa="blog-field-category"]').boundingBox())!;
+    const kindBox = (await kindField.boundingBox())!;
+    expect(Math.abs(cat.y - kindBox.y)).toBeLessThan(4);
+    expect(kindBox.x).toBeGreaterThan(cat.x + cat.width);
+    await expect(product).toHaveCount(0);
+
+    // Producto opens the two fields; another kind hides them; back again, they return.
+    await kindBtn(page, "producto").click();
+    await expect(kindBtn(page, "producto")).toHaveAttribute("aria-checked", "true");
+    await expect(product).toBeVisible();
+    await expect(product.locator('label[for="blog-product-name"]')).toHaveText("Producto");
+    await expect(product.locator('label[for="blog-product-url"]')).toHaveText("Enlace del producto");
+    await kindBtn(page, "capacitacion").click();
+    await expect(product).toHaveCount(0);
+    await kindBtn(page, "producto").click();
+    await expect(product).toBeVisible();
+
+    // A link that is not http(s) is refused before anything is written.
+    await page.locator('[data-qa="blog-title"]').fill("Mi té de la tarde");
+    await page.locator('[data-qa="blog-body"]').fill("## Cómo lo preparo\n\nAgua caliente y paciencia.");
+    await page.locator('[data-qa="blog-product-name"]').fill("Té verde orgánico");
+    await page.locator('[data-qa="blog-product-url"]').fill("ftp://tienda.example.com/te");
+    await page.locator('[data-qa="blog-save"]').click();
+    await expect(page.locator('[data-qa="blog-product-url-error"]')).toHaveText(
+      "El enlace debe empezar por http:// o https://",
+    );
+    await expect(page.locator('[data-qa="blog-product-url"]')).toHaveAttribute("aria-invalid", "true");
+    expect(blogWrites(writes, "POST")).toHaveLength(0);
+    expect(translateCalls(writes)).toHaveLength(0);
+
+    // A real link: saved with the kind and the product.
+    await page.locator('[data-qa="blog-product-url"]').fill(PRODUCT_URL);
+    await expect(page.locator('[data-qa="blog-product-url-error"]')).toHaveCount(0);
+    await saveEditor(page);
+    expect(blogWrites(writes, "POST")).toHaveLength(1);
+    const created = lastBody(writes, "POST");
+    expect(created.category).toBe("greenworld");
+    expect(created.gw_kind).toBe("producto");
+    expect(created.gw_product_name).toBe("Té verde orgánico");
+    expect(created.gw_product_url).toBe(PRODUCT_URL);
+
+    // Negocio keeps a kind and drops the product.
+    await kindBtn(page, "negocio").click();
+    await expect(product).toHaveCount(0);
+    await saveEditor(page);
+    let patch = lastBody(writes, "PATCH");
+    expect(patch.gw_kind).toBe("negocio");
+    expect(patch.gw_product_name).toBeNull();
+    expect(patch.gw_product_url).toBeNull();
+
+    // Producto again, then Personal: the switch hides Tipo, and the save clears all three.
+    await kindBtn(page, "producto").click();
+    await page.locator('[data-qa="blog-product-name"]').fill("Té verde orgánico");
+    await saveEditor(page);
+    expect(lastBody(writes, "PATCH").gw_product_name).toBe("Té verde orgánico");
+    await page.locator('[data-qa="blog-category-personal"]').click();
+    await expect(kindField).toHaveCount(0);
+    await expect(product).toHaveCount(0);
+    await saveEditor(page);
+    patch = lastBody(writes, "PATCH");
+    expect(patch.category).toBe("personal");
+    expect(patch.gw_kind).toBeNull();
+    expect(patch.gw_product_name).toBeNull();
+    expect(patch.gw_product_url).toBeNull();
+    expect(rows[0]).toMatchObject({ category: "personal", gw_kind: null, gw_product_name: null, gw_product_url: null });
+    // Back under Green World the saved post has no kind any more.
+    await page.locator('[data-qa="blog-category-greenworld"]').click();
+    for (const k of ["producto", "capacitacion", "negocio"]) {
+      await expect(kindBtn(page, k)).toHaveAttribute("aria-checked", "false");
+    }
+
+    // The Green World tab's rows name their kind; a post with none, and a Personal row, show nothing.
+    // (Discard first: a dirty editor would hold the reload on its beforeunload guard.)
+    await page.locator('[data-qa="blog-discard"]').click();
+    await expect(page.locator('[data-qa="blog-save-bar"]')).toHaveAttribute("data-dirty", "false");
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await openBlogAdmin(page, kindRows(), writes);
+    await tab(page, "greenworld").click();
+    await expect(blogRow(page, "te-verde-en-casa").locator('[data-qa="blog-row-kind"]')).toHaveText("Producto");
+    await expect(blogRow(page, "mi-lista-de-compras").locator('[data-qa="blog-row-kind"]')).toHaveText("Capacitación");
+    await expect(blogRow(page, "mi-primer-equipo").locator('[data-qa="blog-row-kind"]')).toHaveText("Negocio");
+    await expect(blogRow(page, "bailar-en-medellin").locator('[data-qa="blog-row-kind"]')).toHaveCount(0);
+    // Under the title, beside the status chip.
+    const title = (await blogRow(page, "te-verde-en-casa").locator('[data-qa="blog-row-title"]').boundingBox())!;
+    const kindLabel = (await blogRow(page, "te-verde-en-casa").locator('[data-qa="blog-row-kind"]').boundingBox())!;
+    expect(kindLabel.y).toBeGreaterThan(title.y + title.height - 1);
+    await tab(page, "personal").click();
+    await expect(page.locator('[data-qa="blog-row"]').first()).toBeVisible();
+    await expect(page.locator('[data-qa="blog-row-kind"]')).toHaveCount(0);
+
+    // An existing Producto post opens with its kind and product filled in.
+    await tab(page, "greenworld").click();
+    await blogRow(page, "te-verde-en-casa").locator('[data-qa="blog-row-edit"]').click();
+    await expect(kindBtn(page, "producto")).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator('[data-qa="blog-product-name"]')).toHaveValue("Té verde orgánico");
+    await expect(page.locator('[data-qa="blog-product-url"]')).toHaveValue(PRODUCT_URL);
+    await expect(page.locator('[data-qa="blog-save"]')).toBeDisabled();
+  });
+
+  test("K2 ?c=greenworld&k=producto lists only Producto posts; kind chips live in the lane only; a category chip drops ?k=", async ({
+    page,
+  }) => {
+    await openPublic(page, "/blog?c=greenworld&k=producto", "es", undefined, kindRows());
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+    expect(await slugsOf(page, "blog-card")).toEqual(["te-verde-en-casa", "rutina-de-la-manana"]);
+
+    const kinds = page.locator('[data-qa="blog-kind-filter"]');
+    await expect(kinds).toHaveAttribute("aria-label", "Filtrar por tipo");
+    expect(await kinds.locator("button").allTextContents()).toEqual(["Todos", "Producto", "Capacitación", "Negocio"]);
+    await expect(kindChip(page, "producto")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('[data-qa="blog-filter-greenworld"]')).toHaveAttribute("aria-pressed", "true");
+    // Under the category row, in the same gold grammar, one size down.
+    const catChip = (await page.locator('[data-qa="blog-filter-greenworld"]').boundingBox())!;
+    const kChip = (await kindChip(page, "producto").boundingBox())!;
+    expect(kChip.y).toBeGreaterThan(catChip.y + catChip.height);
+    expect(kChip.height).toBeLessThan(catChip.height);
+    await expect(kindChip(page, "producto")).toHaveCSS("border-top-color", GOLD_RGB);
+    await expect(kindChip(page, "negocio")).toHaveCSS("border-top-color", "rgba(201, 165, 92, 0.4)");
+    // The kind is its own search result.
+    await expect
+      .poll(async () => (await head(page)).canonical)
+      .toBe("https://www.titiactriz.com/blog?c=greenworld&k=producto");
+
+    // The card names its kind after the label.
+    await expect(card(page, "te-verde-en-casa").locator('[data-qa="blog-card-date"]')).toHaveText(
+      "Green World · Producto · 24 de septiembre de 2026",
+    );
+
+    // The kind chips filter with no reload, and keep ?k= in step.
+    await page.evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true));
+    await kindChip(page, "capacitacion").click();
+    await expect(page).toHaveURL(/\/blog\?c=greenworld&k=capacitacion$/);
+    expect(await slugsOf(page, "blog-card")).toEqual(["mi-lista-de-compras"]);
+    await kindChip(page, "negocio").click();
+    await expect(page).toHaveURL(/\/blog\?c=greenworld&k=negocio$/);
+    expect(await slugsOf(page, "blog-card")).toEqual(["mi-primer-equipo"]);
+    await kindChip(page, "all").click();
+    await expect(page).toHaveURL(/\/blog\?c=greenworld$/);
+    expect(await slugsOf(page, "blog-card")).toEqual([
+      "te-verde-en-casa",
+      "mi-lista-de-compras",
+      "bailar-en-medellin",
+      "rutina-de-la-manana",
+      "mi-primer-equipo",
+    ]);
+    // A Green World post with no kind keeps the plain label.
+    await expect(card(page, "bailar-en-medellin").locator('[data-qa="blog-card-date"]')).toHaveText(
+      "Green World · 12 de septiembre de 2026",
+    );
+    expect(await page.evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true);
+
+    // A category chip drops ?k=: to Todo, where there are no kind chips at all…
+    await kindChip(page, "producto").click();
+    await expect(page).toHaveURL(/k=producto$/);
+    await page.locator('[data-qa="blog-filter-all"]').click();
+    await expect(page).toHaveURL(/\/blog$/);
+    await expect(kinds).toHaveCount(0);
+    // …and to Personal.
+    await page.locator('[data-qa="blog-filter-greenworld"]').click();
+    await kindChip(page, "negocio").click();
+    await expect(page).toHaveURL(/\/blog\?c=greenworld&k=negocio$/);
+    await page.locator('[data-qa="blog-filter-personal"]').click();
+    await expect(page).toHaveURL(/\/blog\?c=personal$/);
+    await expect(kinds).toHaveCount(0);
+
+    // Outside the lane ?k= is ignored: Personal lists every personal post (a stray kind
+    // on one counts for nothing), Todo lists everything; and a category chip still drops it.
+    await page.goto("/blog?c=personal&k=producto", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(2);
+    expect(await slugsOf(page, "blog-card")).toEqual(["un-dia-en-el-set", "cuaderno-de-rodaje"]);
+    await expect(kinds).toHaveCount(0);
+    await expect(page.locator('[data-qa="blog-card-kind"]')).toHaveCount(0);
+    await page.locator('[data-qa="blog-filter-greenworld"]').click();
+    await expect(page).toHaveURL(/\/blog\?c=greenworld$/);
+    await page.goto("/blog?k=producto", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(7);
+    await expect(kinds).toHaveCount(0);
+
+    // The sitemap lists each kind, its & escaped.
+    const xml = readFileSync(resolve(HERE, "../public/sitemap.xml"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+    for (const k of ["producto", "capacitacion", "negocio"]) {
+      expect(xml).toContain(`<loc>https://www.titiactriz.com/blog?c=greenworld&amp;k=${k}</loc>`);
+    }
+    expect(xml).not.toMatch(/&(?!amp;)/);
+
+    // The home's Blog act: its cards and its phone tiles name the kind too.
+    await page.goto("/cinematic", { waitUntil: "domcontentloaded" });
+    const tileMeta = (slug: string) =>
+      page.locator(`[data-qa="blog-act-tile"][data-slug="${slug}"] [data-qa="blog-act-tile-meta"]`);
+    await expect(tileMeta("te-verde-en-casa")).toHaveText("Green World · Producto · 24 sept 2026");
+    await expect(tileMeta("mi-lista-de-compras")).toHaveText("Green World · Capacitación · 16 sept 2026");
+    await expect(tileMeta("bailar-en-medellin")).toHaveText("Green World · 12 sept 2026");
+    await expect(tileMeta("un-dia-en-el-set")).toHaveText("Personal · 20 sept 2026");
+    await expect(
+      page.locator('[data-qa="blog-act-card"][data-slug="te-verde-en-casa"] [data-qa="blog-act-card-date"]'),
+    ).toHaveText("Green World · Producto · 24 sept 2026");
+  });
+
+  test("K3 a Producto post renders the product card with its URL, or the Green World shop when blank", async ({
+    page,
+  }) => {
+    await openPublic(page, "/blog/te-verde-en-casa", "es", undefined, kindRows());
+    const product = page.locator('[data-qa="blog-product"]');
+    await expect(product).toBeVisible();
+    await expect(product.locator('[data-qa="blog-product-name"]')).toHaveText("Té verde orgánico");
+    const link = product.locator('[data-qa="blog-product-link"]');
+    await expect(link).toHaveAttribute("href", PRODUCT_URL);
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", "nofollow noopener");
+    // One line, and nothing else said: the name and the CTA are the whole card.
+    const cta = product.locator('[data-qa="blog-product-cta"]');
+    await expect(cta).toContainText("Ver producto en Green World");
+    expect((await cta.boundingBox())!.height).toBeLessThan(24);
+    expect(
+      await product.evaluate((el) =>
+        [...el.querySelectorAll("[data-qa='blog-product-name'], [data-qa='blog-product-cta']")]
+          .map((n) => n.textContent)
+          .join(" | "),
+      ),
+    ).toBe("Té verde orgánico | Ver producto en Green World→");
+    expect((await product.textContent())!.trim()).toBe("Té verde orgánicoVer producto en Green World→");
+    // The lane-green hairline down its left edge, the card's full height; no fill.
+    const rule = await product.evaluate((el) => {
+      const r = el.querySelector<HTMLElement>('[data-qa="blog-product-rule"]')!;
+      const a = el.querySelector<HTMLElement>('[data-qa="blog-product-link"]')!;
+      const rb = r.getBoundingClientRect();
+      const ab = a.getBoundingClientRect();
+      return {
+        color: getComputedStyle(r).backgroundColor,
+        width: rb.width,
+        left: rb.left - ab.left,
+        fullHeight: Math.abs(rb.height - ab.height) <= 1,
+        fill: getComputedStyle(a).backgroundColor,
+      };
+    });
+    expect(rule).toEqual({ color: LANE_RGB, width: 1, left: 0, fullHeight: true, fill: "rgba(0, 0, 0, 0)" });
+    // Between the body and the tags (and before "Más de Green World").
+    const box = async (qa: string) => (await page.locator(`[data-qa="${qa}"]`).boundingBox())!;
+    const body = await box("blog-post-body");
+    const productBox = await box("blog-product");
+    expect(productBox.y).toBeGreaterThanOrEqual(body.y + body.height);
+    expect(productBox.y + productBox.height).toBeLessThanOrEqual((await box("blog-more")).y);
+    expect(productBox.y + productBox.height).toBeLessThanOrEqual((await box("blog-post-tags")).y);
+
+    // A Producto post with no link: the card goes to the Green World shop.
+    await page.goto("/blog/rutina-de-la-manana", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('[data-qa="blog-product-name"]')).toHaveText("Batido de la mañana");
+    await expect(page.locator('[data-qa="blog-product-link"]')).toHaveAttribute("href", GREEN_WORLD_SHOP_URL);
+    await expect(page.locator('[data-qa="blog-product-link"]')).toHaveAttribute("rel", "nofollow noopener");
+
+    // No card anywhere else: Capacitación, Negocio, a kindless Green World post, a personal post with a stray kind.
+    for (const slug of ["mi-lista-de-compras", "mi-primer-equipo", "bailar-en-medellin", "cuaderno-de-rodaje"]) {
+      await page.goto(`/blog/${slug}`, { waitUntil: "domcontentloaded" });
+      await expect(page.locator('[data-qa="blog-post-title"]')).toBeVisible();
+      await expect(page.locator('[data-qa="blog-product"]')).toHaveCount(0);
+    }
+
+    // English.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await openPublic(page, "/blog/te-verde-en-casa", "en", undefined, kindRows());
+    await expect(page.locator('[data-qa="blog-product-cta"]')).toContainText("View product on Green World");
+  });
+
+  test("K4 Article JSON-LD carries keywords: the kind label", async ({ page }) => {
+    const articleOf = async () => {
+      await expect.poll(async () => (await postLd(page)).some((l: Ld) => l["@type"] === "Article")).toBe(true);
+      return (await postLd(page)).find((l: Ld) => l["@type"] === "Article")!;
+    };
+    await openPublic(page, "/blog/te-verde-en-casa", "es", undefined, kindRows());
+    await expect.poll(async () => (await articleOf()).keywords).toBe("Producto");
+    for (const [slug, keywords] of [
+      ["mi-lista-de-compras", "Capacitación"],
+      ["mi-primer-equipo", "Negocio"],
+    ]) {
+      await page.goto(`/blog/${slug}`, { waitUntil: "domcontentloaded" });
+      await expect(page.locator('[data-qa="blog-post-title"]')).toBeVisible();
+      await expect.poll(async () => (await articleOf()).keywords).toBe(keywords);
+    }
+    // No kind, no keywords: a kindless Green World post, and a personal post with a stray one.
+    for (const [slug, headline] of [
+      ["bailar-en-medellin", "Bailar en Medellín"],
+      ["cuaderno-de-rodaje", "Cuaderno de rodaje"],
+    ]) {
+      await page.goto(`/blog/${slug}`, { waitUntil: "domcontentloaded" });
+      await expect(page.locator('[data-qa="blog-post-title"]')).toBeVisible();
+      await expect.poll(async () => (await articleOf()).headline).toBe(headline);
+      expect(await articleOf()).not.toHaveProperty("keywords");
+    }
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await openPublic(page, "/blog/te-verde-en-casa", "en", undefined, kindRows());
+    await expect.poll(async () => (await articleOf()).keywords).toBe("Product");
+    expect((await articleOf()).articleSection).toBe("Green World");
+  });
+
+  test("K5 390×844: both chip rows and the product card fit, ES and EN", async ({ page }) => {
+    const phone = { width: 390, height: 844 };
+    for (const lang of ["es", "en"] as const) {
+      await page.unrouteAll({ behavior: "ignoreErrors" });
+      await openPublic(page, "/blog?c=greenworld&k=capacitacion", lang, phone, kindRows());
+      await expect(kindChip(page, "capacitacion")).toHaveAttribute("aria-pressed", "true");
+      expect(await noHorizontalOverflow(page)).toBe(true);
+      await boxesWithin(page, '[data-qa="blog-filter"] button', phone.width);
+      await boxesWithin(page, '[data-qa="blog-kind-filter"] button', phone.width);
+      await boxesWithin(page, '[data-qa="blog-card-date"]', phone.width);
+
+      await page.goto("/blog/te-verde-en-casa", { waitUntil: "domcontentloaded" });
+      const product = page.locator('[data-qa="blog-product"]');
+      await product.scrollIntoViewIfNeeded();
+      expect(await noHorizontalOverflow(page)).toBe(true);
+      await boxesWithin(page, '[data-qa="blog-product-cta"]', phone.width);
+      expect((await page.locator('[data-qa="blog-product-cta"]').boundingBox())!.height).toBeLessThan(24);
+    }
+  });
+
+  test("screenshots: the editor's Tipo and product, the Green World tab, light, 1440×900", async ({ page }) => {
+    const writes: Write[] = [];
+    await page.addInitScript(() => localStorage.removeItem("admin.theme"));
+    await openBlogAdmin(page, kindRows(), writes, { width: 1440, height: 900 });
+    await tab(page, "greenworld").click();
+    await expect(page.locator('[data-qa="blog-row-kind"]').first()).toBeVisible();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: `${KIND_SHOTS}/admin-list-greenworld-1440x900.png` });
+    await blogRow(page, "te-verde-en-casa").locator('[data-qa="blog-row-edit"]').click();
+    await expect(page.locator('[data-qa="blog-field-product"]')).toBeVisible();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: `${KIND_SHOTS}/admin-editor-producto-1440x900.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${KIND_SHOTS}/admin-editor-producto-390x844.png` });
   });
 });

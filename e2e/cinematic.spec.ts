@@ -839,14 +839,15 @@ test.describe("Blog act", () => {
     expectColor(gw.frame, LANE_RGB, 0.4, "greenworld tile frame");
     expectColor(gw.rule, LANE_RGB, 1, "greenworld tile hairline");
     expectColor(gw.meta, LANE_RGB, 1, "greenworld tile label + date");
-    expect(gw.label).toMatch(/^Green World · 28 sept\.? 2026$/i);
+    // `\s`: the dot is bound to the word before it by a no-break space (META_SEP, BLOG.GW.2).
+    expect(gw.label).toMatch(/^Green World\s· 28 sept\.? 2026$/i);
 
     const personal = await tileLane("un-dia-en-el-set");
     expect(personal.lane).toBe("personal");
     expectColor(personal.frame, GOLD_RGB, 0.4, "personal tile frame");
     expectColor(personal.rule, GOLD_RGB, 1, "personal tile hairline");
     expectColor(personal.meta, GOLD_RGB, 1, "personal tile label + date");
-    expect(personal.label).toMatch(/^Personal · 26 sept\.? 2026$/i);
+    expect(personal.label).toMatch(/^Personal\s· 26 sept\.? 2026$/i);
 
     // The cards walk the same lane at 1440: the hairline and date line in green
     // for a greenworld post; no hairline and a gold date for a personal one.
