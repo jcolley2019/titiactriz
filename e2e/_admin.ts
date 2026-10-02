@@ -151,14 +151,47 @@ type RouteOpts = {
   translate?: (text: string) => { source: "es" | "en"; translation: string } | null;
   /** MEDIA.VIDEO.2 — the `stream.customer_code` value; absent → the row is absent. */
   streamCustomerCode?: string;
+  /** MEDIA.VIDEO.2 — how the mocked `stream-upload` function behaves (see routeSupabase). */
+  stream?: StreamMockOpts;
   writes?: Write[]; // push-collected non-GET requests for payload assertions
 };
+
+export type StreamMockOpts = {
+  /** HTTP status the mocked `delete` answers on its Nth call (1-based); absent → 200. */
+  deleteStatus?: (call: number) => number;
+  /** HTTP status the mocked `create` answers on its Nth call (1-based); absent → 200. */
+  createStatus?: (call: number) => number;
+  /** HTTP status the mocked `status` answers on its Nth call (1-based); absent → 200. */
+  statusStatus?: (call: number) => number;
+  /** Hold each file POST to the upload URL open this long, so "uploading" is observable. */
+  uploadDelayMs?: number;
+  /** `status` answers "inprogress" this many times before "ready" (each poll is 3 s). */
+  processingPolls?: number;
+};
+
+/** The upload host the mocked `create` hands out — `.test` never resolves, so nothing can leak. */
+export const STREAM_TEST_UPLOAD_HOST = "https://upload.cloudflarestream.test";
+/** The mocked `create` hands out sequential uids; the first one is …0001. */
+export const STREAM_FIRST_UID = "1".padStart(32, "0");
+
+/** The mocked stream-upload calls a spec captured, as their JSON bodies, in order. */
+export const streamCallsOf = (writes: Write[]) =>
+  writes
+    .filter((w) => /\/functions\/v1\/stream-upload/.test(w.url))
+    .map((w) => JSON.parse(w.body || "{}") as { action: string; kind?: string; uid?: string });
 
 /**
  * Route the owned Supabase project. GET reads return mocked gallery/site_settings;
  * non-GET writes are captured (and acked) so tests can assert upsert/delete shape.
  * Storage uploads (POST/PUT under /storage/v1) are acked so the hero-video upload
  * path resolves offline; getPublicUrl is computed client-side (no network).
+ *
+ * MEDIA.VIDEO.2 — the `stream-upload` edge function is mocked too (every call is
+ * pushed to `writes` with its JSON body): `create` hands out sequential 32-hex
+ * uids and an upload URL on STREAM_TEST_UPLOAD_HOST (routed, file POSTs pushed to
+ * `writes`), `status` reports ready with customer code "test", and `delete`
+ * answers per `stream.deleteStatus`. The Stream playback host is routed as well
+ * (routeStreamPlayback), so no spec ever reaches Cloudflare.
  */
 export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
   const media = opts.media ?? null;
@@ -166,6 +199,61 @@ export async function routeSupabase(page: Page, opts: RouteOpts = {}) {
   const homeVariant = opts.homeVariant ?? "cinematic";
   const heroVideo = opts.heroVideo ?? null;
   const heroVideoPortrait = opts.heroVideoPortrait ?? null;
+
+  await routeStreamPlayback(page);
+  let created = 0;
+  let creates = 0;
+  let statuses = 0;
+  let deletes = 0;
+  const polls = new Map<string, number>();
+  await page.route("**/functions/v1/stream-upload", (route: Route) => {
+    const req = route.request();
+    const body = req.postData();
+    opts.writes?.push({ method: req.method(), url: req.url(), body });
+    const asJson = (payload: unknown, status = 200) =>
+      route.fulfill({ status, contentType: "application/json", body: JSON.stringify(payload) });
+    const refuse = (status: number) => asJson({ error: `Cloudflare Stream ${status}` }, status);
+    let call: { action?: string; uid?: string } = {};
+    try {
+      call = JSON.parse(body ?? "{}");
+    } catch {
+      /* malformed → unknown action */
+    }
+    if (call.action === "create") {
+      const status = opts.stream?.createStatus?.(++creates) ?? 200;
+      if (status !== 200) return refuse(status);
+      const uid = (++created).toString(16).padStart(32, "0");
+      return asJson({ uid, uploadURL: `${STREAM_TEST_UPLOAD_HOST}/${uid}` });
+    }
+    if (call.action === "status") {
+      const status = opts.stream?.statusStatus?.(++statuses) ?? 200;
+      if (status !== 200) return refuse(status);
+      const uid = call.uid ?? "";
+      const n = (polls.get(uid) ?? 0) + 1;
+      polls.set(uid, n);
+      const ready = n > (opts.stream?.processingPolls ?? 0);
+      return asJson({
+        ready,
+        state: ready ? "ready" : "inprogress",
+        errorReason: null,
+        duration: ready ? 8 : null,
+        width: ready ? 1920 : null,
+        height: ready ? 1080 : null,
+        customerCode: STREAM_TEST_CODE,
+      });
+    }
+    if (call.action === "delete") {
+      const status = opts.stream?.deleteStatus?.(++deletes) ?? 200;
+      return status === 200 ? asJson({ deleted: true }) : refuse(status);
+    }
+    return asJson({ error: "Unknown action" }, 400);
+  });
+  await page.route(`${STREAM_TEST_UPLOAD_HOST}/**`, async (route: Route) => {
+    const req = route.request();
+    opts.writes?.push({ method: req.method(), url: req.url(), body: null });
+    if (opts.stream?.uploadDelayMs) await new Promise((r) => setTimeout(r, opts.stream?.uploadDelayMs));
+    return route.fulfill({ status: 200, body: "" });
+  });
 
   await page.route("**/auth/v1/**", (route: Route) => {
     const url = route.request().url();
@@ -297,14 +385,22 @@ const PIXEL_PNG = Buffer.from(
   "base64",
 );
 
+const streamPlaybackLogs = new WeakMap<Page, string[]>();
+
 /**
  * Serve the Stream playback host offline and record what the page asked it for.
  * The master manifest names one 1280x720 rendition whose playlist is empty, so a
  * player gets far enough to prove the manifest is its source and no further —
  * the harness has no real segments, and never needs them.
+ *
+ * Registered once per page (routeSupabase calls it too); every caller gets the
+ * same request log, so the order of the two calls never matters.
  */
 export async function routeStreamPlayback(page: Page): Promise<string[]> {
+  const known = streamPlaybackLogs.get(page);
+  if (known) return known;
   const requested: string[] = [];
+  streamPlaybackLogs.set(page, requested);
   await page.route(/^https:\/\/customer-[a-z0-9]+\.cloudflarestream\.com\//, (route: Route) => {
     const url = route.request().url();
     requested.push(url);

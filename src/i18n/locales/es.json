@@ -669,7 +669,7 @@
       },
       "video": {
         "title": "Video de fondo del hero",
-        "subtitle": "Sube un MP4 o WebM (máx. 60 MB, ~15 s). Se reproduce detrás del hero en todas las pantallas — usa Ajustar encuadre para posicionarlo según el tipo de pantalla.",
+        "subtitle": "Sube el video tal como lo grabaste — MP4, MOV o WebM, hasta 200 MB y unos 15 s. Se reproduce detrás del hero en todas las pantallas — usa Ajustar encuadre para posicionarlo según el tipo de pantalla.",
         "badge": "Video",
         "slotDesc": "Video de fondo del hero — se reproduce detrás del hero.",
         "rowLabel": "Video del hero",
@@ -687,7 +687,6 @@
         "replaceVideo": "Reemplazar video",
         "adjustFraming": "Ajustar encuadre",
         "removeVideo": "Quitar video — usar la foto",
-        "uploading": "Subiendo video…",
         "uploaded": "Video del hero actualizado",
         "uploadedDesc": "Encuádralo abajo y luego guarda.",
         "removed": "Video del hero eliminado",
@@ -697,8 +696,8 @@
         "dragHint": "Arrastra el video para reposicionarlo. Usa el control para acercar.",
         "precedenceNote": "Hay un video del hero activo — encabeza el hero y tiene prioridad sobre la foto. La foto es la alternativa con movimiento reducido.",
         "reject": {
-          "type": "Usa un archivo de video MP4 o WebM.",
-          "size": "Ese video es muy grande — que no supere los 60 MB.",
+          "type": "Usa un archivo de video MP4, MOV o WebM.",
+          "size": "Ese video es muy grande — que no supere los {{mb}} MB.",
           "duration": "Ese video es muy largo — que dure unos 15 segundos."
         }
       },
@@ -1272,12 +1271,11 @@
       "mediaHelp": "La tarjeta muestra un solo medio: el video si hay uno, y si no, la imagen. La imagen siempre es la portada del video y lo que se ve si el video no carga.",
       "videoLabel": "Video (opcional)",
       "dropVideo": "Haz clic para subir un video",
-      "uploadingVideo": "Subiendo video...",
-      "videoLimitHint": "MP4 o WEBM · máximo {{mb}} MB",
+      "videoLimitHint": "MP4, MOV o WEBM · máximo {{mb}} MB",
       "removeVideoFile": "Quitar video",
       "videoUploadFailed": "No se pudo subir el video. Intenta de nuevo.",
       "videoReject": {
-        "type": "Ese archivo no es un video MP4 o WEBM.",
+        "type": "Ese archivo no es un video MP4, MOV o WEBM.",
         "size": "El video pesa más de {{mb}} MB. Recórtalo, o súbelo a TikTok, Instagram o YouTube y pega el enlace aquí abajo."
       },
       "socialUrlLabel": "Enlace de TikTok, Instagram o YouTube (opcional)",
@@ -1431,6 +1429,12 @@
       "collapse": "Colapsar",
       "expandAria": "Expandir vista previa",
       "collapseAria": "Colapsar vista previa"
+    },
+    "stream": {
+      "uploading": "Subiendo video… {{pct}}%",
+      "processing": "Procesando… el sitio está preparando los tamaños del video.",
+      "deleteFailed": "No se pudo borrar el video anterior",
+      "deleteFailedDesc": "El sitio ya no lo usa, pero su copia en Cloudflare Stream ({{id}}) sigue guardada. Bórrala desde el panel de Stream."
     }
   }
 }

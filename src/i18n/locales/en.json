@@ -669,7 +669,7 @@
       },
       "video": {
         "title": "Hero background video",
-        "subtitle": "Upload one MP4 or WebM (max 60 MB, ~15 s). It plays behind the hero on every screen — use Adjust framing to position it per screen type.",
+        "subtitle": "Upload the video as you filmed it — MP4, MOV or WebM, up to 200 MB and about 15 s. It plays behind the hero on every screen — use Adjust framing to position it per screen type.",
         "badge": "Video",
         "slotDesc": "Hero background video — plays behind the hero.",
         "rowLabel": "Hero video",
@@ -687,7 +687,6 @@
         "replaceVideo": "Replace video",
         "adjustFraming": "Adjust framing",
         "removeVideo": "Remove video — use photo",
-        "uploading": "Uploading video…",
         "uploaded": "Hero video updated",
         "uploadedDesc": "Frame it below, then save.",
         "removed": "Hero video removed",
@@ -697,8 +696,8 @@
         "dragHint": "Drag the video to reposition. Use the slider to zoom.",
         "precedenceNote": "A hero video is active — it leads the hero and takes precedence over the photo. The photo is the reduced-motion fallback.",
         "reject": {
-          "type": "Use an MP4 or WebM video file.",
-          "size": "That video is too large — keep it under 60 MB.",
+          "type": "Use an MP4, MOV or WebM video file.",
+          "size": "That video is too large — keep it under {{mb}} MB.",
           "duration": "That video is too long — keep it to about 15 seconds."
         }
       },
@@ -1272,12 +1271,11 @@
       "mediaHelp": "A card shows one medium: the video if there is one, otherwise the image. The image is always the video's poster, and what shows if the video can't load.",
       "videoLabel": "Video (optional)",
       "dropVideo": "Click to upload a video",
-      "uploadingVideo": "Uploading video...",
-      "videoLimitHint": "MP4 or WEBM · {{mb}} MB max",
+      "videoLimitHint": "MP4, MOV or WEBM · {{mb}} MB max",
       "removeVideoFile": "Remove video",
       "videoUploadFailed": "Could not upload the video. Please try again.",
       "videoReject": {
-        "type": "That file isn't an MP4 or WEBM video.",
+        "type": "That file isn't an MP4, MOV or WEBM video.",
         "size": "That video is over {{mb}} MB. Trim it, or post it to TikTok, Instagram or YouTube and paste the link below."
       },
       "socialUrlLabel": "TikTok, Instagram or YouTube link (optional)",
@@ -1431,6 +1429,12 @@
       "collapse": "Collapse",
       "expandAria": "Expand preview",
       "collapseAria": "Collapse preview"
+    },
+    "stream": {
+      "uploading": "Uploading video… {{pct}}%",
+      "processing": "Processing… the site is making the video's sizes.",
+      "deleteFailed": "The old video could not be deleted",
+      "deleteFailedDesc": "The site no longer uses it, but its Cloudflare Stream copy ({{id}}) is still stored. Delete it from the Stream dashboard."
     }
   }
 }

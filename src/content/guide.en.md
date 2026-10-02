@@ -24,7 +24,8 @@ Use it when… you want to upload photos, change their order or decide which one
 5. If a photo no longer belongs, open it with the three dots and choose **Archive** (you can **Restore** it later) or **Delete** (for good).
 6. **Alt text** is the description of the photo that Google and people using a screen reader read. **Fill all missing alt text** writes them in one go; you can correct them.
 7. In **Media** you choose which photo opens the home page (**Hero**), which ones go in the reel and which one sits beside **About**. **Change photo** picks another from the Gallery; **Edit framing** lets you move and zoom the photo for each kind of screen, and **Save framing** applies it.
-8. House rule: photos go up as they come out of the camera. No AI face retouching, here or anywhere else on the site.
+8. The **Hero** background video (**Upload video**) goes up as you filmed it, any size up to 200 MB and about 15 seconds long; the site makes the sizes for each screen.
+9. House rule: photos go up as they come out of the camera. No AI face retouching, here or anywhere else on the site.
 
 ## Portfolio
 
@@ -44,7 +45,7 @@ Use it when… you have an event to feature or want to put a notice in the strip
 
 1. Open **Events**. The **Show the Events page** switch turns the events page on or off for the public. **Show events on the home page** shows them on the home page too.
 2. Tap **Add event**. You can have up to 4 active cards.
-3. Fill in the **Title** and the **Description**. With **Add button** you add a button with its text and its link. You can upload an image or a video to the card.
+3. Fill in the **Title** and the **Description**. With **Add button** you add a button with its text and its link. You can upload an image or a video to the card. The video goes up as you filmed it, any size up to 200 MB; the site makes the sizes for each screen.
 4. **Event date (optional)**: the day after that date, the event archives itself. Without a date, it stays until you archive it. Archived ones are under **Archived**, where you can **Restore** or **Delete**.
 5. Switches and dates save instantly. Text waits until you tap **Save changes** in the bar at the bottom. Write in one language; the other is translated on save.
 6. The site strip is the message that scrolls across the top of the pages. It lives in the **Site banner** box: write the message in **Banner text**, turn on the switch and choose under **Show on pages** where it shows. With no text, it will not turn on.

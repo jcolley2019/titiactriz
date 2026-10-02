@@ -1,5 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
-import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./_admin";
+import {
+  forceLanguage,
+  injectAdminSession,
+  routeSupabase,
+  streamCallsOf,
+  type StreamMockOpts,
+  type Write,
+} from "./_admin";
 
 /**
  * EVENTS.ARCHIVE.1 — the 90-day lifecycle.
@@ -78,11 +85,11 @@ const lastBoard = (writes: Write[]) => {
   return JSON.parse(w.body!)[0].value;
 };
 
-async function openAdmin(page: Page, mocked: unknown, writes: Write[]) {
+async function openAdmin(page: Page, mocked: unknown, writes: Write[], stream?: StreamMockOpts) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await injectAdminSession(page);
   await forceLanguage(page, "es");
-  await routeSupabase(page, { eventsBoard: mocked, writes });
+  await routeSupabase(page, { eventsBoard: mocked, writes, stream });
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
   await page.locator('[data-qa="admin-nav-events"]').click();
   await expect(page.locator('[data-qa="events-view-archive"]')).toBeVisible();
@@ -195,4 +202,62 @@ test.describe("EVENTS.ARCHIVE.1 — the lifecycle", () => {
     expect(deletedPaths).toContain("events/doomed.webp");
     expect(deletedPaths).toContain("events/doomed.mp4");
   });
+
+  /**
+   * MEDIA.VIDEO.2 — a condemned entry whose clip lives on Cloudflare Stream: the
+   * purge deletes it from Stream in the same sweep, under the same law — if the
+   * video will not go, the entry stays and the next sweep retries.
+   */
+  for (const c of [
+    { name: "goes from Stream in the same sweep", status: 200, stays: false },
+    { name: "keeps its entry when Stream refuses the delete", status: 500, stays: true },
+  ]) {
+    test(`law 4b: a purged Stream clip ${c.name}`, async ({ page }) => {
+      const UID = "e".repeat(32);
+      const writes: Write[] = [];
+      await openAdmin(
+        page,
+        board(
+          [],
+          [
+            card("doomed", "Evento condenado", {
+              eventDate: ymdDaysFromNow(-100),
+              archivedAt: new Date(Date.now() - 95 * 864e5).toISOString(),
+              imageUrl: `${STORAGE_PUB}/events/doomed.webp`,
+              videoFileUrl: `cfstream:${UID}`,
+            }),
+            card("staying", "Evento reciente", {
+              eventDate: ymdDaysFromNow(-10),
+              archivedAt: new Date().toISOString(),
+            }),
+          ],
+        ),
+        writes,
+        { deleteStatus: () => c.status },
+      );
+
+      // Every delete names the clip (the dev build's StrictMode can run the
+      // load sweep twice, so it may be asked twice — never for anything else).
+      const deletes = () =>
+        streamCallsOf(writes)
+          .filter((s) => s.action === "delete")
+          .map((s) => s.uid);
+      await expect.poll(() => deletes().length).toBeGreaterThan(0);
+      expect(new Set(deletes()), "only the condemned clip").toEqual(new Set([UID]));
+      if (c.stays) {
+        // Nothing else changed, so the sweep may write nothing at all — but
+        // whatever it writes still holds the entry.
+        await page.waitForTimeout(1500);
+        const kept =
+          boardWrites(writes).length === 0 ||
+          lastBoard(writes).archive.some((i: { id: string }) => i.id === "doomed");
+        expect(kept, "the entry waits for the next sweep").toBe(true);
+        await expect(page.locator('[data-qa="events-view-archive"]')).toBeVisible();
+      } else {
+        await expect.poll(() => boardWrites(writes).length).toBeGreaterThan(0);
+        const ids = lastBoard(writes).archive.map((i: { id: string }) => i.id);
+        expect(ids, "the entry is gone").toEqual(["staying"]);
+      }
+    });
+  }
 });

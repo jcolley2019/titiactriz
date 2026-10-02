@@ -5,8 +5,12 @@ import {
   injectAdminSession,
   routeStreamPlayback,
   routeSupabase,
+  streamCallsOf,
   streamTestUrls,
+  STREAM_FIRST_UID,
   STREAM_TEST_CODE,
+  STREAM_TEST_UPLOAD_HOST,
+  type StreamMockOpts,
   type Write,
 } from "./_admin";
 import { resolveHeroGeometry } from "../src/lib/hero-framing";
@@ -502,13 +506,23 @@ const UPLOAD_BTN = '[data-qa="event-video-upload"]';
 const PREVIEW = '[data-qa="event-video-preview"]';
 const REJECT = '[data-qa="event-video-reject"]';
 
-/** The admin's events editor, open on one image-only card. */
-async function openEditor(page: Page, writes: Write[]) {
+/** The admin's events editor, open on one card (image-only unless `card` says otherwise). */
+async function openEditor(
+  page: Page,
+  writes: Write[],
+  o: { stream?: StreamMockOpts; card?: Card } = {},
+) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await injectAdminSession(page);
   await forceLanguage(page, "en");
   await routeMedia(page);
-  await routeSupabase(page, { eventsBoard: boardWith({ imageUrl: LANDSCAPE_SRC }), writes });
+  await routeSupabase(page, {
+    eventsBoard: boardWith(o.card ?? { imageUrl: LANDSCAPE_SRC }),
+    // The code is already stored, so an upload's status polls are only its own.
+    streamCustomerCode: STREAM_TEST_CODE,
+    stream: o.stream,
+    writes,
+  });
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(800);
 
@@ -537,56 +551,145 @@ async function pickVideo(page: Page, o: { name: string; type: string; bytes: num
 test("picking a valid video uploads it, and the field shows what was uploaded", async ({ page }) => {
   test.setTimeout(90_000);
   const writes: Write[] = [];
-  await openEditor(page, writes);
+  // MEDIA.VIDEO.2 — the clip goes to Cloudflare Stream (mocked by the harness).
+  // Hold the file POST open and answer one status poll as still encoding, so
+  // both phases — sending, then Stream making the sizes — are facts, not flickers.
+  await openEditor(page, writes, { stream: { uploadDelayMs: 1500, processingPolls: 1 } });
 
-  // Hold the upload open so "busy" is a fact and not a flicker. Registered
-  // after routeSupabase, so this handler wins the match; GETs (the preview
-  // fetching its own public URL) fall back to the harness's storage route.
-  await page.route("**/storage/v1/object/**", async (route) => {
-    const req = route.request();
-    if (req.method() !== "POST" && req.method() !== "PUT") return route.fallback();
-    writes.push({ method: req.method(), url: req.url(), body: null });
-    await new Promise((r) => setTimeout(r, 1200));
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ Key: "gallery/events/mock.mp4" }),
-    });
+  // An iPhone original, as filmed.
+  await pickVideo(page, { name: "IMG_0042.MOV", type: "video/quicktime", bytes: 1024 });
+
+  const btn = page.locator(UPLOAD_BTN);
+  await expect(btn, "the uploader says it is working").toBeDisabled();
+  await expect(btn, "…first sending the file").toHaveAttribute("data-phase", "uploading");
+  await expect(btn, "…then waiting for Stream to encode it").toHaveAttribute("data-phase", "processing", {
+    timeout: 10_000,
   });
-
-  await pickVideo(page, { name: "announcement.mp4", type: "video/mp4", bytes: 1024 });
-
-  await expect(page.locator(UPLOAD_BTN), "the uploader says it is working").toBeDisabled();
+  await expect(btn, "…and says so").toContainText(/Processing/);
   await expect(page.locator(REJECT), "a valid file is refused nothing").toHaveCount(0);
 
   const preview = page.locator(PREVIEW);
   await expect(preview, "the uploaded video takes the picker's place").toBeVisible({
     timeout: 20_000,
   });
-  expect(await preview.getAttribute("src"), "…at its own public URL, under events/").toMatch(
-    /\/storage\/v1\/object\/public\/gallery\/events\/[\w-]+\.mp4$/,
+  expect(await preview.getAttribute("data-stream-src"), "…playing from Stream, by its new uid").toBe(
+    streamTestUrls(STREAM_FIRST_UID).manifest,
   );
 
-  const posts = writes.filter((w) => STORAGE.test(w.url));
-  expect(posts.length, "exactly one storage write, and the harness caught it").toBe(1);
-  expect(posts[0].method, "…a POST, intercepted — never the live bucket").toBe("POST");
+  const calls = streamCallsOf(writes);
+  expect(calls[0], "Stream create, as an event clip").toEqual({ action: "create", kind: "event" });
+  expect(calls.filter((c) => c.action === "status").length, "polled until ready").toBeGreaterThanOrEqual(2);
+  const posts = writes.filter((w) => w.url.startsWith(STREAM_TEST_UPLOAD_HOST));
+  expect(posts.length, "exactly one file POST, to the one-time URL — intercepted").toBe(1);
+  expect(writes.filter((w) => STORAGE.test(w.url)), "nothing in the gallery bucket").toEqual([]);
 });
 
-test("a video over the 60 MB cap is refused out loud, and reaches no bucket", async ({ page }) => {
+test("a video over the 200 MB cap is refused out loud, and reaches no bucket", async ({ page }) => {
   test.setTimeout(90_000);
   const writes: Write[] = [];
   await openEditor(page, writes);
 
-  await pickVideo(page, { name: "too-big.mp4", type: "video/mp4", bytes: 61 * 1024 * 1024 });
+  await pickVideo(page, { name: "too-big.mp4", type: "video/mp4", bytes: 200 * 1024 * 1024 + 1 });
 
   const reject = page.locator(REJECT);
   await expect(reject, "the refusal is said where the file was picked").toBeVisible();
-  await expect(reject, "…and it names the cap, not a generic failure").toContainText("60 MB");
+  await expect(reject, "…and it names the cap, not a generic failure").toContainText("200 MB");
   await expect(page.locator(PREVIEW), "nothing was accepted").toHaveCount(0);
 
   // Give a wrongly-permitted upload every chance to show up before we deny it.
   await page.waitForTimeout(1500);
   expect(writes.filter((w) => STORAGE.test(w.url)), "a refused file uploads nothing").toEqual([]);
+  expect(streamCallsOf(writes), "…and never reaches Stream").toEqual([]);
+});
+
+/**
+ * MEDIA.VIDEO.2 — Stream throttles in bursts (live: a first create of the day,
+ * a status right after a delete). A throttled create is retried once after
+ * 10 s and a throttled poll is just a poll that learned nothing: the upload
+ * still lands, and the owner is never told it failed.
+ */
+test("a throttled create and a throttled poll are waited out, not reported as a failure", async ({ page }) => {
+  test.setTimeout(90_000);
+  const writes: Write[] = [];
+  await openEditor(page, writes, {
+    stream: { createStatus: (n) => (n === 1 ? 429 : 200), statusStatus: (n) => (n === 1 ? 429 : 200) },
+  });
+
+  await pickVideo(page, { name: "clip.mp4", type: "video/mp4", bytes: 1024 });
+  await expect(page.locator(PREVIEW), "the clip lands anyway").toHaveAttribute(
+    "data-stream-src",
+    streamTestUrls(STREAM_FIRST_UID).manifest,
+    { timeout: 30_000 },
+  );
+  const calls = streamCallsOf(writes).map((c) => c.action);
+  expect(calls.slice(0, 2), "create, throttled, asked again").toEqual(["create", "create"]);
+  expect(calls.filter((a) => a === "status").length, "the throttled poll was followed by another").toBe(2);
+  expect(calls, "no half-made video was thrown away").not.toContain("delete");
+  await expect(page.locator('li[role="status"]').filter({ hasText: /could not|failed/i })).toHaveCount(0);
+});
+
+/**
+ * MEDIA.VIDEO.2 — an upload outlives its card when the owner switches admin
+ * tabs mid-upload (only the active section is mounted). The finished clip has
+ * nowhere to land and nothing will ever show it, so it is deleted from Stream
+ * rather than left behind. (Found live: a file picked into the loading board's
+ * placeholder card finished in Stream and was stranded.)
+ */
+test("a clip that finishes after its card is gone is deleted from Stream, not stranded", async ({ page }) => {
+  test.setTimeout(90_000);
+  const writes: Write[] = [];
+  await openEditor(page, writes, { stream: { uploadDelayMs: 2500 } });
+
+  await pickVideo(page, { name: "clip.mp4", type: "video/mp4", bytes: 1024 });
+  await expect(page.locator(UPLOAD_BTN)).toHaveAttribute("data-phase", "uploading");
+  await page.locator('[data-qa="admin-nav-media"]').click();
+  await expect(page.locator(UPLOAD_BTN), "the events board is unmounted").toHaveCount(0);
+
+  await expect
+    .poll(() => streamCallsOf(writes).filter((c) => c.action === "delete").map((c) => c.uid), { timeout: 15_000 })
+    .toEqual([STREAM_FIRST_UID]);
+});
+
+/**
+ * MEDIA.VIDEO.2 — when a card's Stream clip may be deleted from Stream. Edits
+ * wait for Save, so a clip the LIVE board still shows is only deleted by the
+ * Save that drops it (the public card never points at a deleted video), while
+ * an upload that was never saved has nothing pointing at it and goes at once.
+ */
+test("a saved Stream clip leaves Stream only when Save drops it; an unsaved upload goes at once", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const SAVED_UID = "d".repeat(32);
+  const writes: Write[] = [];
+  await openEditor(page, writes, { card: { videoFileUrl: `cfstream:${SAVED_UID}` } });
+  const deletes = () => streamCallsOf(writes).filter((c) => c.action === "delete").map((c) => c.uid);
+
+  // 1. Remove the saved clip: the public card still shows it, so nothing is deleted yet.
+  await expect(page.locator(PREVIEW), "the saved clip's tile").toHaveAttribute(
+    "data-stream-src",
+    /dddddddd/,
+  );
+  await page.locator('[data-qa="event-video-remove"]').click();
+  await expect(page.locator(PREVIEW)).toHaveCount(0);
+  await page.waitForTimeout(1000);
+  expect(deletes(), "unsaved removal deletes nothing").toEqual([]);
+
+  // 2. Upload a clip and remove it before saving: nothing references it — gone now.
+  await pickVideo(page, { name: "take2.mp4", type: "video/mp4", bytes: 1024 });
+  await expect(page.locator(PREVIEW)).toHaveAttribute("data-stream-src", streamTestUrls(STREAM_FIRST_UID).manifest);
+  await page.locator('[data-qa="event-video-remove"]').click();
+  await expect.poll(deletes, { timeout: 8000 }).toEqual([STREAM_FIRST_UID]);
+
+  // 3. Save: the live board stops referencing the first clip, so it goes too.
+  await page.locator('[data-qa="events-save"]').click();
+  await expect.poll(deletes, { timeout: 8000 }).toEqual([STREAM_FIRST_UID, SAVED_UID]);
+  const boardWrite = writes.findIndex(
+    (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("events_board"),
+  );
+  const savedDelete = writes.findIndex((w) => (w.body || "").includes(`"uid":"${SAVED_UID}"`));
+  expect(boardWrite, "the board was written").toBeGreaterThanOrEqual(0);
+  expect(savedDelete, "…before its old clip was deleted").toBeGreaterThan(boardWrite);
 });
 
 /* ─────────────── law 10 — the video well IS the image well ─────────────── */
@@ -906,20 +1009,25 @@ test("the one combined zone accepts an image AND a video, through the same input
     /\/storage\/v1\/object\/public\/gallery\/events\/[\w-]+\.webp$/,
   );
 
-  // A video file, through the SAME input, routes to the uploaded-video slot.
+  // A video file, through the SAME input, routes to the uploaded-video slot —
+  // since MEDIA.VIDEO.2, on Cloudflare Stream rather than in the bucket.
   await pickMedia(page, { name: "clip.mp4", type: "video/mp4", bytes: 1024 });
   const vidPreview = page.locator('[data-qa="event-video-preview"]');
   await expect(vidPreview, "the video lands as the uploaded video").toBeVisible({
     timeout: 20_000,
   });
-  expect(await vidPreview.getAttribute("src")).toMatch(
-    /\/storage\/v1\/object\/public\/gallery\/events\/[\w-]+\.mp4$/,
+  expect(await vidPreview.getAttribute("data-stream-src")).toBe(
+    streamTestUrls(STREAM_FIRST_UID).manifest,
   );
 
   expect(
     writes.filter((w) => STORAGE.test(w.url)).length,
-    "both media reached storage — and only through the harness",
-  ).toBe(2);
+    "the image reached storage — and only through the harness",
+  ).toBe(1);
+  expect(
+    writes.filter((w) => w.url.startsWith(STREAM_TEST_UPLOAD_HOST)).length,
+    "the video reached Stream's (intercepted) upload URL",
+  ).toBe(1);
 });
 
 test("framing set in the editor is written to the row on save", async ({ page }) => {

@@ -69,7 +69,13 @@ const EventFramedVideo = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  const stream = useStreamVideo(videoRef, src, { autoLoad: autoPlay, onSize: box.report });
+  // The manifest's size only SEEDS the shape; the element's own metadata wins.
+  const stream = useStreamVideo(videoRef, src, {
+    autoLoad: autoPlay,
+    onSize: (w, h) => {
+      if (!videoRef.current?.videoWidth) box.report(w, h);
+    },
+  });
 
   return (
     <div

@@ -41,7 +41,7 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 - Known flakes (pass on retry; treat as a regression only if they repeat): framesplit capture,
   marquee/Lenis momentum, reel wide-ES, titilinks-act TA.8 mobile ("About unobstructed"),
   seq-lab gw-port-1080 scrub, events-video "a social card is a poster and a play control…",
-  events-video "picking a valid video uploads it…", events-video "a video over the 60 MB cap is
+  events-video "picking a valid video uploads it…", events-video "a video over the 200 MB cap is
   refused out loud…", cineflow5-shipped "phone 390x844 EN",
   webkit events-snap-phone "phone-440x792", webkit events-snap-phone tablet-portrait 820×1180
   "every card comes to rest in card 1's arrival frame".

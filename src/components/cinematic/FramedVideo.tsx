@@ -129,9 +129,13 @@ const FramedVideo = ({
 
   // A Stream ref attaches only while the <video> is mounted (not under reduced
   // motion), so passing null there keeps the attach in step with the element.
+  // The manifest's size only SEEDS the aspect: once the element has its own
+  // metadata, that is the truth and the manifest never overrides it.
   const stream = useStreamVideo(videoRef, reduced ? null : src, {
     autoLoad: autoPlay,
-    onSize: (w, h) => setMediaAspect(w / h),
+    onSize: (w, h) => {
+      if (!videoRef.current?.videoWidth) setMediaAspect(w / h);
+    },
   });
 
   const objectPosition = `${focal.x * 100}% ${focal.y * 100}%`;

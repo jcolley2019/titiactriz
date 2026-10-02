@@ -35,11 +35,12 @@ import {
 import {
   HERO_VIDEO_ACCEPT_ATTR,
   validateHeroVideo,
-  uploadHeroVideo,
   fetchHeroVideoResolved,
   setCinematicHeroVideo,
   clearCinematicHeroVideoAll,
 } from "@/lib/hero-video";
+import { STREAM_MAX_MB, StreamUploadError, isStreamRef, uploadToStream } from "@/lib/stream";
+import { releaseStreamVideo, toastStreamOrphan } from "../streamRelease";
 import ImagePicker from "./ImagePicker";
 import FramingEditor from "./FramingEditor";
 
@@ -234,6 +235,8 @@ const CinematicMediaManager = () => {
 
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
+  // MEDIA.VIDEO.2 — the file goes up, then Stream encodes it before it is used.
+  const [uploadPhase, setUploadPhase] = useState<"uploading" | "processing">("uploading");
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [pickerSlot, setPickerSlot] = useState<SlotDesc | null>(null);
@@ -438,37 +441,57 @@ const CinematicMediaManager = () => {
     if (check.ok === false) {
       toast({
         title: t("admin.media.video.uploadFailed"),
-        description: t(`admin.media.video.reject.${check.reason}`),
+        description: t(`admin.media.video.reject.${check.reason}`, { mb: STREAM_MAX_MB }),
         variant: "destructive",
       });
       return;
     }
 
+    // MEDIA.VIDEO.2 — the clip goes to Cloudflare Stream; the setting stores
+    // its `cfstream:` ref only once Stream has finished encoding it.
+    const previous = heroVideo;
     setUploadingVideo(true);
+    setUploadPhase("uploading");
     setUploadPct(0);
+    let ref: string | null = null;
     try {
-      const url = await uploadHeroVideo(file, setUploadPct);
-      // setCinematicHeroVideo writes canonical AND clears the legacy portrait key.
-      await setCinematicHeroVideo(url);
-      setHeroVideo(url);
-      toast({ title: t("admin.media.video.uploaded"), description: t("admin.media.video.uploadedDesc") });
-      // Straight into framing, video mode, on the single video.
-      setEditor({
-        mode: "video",
-        slot: HERO_SLOT,
-        videoSrc: url,
-        initialVideo: config.hero.video ?? defaultHeroVideo(),
-        poster: heroPosterUrl,
+      ref = await uploadToStream(file, "hero", (p) => {
+        setUploadPhase(p.phase);
+        if (p.phase === "uploading") setUploadPct(p.pct);
       });
+      // setCinematicHeroVideo writes canonical AND clears the legacy portrait key.
+      await setCinematicHeroVideo(ref);
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("admin.media.video.uploadFailed");
       toast({ title: t("admin.media.video.uploadFailed"), description: msg, variant: "destructive" });
-    } finally {
+      // A half-made video uploadToStream could not clean up, or a finished one
+      // the setting never took: either way nothing references it — let it go.
+      if (err instanceof StreamUploadError) {
+        if (err.orphan) toastStreamOrphan(err.orphan, t);
+      } else if (ref) {
+        void releaseStreamVideo(ref, t);
+      }
       setUploadingVideo(false);
+      return;
     }
+    setUploadingVideo(false);
+    setHeroVideo(ref);
+    toast({ title: t("admin.media.video.uploaded"), description: t("admin.media.video.uploadedDesc") });
+    // Straight into framing, video mode, on the single video.
+    setEditor({
+      mode: "video",
+      slot: HERO_SLOT,
+      videoSrc: ref,
+      initialVideo: config.hero.video ?? defaultHeroVideo(),
+      poster: heroPosterUrl,
+    });
+    // Replace: the superseded Stream video goes once nothing points at it. A
+    // legacy gallery-bucket URL is left where it is, as remove always has.
+    if (isStreamRef(previous) && previous !== ref) void releaseStreamVideo(previous, t);
   };
 
   const removeVideo = async () => {
+    const previous = heroVideo;
     setSavingKey("hero");
     try {
       await clearCinematicHeroVideoAll();
@@ -480,6 +503,8 @@ const CinematicMediaManager = () => {
       }
       setHeroVideo(null);
       toast({ title: t("admin.media.video.removed"), description: t("admin.media.video.removedDesc") });
+      // MEDIA.VIDEO.2 — the setting is clear, so the Stream copy can go.
+      if (isStreamRef(previous)) void releaseStreamVideo(previous, t);
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("admin.media.video.removeFailed");
       toast({ title: t("admin.media.video.removeFailed"), description: msg, variant: "destructive" });
@@ -590,11 +615,18 @@ const CinematicMediaManager = () => {
           />
 
           {uploadingVideo && (
-            <div data-qa="media-hero-upload-progress">
+            <div data-qa="media-hero-upload-progress" data-phase={uploadPhase}>
               <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
-                <div className="h-full bg-accent transition-all" style={{ width: `${Math.max(5, uploadPct)}%` }} />
+                <div
+                  className={`h-full bg-accent transition-all${uploadPhase === "processing" ? " animate-pulse" : ""}`}
+                  style={{ width: `${uploadPhase === "processing" ? 100 : Math.max(5, uploadPct)}%` }}
+                />
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">{t("admin.media.video.uploading")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {uploadPhase === "processing"
+                  ? t("admin.stream.processing")
+                  : t("admin.stream.uploading", { pct: uploadPct })}
+              </p>
             </div>
           )}
 

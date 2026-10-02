@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import imageCompression from "browser-image-compression";
@@ -74,10 +74,18 @@ import {
   EVENT_VIDEO_ACCEPT_ATTR,
   EVENT_VIDEO_MAX_MB,
   parseSocialVideo,
-  uploadEventVideo,
   validateEventVideo,
   type EventVideoRejectReason,
 } from "@/lib/event-video";
+import {
+  StreamUploadError,
+  deleteFromStream,
+  isStreamRef,
+  uploadToStream,
+  type StreamUploadProgress,
+} from "@/lib/stream";
+import { useStreamVideo } from "@/hooks/useStreamVideo";
+import { releaseStreamVideo, toastStreamOrphan } from "./streamRelease";
 
 const PREVIEW_BG = "#0e0c09";
 const BUCKET = "gallery";
@@ -226,15 +234,31 @@ const pathFromUrl = (url: string): string | null => {
   return url.slice(idx + marker.length);
 };
 
-/** Delete an event's media (poster and/or uploaded video). Throws on failure. */
+/**
+ * Delete an event's media (poster and/or uploaded video). Throws on failure.
+ * MEDIA.VIDEO.2 — an uploaded video that lives on Cloudflare Stream is deleted
+ * there (404 counts as gone; Stream's post-create 429 is retried once), under
+ * the same law: if it will not go, the entry stays and the next pass retries.
+ */
 const removeEventMedia = async (item: EventItem): Promise<void> => {
   const paths = [item.imageUrl ?? "", item.videoFileUrl ?? ""]
     .map((u) => (u.trim() ? pathFromUrl(u.trim()) : null))
     .filter((p): p is string => !!p);
-  if (paths.length === 0) return;
-  const { error } = await supabase.storage.from(BUCKET).remove(paths);
-  if (error) throw error;
+  if (paths.length > 0) {
+    const { error } = await supabase.storage.from(BUCKET).remove(paths);
+    if (error) throw error;
+  }
+  const video = (item.videoFileUrl ?? "").trim();
+  if (isStreamRef(video)) await deleteFromStream(video);
 };
+
+/** MEDIA.VIDEO.2 — every Stream video a board references, live cards and archive alike. */
+const streamRefsOf = (board: EventsBoard): Set<string> =>
+  new Set(
+    [...board.items, ...board.archive]
+      .map((it) => (it.videoFileUrl ?? "").trim())
+      .filter(isStreamRef),
+  );
 
 /**
  * One pass of the lifecycle: passed events → archive, condemned entries →
@@ -534,11 +558,40 @@ const BannerEditor = ({
 };
 
 /**
+ * MEDIA.VIDEO.2 — how a card lets go of an uploaded video it no longer holds
+ * (removed, replaced, or its card deleted). The manager decides WHEN the Stream
+ * copy may go: at once if the live board never referenced it, otherwise when a
+ * Save drops it — so the public card never points at a deleted video.
+ */
+const ReleaseVideoContext = createContext<(ref: string) => void>(() => {});
+
+/** The admin tile for the card's uploaded video — a Stream ref plays through the same hook as the card. */
+const VideoPreviewTile = ({ src }: { src: string }) => {
+  const ref = useRef<HTMLVideoElement>(null);
+  const stream = useStreamVideo(ref, src);
+  return (
+    <video
+      ref={ref}
+      src={stream.src}
+      poster={stream.poster}
+      data-stream-src={stream.manifest}
+      data-qa="event-video-preview"
+      muted
+      loop
+      playsInline
+      autoPlay
+      className="w-24 h-24 object-cover rounded-md border border-border"
+    />
+  );
+};
+
+/**
  * EVENTS.MEDIA.EDITOR.1b — ONE combined drop/click zone for the card's media.
  *
  * The separate image zone and video zone are unified: the zone accepts an image
- * (image/*) OR a video (mp4/webm, the 60 MB cap and its per-reason refusals
- * preserved verbatim), routes the file by its type, and shows what the card
+ * (image/*) OR a video (MEDIA.VIDEO.2: mp4/mov/webm up to 200 MB, uploaded to
+ * Cloudflare Stream, with the per-reason refusals preserved verbatim), routes
+ * the file by its type, and shows what the card
  * currently holds — the image (the poster) and/or the uploaded video — each
  * with its own remove control. Mutual exclusion with the social link is
  * preserved: while a link owns the card's video, a dropped video FILE is
@@ -562,8 +615,21 @@ const MediaUploader = ({
   onChange: (patch: Partial<EventCardItem>) => void;
 }) => {
   const { t } = useTranslation();
+  const releaseVideo = useContext(ReleaseVideoContext);
   const inputRef = useRef<HTMLInputElement>(null);
+  // An upload outlives its card if the owner switches tabs (or the loading
+  // board is replaced) mid-upload; the result then has nowhere to land.
+  // Set in the effect's setup too: StrictMode (dev) runs cleanup + setup once
+  // on mount, and a cleanup-only flag would stay false for good.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [busy, setBusy] = useState<"image" | "video" | null>(null);
+  const [videoProgress, setVideoProgress] = useState<StreamUploadProgress>({ phase: "uploading", pct: 0 });
   const [rejected, setRejected] = useState<EventVideoRejectReason | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -596,9 +662,20 @@ const MediaUploader = ({
       setRejected(check.reason);
       return;
     }
+    // MEDIA.VIDEO.2 — up to Cloudflare Stream; the card takes the `cfstream:`
+    // ref only once Stream has finished encoding it.
+    const previous = videoFileUrl;
     setBusy("video");
+    setVideoProgress({ phase: "uploading", pct: 0 });
     try {
-      onChange({ videoFileUrl: await uploadEventVideo(file) });
+      const ref = await uploadToStream(file, "event", setVideoProgress);
+      // The card this was for is gone, so nothing will ever show the clip: let it go.
+      if (!mounted.current) {
+        releaseVideo(ref);
+        return;
+      }
+      onChange({ videoFileUrl: ref });
+      if (previous && previous !== ref) releaseVideo(previous);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
       toast({
@@ -606,6 +683,7 @@ const MediaUploader = ({
         description: msg,
         variant: "destructive",
       });
+      if (e instanceof StreamUploadError && e.orphan) toastStreamOrphan(e.orphan, t);
     } finally {
       setBusy(null);
     }
@@ -636,21 +714,16 @@ const MediaUploader = ({
 
       {videoFileUrl && (
         <div className="flex items-center gap-3">
-          <video
-            src={videoFileUrl}
-            data-qa="event-video-preview"
-            muted
-            loop
-            playsInline
-            autoPlay
-            className="w-24 h-24 object-cover rounded-md border border-border"
-          />
+          <VideoPreviewTile src={videoFileUrl} />
           <Button
             type="button"
             size="sm"
             variant="outline"
             data-qa="event-video-remove"
-            onClick={() => onChange({ videoFileUrl: "", videoFraming: undefined })}
+            onClick={() => {
+              onChange({ videoFileUrl: "", videoFraming: undefined });
+              releaseVideo(videoFileUrl);
+            }}
           >
             <X className="w-3 h-3 mr-1" />
             {t("admin.eventsBoard.removeVideoFile")}
@@ -661,6 +734,7 @@ const MediaUploader = ({
       <button
         type="button"
         data-qa="event-video-upload"
+        data-phase={busy === "video" ? videoProgress.phase : undefined}
         disabled={busy !== null}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {
@@ -684,7 +758,9 @@ const MediaUploader = ({
         )}
         <span className="text-xs text-muted-foreground text-center">
           {busy === "video"
-            ? t("admin.eventsBoard.uploadingVideo")
+            ? videoProgress.phase === "processing"
+              ? t("admin.stream.processing")
+              : t("admin.stream.uploading", { pct: videoProgress.pct })
             : t("admin.eventsBoard.dropMedia")}
         </span>
         <span className="text-[0.65rem] text-muted-foreground/70">
@@ -1592,7 +1668,29 @@ const EventsBoardManager = () => {
   });
   const canSave = dirty || (!loading && owesTranslation);
 
-  const discard = () => setBoard(committedBoard);
+  /**
+   * MEDIA.VIDEO.2 — a Stream video the card no longer holds. If the DATABASE
+   * board still references it, the public card is still showing it, so it
+   * waits for the Save that drops it (onSave); if it was never saved, nothing
+   * points at it and it goes now. A legacy bucket URL is left where it is.
+   */
+  const releaseVideo = (ref: string) => {
+    if (!isStreamRef(ref) || streamRefsOf(committed.current).has(ref)) return;
+    void releaseStreamVideo(ref, t);
+  };
+
+  /** Throwing away the working board abandons the uploads it alone held. */
+  const releaseUnsaved = () => {
+    const saved = streamRefsOf(committed.current);
+    for (const ref of streamRefsOf(boardRef.current)) {
+      if (!saved.has(ref)) void releaseStreamVideo(ref, t);
+    }
+  };
+
+  const discard = () => {
+    releaseUnsaved();
+    setBoard(committedBoard);
+  };
 
   /**
    * ADMIN.QOL.1 — what makes the Save bar stick lives in index.css, not here.
@@ -1653,10 +1751,12 @@ const EventsBoardManager = () => {
   };
 
   const deleteItem = (id: string) => {
+    const video = (boardRef.current.items.find((it) => it.id === id)?.videoFileUrl ?? "").trim();
     setBoard((prev) => ({
       ...prev,
       items: prev.items.filter((it) => it.id !== id),
     }));
+    if (video) releaseVideo(video);
   };
 
   const addItem = () => {
@@ -1706,8 +1806,15 @@ const EventsBoardManager = () => {
       setBoard(translated);
       setTranslationFailed(failed > 0);
 
+      const wasLive = streamRefsOf(committed.current);
       await setEventsBoard(translated);
       commit(translated);
+      // MEDIA.VIDEO.2 — the Stream videos this Save stopped referencing
+      // (removed, replaced, or their card deleted) go now that nothing shows them.
+      const nowLive = streamRefsOf(translated);
+      for (const ref of wasLive) {
+        if (!nowLive.has(ref)) void releaseStreamVideo(ref, t);
+      }
 
       if (failed > 0) {
         toast({
@@ -2021,20 +2128,22 @@ const EventsBoardManager = () => {
               items={board.items.map((i) => i.id)}
               strategy={verticalListSortingStrategy}
             >
-              <ul className="space-y-3">
-                {board.items.map((item, i) => (
-                  <SortableCard
-                    key={item.id}
-                    item={item}
-                    first={i === 0}
-                    onChange={(patch) => updateItem(item.id, patch)}
-                    onDelete={() => deleteItem(item.id)}
-                    onArchive={() => archiveItem(item.id)}
-                    onInstant={(patch, key) => instantItem(item.id, patch, key)}
-                    flash={flash}
-                  />
-                ))}
-              </ul>
+              <ReleaseVideoContext.Provider value={releaseVideo}>
+                <ul className="space-y-3">
+                  {board.items.map((item, i) => (
+                    <SortableCard
+                      key={item.id}
+                      item={item}
+                      first={i === 0}
+                      onChange={(patch) => updateItem(item.id, patch)}
+                      onDelete={() => deleteItem(item.id)}
+                      onArchive={() => archiveItem(item.id)}
+                      onInstant={(patch, key) => instantItem(item.id, patch, key)}
+                      flash={flash}
+                    />
+                  ))}
+                </ul>
+              </ReleaseVideoContext.Provider>
             </SortableContext>
           </DndContext>
         )}
@@ -2185,6 +2294,7 @@ const EventsBoardManager = () => {
               onClick={() => {
                 const to = leaveTarget;
                 setLeaveTarget(null);
+                releaseUnsaved();
                 setBoard(committedBoard);
                 if (to) navigate(to);
               }}

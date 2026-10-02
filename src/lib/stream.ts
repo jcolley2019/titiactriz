@@ -37,8 +37,8 @@ export const isAcceptedStreamVideo = (file: File): boolean => {
 
 const POLL_MS = 3_000;
 const POLL_CAP_MS = 10 * 60_000;
-/** stream-upload's delete can 429 right after a create; one retry after 10 s clears it. */
-const DELETE_RETRY_MS = 10_000;
+/** Stream throttles (429) in bursts; one retry after 10 s has cleared every one seen live. */
+const RETRY_429_MS = 10_000;
 
 const CODE_RE = /^[a-z0-9]+$/i;
 const validCode = (v: unknown): v is string => typeof v === "string" && CODE_RE.test(v);
@@ -120,27 +120,35 @@ const callStream = async <T>(body: Record<string, unknown>): Promise<T> => {
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const isThrottled = (e: unknown) => e instanceof StreamCallError && e.status === 429;
+
+/**
+ * One stream-upload call, retried ONCE after 10 s when Stream throttles it
+ * (429). Live, Stream has answered 429 to a delete right after a create, to a
+ * first create of the day, and to a status right after a delete — it is the
+ * account's ordinary weather, not a failure, so no single call fails on it.
+ */
+const callStreamPatiently = async <T>(body: Record<string, unknown>): Promise<T> => {
+  try {
+    return await callStream<T>(body);
+  } catch (e) {
+    if (!isThrottled(e)) throw e;
+    await wait(RETRY_429_MS);
+    return callStream<T>(body);
+  }
+};
+
 /**
  * Delete a Stream video by its ref. A 404 means it is already gone (success).
- * A 429 — Stream throttles a delete that follows its create too closely — is
- * retried once after 10 s; anything still failing throws, and every caller
- * toasts it: a delete that did not happen is never silent.
+ * A 429 is retried once after 10 s; anything still failing throws, and every
+ * caller toasts it: a delete that did not happen is never silent.
  */
 export const deleteFromStream = async (ref: string): Promise<void> => {
-  const uid = streamUid(ref);
-  for (let attempt = 0; ; attempt++) {
-    try {
-      await callStream({ action: "delete", uid });
-      return;
-    } catch (e) {
-      const status = e instanceof StreamCallError ? e.status : 0;
-      if (status === 404) return;
-      if (status === 429 && attempt === 0) {
-        await wait(DELETE_RETRY_MS);
-        continue;
-      }
-      throw e;
-    }
+  try {
+    await callStreamPatiently({ action: "delete", uid: streamUid(ref) });
+  } catch (e) {
+    if (e instanceof StreamCallError && e.status === 404) return;
+    throw e;
   }
 };
 
@@ -204,15 +212,17 @@ export class StreamUploadError extends Error {
 
 /**
  * create → upload the file → poll `status` every 3 s until ready (10 min cap)
- * → `cfstream:<uid>`. A failure after `create` deletes the half-made video so
- * nothing unreferenced stays stored.
+ * → `cfstream:<uid>`. A throttled create is retried once after 10 s, and a
+ * throttled poll is just a poll that learned nothing (the next one asks again).
+ * A failure after `create` deletes the half-made video so nothing unreferenced
+ * stays stored.
  */
 export const uploadToStream = async (
   file: File,
   kind: StreamKind,
   onProgress?: (p: StreamUploadProgress) => void,
 ): Promise<string> => {
-  const { uid, uploadURL } = await callStream<{ uid: string; uploadURL: string }>({
+  const { uid, uploadURL } = await callStreamPatiently<{ uid: string; uploadURL: string }>({
     action: "create",
     kind,
   });
@@ -224,9 +234,12 @@ export const uploadToStream = async (
     onProgress?.({ phase: "processing" });
     const deadline = Date.now() + POLL_CAP_MS;
     for (;;) {
-      const s = await callStream<StreamStatus>({ action: "status", uid });
-      if (s.ready) return ref;
-      if (s.state === "error") throw new Error(s.errorReason || "Stream could not process this video");
+      const s = await callStream<StreamStatus>({ action: "status", uid }).catch((e) => {
+        if (isThrottled(e)) return null;
+        throw e;
+      });
+      if (s?.ready) return ref;
+      if (s?.state === "error") throw new Error(s.errorReason || "Stream could not process this video");
       if (Date.now() > deadline) throw new Error("Stream is still processing after 10 minutes");
       await wait(POLL_MS);
     }
@@ -242,20 +255,30 @@ export const uploadToStream = async (
 
 /* ─────────────────────────── playback ─────────────────────────── */
 
-let nativeHlsMemo: boolean | null = null;
-/** Safari (and iOS) play HLS natively; everyone else gets hls.js. */
-const nativeHls = (): boolean =>
-  (nativeHlsMemo ??=
-    typeof document !== "undefined" &&
-    document.createElement("video").canPlayType("application/vnd.apple.mpegurl") !== "");
+const canPlayHlsNatively = (): boolean =>
+  typeof document !== "undefined" &&
+  document.createElement("video").canPlayType("application/vnd.apple.mpegurl") !== "";
+
+let appleHlsMemo: boolean | null = null;
+/**
+ * Native HLS only on Apple's WebKit (Safari, iPhone, iPad — every iOS browser),
+ * where Apple's own player is the best one there is. Joey's ruling, against the
+ * brief's "hls.js only when canPlayType is false": desktop Chrome now answers
+ * "maybe" too, and measured live on a 1440x900 hero its native player sat at
+ * 424x240 (resetting on every loop) where hls.js held 1916x1080 from 2 s.
+ */
+const appleNativeHls = (): boolean =>
+  (appleHlsMemo ??=
+    typeof navigator !== "undefined" && /Apple/i.test(navigator.vendor || "") && canPlayHlsNatively());
 
 /**
- * Attach an HLS manifest to a <video>. Native HLS sets `src`; otherwise hls.js
- * is imported on demand (it never loads for a page without a Stream video) and
- * caps the rendition at the player's size, so each screen gets the best one it
- * can show. `autoLoad: false` loads the manifest only (its RESOLUTION reports
- * the size through `onSize`) and starts segments on the first play. Returns the
- * detach function.
+ * Attach an HLS manifest to a <video>. On Apple WebKit, native HLS sets `src`;
+ * everywhere else hls.js is imported on demand (it never loads for a page
+ * without a Stream video) and caps the rendition at the player's size, so each
+ * screen gets the best one it can show. A browser with neither MSE nor Apple's
+ * player gets the manifest as `src` as a last resort. `autoLoad: false` loads
+ * the manifest only (its RESOLUTION reports the size through `onSize`) and
+ * starts segments on the first play. Returns the detach function.
  */
 export const attachStreamPlayback = (
   video: HTMLVideoElement,
@@ -263,7 +286,7 @@ export const attachStreamPlayback = (
   opts: { autoLoad?: boolean; onSize?: (w: number, h: number) => void } = {},
 ): (() => void) => {
   const autoLoad = opts.autoLoad !== false;
-  if (nativeHls()) {
+  if (appleNativeHls()) {
     video.src = manifest;
     return () => {
       video.removeAttribute("src");

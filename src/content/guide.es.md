@@ -24,7 +24,8 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 5. Si una foto ya no va, ábrela con los tres puntos y elige **Archivar** (se puede **Restaurar** después) o **Eliminar** (para siempre).
 6. **Texto alternativo** es la descripción de la foto que leen Google y las personas con lector de pantalla. **Completar todo el texto alternativo** las escribe de una vez; puedes corregirlas.
 7. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
-8. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
+8. El video de fondo del **Hero** (**Subir video**) se sube tal como lo grabaste, de cualquier tamaño hasta 200 MB y de unos 15 segundos; el sitio prepara los tamaños para cada pantalla.
+9. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
 
 ## Portafolio
 
@@ -44,7 +45,7 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 
 1. Abre **Eventos**. El interruptor **Mostrar la página de Eventos** enciende o apaga la página de eventos para el público. **Mostrar eventos en portada** los muestra también en la página de inicio.
 2. Toca **Agregar evento**. Puedes tener hasta 4 tarjetas activas.
-3. Llena el **Título** y la **Descripción**. Con **Agregar botón** pones un botón con su texto y su enlace. Puedes subir una imagen o un video a la tarjeta.
+3. Llena el **Título** y la **Descripción**. Con **Agregar botón** pones un botón con su texto y su enlace. Puedes subir una imagen o un video a la tarjeta. El video se sube tal como lo grabaste, de cualquier tamaño hasta 200 MB; el sitio prepara los tamaños para cada pantalla.
 4. **Fecha del evento (opcional)**: al día siguiente de esa fecha, el evento se archiva solo. Sin fecha, se queda hasta que lo archives tú. Los archivados están en **Archivados**, donde puedes **Restaurar** o **Eliminar**.
 5. Los interruptores y las fechas se guardan al instante. El texto espera a que toques **Guardar cambios** en la barra de abajo. Escribe en un idioma; el otro se traduce al guardar.
 6. La franja del sitio es el mensaje que se desplaza arriba de las páginas. Está en el recuadro **Site banner**: escribe el mensaje en **Banner text**, enciende el interruptor y elige en **Show on pages** dónde se ve. Sin texto, no se deja encender.

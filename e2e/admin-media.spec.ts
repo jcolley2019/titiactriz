@@ -8,6 +8,9 @@ import {
   selectHeroVideoFile,
   uploadHeroVideoVia,
   MOCK_PHOTOS,
+  STREAM_FIRST_UID,
+  STREAM_TEST_UPLOAD_HOST,
+  streamCallsOf,
   type Write,
 } from "./_admin";
 
@@ -655,6 +658,9 @@ const cinematicMediaUpserts = (writes: Write[]) =>
  */
 const toastSaying = (page: Page, text: RegExp) => page.locator('li[role="status"]').filter({ hasText: text });
 
+/** MEDIA.VIDEO.2 — the mocked stream-upload calls, as their JSON bodies, in order. */
+const streamCalls = streamCallsOf;
+
 test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
   test("rejects bad files; a valid upload sets the setting, opens the video editor, and saves decoupled framing", async ({
     page,
@@ -676,15 +682,17 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
 
     // ---- validation: wrong type → oversize → overlong (TOAST_LIMIT=1 replaces) ----
     await selectHeroVideoFile(page, { type: "text/plain", name: "notes.txt", sizeBytes: 1024 });
-    await expect(toastSaying(page, /Use an MP4 or WebM/i), "wrong type rejected").toBeVisible();
+    await expect(toastSaying(page, /Use an MP4, MOV or WebM/i), "wrong type rejected").toBeVisible();
 
-    await selectHeroVideoFile(page, { type: "video/mp4", name: "big.mp4", sizeBytes: 63 * 1024 * 1024 });
-    await expect(toastSaying(page, /too large/i), "oversize rejected").toBeVisible();
+    // MEDIA.VIDEO.2 — the cap is Stream's 200 MB, one byte over is refused by name.
+    await selectHeroVideoFile(page, { type: "video/mp4", name: "big.mp4", sizeBytes: 200 * 1024 * 1024 + 1 });
+    await expect(toastSaying(page, /too large.*200 MB/i), "oversize rejected, naming the cap").toBeVisible();
 
     await selectHeroVideoFile(page, { type: "video/mp4", name: "long.mp4", sizeBytes: 4096, durationSec: 20 });
     await expect(toastSaying(page, /too long/i), "overlong rejected").toBeVisible();
 
     expect(heroVideoUpserts(writes).length, "no rejected file was uploaded/persisted").toBe(0);
+    expect(streamCalls(writes), "no rejected file reached Stream").toEqual([]);
     await expect(page.locator('[data-qa="media-editor-surface"]'), "no editor from a rejected file").toHaveCount(0);
 
     // ---- valid upload → setting written → video-mode editor opens automatically ----
@@ -695,6 +703,25 @@ test.describe("ADMIN.MEDIA.2 — hero video upload → frame → save", () => {
     await expect
       .poll(() => heroVideoUpserts(writes).length, { timeout: 8000 })
       .toBeGreaterThan(0);
+
+    // MEDIA.VIDEO.2 — the clip went to Stream as a hero (create, the file POST to
+    // its one-time URL, a ready status), never to the gallery bucket, and the
+    // setting holds its `cfstream:` ref.
+    expect(streamCalls(writes).map((c) => c.action).slice(0, 1), "Stream create first").toEqual(["create"]);
+    expect(streamCalls(writes)[0].kind, "…as a hero clip").toBe("hero");
+    expect(writes.filter((w) => w.url.startsWith(STREAM_TEST_UPLOAD_HOST)).length, "one file POST").toBe(1);
+    expect(writes.filter((w) => /\/storage\/v1\//.test(w.url)), "nothing in the gallery bucket").toEqual([]);
+    const heroRow = JSON.parse(heroVideoUpserts(writes)[0].body || "{}");
+    expect((Array.isArray(heroRow) ? heroRow[0] : heroRow).value, "the setting holds the ref").toBe(
+      `cfstream:${STREAM_FIRST_UID}`,
+    );
+    // The first upload stores the playback code Stream reported, since none was stored yet.
+    const codeWrites = writes.filter(
+      (w) => w.method === "POST" && /site_settings/.test(w.url) && (w.body || "").includes("stream.customer_code"),
+    );
+    expect(codeWrites.length, "stream.customer_code written on the first create").toBe(1);
+    const codeRow = JSON.parse(codeWrites[0].body || "{}");
+    expect((Array.isArray(codeRow) ? codeRow[0] : codeRow).value).toBe("test");
     await page.waitForTimeout(400);
     await page.screenshot({ path: shot("MEDIA2-editor-videomode.png") });
     await page.screenshot({ path: shot("MEDIA4-editor-video.png") });
@@ -794,6 +821,88 @@ test.describe("ADMIN.MEDIA.2 — remove video reverts to image", () => {
     await expect(heroSlot.locator('[data-qa="media-slot-video-badge"]')).toHaveCount(0);
     await expect(heroSlot.locator("img")).toBeVisible();
     await expect(page.locator('[data-qa="media-hero-upload"]')).toContainText(/Upload video/i);
+    // A legacy bucket URL is left where it is — Stream is never asked to delete it.
+    expect(streamCalls(writes), "no Stream call for a legacy URL hero").toEqual([]);
+  });
+});
+
+/* ---------- MEDIA.VIDEO.2 — a Stream hero's lifecycle: remove, replace ---------- */
+const OLD_UID = "c".repeat(32);
+
+async function openStreamHero(page: Page, writes: Write[], stream?: { deleteStatus?: (n: number) => number }) {
+  await stubHeroVideoMedia(page);
+  await injectAdminSession(page);
+  await forceLanguage(page, "en");
+  await routeSupabase(page, {
+    media: null,
+    photos: MOCK_PHOTOS,
+    heroVideo: `cfstream:${OLD_UID}`,
+    streamCustomerCode: "test",
+    stream,
+    writes,
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/admin", { waitUntil: "domcontentloaded" });
+  await settle(page, 800);
+  await page.locator('[data-qa="admin-nav-media"]').click();
+  await expect(
+    page.locator('[data-qa="media-slot"][data-slot="hero"] [data-qa="media-slot-video"]'),
+  ).toBeVisible();
+}
+
+test.describe("MEDIA.VIDEO.2 — a Stream hero is deleted from Stream once nothing shows it", () => {
+  test("Remove clears the setting first, retries Stream's 429 once after 10 s, and says so when the delete still fails", async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    const writes: Write[] = [];
+    await openStreamHero(page, writes, { deleteStatus: () => 429 });
+
+    await page.locator('[data-qa="media-hero-remove"]').click();
+    await expect(toastSaying(page, /Hero video removed/i)).toBeVisible();
+
+    // The site lets go of the ref BEFORE Stream is asked to delete it.
+    const settingDelete = writes.findIndex(
+      (w) => w.method === "DELETE" && /cinematic_hero_video(?!_portrait)/.test(w.url),
+    );
+    const firstStreamDelete = writes.findIndex(
+      (w) => /stream-upload/.test(w.url) && (w.body || "").includes('"delete"'),
+    );
+    expect(settingDelete, "the setting was cleared").toBeGreaterThanOrEqual(0);
+    expect(firstStreamDelete, "…and only then was Stream asked").toBeGreaterThan(settingDelete);
+    expect(streamCalls(writes)[0], "the delete names the old video").toEqual({ action: "delete", uid: OLD_UID });
+
+    // 429 → one retry after 10 s → still 429 → the owner is told, by name.
+    await expect
+      .poll(() => streamCalls(writes).filter((c) => c.action === "delete").length, { timeout: 20_000 })
+      .toBe(2);
+    await expect(
+      toastSaying(page, /could not be deleted/i),
+      "a delete that never happened is never silent",
+    ).toContainText(OLD_UID);
+    await page.waitForTimeout(1500);
+    expect(streamCalls(writes).filter((c) => c.action === "delete").length, "exactly one retry").toBe(2);
+  });
+
+  test("Replace stores the new ref, then deletes the old Stream video", async ({ page }) => {
+    const writes: Write[] = [];
+    await openStreamHero(page, writes);
+
+    await selectHeroVideoFile(page, { type: "video/quicktime", name: "IMG_0001.MOV", sizeBytes: 8192, durationSec: 8 });
+    await expect(page.locator('[data-qa="media-editor-surface"]'), "the new clip opens the editor").toBeVisible();
+
+    const calls = streamCalls(writes);
+    await expect.poll(() => streamCalls(writes).some((c) => c.action === "delete"), { timeout: 8000 }).toBe(true);
+    expect(calls[0], "an iPhone .mov goes up as filmed").toEqual({ action: "create", kind: "hero" });
+    const newRefWrite = writes.findIndex(
+      (w) => w.method === "POST" && (w.body || "").includes(`"cfstream:${STREAM_FIRST_UID}"`),
+    );
+    const oldDelete = writes.findIndex(
+      (w) => /stream-upload/.test(w.url) && (w.body || "").includes(`"uid":"${OLD_UID}"`) && (w.body || "").includes('"delete"'),
+    );
+    expect(newRefWrite, "the new ref is stored").toBeGreaterThanOrEqual(0);
+    expect(oldDelete, "…before the old video is deleted").toBeGreaterThan(newRefWrite);
+    await expect(toastSaying(page, /could not be deleted/i)).toHaveCount(0);
   });
 });
 

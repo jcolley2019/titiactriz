@@ -1,13 +1,18 @@
-import { supabase } from "@/integrations/supabase/client";
-import { BUCKET } from "./gallery-upload";
+import {
+  STREAM_MAX_BYTES,
+  STREAM_MAX_MB,
+  STREAM_VIDEO_ACCEPT_ATTR,
+  isAcceptedStreamVideo,
+} from "./stream";
 
 /**
  * EVENTS.VIDEO.1 — what an event card is allowed to call "video".
  *
  * Two sources, never both on one card:
  *
- *   uploaded — an mp4/webm in the gallery bucket under `events/`. Ours, served
- *              from our own origin, rendered by our own <video>.
+ *   uploaded — a file the owner uploaded: since MEDIA.VIDEO.2 a Cloudflare
+ *              Stream video (`cfstream:<uid>`), before it an mp4/webm in the
+ *              gallery bucket under `events/`. Ours, rendered by our own <video>.
  *   social   — a TikTok / Instagram / YouTube link, rendered by THE PLATFORM'S
  *              OWN PLAYER and nothing else.
  *
@@ -188,53 +193,31 @@ export const resolveEventMedia = (item: {
 
 /* ───────────────────────────── uploads ───────────────────────────── */
 
-export const EVENT_VIDEO_ACCEPTED = ["video/mp4", "video/webm"];
-export const EVENT_VIDEO_ACCEPT_ATTR = "video/mp4,video/webm,.mp4,.webm";
+export const EVENT_VIDEO_ACCEPT_ATTR = STREAM_VIDEO_ACCEPT_ATTR;
 
 /**
- * The size cap, matching the hero video's (ADMIN.MEDIA.2). It is the storage
- * bucket's real ceiling as much as a taste ruling: an announcement clip that
- * cannot be uploaded is worse than one that had to be trimmed, and the admin
- * says which of the two happened.
+ * The size cap, matching the hero video's. MEDIA.VIDEO.2: an uploaded clip now
+ * goes to Cloudflare Stream (src/lib/stream.ts), whose single-request ceiling
+ * is 200 MB, and is stored on the row as `cfstream:<uid>`; a row that still
+ * holds a gallery-bucket URL keeps playing exactly as before. The refusal law
+ * stands: an announcement clip that cannot be uploaded is worse than one that
+ * had to be trimmed, and the admin says which of the two happened.
  *
  * Deliberately NO duration cap. The hero video caps at 15.5s because it is a
  * background loop; an event announcement is content, and a length rule this
  * brick was never asked for would be a way to reject Joey's real file.
  */
-export const EVENT_VIDEO_MAX_BYTES = 60 * 1024 * 1024; // 60 MB
-export const EVENT_VIDEO_MAX_MB = 60;
+export const EVENT_VIDEO_MAX_BYTES = STREAM_MAX_BYTES;
+export const EVENT_VIDEO_MAX_MB = STREAM_MAX_MB;
 
 export type EventVideoRejectReason = "type" | "size";
 export type EventVideoValidation = { ok: true } | { ok: false; reason: EventVideoRejectReason };
 
-export const isAcceptedEventVideo = (file: File): boolean => {
-  const type = (file.type || "").toLowerCase();
-  if (EVENT_VIDEO_ACCEPTED.includes(type)) return true;
-  const name = (file.name || "").toLowerCase();
-  return name.endsWith(".mp4") || name.endsWith(".webm");
-};
+export const isAcceptedEventVideo = isAcceptedStreamVideo;
 
 /** Type, then size — an over-type file never has to be weighed. */
 export const validateEventVideo = (file: File): EventVideoValidation => {
   if (!isAcceptedEventVideo(file)) return { ok: false, reason: "type" };
   if (file.size > EVENT_VIDEO_MAX_BYTES) return { ok: false, reason: "size" };
   return { ok: true };
-};
-
-/**
- * Upload a validated event video to the gallery bucket under `events/` — the
- * same prefix the card's images already use — and return its public URL.
- */
-export const uploadEventVideo = async (file: File): Promise<string> => {
-  const type = (file.type || "").toLowerCase() === "video/webm" ? "video/webm" : "video/mp4";
-  const ext = type === "video/webm" ? "webm" : "mp4";
-  const path = `events/${crypto.randomUUID()}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: false, contentType: type });
-  if (error) throw error;
-
-  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return pub.publicUrl;
 };
