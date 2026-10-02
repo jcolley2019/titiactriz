@@ -1714,12 +1714,13 @@ test.describe("BLOG.GW.2 GW kinds", () => {
     }
     expect(xml).not.toMatch(/&(?!amp;)/);
 
-    // The home's Blog act: its cards and its phone tiles name the kind too.
+    // The home's Blog act: its cards and its phone tiles name the kind too. A tile's
+    // green frame carries Green World, so the kind leads its caps line (BLOG.GW.2a).
     await page.goto("/cinematic", { waitUntil: "domcontentloaded" });
     const tileMeta = (slug: string) =>
       page.locator(`[data-qa="blog-act-tile"][data-slug="${slug}"] [data-qa="blog-act-tile-meta"]`);
-    await expect(tileMeta("te-verde-en-casa")).toHaveText("Green World · Producto · 24 sept 2026");
-    await expect(tileMeta("mi-lista-de-compras")).toHaveText("Green World · Capacitación · 16 sept 2026");
+    await expect(tileMeta("te-verde-en-casa")).toHaveText("Producto · 24 sept 2026");
+    await expect(tileMeta("mi-lista-de-compras")).toHaveText("Capacitación · 16 sept 2026");
     await expect(tileMeta("bailar-en-medellin")).toHaveText("Green World · 12 sept 2026");
     await expect(tileMeta("un-dia-en-el-set")).toHaveText("Personal · 20 sept 2026");
     await expect(

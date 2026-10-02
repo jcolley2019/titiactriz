@@ -437,7 +437,9 @@ test.describe("cinematic — reduced motion", () => {
  *       directly by Green World
  *  BA6  a greenworld tile wears the lane green frame and hairline, a personal one
  *       gold; the cards carry the same lane; "Green World →" only when a shown
- *       post walks the lane
+ *       post walks the lane. BLOG.GW.2a: a kinded greenworld tile's caps line is
+ *       "<kind> · <date>" (the frame carries Green World), and at 390×844 no
+ *       tile's caps line is truncated; the card keeps "Green World · <kind>"
  *  BA7  768×1024 (HOME.BLOGACT.1a): a tablet frame too short for the 2×2 takes
  *       the tiles, and the act's title, every tile and the footer links are
  *       inside the viewport at the pin
@@ -823,7 +825,9 @@ test.describe("Blog act", () => {
 
   test("BA6 the lane — green on a greenworld tile and card, gold on a personal one", async ({ page }) => {
     test.setTimeout(150_000);
-    await openBlogAct(page, { width: 390, height: 844 });
+    // One shown greenworld post is a Capacitación — the longest kind label.
+    const rows = blogRows().map((r) => (r.slug === "te-verde-en-casa" ? { ...r, gw_kind: "capacitacion" } : r));
+    await openBlogAct(page, { width: 390, height: 844, rows });
 
     const tileLane = (slug: string) =>
       page.locator(`[data-qa="blog-act-tile"][data-slug="${slug}"]`).evaluate((el) => ({
@@ -849,6 +853,20 @@ test.describe("Blog act", () => {
     expectColor(personal.meta, GOLD_RGB, 1, "personal tile label + date");
     expect(personal.label).toMatch(/^Personal\s· 26 sept\.? 2026$/i);
 
+    // BLOG.GW.2a: a kinded greenworld tile leads with its kind — the frame carries Green World.
+    const kinded = await tileLane("te-verde-en-casa");
+    expectColor(kinded.meta, LANE_RGB, 1, "kinded greenworld tile kind + date");
+    expect(kinded.label).toMatch(/^Capacitación\s· 22 sept\.? 2026$/i);
+
+    // …and at 390×844 no tile's caps line is truncated: its date is whole.
+    const caps = await page.locator('[data-qa="blog-act-tile-meta"]').evaluateAll((els) =>
+      els.map((el) => ({ text: el.textContent ?? "", scroll: el.scrollWidth, client: el.clientWidth })),
+    );
+    expect(caps).toHaveLength(4);
+    for (const c of caps) {
+      expect(c.scroll, `"${c.text}" fits its caps line`).toBeLessThanOrEqual(c.client);
+    }
+
     // The cards walk the same lane at 1440: the hairline and date line in green
     // for a greenworld post; no hairline and a gold date for a personal one.
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -861,6 +879,10 @@ test.describe("Blog act", () => {
         };
       });
     const gwCard = await cardLane("te-verde-en-casa");
+    // The card is unchanged by BLOG.GW.2a: it still names the lane before the kind.
+    await expect(
+      page.locator('[data-qa="blog-act-card"][data-slug="te-verde-en-casa"] [data-qa="blog-act-card-date"]'),
+    ).toHaveText(/^Green World\s· Capacitación\s· 22 sept\.? 2026$/i);
     expectColor(gwCard.rule ?? "", LANE_RGB, 1, "greenworld card hairline");
     expectColor(gwCard.date, LANE_RGB, 1, "greenworld card date line");
     const personalCard = await cardLane("bailar-en-medellin");

@@ -234,19 +234,32 @@ const CinematicBlog = ({ reduced }: { reduced: boolean }) => {
 /**
  * The category label and the short date, as one text-caps run. BLOG.GW.2 — a
  * greenworld post with a kind names it after the label: "Green World · Producto".
+ * BLOG.GW.2a — `kindLeads` (the phone tile, whose green frame already carries
+ * Green World) drops the label for the kind: "Capacitación · 16 sept 2026".
  */
-const MetaLine = ({ view, lang, label }: { view: BlogView; lang: Lang; label: boolean }) => {
+const MetaLine = ({
+  view,
+  lang,
+  label,
+  kindLeads = false,
+}: {
+  view: BlogView;
+  lang: Lang;
+  label: boolean;
+  kindLeads?: boolean;
+}) => {
   const { t } = useTranslation();
   const gw = view.post.category === "greenworld";
   const kind = gw && label ? view.post.gwKind : null;
+  const named = label && !(kindLeads && kind);
   const published = view.post.published_at;
   const name = gw ? t("home.blogAct.labelGreenWorld") : t("home.blogAct.labelPersonal");
   return (
     <>
-      {label && <span translate={gw ? "no" : undefined}>{name}</span>}
+      {named && <span translate={gw ? "no" : undefined}>{name}</span>}
       {kind && (
         <>
-          {META_SEP}
+          {named && META_SEP}
           <span data-qa="blog-act-kind" data-kind={kind}>
             {t(gwKindLabelKey(kind))}
           </span>
@@ -348,7 +361,7 @@ const ActTile = ({ view, lang }: { view: BlogView; lang: Lang }) => {
         style={{ backgroundColor: ink }}
       />
       <span data-qa="blog-act-tile-meta" className="text-caps block truncate" style={{ color: ink }}>
-        <MetaLine view={view} lang={lang} label />
+        <MetaLine view={view} lang={lang} label kindLeads />
       </span>
       <span
         data-qa="blog-act-tile-title"
