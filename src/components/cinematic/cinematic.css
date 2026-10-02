@@ -404,6 +404,25 @@
   }
 }
 
+/* ===== HOME.BLOGACT.1a — the Blog act picks its composition by the frame =====
+   Tiles below 768. Entry cards from 768: a row of four at ≥1024, a 2×2 below
+   it — but the 2×2 needs a frame at least 1140px tall (measured worst case:
+   four greenworld cards, wrapped date lines, both clamps full — 1123px at 768
+   wide, 1135px at 1023), and a held act must fit its frame. So a tablet frame
+   shorter than that (768×1024, 810×1080) takes the phone tiles instead; 820×1180
+   and 834×1194 keep the 2×2. These rules own `display` for both lists, so no
+   utility class on the lists sets it. */
+.blog-act-cards { display: none; }
+.blog-act-tiles { display: flex; }
+@media (min-width: 768px) {
+  .blog-act-cards { display: flex; }
+  .blog-act-tiles { display: none; }
+}
+@media (min-width: 768px) and (max-width: 1023px) and (max-height: 1139px) {
+  .blog-act-cards { display: none; }
+  .blog-act-tiles { display: flex; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cine-kenburns { animation: none !important; transform: none !important; }
   .cine-scrollcue-line { animation: none !important; }

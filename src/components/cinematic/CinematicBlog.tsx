@@ -23,11 +23,13 @@ const LANE_FRAME = "hsl(var(--gw-lane) / 0.4)";
  * the Book act held, empty since EVENTS.2).
  *
  * The newest published posts, up to four, from the blog's own hook — the act
- * adds no fetch of its own. Two compositions, chosen in CSS at the 768px line:
+ * adds no fetch of its own. Two compositions, chosen in cinematic.css:
  *
  *   • ≥768 — Entry-style cards (the blog's own grammar: the cover as the reel's
  *     framed plate, then unboxed type — a text-caps date line, the title in the
- *     display face, the excerpt). One row of four at ≥1024, a 2×2 below it.
+ *     display face, the excerpt). One row of four at ≥1024, a 2×2 below it —
+ *     but only in a frame ≥1140px tall, the 2×2's measured worst case
+ *     (HOME.BLOGACT.1a). A shorter tablet frame (768×1024) takes the tiles.
  *   • <768 — COMPACT TILES in the TitiLinks link-card idiom: full-width,
  *     stacked, 68px each, a 1px frame and a left lane hairline, the category
  *     label and date on one text-caps line and the title on the next (one line,
@@ -171,10 +173,12 @@ const CinematicBlog = ({ reduced }: { reduced: boolean }) => {
           </h2>
         </div>
 
-        {/* ≥768: Entry-style cards. A short row centres rather than hugging the left. */}
+        {/* ≥768: Entry-style cards. A short row centres rather than hugging the
+            left. Which list shows is cinematic.css's call (.blog-act-cards /
+            .blog-act-tiles): a tablet frame too short for the 2×2 takes tiles. */}
         <ul
           data-qa="blog-act-cards"
-          className="mt-10 hidden w-full max-w-xl flex-wrap justify-center gap-8 md:flex lg:mt-12 lg:max-w-6xl"
+          className="blog-act-cards mt-10 w-full max-w-xl flex-wrap justify-center gap-8 lg:mt-12 lg:max-w-6xl"
         >
           {shown.map((v) => (
             <li
@@ -187,8 +191,8 @@ const CinematicBlog = ({ reduced }: { reduced: boolean }) => {
           ))}
         </ul>
 
-        {/* <768: compact tiles, the TitiLinks link-card idiom. */}
-        <ul data-qa="blog-act-tiles" className="mt-8 flex w-full max-w-lg flex-col gap-2.5 md:hidden">
+        {/* <768 (and short tablet frames): compact tiles, the TitiLinks link-card idiom. */}
+        <ul data-qa="blog-act-tiles" className="blog-act-tiles mt-8 w-full max-w-lg flex-col gap-2.5">
           {shown.map((v) => (
             <li key={v.post.id} data-blog-act-tile>
               <ActTile view={v} lang={lang} />

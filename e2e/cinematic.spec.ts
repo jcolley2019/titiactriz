@@ -438,6 +438,9 @@ test.describe("cinematic — reduced motion", () => {
  *  BA6  a greenworld tile wears the lane green frame and hairline, a personal one
  *       gold; the cards carry the same lane; "Green World →" only when a shown
  *       post walks the lane
+ *  BA7  768×1024 (HOME.BLOGACT.1a): a tablet frame too short for the 2×2 takes
+ *       the tiles, and the act's title, every tile and the footer links are
+ *       inside the viewport at the pin
  *
  * blog_posts is answered from fixtures, served OUT of order and with a newer
  * draft, so newest-first and published-only must come from the hook's own query.
@@ -872,5 +875,50 @@ test.describe("Blog act", () => {
     await expect(page.locator('[data-qa="blog-act-card"]')).toHaveCount(3);
     await expect(page.locator('[data-qa="blog-act-gw"]')).toHaveCount(0);
     await expect(page.locator('[data-qa="blog-act-all"]')).toHaveCount(1);
+  });
+
+  test("BA7 768×1024 — a frame too short for the 2×2 takes the tiles, all inside it at the pin", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    const VW = 768;
+    const VH = 1024;
+    await openBlogAct(page, { width: VW, height: VH });
+
+    // The 2×2 needs ≥1140px of frame; this one gets the phone tiles instead.
+    await expect(page.locator('[data-qa="blog-act-tile"]')).toHaveCount(4);
+    await expect(page.locator('[data-qa="blog-act-tile"]').first()).toBeVisible();
+    await expect(page.locator('[data-qa="blog-act-card"]').first()).toBeHidden();
+
+    await engage(page, BLOG_STAGE);
+    expect(Math.abs(await topOf(page, BLOG_STAGE)), "blog pinned at engage").toBeLessThanOrEqual(2);
+
+    const boxes = await page.evaluate(() => {
+      const box = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+      };
+      const act = document.querySelector('[data-qa="cinematic-blog"]')!;
+      return {
+        title: box(act.querySelector('[data-qa="section-heading"]')!),
+        tiles: Array.from(act.querySelectorAll('[data-qa="blog-act-tile"]')).map(box),
+        links: Array.from(act.querySelectorAll('[data-qa="blog-act-all"], [data-qa="blog-act-gw"]')).map(box),
+        scrollWidth: document.documentElement.scrollWidth,
+      };
+    });
+    expect(boxes.links, "both footer links render").toHaveLength(2);
+    const parts: [string, { top: number; bottom: number; left: number; right: number }][] = [
+      ["the act's title", boxes.title],
+      ...boxes.tiles.map((t, i): [string, typeof t] => [`tile ${i + 1}`, t]),
+      ...boxes.links.map((l, i): [string, typeof l] => [`footer link ${i + 1}`, l]),
+    ];
+    for (const [what, b] of parts) {
+      expect(b.top, `${what} below the frame's top`).toBeGreaterThanOrEqual(0);
+      expect(b.bottom, `${what} inside the 1024px frame`).toBeLessThanOrEqual(VH);
+      expect(b.left, `${what} inside the frame's left edge`).toBeGreaterThanOrEqual(0);
+      expect(b.right, `${what} inside the frame's right edge`).toBeLessThanOrEqual(VW);
+    }
+    expect(boxes.scrollWidth, "no horizontal overflow").toBeLessThanOrEqual(VW);
+    await page.screenshot({ path: shot("HOME.BLOGACT.1a-768x1024-pin.png") });
   });
 });

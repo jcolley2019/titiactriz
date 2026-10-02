@@ -1010,7 +1010,15 @@ from the blog's own hook, and links each to `/blog/<slug>`; its footer line is
   the Body ceiling (two lines at most). One row of four at ≥1024, a 2×2 below
   it; a short row centres. A greenworld card's lane hairline stands in the
   gutter, not inside the card, so every plate in the row keeps the same width.
-- **Phone (<768): the compact tile** — the TitiLinks link-card idiom. Full
+- **The 2×2 needs a tall frame (HOME.BLOGACT.1a).** A held act must fit the
+  frame it holds, and the 2×2's measured worst case (four greenworld cards,
+  wrapped date lines, both clamps full) is `1123px` at 768 wide and `1135px`
+  at 1023. So between 768 and 1023 wide the 2×2 shows only when the frame is
+  **≥1140px tall**; a shorter tablet frame takes the phone tiles instead.
+  768×1024 and 810×1080 get tiles; 820×1180 and 834×1194 keep the 2×2. The
+  rule lives in `cinematic.css` (`.blog-act-cards` / `.blog-act-tiles`), which
+  owns `display` for both lists.
+- **Phone (<768, and short tablet frames): the compact tile** — the TitiLinks link-card idiom. Full
   width, stacked, `68px` tall, sharp-cornered: a 1px frame at the structure
   band (`0.4`) drawn as an overlay (the link keeps its native focus ring), a
   solid 1px hairline down the left edge, the category label and the short date
