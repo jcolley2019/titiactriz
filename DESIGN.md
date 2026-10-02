@@ -262,6 +262,12 @@ as `#121212` on a public surface would be.
   hairline under its title. Line and letter only, never a fill. No other green
   anywhere on the blog — the chips, back links, cover frames, tags and every
   personal post stay in the room's gold grammar.
+  **HOME.BLOGACT.1 (2026-10-02) extends the scope to the home's Blog act**, on
+  its bare ground (`5.8:1`): a greenworld card's 1px left hairline (in the
+  gutter), date line and label; a greenworld phone tile's frame (at the
+  structure band, `0.4`), left hairline and label-and-date line; and the act's
+  "Green World →" footer link, which is the lane's own door. Everything else in
+  the act is gold.
 
 ### The gold alpha ladder
 
@@ -309,7 +315,8 @@ every other cinematic surface, gold remains the only accent, and the venture
 reds stay behind their own gate. **A second exception, scoped the same way
 (BLOG.GW.1, 2026-10-02):** a Green World post on the blog walks a lane in Lane
 Green (`#12A03B`) — see Venture accents. It lives only on /blog cards and
-/blog/<slug> pages whose category is greenworld.
+/blog/<slug> pages whose category is greenworld, and (HOME.BLOGACT.1,
+2026-10-02) on those same posts where the cinematic home's Blog act shows them.
 
 **The Warm Dark Rule.** The ground is `#0b0a08` and its veils are
 `rgba(11,10,8,α)`. Pure `#000` and cool blue-blacks are both regressions: the
@@ -589,7 +596,8 @@ Ratified on Joey's direction. Three decisions:
 The page's scroll cost is a ruled vocabulary with exactly two prices:
 
 1. **Story acts dwell `+=120%`.** The gallery, the **Book announcement**
-   (BOOK.ACT.2), About, and Contact each pin (`start: "top top"`,
+   (BOOK.ACT.2), the **Blog act** (HOME.BLOGACT.1), About, and Contact each
+   pin (`start: "top top"`,
    `end: "+=120%"`) and hold their frame for 120% of a viewport before
    releasing — the uniform dwell law: every story act earns the same beat of
    stillness, no act more. A pinned act keeps its pointer events, so the Contact
@@ -907,6 +915,9 @@ There are no cards on cinematic surfaces. The nearest equivalent is the **About
 panel**: a plate-shaped framed media container with a gold inset outline, no
 background of its own, no shadow, and no radius. Media containers paint `#0b0a08` behind the
 image so a sub-cover scale reveals brand-dark edges rather than transparency.
+The one ratified exception is the **Blog act** (HOME.BLOGACT.1, below): its
+posts are the blog's own Entries — a framed plate over unboxed type, still no
+fill, shadow or radius — and on a phone, hairline-framed link tiles.
 
 ### Navigation
 
@@ -972,6 +983,49 @@ that **reuses instead of claiming**:
   an act that has already settled. It shipped with no pin at all, and an
   announcement that scrolls past unbidden reads as an aside. Reduced motion
   builds neither: static, settled, unpinned — and still a full stage.
+
+### Signature — the Blog act (HOME.BLOGACT.1)
+
+The Blog act stands in the former Book slot, between the gallery and Green
+World (`CinematicBlog.tsx`). It shows the newest published posts, up to four,
+from the blog's own hook, and links each to `/blog/<slug>`; its footer line is
+"Ver todos los artículos →" (`/blog`), plus "Green World →"
+(`/blog?c=greenworld`) when any shown post walks that lane. Copy lives under
+`home.blogAct.*`.
+
+- **A story act; it pays the story price.** A `.cine-act-vh` full stage on the
+  bare ground (`#0b0a08`), its column centred in the act padding, the gold
+  eyebrow, the gold hairline and the Headline-step title. It pins
+  `start: "top top"`, `end: "+=120%"` — the Dwell Law's story price, no local
+  number — and every post stays a live link through the hold.
+- **The Book act's mechanism.** A linear scrubbed entrance (`ease: "none"`)
+  over the act's arrival, `top 78%` → `top 22%`: the title line and hairline
+  arrive first, then the posts in reading order — desktop cards left → right,
+  rising from `+60px`; phone tiles top → bottom from `+24px`; opacity
+  `0 → 1`. It completes before the pin engages, so the hold begins on a
+  settled frame. Reduced motion: no tweens, no pin, a static full stage.
+- **Wide (≥768): Entry cards.** The blog's Entry, sized down — the cover as the
+  reel's 3:2 framed plate, then a text-caps date line, the title in the display
+  face at the Headline floor (`1.75rem`, two lines at most), and the excerpt at
+  the Body ceiling (two lines at most). One row of four at ≥1024, a 2×2 below
+  it; a short row centres. A greenworld card's lane hairline stands in the
+  gutter, not inside the card, so every plate in the row keeps the same width.
+- **Phone (<768): the compact tile** — the TitiLinks link-card idiom. Full
+  width, stacked, `68px` tall, sharp-cornered: a 1px frame at the structure
+  band (`0.4`) drawn as an overlay (the link keeps its native focus ring), a
+  solid 1px hairline down the left edge, the category label and the short date
+  ("24 sept 2026") on one text-caps line, and the title on the next — the
+  display face at the Body ceiling (`0.95rem`, fixed), one line, ellipsis. No
+  cover, no excerpt. The lane colours both lines: gold for a personal post,
+  Lane Green for a greenworld one. Four tiles, the act's title and its footer
+  links fit one 844px screen.
+- **Honest emptiness, and the late-mount law.** With no published posts the
+  act paints nothing — no room, no heading, no height, no trigger — and the
+  gallery hands straight to Green World. Its section is still in the DOM at
+  every paint (the Events act's law): posts arrive after first paint, and a
+  section inserted late beside pinned neighbours lands against a DOM React no
+  longer recognises. Its pin is born late for the same reason, so it is
+  `ScrollTrigger.sort()`ed and refreshed like every late pin on the page.
 
 ## Do's and Don'ts
 

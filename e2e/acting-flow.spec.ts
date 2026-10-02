@@ -100,6 +100,10 @@ const MARKERS: ReadonlyArray<{ name: string; sel: string }> = [
   { name: "reel", sel: '[data-qa="reel-slide"]' },
   { name: "acting", sel: '[data-qa="cinematic-acting"]' },
   { name: "gallery", sel: '[data-qa="cinematic-gallery"]' },
+  // HOME.BLOGACT.1 — the Blog act takes the former Book slot. Unconditional
+  // here for the same reason as `events`: with no published posts (this file's
+  // fixture) its section is empty, but the late-mount law keeps it in the DOM.
+  { name: "blog", sel: '[data-qa="cinematic-blog"]' },
   { name: "greenworld", sel: '[data-qa="cinematic-greenworld-seq"]' },
   { name: "titilinks", sel: '[data-qa="cinematic-titilinks"]' },
   { name: "about", sel: "#cinematic-about" },
