@@ -54,7 +54,8 @@
     <priority>0.7</priority>
   </url>
   <!-- BLOG-POSTS:START — BLOG.1: one entry per published post, after
-       BLOG.GW.1's static /blog?c=greenworld entry (the Green World lane), rewritten by
+       BLOG.GW.1's static /blog?c=greenworld entry (the Green World lane) and
+       BLOG.GW.2's three /blog?c=greenworld&k=<kind> entries, rewritten by
        scripts/build-sitemap.mjs before every build (`prebuild`). Hand edits
        between these two markers are overwritten; everything outside them is
        kept exactly as written. -->
@@ -65,6 +66,30 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.titiactriz.com/blog?c=greenworld" />
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.titiactriz.com/blog?c=greenworld&amp;k=producto</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=producto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=producto" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=producto" />
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.titiactriz.com/blog?c=greenworld&amp;k=capacitacion</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=capacitacion" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=capacitacion" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=capacitacion" />
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.titiactriz.com/blog?c=greenworld&amp;k=negocio</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=negocio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=negocio" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.titiactriz.com/blog?c=greenworld&amp;k=negocio" />
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
   <!-- BLOG-POSTS:END -->
 </urlset>

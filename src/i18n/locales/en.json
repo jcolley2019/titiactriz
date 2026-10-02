@@ -496,7 +496,10 @@
       "producto": "Product",
       "capacitacion": "Training",
       "negocio": "Business"
-    }
+    },
+    "kindFilterLabel": "Filter by type",
+    "kindAll": "All",
+    "productCta": "View product on Green World"
   },
   "home": {
     "blogAct": {

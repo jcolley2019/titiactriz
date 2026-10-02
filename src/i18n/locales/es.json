@@ -496,7 +496,10 @@
       "producto": "Producto",
       "capacitacion": "Capacitación",
       "negocio": "Negocio"
-    }
+    },
+    "kindFilterLabel": "Filtrar por tipo",
+    "kindAll": "Todos",
+    "productCta": "Ver producto en Green World"
   },
   "home": {
     "blogAct": {

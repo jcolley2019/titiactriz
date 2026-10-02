@@ -4,7 +4,7 @@ import SEO from "@/components/SEO";
 import BlogEntry from "@/components/blog/BlogEntry";
 import { BODY_TEXT, GOLD, GOLD_AIR, GOLD_RULE, IVORY, IVORY_DIM, blogRoom } from "@/components/blog/tokens";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
-import { BLOG_CATEGORIES, type BlogCategory } from "@/lib/blog";
+import { BLOG_CATEGORIES, GW_KINDS, asGwKind, gwKindLabelKey, type BlogCategory, type GwKind } from "@/lib/blog";
 
 /**
  * BLOG.1 — /blog, a tonal room in the cinematic grammar.
@@ -26,11 +26,20 @@ import { BLOG_CATEGORIES, type BlogCategory } from "@/lib/blog";
  * BLOG.GW.1 — one blog, two lanes. A Green World card wears the lane green
  * (BlogEntry), and ?c=greenworld is its own search result: its own canonical,
  * title, description and intro line. Todo and Personal keep the room's head.
+ *
+ * BLOG.GW.2 — under Green World, a second, smaller row of the same hairline
+ * chips: Todos | Producto | Capacitación | Negocio, in ?k=. ?k= means something
+ * only beside ?c=greenworld (anywhere else it is ignored), and a category chip
+ * drops it from the address. A kind is its own sitemap entry, so its canonical
+ * names it: /blog?c=greenworld&k=<kind>.
  */
 
 type Filter = "all" | BlogCategory;
+type KindFilter = "all" | GwKind;
 
 const readFilter = (c: string | null): Filter => (c === "personal" || c === "greenworld" ? c : "all");
+const readKind = (k: string | null): KindFilter => asGwKind(k) ?? "all";
+const KIND_FILTERS: KindFilter[] = ["all", ...GW_KINDS];
 
 const FILTERS: Filter[] = ["all", ...BLOG_CATEGORIES];
 
@@ -77,23 +86,80 @@ const FilterChips = ({
   );
 };
 
+/**
+ * BLOG.GW.2 — the Green World kinds: the same chips, one size down (a 36px box,
+ * the CTA tracking), so the row reads as subordinate to the categories above it.
+ */
+const KindChips = ({
+  active,
+  onPick,
+  label,
+}: {
+  active: KindFilter;
+  onPick: (k: KindFilter) => void;
+  label: string;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div role="group" aria-label={label} data-qa="blog-kind-filter" className="mt-3 flex flex-wrap gap-2">
+      {KIND_FILTERS.map((k) => {
+        const on = k === active;
+        return (
+          <button
+            key={k}
+            type="button"
+            data-qa={`blog-kind-filter-${k}`}
+            aria-pressed={on}
+            onClick={() => onPick(k)}
+            className="text-caps min-h-9 px-3 py-1.5 tracking-[0.2em] transition-opacity duration-300 hover:opacity-70"
+            style={{
+              color: on ? IVORY : IVORY_DIM,
+              border: `1px solid ${on ? GOLD : GOLD_RULE}`,
+              backgroundColor: on ? GOLD_AIR : "transparent",
+            }}
+          >
+            {t(k === "all" ? "blog.kindAll" : gwKindLabelKey(k))}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 const Blog = () => {
   const { t } = useTranslation();
   const { posts, loading, failed, lang } = useBlogPosts();
   const [params, setParams] = useSearchParams();
   const filter = readFilter(params.get("c"));
-  const shown = filter === "all" ? posts : posts.filter((v) => v.post.category === filter);
-  const [lead, ...rest] = shown;
   // BLOG.GW.1 — the Green World lane is its own search result, with its own head.
   // Todo and Personal keep the room's.
   const gwLane = filter === "greenworld";
+  // BLOG.GW.2 — ?k= only counts inside the lane.
+  const kind: KindFilter = gwLane ? readKind(params.get("k")) : "all";
+  const shown = (filter === "all" ? posts : posts.filter((v) => v.post.category === filter)).filter(
+    (v) => kind === "all" || v.post.gwKind === kind,
+  );
+  const [lead, ...rest] = shown;
 
+  // A category chip starts its lane over: whatever kind was picked leaves the address.
   const pick = (f: Filter) =>
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
         if (f === "all") next.delete("c");
         else next.set("c", f);
+        next.delete("k");
+        return next;
+      },
+      { replace: true },
+    );
+
+  const pickKind = (k: KindFilter) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (k === "all") next.delete("k");
+        else next.set("k", k);
         return next;
       },
       { replace: true },
@@ -102,7 +168,7 @@ const Blog = () => {
   return (
     <main data-qa="blog-page" className="relative min-h-screen px-6 pb-24" style={blogRoom}>
       <SEO
-        path={gwLane ? "/blog?c=greenworld" : "/blog"}
+        path={gwLane ? `/blog?c=greenworld${kind === "all" ? "" : `&k=${kind}`}` : "/blog"}
         title={t(gwLane ? "blog.gwSeoTitle" : "blog.seoTitle")}
         description={t(gwLane ? "blog.gwSeoDescription" : "blog.seoDescription")}
       />
@@ -121,6 +187,9 @@ const Blog = () => {
           )}
           {!loading && !failed && posts.length > 0 && (
             <FilterChips active={filter} onPick={pick} label={t("blog.filterLabel")} />
+          )}
+          {!loading && !failed && posts.length > 0 && gwLane && (
+            <KindChips active={kind} onPick={pickKind} label={t("blog.kindFilterLabel")} />
           )}
         </header>
 

@@ -8,7 +8,7 @@ import PostBody from "@/components/blog/PostBody";
 import TagChips from "@/components/blog/TagChips";
 import { GOLD, IVORY, LANE_GREEN, blogRoom } from "@/components/blog/tokens";
 import { useBlogPost, useBlogPosts } from "@/hooks/useBlogPosts";
-import { categorySection, formatPostDate, readingTimeMinutes } from "@/lib/blog";
+import { categorySection, formatPostDate, gwKindLabelKey, gwProductHref, readingTimeMinutes } from "@/lib/blog";
 import { SITE, breadcrumbLd, extractFaq, faqPageLd } from "@/lib/blog/schema";
 import NotFound from "@/pages/NotFound";
 
@@ -29,7 +29,52 @@ import NotFound from "@/pages/NotFound";
  * and a Green World crumb (→ /blog?c=greenworld) in its BreadcrumbList. Above
  * the tags, up to three more posts from the same lane, newest first, as /blog's
  * own cards: "Más de Green World", or "Más del blog" for a personal post.
+ *
+ * BLOG.GW.2 — a Producto post ends its body with the product: its name and one
+ * line, "Ver producto en Green World", linking out to the product's own page or,
+ * when the post names none, to the Green World shop (nofollow, a new tab). Unboxed,
+ * like a card on /blog: one lane-green hairline down its left edge, no fill. The
+ * name and that line are all it says — no health claims, ever. A greenworld
+ * post with a kind names it in the Article's `keywords`.
  */
+
+/** BLOG.GW.2 — the product a Producto post is about, as the room's own unboxed card. */
+const ProductCard = ({ name, href, cta }: { name: string | null; href: string; cta: string }) => (
+  <aside data-qa="blog-product" className="mt-14">
+    <a
+      href={href}
+      target="_blank"
+      rel="nofollow noopener"
+      data-qa="blog-product-link"
+      className="group relative block py-1 pl-5"
+    >
+      <span
+        aria-hidden
+        data-qa="blog-product-rule"
+        className="absolute inset-y-0 left-0 w-px"
+        style={{ backgroundColor: LANE_GREEN }}
+      />
+      {name && (
+        <span
+          data-qa="blog-product-name"
+          translate="no"
+          className="block leading-tight transition-colors duration-300 group-hover:text-gold-light"
+          style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: "1.75rem", color: IVORY }}
+        >
+          {name}
+        </span>
+      )}
+      <span
+        data-qa="blog-product-cta"
+        className={`text-caps inline-flex items-center gap-2 whitespace-nowrap ${name ? "mt-3" : ""}`}
+        style={{ color: GOLD }}
+      >
+        {cta}
+        <span aria-hidden>→</span>
+      </span>
+    </a>
+  </aside>
+);
 
 /** How many other posts the "Más de…" row shows. */
 const MORE_COUNT = 3;
@@ -69,6 +114,7 @@ const BlogPost = () => {
   const path = `/blog/${post.slug}`;
   const description = metaDescription.trim() || excerpt.trim() || t("blog.seoDescription");
   const published = post.published_at ?? post.created_at;
+  const kindLabel = post.gwKind ? t(gwKindLabelKey(post.gwKind)) : null;
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -78,6 +124,7 @@ const BlogPost = () => {
     dateModified: post.updated_at,
     inLanguage: lang,
     articleSection: categorySection(post.category),
+    ...(kindLabel ? { keywords: kindLabel } : {}),
     mainEntityOfPage: `${SITE}${path}`,
     author: { "@type": "Person", name: "Cristyna Polentino", url: SITE },
     ...(cover ? { image: [cover.image_url] } : {}),
@@ -147,6 +194,10 @@ const BlogPost = () => {
         />
 
         <PostBody markdown={body} />
+
+        {post.gwKind === "producto" && (
+          <ProductCard name={post.gwProductName} href={gwProductHref(post)} cta={t("blog.productCta")} />
+        )}
 
         {more.length > 0 && (
           <section data-qa="blog-more" data-lane={post.category} aria-labelledby="blog-more-title" className="mt-16">

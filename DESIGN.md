@@ -268,6 +268,18 @@ as `#121212` on a public surface would be.
   structure band, `0.4`), left hairline and label-and-date line; and the act's
   "Green World →" footer link, which is the lane's own door. Everything else in
   the act is gold.
+  **BLOG.GW.2 (2026-10-02) — the lane's kinds and its product card.** A
+  greenworld post's kind (Producto, Capacitación, Negocio) rides inside the line
+  that already wears the lane — "Green World · Producto · <date>" on /blog cards
+  and the act's cards and tiles — so it adds no new green surface. A Producto
+  post's product card (after the body, on /blog/<slug>) is unboxed like a card:
+  ONE 1px lane-green hairline down its left edge, the product's name in ivory
+  at the card-title step, and its one line ("Ver producto en Green World →") in
+  gold — the green is the line, not the letters. The kind chips under
+  /blog?c=greenworld are the category chips one size down (a 36px box, the CTA
+  tracking `0.2em`), in the room's gold grammar like every other chip. A meta
+  line's " · " is bound to the word before it (a no-break space, `META_SEP`), so
+  a wrapped line never starts with a dot.
 
 ### The gold alpha ladder
 

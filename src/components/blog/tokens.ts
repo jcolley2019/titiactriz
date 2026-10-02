@@ -21,6 +21,13 @@ export const GOLD_AIR = "rgba(201,165,92,0.08)";
  */
 export const LANE_GREEN = "hsl(var(--gw-lane))";
 
+/**
+ * BLOG.GW.2 — the " · " between a meta line's parts (label, kind, date), with a
+ * no-break space before the dot: a line that wraps breaks after a dot, never
+ * leaves one leading the next line.
+ */
+export const META_SEP = " · ";
+
 /** --font-display is page-scoped on this site: every surface declares its own. */
 export const blogFontVars: React.CSSProperties = {
   ["--font-display" as never]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",

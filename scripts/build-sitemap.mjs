@@ -14,6 +14,9 @@
  * listed whatever the posts are. The committed file carries it too, so a build
  * that cannot reach Supabase still lists it.
  *
+ * BLOG.GW.2 — and each Green World kind (/blog?c=greenworld&k=<kind>) after
+ * it, the same way: static, listed every build. Their `&` is written `&amp;`.
+ *
  * It must never fail a build. No network, no env, a bad answer, missing markers:
  * the file is kept as it is, a warning is printed, and the exit code is 0.
  */
@@ -31,8 +34,12 @@ const warn = (msg) => console.warn(`[build-sitemap] WARNING: ${msg} — public/s
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-const urlEntry = ({ loc, day = "", changefreq, priority }) =>
-  [
+/** A URL as XML text: `&` is the one character any of these addresses carries. */
+const xmlEscape = (s) => s.replace(/&/g, "&amp;");
+
+const urlEntry = ({ loc: raw, day = "", changefreq, priority }) => {
+  const loc = xmlEscape(raw);
+  return [
     "  <url>",
     `    <loc>${loc}</loc>`,
     `    <xhtml:link rel="alternate" hreflang="es" href="${loc}" />`,
@@ -43,9 +50,16 @@ const urlEntry = ({ loc, day = "", changefreq, priority }) =>
     `    <priority>${priority}</priority>`,
     "  </url>",
   ].join("\n");
+};
 
-/** Listed first, every build, posts or not. No `&` in any loc: nothing to escape. */
-const STATIC = [{ loc: `${SITE}/blog?c=greenworld`, changefreq: "weekly", priority: "0.6" }];
+/** BLOG.GW.2 — mirrors GW_KINDS in src/lib/blog.ts. */
+const GW_KINDS = ["producto", "capacitacion", "negocio"];
+
+/** Listed first, every build, posts or not: the Green World lane, then each of its kinds. */
+const STATIC = [
+  { loc: `${SITE}/blog?c=greenworld`, changefreq: "weekly", priority: "0.6" },
+  ...GW_KINDS.map((k) => ({ loc: `${SITE}/blog?c=greenworld&k=${k}`, changefreq: "weekly", priority: "0.5" })),
+];
 
 const entry = ({ slug, updated_at }) =>
   urlEntry({

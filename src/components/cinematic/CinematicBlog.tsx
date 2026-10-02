@@ -4,10 +4,10 @@ import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CoverPlate from "@/components/blog/CoverPlate";
-import { BODY_TEXT, GOLD, GOLD_RULE, IVORY, LANE_GREEN } from "@/components/blog/tokens";
+import { BODY_TEXT, GOLD, GOLD_RULE, IVORY, LANE_GREEN, META_SEP } from "@/components/blog/tokens";
 import { useBlogPosts, type BlogView } from "@/hooks/useBlogPosts";
 import type { Lang } from "@/hooks/useEventsBoard";
-import { formatPostDateShort } from "@/lib/blog";
+import { formatPostDateShort, gwKindLabelKey } from "@/lib/blog";
 import { FIELD_GROUND } from "./FramedVideo";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -231,16 +231,28 @@ const CinematicBlog = ({ reduced }: { reduced: boolean }) => {
   );
 };
 
-/** The category label and the short date, as one text-caps run. */
+/**
+ * The category label and the short date, as one text-caps run. BLOG.GW.2 — a
+ * greenworld post with a kind names it after the label: "Green World · Producto".
+ */
 const MetaLine = ({ view, lang, label }: { view: BlogView; lang: Lang; label: boolean }) => {
   const { t } = useTranslation();
   const gw = view.post.category === "greenworld";
+  const kind = gw && label ? view.post.gwKind : null;
   const published = view.post.published_at;
   const name = gw ? t("home.blogAct.labelGreenWorld") : t("home.blogAct.labelPersonal");
   return (
     <>
       {label && <span translate={gw ? "no" : undefined}>{name}</span>}
-      {label && published && " · "}
+      {kind && (
+        <>
+          {META_SEP}
+          <span data-qa="blog-act-kind" data-kind={kind}>
+            {t(gwKindLabelKey(kind))}
+          </span>
+        </>
+      )}
+      {label && published && META_SEP}
       {published && (
         <time dateTime={published} className="whitespace-nowrap">
           {formatPostDateShort(published, lang)}
