@@ -48,10 +48,6 @@ export const isHttpUrl = (text: string): boolean => {
   }
 };
 
-/** Where a Producto post's product card goes: its own link, else the Green World shop. */
-export const gwProductHref = (post: Pick<BlogPost, "gwProductUrl">): string =>
-  post.gwProductUrl && isHttpUrl(post.gwProductUrl) ? post.gwProductUrl.trim() : GREEN_WORLD_SHOP_URL;
-
 /**
  * ADMIN.FIXES.1 — the products a Green World post names, in order: a name and
  * a link each, the link http(s) or empty (an empty link goes to the Green World
@@ -89,6 +85,9 @@ export const asGwProducts = (v: unknown): GwProduct[] => {
 /** A row's link the editors refuse: something typed that is not http(s). Empty is fine — the shop. */
 export const gwProductUrlInvalid = (p: Pick<GwProduct, "url">): boolean => !!p.url.trim() && !isHttpUrl(p.url);
 
+/** Where a product's row on the post page goes: its own link, else the Green World shop. */
+export const gwProductHref = (p: Pick<GwProduct, "url">): string => (isHttpUrl(p.url) ? p.url.trim() : GREEN_WORLD_SHOP_URL);
+
 export const BLOG_LOCALIZED_FIELDS = ["title", "excerpt", "body", "meta_description"] as const;
 export type BlogLocalizedField = (typeof BLOG_LOCALIZED_FIELDS)[number];
 
@@ -105,9 +104,6 @@ export type BlogPost = {
   gwKind: GwKind | null;
   /** ADMIN.FIXES.1 — the products a Green World post with a kind names; [] otherwise. */
   gwProducts: GwProduct[];
-  /** BLOG.GW.2's single product, read only by the post page's card until it becomes the list (ADMIN.FIXES.1). */
-  gwProductName: string | null;
-  gwProductUrl: string | null;
   cover_photo_id: string | null;
   status: BlogStatus;
   published_at: string | null;
@@ -132,9 +128,6 @@ export const toLocalized = (v: unknown): Localized => {
   return out;
 };
 
-/** A text cell, trimmed; blank is null. */
-const textOrNull = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
-
 export const rowToPost = (row: BlogPostRow): BlogPost => {
   const category = asCategory(row.category);
   const gw = category === "greenworld";
@@ -150,8 +143,6 @@ export const rowToPost = (row: BlogPostRow): BlogPost => {
     category,
     gwKind,
     gwProducts: gwKind ? asGwProducts(row.gw_products) : [],
-    gwProductName: gw ? textOrNull(row.gw_product_name) : null,
-    gwProductUrl: gw ? textOrNull(row.gw_product_url) : null,
     cover_photo_id: row.cover_photo_id,
     status: row.status === "published" ? "published" : "draft",
     published_at: row.published_at,

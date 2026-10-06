@@ -10,11 +10,14 @@
 //   { input_kind, input_text, output_format: "social"|"blog", platform?,
 //     language: "es"|"en", voice?: "personal"|"greenworld", cascade_source?,
 //     web_search?, gw_kind?: "producto"|"capacitacion"|"negocio",
-//     gw_product_name?, gw_product_url? }
+//     gw_products?: [{ name?, url? }] (at most 6) }
 //  (v4, BLOG.GW.2: for the greenworld voice, gw_kind adds a kindBlock after the
-//   voice block — Producto about one named product ending on its link or the
-//   Green World shop, Capacitación teaching one skill to distributors, Negocio
-//   the business side with no income claims. Ignored for the personal voice.)
+//   voice block — Producto about its product ending on its link or the Green
+//   World shop, Capacitación teaching one skill to distributors, Negocio the
+//   business side with no income claims. Ignored for the personal voice.
+//   v5, ADMIN.FIXES.1: the product is a list, gw_products — a Producto piece is
+//   about them and points to each; a Capacitación or Negocio piece links the
+//   ones it mentions. gw_product_name / gw_product_url are no longer read.)
 //  - social -> JSON { content, usage, web_search_used }
 //  - blog   -> server-sent events:
 //      event: content_block_delta  {"text": "..."}      per released text delta
@@ -306,7 +309,7 @@ Deno.serve(async (req) => {
       cascade_source,
       web_search,
       gw_kind,
-      gw_product,
+      gw_products,
     } = validation.value;
 
     // The voice's text comes from the database, never from the request body: the
@@ -352,8 +355,8 @@ Deno.serve(async (req) => {
 
     // Static part first so the cache hits; the voice text and language vary.
     // (The Green World law rides on the static part, so that voice caches on its own.)
-    // BLOG.GW.2 — a Green World call's kind follows the voice block.
-    const kind = voiceName === "greenworld" ? kindBlock(gw_kind, gw_product) : "";
+    // BLOG.GW.2 — a Green World call's kind (ADMIN.FIXES.1: and its products) follows the voice block.
+    const kind = voiceName === "greenworld" ? kindBlock(gw_kind, gw_products) : "";
     const system: Anthropic.TextBlockParam[] = [
       { type: "text", text: formatPrompt, cache_control: { type: "ephemeral" } },
       { type: "text", text: [voiceBlock(voice), kind, languageBlock(language)].filter(Boolean).join("\n\n") },

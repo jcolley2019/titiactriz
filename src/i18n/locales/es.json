@@ -507,7 +507,9 @@
     },
     "kindFilterLabel": "Filtrar por tipo",
     "kindAll": "Todos",
-    "productCta": "Ver producto en Green World"
+    "productCta": "Ver producto",
+    "productsLabel": "Productos",
+    "productsMentioned": "Productos mencionados"
   },
   "home": {
     "blogAct": {

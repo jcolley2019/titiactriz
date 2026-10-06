@@ -507,7 +507,9 @@
     },
     "kindFilterLabel": "Filter by type",
     "kindAll": "All",
-    "productCta": "View product on Green World"
+    "productCta": "View product",
+    "productsLabel": "Products",
+    "productsMentioned": "Products mentioned"
   },
   "home": {
     "blogAct": {

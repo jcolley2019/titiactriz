@@ -111,12 +111,37 @@ export const GREEN_WORLD_SHOP_URL =
  * block for the greenworld voice only (empty otherwise). Not cached: it changes
  * with the Studio's Tipo. The no-health-claims law still closes the format
  * prompt (GREEN_WORLD_LAW); each kind restates the part of it that kind is most
- * likely to trip over. The product name and link reach here validated (one line,
- * capped; http(s) only).
+ * likely to trip over.
+ *
+ * ADMIN.FIXES.1 (v5) — it takes the press's products, in order. A Producto
+ * piece is about them: one product reads exactly as v4's single product did;
+ * several are listed, each with its link (or the Green World shop's), and the
+ * piece points to each. A Capacitación or Negocio piece lists the products it
+ * mentions and links each where it names it. Names and links reach here
+ * validated (one line, capped; http(s) only; at most six).
  */
-export function kindBlock(kind: GwKind | undefined, product?: GwProduct): string {
+export function kindBlock(kind: GwKind | undefined, products: GwProduct[] = []): string {
   if (!kind) return "";
+  const listed = products
+    .map(
+      (p) =>
+        `- ${p.name ? `"${p.name}"` : "a Green World product, named as the input names it"} — ${
+          p.url ? p.url : `${GREEN_WORLD_SHOP_URL} (the Green World shop)`
+        }`,
+    )
+    .join("\n");
   if (kind === "producto") {
+    if (products.length > 1) {
+      return `## PIECE KIND — Producto (${products.length} products)
+
+This piece is about these ${products.length} Green World products, in this order, each with the address its link goes to:
+${listed}
+
+Say what each one is, who it is for, and how it fits into an everyday routine — from the author's own use, as far as the input gives it. Describe them only in the words of bienestar y nutrición (wellness and nutrition): never say or imply that any of them treats, cures, prevents, relieves or diagnoses anything, never promise a result, never compare them with medicine. If the input makes such a claim, leave it out.
+
+It ends by pointing the reader to each product: a Markdown link per product to the address listed above — in a blog article as its closing lines before the author sign-off, in a social package in the CTA or caption. The visible text names the product or says where it goes (e.g. "Ver el producto en Green World"), never the raw address; each target is exactly its listed address. The author gave these links, so they count as links she gives.`;
+    }
+    const product = products[0];
     const about = product?.name
       ? `ONE named Green World product: "${product.name}"`
       : "ONE Green World product, named as the input names it";
@@ -128,14 +153,22 @@ This piece is about ${about}. Say what it is, who it is for, and how it fits int
 
 It ends by pointing the reader to the product: a Markdown link to ${where}, ${url} — in a blog article as its closing line before the author sign-off, in a social package in the CTA or caption. The visible text names the product or says where it goes (e.g. "Ver el producto en Green World"), never the raw address; the target is exactly that address. The author gave this link, so it counts as a link she gives.`;
   }
+  const mentioned = products.length
+    ? `
+
+The author lists the Green World products this piece mentions, each with the address its link goes to:
+${listed}
+
+Where the piece names one of them, link it once: a Markdown link to its listed address, the visible text its name (or where it goes), never the raw address. The author gave these links, so they count as links she gives. Name no other product's link.`
+    : "";
   if (kind === "capacitacion") {
     return `## PIECE KIND — Capacitación (training)
 
-This piece teaches ONE skill or process to Green World distributors — for example placing an order, following up with a customer, or presenting a product honestly. Say who it is for, then the steps in order, then the mistakes to avoid. Practical and specific, from the author's own experience as far as the input gives it. Any product it mentions is described only as bienestar y nutrición, never with a health claim, and it promises no income.`;
+This piece teaches ONE skill or process to Green World distributors — for example placing an order, following up with a customer, or presenting a product honestly. Say who it is for, then the steps in order, then the mistakes to avoid. Practical and specific, from the author's own experience as far as the input gives it. Any product it mentions is described only as bienestar y nutrición, never with a health claim, and it promises no income.${mentioned}`;
   }
   return `## PIECE KIND — Negocio (the business side)
 
-This piece is about the business side of Green World: what being a distributor involves and how the opportunity works — honest and specific about what it takes in time, effort and learning, from the author's own experience as far as the input gives it. Never state, imply or estimate income, earnings or results, and never promise financial freedom or quick success. Any product it mentions is described only as bienestar y nutrición, never with a health claim.`;
+This piece is about the business side of Green World: what being a distributor involves and how the opportunity works — honest and specific about what it takes in time, effort and learning, from the author's own experience as far as the input gives it. Never state, imply or estimate income, earnings or results, and never promise financial freedom or quick success. Any product it mentions is described only as bienestar y nutrición, never with a health claim.${mentioned}`;
 }
 
 /** The per-call language instruction. Not cached: it changes with the ES/EN toggle. */

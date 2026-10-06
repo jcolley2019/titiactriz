@@ -7,10 +7,15 @@
  * the body names one of two voices (STUDIO.VOICES.1) and the function reads that
  * voice's document from site_settings itself.
  *
- * BLOG.GW.2 — a Green World call may name its kind (gw_kind) and, for Producto,
- * the product (gw_product_name, capped and flattened to one line; gw_product_url,
- * http(s) only). They mean something only for the greenworld voice: on any other
- * voice they are dropped, and the product pair is dropped on any other kind.
+ * BLOG.GW.2 — a Green World call may name its kind (gw_kind). They mean
+ * something only for the greenworld voice: on any other voice they are dropped.
+ *
+ * ADMIN.FIXES.1 (v5) — and its products, gw_products: up to MAX_GW_PRODUCTS rows
+ * of { name?, url? }, each name capped and flattened to one line, each url
+ * http(s) only; a row with neither is dropped. Any kind may carry them (a
+ * Producto piece is about them, a Capacitación or Negocio piece mentions them);
+ * a call with no kind, or on another voice, drops them. The old single pair
+ * (gw_product_name / gw_product_url) is no longer read.
  */
 
 export const INPUT_KINDS = ["brain_dump", "youtube"] as const;
@@ -24,6 +29,8 @@ export const GW_KINDS = ["producto", "capacitacion", "negocio"] as const;
 export const MAX_INPUT_CHARS = 30_000; // input_text and cascade_source
 export const MAX_PRODUCT_NAME_CHARS = 120;
 export const MAX_PRODUCT_URL_CHARS = 500;
+/** Mirrors MAX_GW_PRODUCTS in src/lib/blog.ts. */
+export const MAX_GW_PRODUCTS = 6;
 
 export type InputKind = typeof INPUT_KINDS[number];
 export type OutputFormat = typeof OUTPUT_FORMATS[number];
@@ -32,7 +39,7 @@ export type Language = typeof LANGUAGES[number];
 export type Voice = typeof VOICES[number];
 export type GwKind = typeof GW_KINDS[number];
 
-/** The product a Producto piece is about: both optional. */
+/** One product a Green World piece names: both optional, never both missing. */
 export interface GwProduct {
   name?: string;
   url?: string;
@@ -52,8 +59,8 @@ export interface GenerateRequest {
   web_search: boolean;
   /** BLOG.GW.2 — the Green World kind; undefined on a personal call. */
   gw_kind?: GwKind;
-  /** BLOG.GW.2 — the product of a Producto call; undefined otherwise. */
-  gw_product?: GwProduct;
+  /** ADMIN.FIXES.1 — the products of a call with a kind, in order; undefined when there are none. */
+  gw_products?: GwProduct[];
 }
 
 export type ValidationResult =
@@ -117,42 +124,54 @@ export function validateRequest(body: unknown): ValidationResult {
     return { ok: false, error: "web_search must be a boolean" };
   }
 
-  // BLOG.GW.2 — the kind and its product. Shape-checked whatever the voice; used only for greenworld.
+  // BLOG.GW.2 — the kind; ADMIN.FIXES.1 — its products. Shape-checked whatever the voice; used only for greenworld.
   if (b.gw_kind !== undefined && b.gw_kind !== null && !isOneOf(GW_KINDS, b.gw_kind)) {
     return { ok: false, error: `gw_kind must be one of: ${GW_KINDS.join(", ")}` };
   }
-  let productName: string | undefined;
-  if (b.gw_product_name !== undefined && b.gw_product_name !== null) {
-    if (typeof b.gw_product_name !== "string") return { ok: false, error: "gw_product_name must be a string" };
-    // One line of plain text: control characters and runs of whitespace become single spaces.
-    productName = b.gw_product_name.replace(/[\u0000-\u001f\u007f\s]+/g, " ").trim() || undefined;
-    if (productName && productName.length > MAX_PRODUCT_NAME_CHARS) {
-      return { ok: false, error: `gw_product_name is too long (max ${MAX_PRODUCT_NAME_CHARS} characters)` };
+  // ADMIN.FIXES.1 — the products, row by row; any row that is not clean refuses the call.
+  const products: GwProduct[] = [];
+  if (b.gw_products !== undefined && b.gw_products !== null) {
+    if (!Array.isArray(b.gw_products)) return { ok: false, error: "gw_products must be an array" };
+    if (b.gw_products.length > MAX_GW_PRODUCTS) {
+      return { ok: false, error: `gw_products has too many rows (max ${MAX_GW_PRODUCTS})` };
     }
-  }
-  let productUrl: string | undefined;
-  if (b.gw_product_url !== undefined && b.gw_product_url !== null) {
-    if (typeof b.gw_product_url !== "string") return { ok: false, error: "gw_product_url must be a string" };
-    productUrl = b.gw_product_url.trim() || undefined;
-    if (productUrl) {
-      if (productUrl.length > MAX_PRODUCT_URL_CHARS) {
-        return { ok: false, error: `gw_product_url is too long (max ${MAX_PRODUCT_URL_CHARS} characters)` };
+    for (const [i, row] of b.gw_products.entries()) {
+      if (!row || typeof row !== "object" || Array.isArray(row)) {
+        return { ok: false, error: `gw_products[${i}] must be an object` };
       }
-      let parsed: URL | null = null;
-      try {
-        parsed = /^https?:\/\/\S+$/i.test(productUrl) ? new URL(productUrl) : null;
-      } catch {
-        parsed = null;
+      const r = row as Record<string, unknown>;
+      let name: string | undefined;
+      if (r.name !== undefined && r.name !== null) {
+        if (typeof r.name !== "string") return { ok: false, error: `gw_products[${i}].name must be a string` };
+        // One line of plain text: control characters and runs of whitespace become single spaces.
+        name = r.name.replace(/[\u0000-\u001f\u007f\s]+/g, " ").trim() || undefined;
+        if (name && name.length > MAX_PRODUCT_NAME_CHARS) {
+          return { ok: false, error: `gw_products[${i}].name is too long (max ${MAX_PRODUCT_NAME_CHARS} characters)` };
+        }
       }
-      if (!parsed || !parsed.hostname) return { ok: false, error: "gw_product_url must be an http(s) link" };
+      let url: string | undefined;
+      if (r.url !== undefined && r.url !== null) {
+        if (typeof r.url !== "string") return { ok: false, error: `gw_products[${i}].url must be a string` };
+        url = r.url.trim() || undefined;
+        if (url) {
+          if (url.length > MAX_PRODUCT_URL_CHARS) {
+            return { ok: false, error: `gw_products[${i}].url is too long (max ${MAX_PRODUCT_URL_CHARS} characters)` };
+          }
+          let parsed: URL | null = null;
+          try {
+            parsed = /^https?:\/\/\S+$/i.test(url) ? new URL(url) : null;
+          } catch {
+            parsed = null;
+          }
+          if (!parsed || !parsed.hostname) return { ok: false, error: `gw_products[${i}].url must be an http(s) link` };
+        }
+      }
+      if (name || url) products.push({ ...(name ? { name } : {}), ...(url ? { url } : {}) });
     }
   }
   const voice: Voice = isOneOf(VOICES, b.voice) ? b.voice : "personal";
   const gwKind = voice === "greenworld" && isOneOf(GW_KINDS, b.gw_kind) ? b.gw_kind : undefined;
-  const gwProduct =
-    gwKind === "producto" && (productName || productUrl)
-      ? { ...(productName ? { name: productName } : {}), ...(productUrl ? { url: productUrl } : {}) }
-      : undefined;
+  const gwProducts = gwKind && products.length ? products : undefined;
 
   return {
     ok: true,
@@ -166,7 +185,7 @@ export function validateRequest(body: unknown): ValidationResult {
       cascade_source: cascadeSource,
       web_search: cascadeSource ? false : b.web_search !== false,
       gw_kind: gwKind,
-      gw_product: gwProduct,
+      gw_products: gwProducts,
     },
   };
 }

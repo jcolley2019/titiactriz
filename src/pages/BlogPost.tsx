@@ -8,7 +8,14 @@ import PostBody from "@/components/blog/PostBody";
 import TagChips from "@/components/blog/TagChips";
 import { GOLD, IVORY, LANE_GREEN, blogRoom } from "@/components/blog/tokens";
 import { useBlogPost, useBlogPosts } from "@/hooks/useBlogPosts";
-import { categorySection, formatPostDate, gwKindLabelKey, gwProductHref, readingTimeMinutes } from "@/lib/blog";
+import {
+  categorySection,
+  formatPostDate,
+  gwKindLabelKey,
+  gwProductHref,
+  readingTimeMinutes,
+  type GwProduct,
+} from "@/lib/blog";
 import { SITE, breadcrumbLd, extractFaq, faqPageLd } from "@/lib/blog/schema";
 import NotFound from "@/pages/NotFound";
 
@@ -30,49 +37,60 @@ import NotFound from "@/pages/NotFound";
  * the tags, up to three more posts from the same lane, newest first, as /blog's
  * own cards: "Más de Green World", or "Más del blog" for a personal post.
  *
- * BLOG.GW.2 — a Producto post ends its body with the product: its name and one
- * line, "Ver producto en Green World", linking out to the product's own page or,
- * when the post names none, to the Green World shop (nofollow, a new tab). Unboxed,
- * like a card on /blog: one lane-green hairline down its left edge, no fill. The
- * name and that line are all it says — no health claims, ever. A greenworld
- * post with a kind names it in the Article's `keywords`.
+ * BLOG.GW.2 — a greenworld post with a kind names it in the Article's
+ * `keywords`.
+ *
+ * ADMIN.FIXES.1 — the products a Green World post names end its body as one
+ * list: a row per product, in order — its name and one line, "Ver producto",
+ * linking out to the product's own page or, when the row has no link, to the
+ * Green World shop (nofollow, a new tab). A Producto post is about them; a
+ * Capacitación or Negocio post lists the ones it mentions. Unboxed, like a card
+ * on /blog: one lane-green hairline down the list's left edge, no fill. A row is
+ * a row whatever it names (a data sheet too). The names and that line are all
+ * it says — no health claims, ever. No products, no list.
  */
 
-/** BLOG.GW.2 — the product a Producto post is about, as the room's own unboxed card. */
-const ProductCard = ({ name, href, cta }: { name: string | null; href: string; cta: string }) => (
-  <aside data-qa="blog-product" className="mt-14">
-    <a
-      href={href}
-      target="_blank"
-      rel="nofollow noopener"
-      data-qa="blog-product-link"
-      className="group relative block py-1 pl-5"
-    >
-      <span
-        aria-hidden
-        data-qa="blog-product-rule"
-        className="absolute inset-y-0 left-0 w-px"
-        style={{ backgroundColor: LANE_GREEN }}
-      />
-      {name && (
-        <span
-          data-qa="blog-product-name"
-          translate="no"
-          className="block leading-tight transition-colors duration-300 group-hover:text-gold-light"
-          style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: "1.75rem", color: IVORY }}
-        >
-          {name}
-        </span>
-      )}
-      <span
-        data-qa="blog-product-cta"
-        className={`text-caps inline-flex items-center gap-2 whitespace-nowrap ${name ? "mt-3" : ""}`}
-        style={{ color: GOLD }}
-      >
-        {cta}
-        <span aria-hidden>→</span>
-      </span>
-    </a>
+/** ADMIN.FIXES.1 — the post's products, as the room's own unboxed list. */
+const ProductList = ({ products, cta, label }: { products: GwProduct[]; cta: string; label: string }) => (
+  <aside data-qa="blog-product" aria-label={label} className="relative mt-14 pl-5">
+    <span
+      aria-hidden
+      data-qa="blog-product-rule"
+      className="absolute inset-y-0 left-0 w-px"
+      style={{ backgroundColor: LANE_GREEN }}
+    />
+    <ul role="list" className="space-y-6">
+      {products.map((p, i) => (
+        <li key={i} data-qa="blog-product-row">
+          <a
+            href={gwProductHref(p)}
+            target="_blank"
+            rel="nofollow noopener"
+            data-qa="blog-product-link"
+            className="group block py-1"
+          >
+            {p.name && (
+              <span
+                data-qa="blog-product-name"
+                translate="no"
+                className="block leading-tight transition-colors duration-300 group-hover:text-gold-light"
+                style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: "1.75rem", color: IVORY }}
+              >
+                {p.name}
+              </span>
+            )}
+            <span
+              data-qa="blog-product-cta"
+              className={`text-caps inline-flex items-center gap-2 whitespace-nowrap ${p.name ? "mt-3" : ""}`}
+              style={{ color: GOLD }}
+            >
+              {cta}
+              <span aria-hidden>→</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </aside>
 );
 
@@ -195,8 +213,12 @@ const BlogPost = () => {
 
         <PostBody markdown={body} />
 
-        {post.gwKind === "producto" && (
-          <ProductCard name={post.gwProductName} href={gwProductHref(post)} cta={t("blog.productCta")} />
+        {post.gwProducts.length > 0 && (
+          <ProductList
+            products={post.gwProducts}
+            cta={t("blog.productCta")}
+            label={t(post.gwKind === "producto" ? "blog.productsLabel" : "blog.productsMentioned")}
+          />
         )}
 
         {more.length > 0 && (
