@@ -40,6 +40,10 @@ import "@/styles/studio.css";
  *
  * ADMIN.THEME.1 — the Studio's wrapper wears the admin's theme (the header's
  * Sun/Moon), so studio.css keeps drawing both palettes from .studio[data-theme].
+ *
+ * ADMIN.FIXES.1 — a press starts as Artículo de blog alone, with no platform
+ * picked: Social and its platforms are Titi's to turn on. A social-only press
+ * with no platform holds Generate (it would write nothing).
  */
 
 const StudioPanel = () => {
@@ -54,8 +58,9 @@ const StudioPanel = () => {
   const [ytUrl, setYtUrl] = useState("");
   const [transcript, setTranscript] = useState("");
 
-  const [formats, setFormats] = useState<StudioFormat[]>(["social"]);
-  const [platforms, setPlatforms] = useState<StudioPlatform[]>(["tiktok"]);
+  const [formats, setFormats] = useState<StudioFormat[]>(["blog"]);
+  const [platforms, setPlatforms] = useState<StudioPlatform[]>([]);
+  const writesSomething = formats.includes("blog") || platforms.length > 0;
   const [language, setLanguage] = useState<Lang>((i18n.language || "es").startsWith("en") ? "en" : "es");
   const [voice, setVoice] = useState<VoiceName>(() => {
     try {
@@ -238,7 +243,7 @@ const StudioPanel = () => {
           productUrlInvalid={productUrlInvalid}
           webSearch={webSearch}
           onWebSearchChange={setWebSearch}
-          canGenerate={!!inputText.trim() && !productUrlInvalid}
+          canGenerate={!!inputText.trim() && !productUrlInvalid && writesSomething}
           generating={g.generating}
           onGenerate={onGenerate}
         />

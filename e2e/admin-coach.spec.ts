@@ -36,11 +36,14 @@ const SHOTS = "_qa/admin-coach";
 const KEY = coachSeenKey(MOCK_ADMIN_ID);
 const UNDER_TEST = ["studio", "blog", "blogEditor"];
 
-/** The Estudio tour on a fresh Studio: no generation (no Publicar), no history. */
+/**
+ * The Estudio tour on a fresh Studio: no generation (no Publicar), no history —
+ * and (ADMIN.FIXES.1) Artículo alone, so the Plataformas step, which shows only
+ * with Social on, is skipped.
+ */
 const STUDIO_STEPS = [
   "studio.brainDump",
   "studio.format",
-  "studio.platforms",
   "studio.language",
   "studio.voice", // STUDIO.VOICES.1 — the Voz control (Personal | Green World), after Idioma
   "studio.webSearch",
@@ -119,7 +122,7 @@ test("C1: first open of Estudio walks from the brain dump to Generar, and Listo 
   await page.screenshot({ path: `${SHOTS}/estudio-step1-light-1440.png` });
 
   // Siguiente walks the controls in order, up to Generar.
-  for (const [i, step] of STUDIO_STEPS.slice(1, 7).entries()) {
+  for (const [i, step] of STUDIO_STEPS.slice(1, STUDIO_STEPS.indexOf("studio.generate") + 1).entries()) {
     await next(page).click();
     await expect(overlay(page)).toHaveAttribute("data-step", step);
     await expect(page.locator('[data-qa="coach-progress"]')).toHaveText(`Paso ${i + 2} de ${STUDIO_STEPS.length}`);

@@ -19,7 +19,9 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
  *      rest of the admin stays dark" assertion on purpose)
  *
  * STUDIO.SPEED.2 — the web-research switch (off on every mount, no persistence):
- *   W1 default press: web_search:false on the blog, cascade_source and no web_search on TikTok
+ *   W1 a fresh press is Artículo alone (ADMIN.FIXES.1: no Social, no platform; a social-only press with no
+ *      platform holds Generate); Artículo + TikTok picked: web_search:false on the blog, cascade_source and no
+ *      web_search on TikTok
  *   W2 switch on: web_search:true on the blog; social-only, web_search:true on each platform
  *   W3 a reload turns it off again
  *   W4 disabled while generating; English copy
@@ -252,7 +254,7 @@ async function openStudio(page: Page) {
   await expect(page.locator('[data-qa="studio"]')).toBeVisible();
 }
 
-/** Select exactly these formats and platforms (the defaults are Social + TikTok). */
+/** Select exactly these formats and platforms (ADMIN.FIXES.1: a fresh press is Artículo de blog alone, no platform). */
 async function choose(page: Page, formats: string[], platforms: string[]) {
   for (const f of ["blog", "social"]) {
     const btn = page.locator(`[data-qa="studio-format-${f}"]`);
@@ -375,16 +377,34 @@ test.describe("BLOG.2 Content Studio", () => {
   test.describe("STUDIO.SPEED.2 web-research switch", () => {
     const sw = (page: Page) => page.locator('[data-qa="studio-web-search"]');
 
-    test("W1 default press, Artículo + TikTok: web_search:false on the blog, cascade_source and no web_search on TikTok", async ({ page }) => {
+    test("W1 a fresh press is Artículo alone; Artículo + TikTok picked: web_search:false on the blog, cascade_source and no web_search on TikTok", async ({ page }) => {
       const mock = await setup(page);
       await openStudio(page);
+      const format = (f: string) => page.locator(`[data-qa="studio-format-${f}"]`);
+      const generate = page.locator('[data-qa="studio-generate"]');
+      // ADMIN.FIXES.1 — the defaults: Artículo de blog highlighted, Social off, no platform picked.
+      await expect(format("blog")).toHaveAttribute("aria-pressed", "true");
+      await expect(format("social")).toHaveAttribute("aria-pressed", "false");
+      await expect(page.locator('[data-qa^="studio-platform-"]')).toHaveCount(0);
       await expect(sw(page)).toHaveAttribute("role", "switch");
       await expect(sw(page)).toHaveAttribute("aria-checked", "false");
       await expect(sw(page)).toContainText("Investigar en la web");
       await expect(sw(page)).toContainText("Más lento, con datos de hoy");
       await page.locator('[data-qa="studio-brain-dump"]').fill("Una noticia sobre mis primeros lives.");
+      // Social on shows the platforms, none picked; Social alone with no platform would write nothing, so Generate waits.
+      await format("social").click();
+      for (const p of ["tiktok", "instagram", "pinterest", "youtube"]) {
+        await expect(page.locator(`[data-qa="studio-platform-${p}"]`)).toHaveAttribute("aria-pressed", "false");
+      }
+      await expect(generate).toBeEnabled();
+      await format("blog").click();
+      await expect(format("blog")).toHaveAttribute("aria-pressed", "false");
+      await expect(generate).toBeDisabled();
+      await page.locator('[data-qa="studio-platform-tiktok"]').click();
+      await expect(generate).toBeEnabled();
+
       await choose(page, ["blog", "social"], ["tiktok"]);
-      await page.locator('[data-qa="studio-generate"]').click();
+      await generate.click();
       await expect(page.locator('[data-qa="studio-usage"]')).toBeVisible();
 
       expect(mock.genCalls).toHaveLength(2);
@@ -499,6 +519,7 @@ test.describe("BLOG.2 Content Studio", () => {
     await expect(page.locator('[data-qa="studio-brain-dump"]')).toBeVisible();
 
     await page.locator('[data-qa="studio-brain-dump"]').fill("Una idea para TikTok.");
+    await choose(page, ["social"], ["tiktok"]);
     await page.locator('[data-qa="studio-generate"]').click();
     await expect(page.locator('[data-qa="studio-social"]')).toContainText("Hook de tiktok");
     expect(mock.ytCalls).toEqual([]);

@@ -10,7 +10,9 @@ import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useS
  * BLOG.2 — the OUTPUT column (joeyc.ai FormatSelector + PlatformPicker):
  * Social Post / Blog Article, the four platforms Titi uses with "All", the
  * output language, and Generate. At least one format stays selected; with
- * Social Post on, at least one platform stays selected.
+ * Social Post on, the last platform picked cannot be unpicked (ADMIN.FIXES.1:
+ * a press starts with none picked — StudioPanel holds Generate until a
+ * social-only press has one).
  *
  * STUDIO.VOICES.1 — "Voz" sits above the language: Personal or Green World,
  * the voice the press is written in (the same segmented control as Idioma).
