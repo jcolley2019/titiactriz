@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Eye } from "lucide-react";
 import Gallery from "@/components/Gallery";
 import { useCoach } from "@/components/admin/coach/CoachProvider";
+import type { MasterFields } from "@/lib/photo-srcset";
 
+/** With its master, so a tapped thumbnail opens the public gallery's own lightbox. */
 type PreviewPhoto = {
   id: string;
   image_url: string;
   alt_text: string | null;
-};
+} & MasterFields;
 
 type Props = {
   photos: PreviewPhoto[];

@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -170,6 +171,21 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
   // Build two copies for seamless marquee
   const displayPhotos = photos.length > 0 ? [...photos, ...photos] : [];
 
+  /* GALLERY.TOUCH.1: the shared lightbox replaces the old generic Dialog —
+     same photos array the marquee renders, opened at index.
+     ADMIN.FIXES.1 — the compact marquee lives in the admin's live-preview
+     dock, whose backdrop-filter makes it the containing block of every fixed
+     descendant: rendered in place, the full-screen lightbox filled only the
+     dock's strip. There it goes to <body>, so it covers the screen. */
+  const lightbox = (
+    <PhotoLightbox
+      photos={photos}
+      open={isOpen}
+      initialIndex={selectedIndex}
+      onClose={() => setIsOpen(false)}
+    />
+  );
+
   const tileClass = compact
     ? "flex-shrink-0 w-[120px] h-[160px] rounded-sm overflow-hidden cursor-pointer group relative"
     : "flex-shrink-0 w-56 h-72 rounded-sm overflow-hidden cursor-pointer group relative transition-all duration-700 ease-out hover:shadow-lg hover:shadow-accent/30";
@@ -286,14 +302,7 @@ const Gallery = ({ photos: photosProp, pauseAutoScroll = false, compact = false 
         </div>
       </section>
 
-      {/* GALLERY.TOUCH.1: the shared lightbox replaces the old generic
-          Dialog — same photos array the marquee renders, opened at index. */}
-      <PhotoLightbox
-        photos={photos}
-        open={isOpen}
-        initialIndex={selectedIndex}
-        onClose={() => setIsOpen(false)}
-      />
+      {compact ? createPortal(lightbox, document.body) : lightbox}
     </>
   );
 };

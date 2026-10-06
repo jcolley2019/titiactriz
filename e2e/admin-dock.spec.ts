@@ -18,8 +18,19 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  *  D5  a coaching tip open over the Galería holds the pulse; it plays once the
  *      tip closes
  *
- * Screenshots (collapsed and open, light and dark, 390×844 and 1440×900) land
- * in _qa/admin-fixes/.
+ * ADMIN.FIXES.1 item 2 — a thumbnail in the dock opens the public gallery's
+ * lightbox (PhotoLightbox), full screen. It used to open inside the dock's strip:
+ * the dock's backdrop-filter is the containing block of a fixed descendant.
+ *  L1  1440×900: a tap opens it at that photo's index over the whole viewport,
+ *      above the site header and the dock; arrows wrap, Esc closes, the ground
+ *      closes, the body's scroll lock arms and releases
+ *  L2  390×844 touch: swipes advance and retreat, a swipe down closes; the
+ *      arrows stay desktop-only
+ *  L3  with the dock open and its lightbox used, dragging a row by its grip
+ *      still reorders the list and writes the new order
+ *
+ * Screenshots (collapsed and open, light and dark, 390×844 and 1440×900; the
+ * lightbox from the dock at both sizes) land in _qa/admin-fixes/.
  */
 
 const SHOTS = "_qa/admin-fixes";
@@ -214,6 +225,166 @@ test("D5 a coaching tip open over the Galería holds the pulse; it plays once th
   await expect(overlay).toHaveCount(0);
   await expect(pulse(page)).toHaveCount(1);
   await expect(pulse(page)).toHaveCount(0, { timeout: 6000 });
+});
+
+/* ---------------- item 2: the lightbox ---------------- */
+
+const box = (page: Page) => page.locator('[data-qa="lightbox"]');
+const counter = (page: Page) => page.locator('[data-qa="lightbox-counter"]');
+const bodyOverflow = (page: Page) => page.evaluate(() => document.body.style.overflow);
+
+/** Open the dock and tap its Nth ORIGINAL tile (dispatchEvent: the marquee drifts under a real click). */
+async function openFromDock(page: Page, index: number) {
+  if ((await bar(page).getAttribute("aria-expanded")) !== "true") await bar(page).click();
+  await expect(tiles(page).first()).toBeVisible();
+  await tiles(page).nth(index).dispatchEvent("click");
+  await expect(box(page)).toBeVisible();
+}
+
+/** A one-finger swipe as real TouchEvents on the lightbox (gallery-lightbox.spec's anatomy). */
+async function swipe(page: Page, dx: number, dy: number) {
+  await page.evaluate(
+    ([mx, my]) => {
+      const el = document.querySelector('[data-qa="lightbox"]') as HTMLElement;
+      const touch = (x: number, y: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y });
+      const fire = (type: string, x: number, y: number) => {
+        const live = type === "touchend" ? [] : [touch(x, y)];
+        el.dispatchEvent(
+          new TouchEvent(type, { bubbles: true, cancelable: true, touches: live, targetTouches: live, changedTouches: [touch(x, y)] }),
+        );
+      };
+      fire("touchstart", 200, 400);
+      fire("touchmove", 200 + mx, 400 + my);
+      fire("touchend", 200 + mx, 400 + my);
+    },
+    [dx, dy],
+  );
+}
+
+test("L1 1440×900: a dock thumbnail opens the gallery's lightbox full screen at its index", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await openGallery(page, { theme: "dark" });
+  await openFromDock(page, 2);
+
+  // The whole viewport, above everything: no ancestor confines it any more.
+  const vp = page.viewportSize()!;
+  expect(await box(page).boundingBox()).toEqual({ x: 0, y: 0, width: vp.width, height: vp.height });
+  expect(await box(page).evaluate((el) => el.parentElement === document.body)).toBe(true);
+  const onTop = await page.evaluate(() =>
+    [
+      [8, 8],
+      [window.innerWidth / 2, window.innerHeight - 8],
+    ].every(([x, y]) => document.elementFromPoint(x, y)?.closest('[data-qa="lightbox"]')),
+  );
+  expect(onTop, "the lightbox covers the header and the dock").toBe(true);
+
+  // The public lightbox's own chrome, at the tapped photo.
+  await expect(counter(page)).toHaveText("3 / 4");
+  await expect(page.locator('[data-qa="lightbox-img"]')).toHaveAttribute("src", PUBLISHED[2].image_url);
+  await expect(page.locator('[data-qa="lightbox-close"]')).toBeVisible();
+  await expect(page.locator('[data-qa="lightbox-prev"]')).toBeVisible();
+  await expect(page.locator('[data-qa="lightbox-next"]')).toBeVisible();
+  expect(await bodyOverflow(page)).toBe("hidden");
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(400); // the plate's 220ms fade-in
+  await page.screenshot({ path: `${SHOTS}/dock-lightbox-dark-1440x900.png` });
+
+  await page.keyboard.press("ArrowRight");
+  await expect(counter(page)).toHaveText("4 / 4");
+  await page.keyboard.press("ArrowRight");
+  await expect(counter(page), "next from the last photo wraps").toHaveText("1 / 4");
+  await page.locator('[data-qa="lightbox-prev"]').click();
+  await expect(counter(page)).toHaveText("4 / 4");
+  await page.keyboard.press("Escape");
+  await expect(box(page)).toHaveCount(0);
+  expect(await bodyOverflow(page)).toBe("");
+
+  // The ground closes it too.
+  await openFromDock(page, 0);
+  await expect(counter(page)).toHaveText("1 / 4");
+  await page.locator('[data-qa="lightbox-ground"]').click({ position: { x: 10, y: 450 } });
+  await expect(box(page)).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test.describe("touch", () => {
+  test.use({ hasTouch: true });
+
+  test("L2 390×844: swipes advance and retreat, a swipe down closes; the arrows are desktop-only", async ({ page }) => {
+    await openGallery(page, { size: { width: 390, height: 844 } });
+    await openFromDock(page, 1);
+    expect(await box(page).boundingBox()).toEqual({ x: 0, y: 0, width: 390, height: 844 });
+    await expect(counter(page)).toHaveText("2 / 4");
+    await expect(page.locator('[data-qa="lightbox-prev"]')).toBeHidden();
+    await expect(page.locator('[data-qa="lightbox-next"]')).toBeHidden();
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${SHOTS}/dock-lightbox-light-390x844.png` });
+
+    await swipe(page, -120, 0);
+    await expect(counter(page), "swipe left advances").toHaveText("3 / 4");
+    await swipe(page, 120, 0);
+    await expect(counter(page), "swipe right retreats").toHaveText("2 / 4");
+    await swipe(page, -20, 0);
+    await expect(counter(page), "a nudge does nothing").toHaveText("2 / 4");
+    await swipe(page, 0, 160);
+    await expect(box(page), "swipe down closes").toHaveCount(0);
+    expect(await bodyOverflow(page)).toBe("");
+  });
+});
+
+test("L3 with the dock open and its lightbox used, a row dragged by its grip still reorders and saves", async ({ page }) => {
+  const writes: { method: string; url: string; body: string | null }[] = [];
+  await forceLanguage(page, "es");
+  await injectAdminSession(page);
+  await routeSupabase(page, { photos: PUBLISHED, writes });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/admin", { waitUntil: "domcontentloaded" });
+  await expect(dock(page)).toBeVisible();
+  await openFromDock(page, 0);
+  await page.keyboard.press("Escape");
+  await expect(box(page)).toHaveCount(0);
+
+  const rows = page.locator('[data-qa="admin-section-gallery"] ul.list-none > li');
+  await expect(rows).toHaveCount(4);
+  const grip = rows.nth(0).getByRole("button", { name: "Arrastra para reordenar" });
+  // Rows 1 and 2 mid-screen, clear of the open dock along the bottom (instant:
+  // the page scrolls smoothly by default).
+  await rows.nth(0).evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+  const dockTop = (await dock(page).boundingBox())!.y;
+  await expect
+    .poll(async () => {
+      const r = (await rows.nth(1).boundingBox())!;
+      return r.y + r.height;
+    }, { message: "row 2 sits above the open dock" })
+    .toBeLessThan(dockTop);
+  const from = (await grip.boundingBox())!;
+  const target = (await rows.nth(1).boundingBox())!;
+  expect(
+    await page.evaluate(
+      ([x, y]) => !!document.elementFromPoint(x, y)?.closest('button[aria-label="Arrastra para reordenar"]'),
+      [from.x + from.width / 2, from.y + from.height / 2],
+    ),
+    "the grip is what the pointer lands on",
+  ).toBe(true);
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  // Past the sensor's 8px activation distance, then to just below row 2's middle.
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2 + 12, { steps: 4 });
+  await page.mouse.move(from.x + from.width / 2, target.y + target.height * 0.75, { steps: 12 });
+  await page.mouse.up();
+
+  await expect(rows.nth(0).locator("img")).toHaveAttribute("alt", "p2");
+  await expect(rows.nth(1).locator("img")).toHaveAttribute("alt", "p1");
+  await expect
+    .poll(() => writes.filter((w) => w.method === "PATCH" && w.url.includes("gallery_photos")).length)
+    .toBe(4);
+  const order = Object.fromEntries(
+    writes
+      .filter((w) => w.method === "PATCH" && w.url.includes("gallery_photos"))
+      .map((w) => [new URL(w.url).searchParams.get("id")!.replace(/^eq\./, ""), JSON.parse(w.body ?? "{}").sort_order]),
+  );
+  expect(order).toEqual({ p2: 1, p1: 2, p3: 3, p4: 4 });
 });
 
 test("screenshots: the dock collapsed, pulsing and open, light and dark, 390×844 and 1440×900", async ({ page }) => {

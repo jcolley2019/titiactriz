@@ -918,16 +918,25 @@ const ManagePanel = () => {
       photos
         .filter((p) => !p.is_archived && p.is_published)
         .sort((a, b) => a.sort_order - b.sort_order)
-        .map((p) => `${p.id}|${p.image_url}|${p.sort_order}`)
+        .map((p) => `${p.id}|${p.image_url}|${p.master_url ?? ""}|${p.sort_order}`)
         .join("~"),
     [photos],
   );
+  // ADMIN.FIXES.1 — the master rides along: a tapped thumbnail opens the public
+  // gallery's own lightbox, full-resolution original included.
   const livePreviewPhotos = useMemo(
     () =>
       photos
         .filter((p) => !p.is_archived && p.is_published)
         .sort((a, b) => a.sort_order - b.sort_order)
-        .map((p) => ({ id: p.id, image_url: p.image_url, alt_text: p.alt_text })),
+        .map((p) => ({
+          id: p.id,
+          image_url: p.image_url,
+          alt_text: p.alt_text,
+          master_url: p.master_url,
+          master_width: p.master_width,
+          master_height: p.master_height,
+        })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [livePreviewSignature],
   );
