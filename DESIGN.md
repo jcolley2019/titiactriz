@@ -22,6 +22,12 @@ colors:
   studio-luxe-gold-hover: "#d4a017"
   studio-luxe-error: "#9b2c2c"
   studio-dark-error: "#e8a598"
+  room-light-ink: "#1d1a16"
+  room-light-ink-dim: "#2e2a25"
+  room-light-ink-faint: "#5c554b"
+  room-light-muted: "#36312b"
+  room-light-gold: "#835f07"
+  room-light-code: "#efe7da"
 typography:
   display:
     fontFamily: "Cinzel, 'Cormorant Garamond', Georgia, serif"
@@ -249,7 +255,10 @@ as `#121212` on a public surface would be.
   much darker than the logo's `#12A03B`, which cannot hold against the bright
   plate. Scope: the Green World act's bright-water surfaces only. This is the
   One Filament Rule's single ratified exception; see the amendment below and
-  the Green World grammar under Layout.
+  the Green World grammar under Layout. **SITE.THEME.1 (2026-10-05):** it is
+  also the Green World lane on the LIGHT reading room (`7.46:1` on the paper,
+  where the logo green is `3.19:1`) — the same lane surfaces Lane Green marks on
+  the dark, nothing more.
 - **Lane Green** (`#12A03B`, the logo's own green; `--gw-lane`, Tailwind
   `gw-lane`, `LANE_GREEN` in `src/components/blog/tokens.ts`) — scoped
   amendment BLOG.GW.1 (2026-10-02). **Green World lane on dark: /blog cards and
@@ -308,6 +317,53 @@ the meaning — three bands, from substance to air:
 
 New gold must land on an existing step with the step's meaning; a new alpha is
 a design-system change, not a tweak.
+
+### The reading room — dark and light (SITE.THEME.1, 2026-10-05)
+
+The reading pages — `/blog`, `/blog/<slug>`, `/events` and `/book` — paint from
+CSS variables of one room (`--room-*`, `src/index.css`), not from hexes:
+`src/components/blog/tokens.ts` exports them as `var()` strings (`IVORY`,
+`GOLD`, … keep their names), and `Events.tsx`/`Book.tsx` read the same ones.
+The site setting `site_theme` (`dark` | `light` | `auto`, Admin › Ajustes,
+beside the home variant) picks the set; `auto` follows the reader's
+`prefers-color-scheme`, live. **Default dark** — the room exactly as it was.
+
+**Scope.** App's root wrapper (`SiteFrame`) carries `data-site-theme` on those
+four routes only, so the header and the footer change with the page under them
+and with nothing else. The three homes stay dark (this document), `/green-world`
+keeps its own bright grammar, `/admin` has ADMIN.THEME.1. Framed plates keep
+their own ground in both sets: a cover (`CoverPlate`), a framed image, an event
+card (`#13110d` inside its gold frame) are dark pictures hung on either wall.
+
+| Variable | Dark (`:root`) | Light (`[data-site-theme="light"]`) |
+| --- | --- | --- |
+| `--room-ground` | `#0b0a08` | `#faf6f0` — the Luxe paper, not white |
+| `--room-light` | `FIELD_LIGHT` | `rgba(255,255,255,0.4)` → `0.12` (42%) → `0` (62%) → `rgba(61,43,31,0.06)` |
+| `--room-ink` | `#f4ecdb` | `#1d1a16` warm charcoal (`16.1:1`) |
+| `--room-ink-dim` | `#f0e9da` | `#2e2a25` (`13.2:1`) |
+| `--room-ink-faint` | `rgba(240,233,218,0.502)` | `#5c554b` (`6.8:1`) — the /events closing line |
+| `--room-gold` | `#C9A55C` | `#835f07` (`5.41:1`) |
+| `--room-gold-rule` | `rgba(201,165,92,0.4)` | `rgba(131,95,7,0.55)` |
+| `--room-gold-air` | `rgba(201,165,92,0.08)` | `rgba(131,95,7,0.1)` |
+| `--room-lane` | `hsl(var(--gw-lane))` (`#12A03B`) | `#0B5D2A` Deep Green (`7.46:1`) |
+| `--room-code` | `#12100c` | `#efe7da` |
+| `--room-ground-events` | `#0e0c09` (Adjacent Ground) | `#faf6f0` |
+
+Ratios are against the paper; at the foot of its gradient the gold is still `4.86:1`. The light set also retunes the shadcn tokens
+(`--background` paper, `--foreground` ink, `--accent`/`--gold-light` `#835f07`,
+`--muted-foreground` `#36312b` — `4.8:1` even at the footer's `/70` —
+`--border` `#d4c5a9`), which is how the header, the footer and a Radix portal
+opened over a light page (the language menu) wear it; the body behind them is
+paper. On paper the header shows the brand's own two-tone monogram (charcoal
+C, gold P — the mark Green World's white bar already uses).
+
+**Gold on paper (Joey's ruling, SITE.THEME.1).** The filament cannot be
+`#C9A55C` on paper — `2.16:1`, and `--gold-dark` is `2.90:1` — so on the light
+room every gold, letter and line alike, is `#835f07` (ADMIN.THEME.1's
+accent-ink). Its hairline and wash sit on existing ladder steps, `0.55` and
+`0.1`, because on paper they read about as the dark's `0.4` and `0.08` read on
+the ground (`2.29:1` and `1.14:1` against `2.23:1` and `1.10:1`). The One
+Filament Rule holds in both rooms: one gold, as line and letter.
 
 ### Admin-exempt (not normative)
 
