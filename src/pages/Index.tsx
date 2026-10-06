@@ -3,6 +3,7 @@ import SEO from "@/components/SEO";
 import { useHeroCopy } from "@/hooks/useHeroCopy";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useRoomTheme } from "@/components/SiteTheme";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contactSchema, type ContactFormData } from "@/lib/contact";
@@ -45,8 +46,12 @@ const Index = () => {
   const roleParts = copy.roles.includes("·")
     ? copy.roles.split("·").map((r) => r.trim()).filter(Boolean)
     : [copy.roles];
+  // SITE.THEME.2 — the classic home on paper; ADMIN.FIXES.1 — its contact band's submit follows it.
+  const lightRoom = useRoomTheme() === "light";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  // ADMIN.FIXES.1 — a send that fails says so under the form (it used to be a browser alert()).
+  const [sendError, setSendError] = useState(false);
 
 
 
@@ -61,6 +66,7 @@ const Index = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
+    setSendError(false);
     try {
       // 1. Persist to database (source of truth / backup)
       const { data: responseData, error } = await supabase.functions.invoke('send-contact', {
@@ -74,13 +80,13 @@ const Index = () => {
 
       if (error) {
         console.error('Contact form error:', error);
-        alert('There was an error sending your message. Please try again.');
+        setSendError(true);
         return;
       }
 
       if (responseData?.error) {
         console.error('Validation error:', responseData.errors);
-        alert(responseData.error);
+        setSendError(true);
         return;
       }
 
@@ -112,7 +118,7 @@ const Index = () => {
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (err) {
       console.error('Unexpected error:', err);
-      alert('An unexpected error occurred. Please try again.');
+      setSendError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -448,18 +454,25 @@ const Index = () => {
             </div>
             {submitSuccess && (
               <div className="p-4 rounded-none bg-accent/20 border border-accent/50 text-foreground text-sm">
-                {t("contact.form.success") || "Thank you! Your message has been received."}
+                {t("contact.form.success")}
               </div>
             )}
-            <Button 
-              type="submit" 
-              variant="editorial" 
-              size="lg" 
+            {/* ADMIN.FIXES.1 — on paper the submit is the editorial's paper button
+                (SITE.THEME.2a): a gold line round ink letters. The dark is untouched. */}
+            <Button
+              type="submit"
+              variant={lightRoom ? "editorial-paper" : "editorial"}
+              size="lg"
               className="w-full sm:w-auto"
               disabled={isSubmitting}
             >
-              {isSubmitting ? (t("contact.form.sending") || "Sending...") : t("contact.form.submit")}
+              {isSubmitting ? t("contact.form.sending") : t("contact.form.submit")}
             </Button>
+            {sendError && (
+              <p role="alert" data-qa="contact-send-error" className="text-sm text-destructive">
+                {t("contact.form.sendError")}
+              </p>
+            )}
           </form>
 
         </div>

@@ -84,6 +84,7 @@
       "submit": "Send Message",
       "sending": "Sending...",
       "success": "Thank you! Your message has been received.",
+      "sendError": "Your message couldn't be sent. Please try again, or write to me at hola@titiactriz.com.",
       "errors": {
         "nameMin": "Name must be at least 2 characters",
         "nameMax": "Name must be less than 100 characters",

@@ -47,7 +47,12 @@ import { BUILT_SITE_THEME } from "../src/generated/siteTheme";
  *  H6  390×844 light classic and editorial: no horizontal overflow; headline,
  *      body and CTA hold their contrast. SITE.THEME.2a — on the editorial, the
  *      contact band too: its submit is a gold line with ink letters, each ≥3:1
- *      on the band, and a failed submit's three errors (Spanish) hold ≥4.5:1
+ *      on the band, and a failed submit's three errors (Spanish) hold ≥4.5:1.
+ *      ADMIN.FIXES.1 — the classic's band the same; and on both, a send that
+ *      fails leaves one Spanish line under the form, ≥4.5:1 on the band, with
+ *      no browser dialog (send-contact is routed to fail: nothing is sent)
+ *  H7  ADMIN.FIXES.1 — the cinematic home (dark): a send that fails leaves the
+ *      same line under its form, and no browser dialog
  *
  * Screenshots land in _qa/site-theme/.
  */
@@ -656,6 +661,28 @@ const PARTS = {
 
 /** The editorial's contact submit (SITE.THEME.2a). */
 const SUBMIT = `${EDITORIAL} section#contact button[type="submit"]`;
+/** Each home's contact submit: the editorial's, and (ADMIN.FIXES.1) the classic's — `home-classic` is its hero only. */
+const SUBMITS = { classic: 'section#contact button[type="submit"]', editorial: SUBMIT } as const;
+
+/**
+ * ADMIN.FIXES.1 — send-contact answers 500 (and Formspree is stubbed), so a
+ * submit with valid fields fails without anything leaving the browser; every
+ * browser dialog is recorded (there must be none) and dismissed.
+ */
+async function failSends(page: Page) {
+  await page.route("**/functions/v1/send-contact", (r) =>
+    r.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "send failed" }) }),
+  );
+  await page.route("https://formspree.io/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+  const dialogs: string[] = [];
+  page.on("dialog", (d) => {
+    dialogs.push(d.message());
+    void d.dismiss();
+  });
+  return dialogs;
+}
+
+const SEND_ERROR = "No se pudo enviar tu mensaje. Inténtalo de nuevo o escríbeme a hola@titiactriz.com.";
 
 /** The classic hero's wash at its darkest: secondary/20 over the paper (bottom right). */
 const PAPER_WASH = over([239, 230, 214, 0.2], PAPER);
@@ -1107,30 +1134,74 @@ test.describe("SITE.THEME.2 — Homes", () => {
         const edge = (await inkOn(page, PARTS.editorial.cta, PAPER)).edge;
         report.push(`CTA line ${edge.toFixed(2)}:1`);
         expect(edge, "CTA line").toBeGreaterThanOrEqual(3);
-
-        // SITE.THEME.2a — the contact band (bg-muted/50 over the paper). The submit
-        // reads against it: a gold line round ink letters on its wash, each ≥3:1.
-        const band = over(parse(await css(page, "section#contact", "background-color")), PAPER);
-        const submit = await inkOn(page, SUBMIT, band);
-        expect(submit.color, "submit letters").toBe(LIGHT.ink);
-        expect(submit.border, "submit line").toBe(LIGHT.gold);
-        expect(parseFloat(await css(page, SUBMIT, "border-top-width")), "submit line width").toBeGreaterThanOrEqual(1);
-        report.push(`submit line ${submit.edge.toFixed(2)}:1, letters ${submit.text.toFixed(2)}:1`);
-        expect(submit.edge, "submit line on the band").toBeGreaterThanOrEqual(3);
-        expect(submit.text, "submit letters on the band").toBeGreaterThanOrEqual(3);
-
-        // A failed submit, every field empty: the three errors render, in Spanish,
-        // and each holds 4.5:1 on the band.
-        await page.locator(SUBMIT).click();
-        const errors = page.locator(`${EDITORIAL} section#contact form p.text-destructive`);
-        await expect(errors).toHaveCount(3);
-        await expect(errors.first()).toHaveText("El nombre debe tener al menos 2 caracteres");
-        const colors = await errors.evaluateAll((els) => els.map((el) => getComputedStyle(el).color));
-        const error = Math.min(...colors.map((c) => contrast(c, band)));
-        report.push(`errors ${colors[0]} ${error.toFixed(2)}:1`);
-        expect(error, "error text on the band").toBeGreaterThanOrEqual(4.5);
       }
+
+      // SITE.THEME.2a (the editorial) and ADMIN.FIXES.1 (the classic) — the contact
+      // band (bg-muted/50 over the paper). The submit reads against it: a gold line
+      // round ink letters on its wash, each ≥3:1.
+      const submitSel = SUBMITS[variant];
+      const band = over(parse(await css(page, "section#contact", "background-color")), PAPER);
+      const submit = await inkOn(page, submitSel, band);
+      expect(submit.color, "submit letters").toBe(LIGHT.ink);
+      expect(submit.border, "submit line").toBe(LIGHT.gold);
+      expect(parseFloat(await css(page, submitSel, "border-top-width")), "submit line width").toBeGreaterThanOrEqual(1);
+      report.push(`submit line ${submit.edge.toFixed(2)}:1, letters ${submit.text.toFixed(2)}:1`);
+      expect(submit.edge, "submit line on the band").toBeGreaterThanOrEqual(3);
+      expect(submit.text, "submit letters on the band").toBeGreaterThanOrEqual(3);
+
+      // A failed submit, every field empty: the three errors render, in Spanish,
+      // and each holds 4.5:1 on the band.
+      await page.locator(submitSel).click();
+      const errors = page.locator("section#contact form p.text-destructive");
+      await expect(errors).toHaveCount(3);
+      await expect(errors.first()).toHaveText("El nombre debe tener al menos 2 caracteres");
+      const colors = await errors.evaluateAll((els) => els.map((el) => getComputedStyle(el).color));
+      const error = Math.min(...colors.map((c) => contrast(c, band)));
+      report.push(`errors ${colors[0]} ${error.toFixed(2)}:1`);
+      expect(error, "error text on the band").toBeGreaterThanOrEqual(4.5);
+
+      // ADMIN.FIXES.1 — a send that fails: one Spanish line under the form, ≥4.5:1
+      // on the band, and no browser dialog.
+      const dialogs = await failSends(page);
+      await page.locator("section#contact #name").fill("Ana María");
+      await page.locator("section#contact #email").fill("ana@example.com");
+      await page.locator("section#contact #message").fill("Hola, quiero contarte un proyecto.");
+      await page.locator(submitSel).click();
+      const line = page.locator('section#contact [data-qa="contact-send-error"]');
+      await expect(line).toHaveText(SEND_ERROR);
+      await expect(line).toHaveAttribute("role", "alert");
+      await expect(errors).toHaveCount(1); // the three field errors are gone; this line is the one left
+      const below = (await line.boundingBox())!;
+      const button = (await page.locator(submitSel).boundingBox())!;
+      expect(below.y, "the line sits under the submit").toBeGreaterThanOrEqual(button.y + button.height);
+      const lineRatio = contrast(await css(page, 'section#contact [data-qa="contact-send-error"]', "color"), band);
+      report.push(`send error ${lineRatio.toFixed(2)}:1`);
+      expect(lineRatio, "send error on the band").toBeGreaterThanOrEqual(4.5);
+      expect(dialogs, "no browser dialog").toEqual([]);
       test.info().annotations.push({ type: "contrast", description: report.join(" · ") });
     });
   }
+
+  test("H7 the cinematic home (dark): a send that fails leaves the same line under its form, and no browser dialog", async ({
+    page,
+  }) => {
+    // Reduced motion: no act pins, so the form is reached by a plain scroll.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await open(page, "/", { homeVariant: "cinematic" });
+    await expect(page.locator(CINEMATIC)).toBeVisible();
+    const dialogs = await failSends(page);
+    await page.locator("#cine-name").fill("Ana María");
+    await page.locator("#cine-email").fill("ana@example.com");
+    await page.locator("#cine-message").fill("Hola, quiero contarte un proyecto.");
+    const submit = page.locator('#contact button[type="submit"]');
+    await submit.click();
+    const line = page.locator('#contact [data-qa="contact-send-error"]');
+    await expect(line).toHaveText(SEND_ERROR);
+    await expect(line).toHaveAttribute("role", "alert");
+    expect((await line.boundingBox())!.y).toBeGreaterThanOrEqual((await submit.boundingBox())!.y + (await submit.boundingBox())!.height);
+    expect(dialogs, "no browser dialog").toEqual([]);
+    await line.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await page.locator("#contact form").screenshot({ path: `${SHOTS}/h7-cinematic-send-error-1440.png` });
+  });
 });

@@ -56,6 +56,8 @@ const HomeEditorial = () => {
   const lightRoom = useRoomTheme() === "light";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  // ADMIN.FIXES.1 — a send that fails says so under the form (it used to be a browser alert()).
+  const [sendError, setSendError] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
   const [introStarted, setIntroStarted] = useState(false);
   const [framePlay, setFramePlay] = useState(false);
@@ -84,12 +86,14 @@ const HomeEditorial = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
+    setSendError(false);
     try {
       const { data: responseData, error } = await supabase.functions.invoke("send-contact", {
         body: { type: "general", name: data.name, email: data.email, message: data.message },
       });
       if (error || responseData?.error) {
-        alert(responseData?.error || "There was an error sending your message. Please try again.");
+        console.error("Contact form error:", error ?? responseData?.error);
+        setSendError(true);
         return;
       }
       try {
@@ -107,6 +111,9 @@ const HomeEditorial = () => {
       setSubmitSuccess(true);
       reset();
       setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setSendError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -573,7 +580,7 @@ const HomeEditorial = () => {
             </div>
             {submitSuccess && (
               <div className="p-4 rounded-none bg-accent/20 border border-accent/50 text-foreground text-sm">
-                {t("contact.form.success") || "Thank you! Your message has been received."}
+                {t("contact.form.success")}
               </div>
             )}
             {/* SITE.THEME.2a — on paper the cream button sank into the band (only
@@ -586,8 +593,13 @@ const HomeEditorial = () => {
               className="w-full sm:w-auto"
               disabled={isSubmitting}
             >
-              {isSubmitting ? t("contact.form.sending") || "Sending..." : t("contact.form.submit")}
+              {isSubmitting ? t("contact.form.sending") : t("contact.form.submit")}
             </Button>
+            {sendError && (
+              <p role="alert" data-qa="contact-send-error" className="text-xs text-destructive">
+                {t("contact.form.sendError")}
+              </p>
+            )}
           </form>
         </div>
       </Section>

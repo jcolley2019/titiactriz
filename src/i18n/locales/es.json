@@ -84,6 +84,7 @@
       "submit": "Enviar Mensaje",
       "sending": "Enviando...",
       "success": "¡Gracias! Tu mensaje ha sido recibido.",
+      "sendError": "No se pudo enviar tu mensaje. Inténtalo de nuevo o escríbeme a hola@titiactriz.com.",
       "errors": {
         "nameMin": "El nombre debe tener al menos 2 caracteres",
         "nameMax": "El nombre debe tener menos de 100 caracteres",

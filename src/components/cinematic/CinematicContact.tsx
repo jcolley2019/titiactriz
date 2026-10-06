@@ -26,6 +26,8 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  // ADMIN.FIXES.1 — a send that fails says so under the form (it used to be a browser alert()).
+  const [sendError, setSendError] = useState(false);
 
   useLayoutEffect(() => {
     if (reduced) return;
@@ -50,12 +52,14 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
+    setSendError(false);
     try {
       const { data: responseData, error } = await supabase.functions.invoke("send-contact", {
         body: { type: "general", name: data.name, email: data.email, message: data.message },
       });
       if (error || responseData?.error) {
-        alert(responseData?.error || "There was an error sending your message. Please try again.");
+        console.error("Contact form error:", error ?? responseData?.error);
+        setSendError(true);
         return;
       }
       try {
@@ -73,6 +77,9 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
       setSubmitSuccess(true);
       reset();
       setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setSendError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -170,7 +177,7 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
               className="rounded-none border p-4 text-sm"
               style={{ borderColor: "rgba(201,165,92,0.5)", backgroundColor: "rgba(201,165,92,0.12)", color: "#f0e9da" }}
             >
-              {t("contact.form.success") || "Thank you! Your message has been received."}
+              {t("contact.form.success")}
             </div>
           )}
 
@@ -180,8 +187,13 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
             className="inline-flex items-center justify-center px-8 py-3 text-xs uppercase tracking-[0.2em] font-medium transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-60"
             style={{ backgroundColor: "#C9A55C", color: "#0e0c09" }}
           >
-            {isSubmitting ? t("contact.form.sending") || "Sending..." : t("contact.form.submit")}
+            {isSubmitting ? t("contact.form.sending") : t("contact.form.submit")}
           </button>
+          {sendError && (
+            <p role="alert" data-qa="contact-send-error" className="text-xs text-destructive">
+              {t("contact.form.sendError")}
+            </p>
+          )}
         </form>
       </div>
     </section>
