@@ -289,6 +289,13 @@ as `#121212` on a public surface would be.
   tracking `0.2em`), in the room's gold grammar like every other chip. A meta
   line's " · " is bound to the word before it (a no-break space, `META_SEP`), so
   a wrapped line never starts with a dot.
+  **ADMIN.FIXES.1 (2026-10-06) — the product card is a list.** A Green World
+  post names its products as rows (`gw_products`, at most six): a Producto post
+  is about them; a Capacitación or Negocio post lists the ones it mentions. The
+  card becomes one unboxed list under the same single lane-green hairline, a row
+  per product in order — the name in ivory at the card-title step, then "Ver
+  producto →" in gold — and a row with no link goes to the Green World shop. A
+  row is a row whatever it names (a data sheet too). No products, no list.
 
 ### The gold alpha ladder
 
