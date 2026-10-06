@@ -83,7 +83,15 @@
       "messagePlaceholder": "Tell me about your project or inquiry...",
       "submit": "Send Message",
       "sending": "Sending...",
-      "success": "Thank you! Your message has been received."
+      "success": "Thank you! Your message has been received.",
+      "errors": {
+        "nameMin": "Name must be at least 2 characters",
+        "nameMax": "Name must be less than 100 characters",
+        "email": "Please enter a valid email address",
+        "emailMax": "Email must be less than 255 characters",
+        "messageMin": "Message must be at least 10 characters",
+        "messageMax": "Message must be less than 1000 characters"
+      }
     },
     "formNote": "Form wiring can be added later. For immediate inquiries, please email directly."
   },

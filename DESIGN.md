@@ -392,6 +392,14 @@ channel is opened. The cinematic home is dark-only, whatever the setting says.
   once scrolled, no dark halo under ink); the events banner's nav ground is the
   room's ground (`--room-ground`), so a live banner never stands the header's
   ink on charcoal.
+- **The contact band (SITE.THEME.2a, 2026-10-06).** On paper the editorial's
+  cream submit sank into the band (`bg-muted/50` over the paper), so there it
+  is the `editorial-paper` button: the classic CTA's grammar — a 2px `#835f07`
+  line over the `bg-gold/10` wash — with ink letters (`5.07:1` and `13.24:1` on
+  the band); the line is the full gold because the classic's `/60` is `2.49:1`.
+  Form errors take the light set's `--destructive`, ADMIN.THEME.1's paper red
+  `#9b2c2c` (`6.55:1` on the band, where the dark's red is `3.29:1`), on the
+  editorial and classic homes alike.
 
 ### Admin-exempt (not normative)
 

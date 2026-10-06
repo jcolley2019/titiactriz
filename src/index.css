@@ -284,6 +284,10 @@
     --muted-foreground: 32.7 11.3% 19%; /* #36312b — 4.8:1 even at the footer's /70 */
     --accent: 42.6 89.9% 27.1%;
     --accent-foreground: 36 50% 96.1%;
+    /* SITE.THEME.2a — the contact forms' error red, darkened for paper: the
+       dark's red is 3.3:1 on the light contact band; this is ADMIN.THEME.1's
+       paper red, 6.6:1. */
+    --destructive: 0 55.8% 39%; /* #9b2c2c */
     --border: 39.1 33.3% 74.7%; /* #d4c5a9 */
     --input: 39.1 33.3% 74.7%;
     --ring: 42.6 89.9% 27.1%;

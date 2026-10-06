@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { contactSchema, type ContactFormData } from "@/lib/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
@@ -28,13 +28,6 @@ import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 
 
 const heroPortrait = "/hero-portrait.webp";
-
-const contactSchema = z.object({
-  name: z.string().trim().min(2, { message: "Name must be at least 2 characters" }).max(100, { message: "Name must be less than 100 characters" }),
-  email: z.string().trim().email({ message: "Please enter a valid email address" }).max(255, { message: "Email must be less than 255 characters" }),
-  message: z.string().trim().min(10, { message: "Message must be at least 10 characters" }).max(1000, { message: "Message must be less than 1000 characters" }),
-});
-type ContactFormData = z.infer<typeof contactSchema>;
 
 /**
  * Editorial home variant.
@@ -545,7 +538,7 @@ const HomeEditorial = () => {
                   }`}
                   placeholder={t("contact.form.namePlaceholder")}
                 />
-                {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
+                {errors.name?.message && <p className="text-xs text-destructive mt-1">{t(errors.name.message)}</p>}
               </div>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -560,7 +553,7 @@ const HomeEditorial = () => {
                   }`}
                   placeholder={t("contact.form.emailPlaceholder")}
                 />
-                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
+                {errors.email?.message && <p className="text-xs text-destructive mt-1">{t(errors.email.message)}</p>}
               </div>
             </div>
             <div>
@@ -576,14 +569,23 @@ const HomeEditorial = () => {
                 }`}
                 placeholder={t("contact.form.messagePlaceholder")}
               />
-              {errors.message && <p className="text-xs text-destructive mt-1">{errors.message.message}</p>}
+              {errors.message?.message && <p className="text-xs text-destructive mt-1">{t(errors.message.message)}</p>}
             </div>
             {submitSuccess && (
               <div className="p-4 rounded-none bg-accent/20 border border-accent/50 text-foreground text-sm">
                 {t("contact.form.success") || "Thank you! Your message has been received."}
               </div>
             )}
-            <Button type="submit" variant="editorial" size="lg" className="w-full sm:w-auto" disabled={isSubmitting}>
+            {/* SITE.THEME.2a — on paper the cream button sank into the band (only
+                its shadow set it apart), so there it wears the classic CTA's
+                gold line and wash with ink letters. The dark is untouched. */}
+            <Button
+              type="submit"
+              variant={lightRoom ? "editorial-paper" : "editorial"}
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? t("contact.form.sending") || "Sending..." : t("contact.form.submit")}
             </Button>
           </form>

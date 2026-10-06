@@ -24,6 +24,12 @@ const buttonVariants = cva(
           "bg-cream text-charcoal hover:bg-cream/90 hover:-translate-y-0.5 shadow-card hover:shadow-elevated tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
         "editorial-outline":
           "border border-foreground/30 bg-transparent text-foreground hover:bg-foreground/5 hover:border-foreground/50 hover:-translate-y-0.5 hover:shadow-md tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
+        // SITE.THEME.2a — "editorial" on the light room's paper, where its cream
+        // fill sank into the contact band: the classic hero CTA's grammar (a 2px
+        // gold line over the gold/10 wash), with the letters in ink. The line is
+        // the full gold, because the classic's /60 is 2.49:1 on paper.
+        "editorial-paper":
+          "border-2 border-gold bg-gold/10 text-foreground hover:bg-gold/25 hover:-translate-y-0.5 hover:shadow-glow tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
         gold: 
           "bg-accent text-accent-foreground hover:bg-accent/90 hover:-translate-y-0.5 shadow-soft hover:shadow-glow tracking-[0.15em] uppercase text-xs font-sans font-medium rounded-none",
         "gold-outline":

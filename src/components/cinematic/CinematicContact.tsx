@@ -2,20 +2,12 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { supabase } from "@/integrations/supabase/client";
+import { contactSchema, type ContactFormData } from "@/lib/contact";
 
 gsap.registerPlugin(ScrollTrigger);
-
-// Same schema as HomeEditorial's contact form.
-const contactSchema = z.object({
-  name: z.string().trim().min(2, { message: "Name must be at least 2 characters" }).max(100, { message: "Name must be less than 100 characters" }),
-  email: z.string().trim().email({ message: "Please enter a valid email address" }).max(255, { message: "Email must be less than 255 characters" }),
-  message: z.string().trim().min(10, { message: "Message must be at least 10 characters" }).max(1000, { message: "Message must be less than 1000 characters" }),
-});
-type ContactFormData = z.infer<typeof contactSchema>;
 
 /**
  * TA.4 contact — cinematic restyle of the editorial contact section. The
@@ -141,7 +133,7 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
                 className={inputClass(!!errors.name)}
                 placeholder={t("contact.form.namePlaceholder")}
               />
-              {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
+              {errors.name?.message && <p className="mt-1 text-xs text-destructive">{t(errors.name.message)}</p>}
             </div>
             <div>
               <label htmlFor="cine-email" className="mb-2 block text-sm font-medium text-[#f0e9da]">
@@ -154,7 +146,7 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
                 className={inputClass(!!errors.email)}
                 placeholder={t("contact.form.emailPlaceholder")}
               />
-              {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
+              {errors.email?.message && <p className="mt-1 text-xs text-destructive">{t(errors.email.message)}</p>}
             </div>
           </div>
           <div>
@@ -170,7 +162,7 @@ const CinematicContact = ({ reduced }: { reduced: boolean }) => {
               }`}
               placeholder={t("contact.form.messagePlaceholder")}
             />
-            {errors.message && <p className="mt-1 text-xs text-destructive">{errors.message.message}</p>}
+            {errors.message?.message && <p className="mt-1 text-xs text-destructive">{t(errors.message.message)}</p>}
           </div>
 
           {submitSuccess && (

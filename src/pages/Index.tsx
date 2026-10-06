@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { contactSchema, type ContactFormData } from "@/lib/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/Section";
@@ -34,24 +34,6 @@ import miami2Image from "@/assets/cristyna-miami2.webp";
 import miami4Image from "@/assets/cristyna-miami4.webp";
 
 
-
-// Contact form validation schema
-const contactSchema = z.object({
-  name: z.string()
-    .trim()
-    .min(2, { message: "Name must be at least 2 characters" })
-    .max(100, { message: "Name must be less than 100 characters" }),
-  email: z.string()
-    .trim()
-    .email({ message: "Please enter a valid email address" })
-    .max(255, { message: "Email must be less than 255 characters" }),
-  message: z.string()
-    .trim()
-    .min(10, { message: "Message must be at least 10 characters" })
-    .max(1000, { message: "Message must be less than 1000 characters" }),
-});
-
-type ContactFormData = z.infer<typeof contactSchema>;
 
 const Index = () => {
   const { t } = useTranslation();
@@ -419,8 +401,8 @@ const Index = () => {
                   }`}
                   placeholder={t("contact.form.namePlaceholder")}
                 />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-destructive">{errors.name.message}</p>
+                {errors.name?.message && (
+                  <p className="mt-1 text-sm text-destructive">{t(errors.name.message)}</p>
                 )}
               </div>
               <div>
@@ -439,8 +421,8 @@ const Index = () => {
                   }`}
                   placeholder={t("contact.form.emailPlaceholder")}
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+                {errors.email?.message && (
+                  <p className="mt-1 text-sm text-destructive">{t(errors.email.message)}</p>
                 )}
               </div>
             </div>
@@ -460,8 +442,8 @@ const Index = () => {
                 }`}
                 placeholder={t("contact.form.messagePlaceholder")}
               />
-              {errors.message && (
-                <p className="mt-1 text-sm text-destructive">{errors.message.message}</p>
+              {errors.message?.message && (
+                <p className="mt-1 text-sm text-destructive">{t(errors.message.message)}</p>
               )}
             </div>
             {submitSuccess && (

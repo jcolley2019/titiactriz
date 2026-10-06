@@ -83,7 +83,15 @@
       "messagePlaceholder": "Cuéntame sobre tu proyecto o consulta...",
       "submit": "Enviar Mensaje",
       "sending": "Enviando...",
-      "success": "¡Gracias! Tu mensaje ha sido recibido."
+      "success": "¡Gracias! Tu mensaje ha sido recibido.",
+      "errors": {
+        "nameMin": "El nombre debe tener al menos 2 caracteres",
+        "nameMax": "El nombre debe tener menos de 100 caracteres",
+        "email": "Por favor, escribe un correo válido",
+        "emailMax": "El correo debe tener menos de 255 caracteres",
+        "messageMin": "El mensaje debe tener al menos 10 caracteres",
+        "messageMax": "El mensaje debe tener menos de 1000 caracteres"
+      }
     },
     "formNote": "El formulario se puede conectar después. Para consultas inmediatas, por favor envía un correo directamente."
   },

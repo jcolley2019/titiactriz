@@ -45,7 +45,9 @@ import { BUILT_SITE_THEME } from "../src/generated/siteTheme";
  *      at that server); with none on this machine (CI) it skips, and says so.
  *  H5  light: / (classic) → /blog → / never breaks theme mid-fade (T8's method)
  *  H6  390×844 light classic and editorial: no horizontal overflow; headline,
- *      body and CTA hold their contrast
+ *      body and CTA hold their contrast. SITE.THEME.2a — on the editorial, the
+ *      contact band too: its submit is a gold line with ink letters, each ≥3:1
+ *      on the band, and a failed submit's three errors (Spanish) hold ≥4.5:1
  *
  * Screenshots land in _qa/site-theme/.
  */
@@ -652,6 +654,9 @@ const PARTS = {
   },
 } as const;
 
+/** The editorial's contact submit (SITE.THEME.2a). */
+const SUBMIT = `${EDITORIAL} section#contact button[type="submit"]`;
+
 /** The classic hero's wash at its darkest: secondary/20 over the paper (bottom right). */
 const PAPER_WASH = over([239, 230, 214, 0.2], PAPER);
 
@@ -1102,6 +1107,28 @@ test.describe("SITE.THEME.2 — Homes", () => {
         const edge = (await inkOn(page, PARTS.editorial.cta, PAPER)).edge;
         report.push(`CTA line ${edge.toFixed(2)}:1`);
         expect(edge, "CTA line").toBeGreaterThanOrEqual(3);
+
+        // SITE.THEME.2a — the contact band (bg-muted/50 over the paper). The submit
+        // reads against it: a gold line round ink letters on its wash, each ≥3:1.
+        const band = over(parse(await css(page, "section#contact", "background-color")), PAPER);
+        const submit = await inkOn(page, SUBMIT, band);
+        expect(submit.color, "submit letters").toBe(LIGHT.ink);
+        expect(submit.border, "submit line").toBe(LIGHT.gold);
+        expect(parseFloat(await css(page, SUBMIT, "border-top-width")), "submit line width").toBeGreaterThanOrEqual(1);
+        report.push(`submit line ${submit.edge.toFixed(2)}:1, letters ${submit.text.toFixed(2)}:1`);
+        expect(submit.edge, "submit line on the band").toBeGreaterThanOrEqual(3);
+        expect(submit.text, "submit letters on the band").toBeGreaterThanOrEqual(3);
+
+        // A failed submit, every field empty: the three errors render, in Spanish,
+        // and each holds 4.5:1 on the band.
+        await page.locator(SUBMIT).click();
+        const errors = page.locator(`${EDITORIAL} section#contact form p.text-destructive`);
+        await expect(errors).toHaveCount(3);
+        await expect(errors.first()).toHaveText("El nombre debe tener al menos 2 caracteres");
+        const colors = await errors.evaluateAll((els) => els.map((el) => getComputedStyle(el).color));
+        const error = Math.min(...colors.map((c) => contrast(c, band)));
+        report.push(`errors ${colors[0]} ${error.toFixed(2)}:1`);
+        expect(error, "error text on the band").toBeGreaterThanOrEqual(4.5);
       }
       test.info().annotations.push({ type: "contrast", description: report.join(" · ") });
     });
