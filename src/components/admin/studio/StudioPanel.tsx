@@ -10,7 +10,7 @@ import { useAdminTheme } from "@/components/admin/adminTheme";
 import { useCoachHold } from "@/components/admin/coach/CoachProvider";
 import { studioDraft, uniqueSlug } from "@/lib/studio/publish";
 import { DEFAULT_VOICE, VOICE_PICK_KEY, asVoice, type VoiceName } from "@/lib/voices";
-import { asGwKind, isHttpUrl, type GwKind } from "@/lib/blog";
+import { asGwKind, asGwProducts, gwProductUrlInvalid, type GwKind, type GwProduct } from "@/lib/blog";
 import { stripThinkingText } from "@/lib/studio/narration";
 import StudioInput from "./StudioInput";
 import StudioOutput from "./StudioOutput";
@@ -33,10 +33,11 @@ import "@/styles/studio.css";
  * writes lands in the blog category of the same name.
  *
  * BLOG.GW.2 — a Green World press is also written as a kind (Tipo, Producto by
- * default on every mount) and, for Producto, about a product (name and link,
- * both optional). Every call names them, the row keeps the kind, and Publicar
- * writes kind and product to the draft. A reopened row brings its kind back;
- * the product is not stored on the row, so it is filled in on the draft.
+ * default on every mount). ADMIN.FIXES.1 — and names its products as rows (a
+ * name and a link each, both optional, at most six): "Productos" for Producto,
+ * "Productos mencionados" for Capacitación and Negocio. Every call names kind
+ * and products, the row keeps both, and Publicar writes both to the draft; a
+ * reopened row brings both back. A link that is not http(s) holds Generate.
  *
  * ADMIN.THEME.1 — the Studio's wrapper wears the admin's theme (the header's
  * Sun/Moon), so studio.css keeps drawing both palettes from .studio[data-theme].
@@ -77,12 +78,10 @@ const StudioPanel = () => {
       /* storage blocked: the pick lasts until the page reloads */
     }
   };
-  // BLOG.GW.2 — the Green World kind and its product; Producto on every mount.
+  // BLOG.GW.2 — the Green World kind, Producto on every mount; ADMIN.FIXES.1 — its products.
   const [gwKind, setGwKind] = useState<GwKind>("producto");
-  const [productName, setProductName] = useState("");
-  const [productUrl, setProductUrl] = useState("");
-  const productUrlInvalid =
-    voice === "greenworld" && gwKind === "producto" && !!productUrl.trim() && !isHttpUrl(productUrl);
+  const [gwProducts, setGwProducts] = useState<GwProduct[]>([]);
+  const productsInvalid = voice === "greenworld" && gwProducts.some(gwProductUrlInvalid);
   // STUDIO.SPEED.2 — false on every mount, never persisted.
   const [webSearch, setWebSearch] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -103,7 +102,7 @@ const StudioPanel = () => {
       language,
       voice,
       webSearch,
-      gw: voice === "greenworld" ? { kind: gwKind, productName, productUrl } : null,
+      gw: voice === "greenworld" ? { kind: gwKind, products: gwProducts } : null,
     });
 
   const saveOutputs = useCallback(
@@ -166,7 +165,10 @@ const StudioPanel = () => {
       outputs: rowOutputs(row),
       language: row.language === "en" ? "en" : "es",
       voice: asVoice(row.voice),
-      gw: asVoice(row.voice) === "greenworld" ? { kind: asGwKind(row.gw_kind) } : null,
+      gw:
+        asVoice(row.voice) === "greenworld"
+          ? { kind: asGwKind(row.gw_kind), products: asGwProducts(row.gw_products) }
+          : null,
       blogPostId: row.blog_post_id,
     });
     generatedRef.current?.scrollIntoView({ block: "start" });
@@ -236,14 +238,11 @@ const StudioPanel = () => {
           onVoiceChange={pickVoice}
           gwKind={gwKind}
           onGwKindChange={setGwKind}
-          productName={productName}
-          onProductNameChange={setProductName}
-          productUrl={productUrl}
-          onProductUrlChange={setProductUrl}
-          productUrlInvalid={productUrlInvalid}
+          gwProducts={gwProducts}
+          onGwProductsChange={setGwProducts}
           webSearch={webSearch}
           onWebSearchChange={setWebSearch}
-          canGenerate={!!inputText.trim() && !productUrlInvalid && writesSomething}
+          canGenerate={!!inputText.trim() && !productsInvalid && writesSomething}
           generating={g.generating}
           onGenerate={onGenerate}
         />

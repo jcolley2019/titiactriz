@@ -34,9 +34,10 @@ import {
   GW_KINDS,
   SLUG_PATTERN,
   asCategory,
+  asGwProducts,
   formatPostDate,
   gwKindLabelKey,
-  isHttpUrl,
+  gwProductUrlInvalid,
   localizedIsEmpty,
   parseTags,
   pickLocalized,
@@ -45,10 +46,12 @@ import {
   type BlogCategory,
   type BlogPost,
   type GwKind,
+  type GwProduct,
 } from "@/lib/blog";
 import { SITE } from "@/lib/blog/schema";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import ImagePicker from "@/components/admin/media/ImagePicker";
+import GwProductRows from "@/components/admin/GwProductRows";
 import { useAdminIntent } from "@/components/admin/AdminShell";
 
 /**
@@ -81,6 +84,14 @@ import { useAdminIntent } from "@/components/admin/AdminShell";
  * two product columns: the draft keeps what was typed until that Save, so
  * switching back and forth loses nothing. The Green World tab's rows name their
  * kind under the title.
+ *
+ * ADMIN.FIXES.1 — the product is a list (GwProductRows): a name and a link per
+ * row, at most six, each link http(s) or empty (empty sends that row to the
+ * Green World shop). Producto shows the rows as "Productos", always with one to
+ * fill in; Capacitación and Negocio show "Productos mencionados", empty until
+ * Titi adds the products the post mentions. Save writes them as gw_products —
+ * blank rows dropped — and [] for Personal or a Green World post with no kind;
+ * gw_product_name / gw_product_url are no longer read or written.
  */
 
 const FLASH_MS = 1800;
@@ -100,8 +111,7 @@ type Draft = {
   tags: string;
   category: BlogCategory;
   gw_kind: GwKind | null;
-  gw_product_name: string;
-  gw_product_url: string;
+  gw_products: GwProduct[];
   cover_photo_id: string | null;
 };
 
@@ -114,8 +124,7 @@ const EMPTY_DRAFT: Draft = {
   tags: "",
   category: "personal",
   gw_kind: null,
-  gw_product_name: "",
-  gw_product_url: "",
+  gw_products: [],
   cover_photo_id: null,
 };
 
@@ -128,22 +137,20 @@ const postToDraft = (p: BlogPost): Draft => ({
   tags: p.tags.join(", "),
   category: p.category,
   gw_kind: p.gwKind,
-  gw_product_name: p.gwProductName ?? "",
-  gw_product_url: p.gwProductUrl ?? "",
+  gw_products: p.gwProducts,
   cover_photo_id: p.cover_photo_id,
 });
 
 /**
- * BLOG.GW.2 — the kind and product columns a Save writes: a kind only on a
- * Green World post, a product only on a Producto post; blank is NULL.
+ * BLOG.GW.2 — the kind column a Save writes: a kind only on a Green World post.
+ * ADMIN.FIXES.1 — with it, the products: any kind may name them, blank rows
+ * dropped; [] for a personal post or one with no kind.
  */
 const gwColumns = (d: Draft) => {
   const kind = d.category === "greenworld" ? d.gw_kind : null;
-  const product = kind === "producto";
   return {
     gw_kind: kind,
-    gw_product_name: product ? d.gw_product_name.trim() || null : null,
-    gw_product_url: product ? d.gw_product_url.trim() || null : null,
+    gw_products: kind ? asGwProducts(d.gw_products) : [],
   };
 };
 
@@ -634,11 +641,10 @@ const BlogEditor = ({
 
   const titleMissing = !localizedText(fields.title).trim();
   const bodyMissing = !localizedText(fields.body).trim();
-  // BLOG.GW.2 — the product link is checked only where it is saved: a Producto post.
+  // ADMIN.FIXES.1 — the product links are checked only where they are saved: a Green World post with a kind.
   const gw = fields.category === "greenworld";
-  const productShown = gw && fields.gw_kind === "producto";
-  const productUrlInvalid =
-    productShown && !!fields.gw_product_url.trim() && !isHttpUrl(fields.gw_product_url);
+  const productsShown = gw && !!fields.gw_kind;
+  const productsInvalid = productsShown && fields.gw_products.some(gwProductUrlInvalid);
 
   const showFlash = (state: Exclude<FlashState, undefined>) => {
     setFlash(state);
@@ -672,7 +678,7 @@ const BlogEditor = ({
   const onSave = async () => {
     setAttempted(true);
     setSlugError(null);
-    if (titleMissing || bodyMissing || productUrlInvalid) return;
+    if (titleMissing || bodyMissing || productsInvalid) return;
     if (slugTouched && !SLUG_PATTERN.test(fields.slug.trim())) {
       setSlugError("invalid");
       return;
@@ -1036,51 +1042,19 @@ const BlogEditor = ({
           )}
         </div>
 
-        {/* BLOG.GW.2 — the product a Producto post is about: a name, and a link
-            (http(s), or empty for the Green World shop). */}
-        {productShown && (
-          <div className="grid gap-4 md:grid-cols-2" data-qa="blog-field-product">
-            <div className="space-y-1.5">
-              <Label htmlFor="blog-product-name" className="text-foreground text-sm font-medium">
-                {t("admin.blog.fieldProductName")}
-              </Label>
-              <Input
-                id="blog-product-name"
-                data-qa="blog-product-name"
-                maxLength={120}
-                value={fields.gw_product_name}
-                onChange={(e) => setField("gw_product_name", e.target.value)}
-                disabled={busy}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="blog-product-url" className="text-foreground text-sm font-medium">
-                {t("admin.blog.fieldProductUrl")}
-              </Label>
-              <Input
-                id="blog-product-url"
-                data-qa="blog-product-url"
-                type="url"
-                inputMode="url"
-                maxLength={500}
-                placeholder="https://"
-                value={fields.gw_product_url}
-                onChange={(e) => setField("gw_product_url", e.target.value)}
-                disabled={busy}
-                aria-invalid={attempted && productUrlInvalid ? true : undefined}
-                aria-describedby="blog-product-url-help"
-              />
-              {attempted && productUrlInvalid ? (
-                <p id="blog-product-url-help" data-qa="blog-product-url-error" role="alert" className="text-xs text-destructive">
-                  {t("admin.blog.productUrlInvalid")}
-                </p>
-              ) : (
-                <p id="blog-product-url-help" className="text-xs text-muted-foreground">
-                  {t("admin.blog.productUrlHelp")}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* ADMIN.FIXES.1 — the products, as rows: "Productos" for a Producto
+            post, "Productos mencionados" for Capacitación and Negocio. */}
+        {productsShown && fields.gw_kind && (
+          <GwProductRows
+            rows={fields.gw_products}
+            onChange={(rows) => setField("gw_products", rows)}
+            kind={fields.gw_kind}
+            help={t("admin.blog.productsHelp")}
+            showErrors={attempted}
+            disabled={busy}
+            qa="blog"
+            look="admin"
+          />
         )}
 
         <p className="text-xs text-muted-foreground">{t("admin.blog.autoTranslateHelp")}</p>

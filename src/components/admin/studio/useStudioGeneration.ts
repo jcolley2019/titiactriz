@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { Lang } from "@/hooks/useEventsBoard";
 import type { VoiceName } from "@/lib/voices";
-import type { GwKind } from "@/lib/blog";
+import type { GwKind, GwProduct } from "@/lib/blog";
 import { studioGwColumns, type StudioGw } from "@/lib/studio/publish";
 
 /**
@@ -20,9 +20,10 @@ import { studioGwColumns, type StudioGw } from "@/lib/studio/publish";
  * greenworld), and the row stores it so a reopened generation publishes into
  * the matching blog category.
  *
- * BLOG.GW.2 — a Green World press also names its kind (and, for Producto, the
- * product) on every call, and the row stores the kind. A personal press sends
- * none of it.
+ * BLOG.GW.2 — a Green World press also names its kind on every call, and the
+ * row stores the kind. ADMIN.FIXES.1 — with its products (gw_products), which
+ * the row stores too, so a reopened press publishes a draft that names them. A
+ * personal press sends none of it.
  */
 
 export type StudioFormat = "social" | "blog";
@@ -59,7 +60,7 @@ export type GenerateParams = {
   voice: VoiceName;
   /** STUDIO.SPEED.2 — the Studio's switch; sent explicitly on every first-hand call (the function treats a missing field as true). */
   webSearch: boolean;
-  /** BLOG.GW.2 — the kind a Green World press is written as; ignored for a personal one. */
+  /** BLOG.GW.2 — the kind a Green World press is written as, and (ADMIN.FIXES.1) its products; ignored for a personal one. */
   gw: StudioGw | null;
 };
 
@@ -68,7 +69,7 @@ export type Generation = {
   outputs: StudioOutputs;
   language: Lang;
   voice: VoiceName;
-  /** BLOG.GW.2 — the draft's kind and product for Publicar (a reopened row knows its kind only). */
+  /** BLOG.GW.2 — the draft's kind and (ADMIN.FIXES.1) products for Publicar; a reopened row brings both back. */
   gw: StudioGw | null;
   blogPostId: string | null;
 };
@@ -90,18 +91,16 @@ type Body = {
   cascade_source?: string;
   web_search?: boolean;
   gw_kind?: GwKind;
-  gw_product_name?: string;
-  gw_product_url?: string;
+  gw_products?: GwProduct[];
 };
 
-/** BLOG.GW.2 — the kind fields a call carries: a Green World press with a kind only, and only what is filled in. */
+/** The kind fields a call carries: a Green World press with a kind only, and its products only when it names some. */
 const gwBody = (voice: VoiceName, gw: StudioGw | null): Partial<Body> => {
   const cols = studioGwColumns(voice, gw);
   if (!cols.gw_kind) return {};
   return {
     gw_kind: cols.gw_kind,
-    ...(cols.gw_product_name ? { gw_product_name: cols.gw_product_name } : {}),
-    ...(cols.gw_product_url ? { gw_product_url: cols.gw_product_url } : {}),
+    ...(cols.gw_products.length ? { gw_products: cols.gw_products } : {}),
   };
 };
 
@@ -334,7 +333,7 @@ export function useStudioGeneration() {
             source_url: p.sourceUrl,
             language: p.language,
             voice: p.voice,
-            gw_kind: studioGwColumns(p.voice, p.gw).gw_kind,
+            ...studioGwColumns(p.voice, p.gw),
             formats: p.formats,
             platforms: p.formats.includes("social") ? p.platforms : [],
             outputs: outputs as unknown as Json,

@@ -3,7 +3,8 @@ import { Loader2 } from "lucide-react";
 import { PlatformIcon } from "@/components/PlatformIcon";
 import type { Lang } from "@/hooks/useEventsBoard";
 import { VOICES, type VoiceName } from "@/lib/voices";
-import { GW_KINDS, gwKindLabelKey, type GwKind } from "@/lib/blog";
+import { GW_KINDS, gwKindLabelKey, type GwKind, type GwProduct } from "@/lib/blog";
+import GwProductRows from "@/components/admin/GwProductRows";
 import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useStudioGeneration";
 
 /**
@@ -19,9 +20,13 @@ import { STUDIO_PLATFORMS, type StudioFormat, type StudioPlatform } from "./useS
  *
  * BLOG.GW.2 — with Green World picked, "Tipo" stands beside Voz (Producto,
  * Capacitación, Negocio; the same control; under it when the column is too
- * narrow for both), and Producto opens two optional fields: the product's name
- * and its link (http(s) or empty — an empty link points the article at the
- * Green World shop). A link that is not http(s) holds Generate.
+ * narrow for both).
+ *
+ * ADMIN.FIXES.1 — under them, the Blog editor's products rows (GwProductRows,
+ * the studio look): "Productos" with one row to fill in for Producto,
+ * "Productos mencionados" to add to for Capacitación and Negocio. Each link is
+ * http(s) or empty (an empty link points the piece at the Green World shop); a
+ * link that is neither is marked as she types and holds Generate.
  */
 
 export const PLATFORM_LABEL: Record<StudioPlatform, string> = {
@@ -49,11 +54,8 @@ type Props = {
   onVoiceChange: (v: VoiceName) => void;
   gwKind: GwKind;
   onGwKindChange: (k: GwKind) => void;
-  productName: string;
-  onProductNameChange: (s: string) => void;
-  productUrl: string;
-  onProductUrlChange: (s: string) => void;
-  productUrlInvalid: boolean;
+  gwProducts: GwProduct[];
+  onGwProductsChange: (rows: GwProduct[]) => void;
   webSearch: boolean;
   onWebSearchChange: (on: boolean) => void;
   canGenerate: boolean;
@@ -72,11 +74,8 @@ const StudioOutput = ({
   onVoiceChange,
   gwKind,
   onGwKindChange,
-  productName,
-  onProductNameChange,
-  productUrl,
-  onProductUrlChange,
-  productUrlInvalid,
+  gwProducts,
+  onGwProductsChange,
   webSearch,
   onWebSearchChange,
   canGenerate,
@@ -225,52 +224,18 @@ const StudioOutput = ({
         )}
       </div>
 
-      {/* BLOG.GW.2 — the product a Producto press is about: both optional. */}
-      {voice === "greenworld" && gwKind === "producto" && (
-        <div className="st-pair" data-qa="studio-product">
-          <div>
-            <label className="st-field-label" htmlFor="studio-product-name">
-              {t("admin.blog.fieldProductName")}
-            </label>
-            <input
-              id="studio-product-name"
-              className="st-input mt-2"
-              data-qa="studio-product-name"
-              maxLength={120}
-              value={productName}
-              onChange={(e) => onProductNameChange(e.target.value)}
-              disabled={generating}
-            />
-          </div>
-          <div>
-            <label className="st-field-label" htmlFor="studio-product-url">
-              {t("admin.blog.fieldProductUrl")}
-            </label>
-            <input
-              id="studio-product-url"
-              type="url"
-              inputMode="url"
-              className="st-input mt-2"
-              data-qa="studio-product-url"
-              maxLength={500}
-              placeholder="https://"
-              value={productUrl}
-              onChange={(e) => onProductUrlChange(e.target.value)}
-              disabled={generating}
-              aria-invalid={productUrlInvalid ? true : undefined}
-              aria-describedby="studio-product-help"
-            />
-          </div>
-          {productUrlInvalid ? (
-            <p className="st-error st-pair-full" id="studio-product-help" data-qa="studio-product-url-error" role="alert">
-              {t("admin.blog.productUrlInvalid")}
-            </p>
-          ) : (
-            <p className="st-caption st-pair-full" id="studio-product-help">
-              {t("admin.studio.productHelp")}
-            </p>
-          )}
-        </div>
+      {/* ADMIN.FIXES.1 — the products a Green World press names, as rows. */}
+      {voice === "greenworld" && (
+        <GwProductRows
+          rows={gwProducts}
+          onChange={onGwProductsChange}
+          kind={gwKind}
+          help={t("admin.studio.productHelp")}
+          showErrors
+          disabled={generating}
+          qa="studio"
+          look="studio"
+        />
       )}
 
       <div data-coach="studio.language">

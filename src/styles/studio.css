@@ -270,6 +270,49 @@
   flex-basis: 100%;
   margin-top: -0.75rem;
 }
+/* ADMIN.FIXES.1 — a Green World press's products (GwProductRows), one bordered
+   row each: the name beside its link when the column holds both, under it when
+   it does not (.st-pair's grammar), the remove button at the row's end, level
+   with the first field. */
+.studio .st-products,
+.studio .st-product-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.studio .st-product-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.studio .st-product-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+}
+.studio .st-product-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+.studio .st-product-field {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.studio .st-product-remove {
+  padding-inline: 0.7rem;
+}
+.studio .st-product-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
 .studio .st-tab {
   min-height: 2.5rem;
   padding: 0.4rem 0.9rem;

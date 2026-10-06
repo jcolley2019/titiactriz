@@ -52,6 +52,43 @@ export const isHttpUrl = (text: string): boolean => {
 export const gwProductHref = (post: Pick<BlogPost, "gwProductUrl">): string =>
   post.gwProductUrl && isHttpUrl(post.gwProductUrl) ? post.gwProductUrl.trim() : GREEN_WORLD_SHOP_URL;
 
+/**
+ * ADMIN.FIXES.1 — the products a Green World post names, in order: a name and
+ * a link each, the link http(s) or empty (an empty link goes to the Green World
+ * shop). A Producto post is about them; a Capacitación or Negocio post may list
+ * the ones it mentions. Stored as blog_posts.gw_products and
+ * studio_generations.gw_products (jsonb); a personal post, or a Green World post
+ * with no kind, keeps []. Replaces BLOG.GW.2's single gw_product_name /
+ * gw_product_url pair. Mirrors MAX_GW_PRODUCTS and the caps in
+ * supabase/functions/generate-content/validate.ts.
+ */
+export type GwProduct = { name: string; url: string };
+export const MAX_GW_PRODUCTS = 6;
+export const GW_PRODUCT_NAME_MAX = 120;
+export const GW_PRODUCT_URL_MAX = 500;
+
+/**
+ * A jsonb cell or an editor's rows, as they are stored: each name and link
+ * trimmed, rows with neither dropped, at most MAX_GW_PRODUCTS. Anything
+ * unreadable is no product, never a crash.
+ */
+export const asGwProducts = (v: unknown): GwProduct[] => {
+  if (!Array.isArray(v)) return [];
+  const out: GwProduct[] = [];
+  for (const item of v) {
+    if (!isObj(item)) continue;
+    const name = typeof item.name === "string" ? item.name.trim() : "";
+    const url = typeof item.url === "string" ? item.url.trim() : "";
+    if (!name && !url) continue;
+    out.push({ name, url });
+    if (out.length === MAX_GW_PRODUCTS) break;
+  }
+  return out;
+};
+
+/** A row's link the editors refuse: something typed that is not http(s). Empty is fine — the shop. */
+export const gwProductUrlInvalid = (p: Pick<GwProduct, "url">): boolean => !!p.url.trim() && !isHttpUrl(p.url);
+
 export const BLOG_LOCALIZED_FIELDS = ["title", "excerpt", "body", "meta_description"] as const;
 export type BlogLocalizedField = (typeof BLOG_LOCALIZED_FIELDS)[number];
 
@@ -64,8 +101,11 @@ export type BlogPost = {
   meta_description: Localized;
   tags: string[];
   category: BlogCategory;
-  /** BLOG.GW.2 — a greenworld post's kind and product; null on every personal post. */
+  /** BLOG.GW.2 — a greenworld post's kind; null on every personal post. */
   gwKind: GwKind | null;
+  /** ADMIN.FIXES.1 — the products a Green World post with a kind names; [] otherwise. */
+  gwProducts: GwProduct[];
+  /** BLOG.GW.2's single product, read only by the post page's card until it becomes the list (ADMIN.FIXES.1). */
   gwProductName: string | null;
   gwProductUrl: string | null;
   cover_photo_id: string | null;
@@ -98,6 +138,7 @@ const textOrNull = (v: unknown): string | null => (typeof v === "string" && v.tr
 export const rowToPost = (row: BlogPostRow): BlogPost => {
   const category = asCategory(row.category);
   const gw = category === "greenworld";
+  const gwKind = gw ? asGwKind(row.gw_kind) : null;
   return {
     id: row.id,
     slug: row.slug,
@@ -107,7 +148,8 @@ export const rowToPost = (row: BlogPostRow): BlogPost => {
     meta_description: toLocalized(row.meta_description),
     tags: Array.isArray(row.tags) ? row.tags : [],
     category,
-    gwKind: gw ? asGwKind(row.gw_kind) : null,
+    gwKind,
+    gwProducts: gwKind ? asGwProducts(row.gw_products) : [],
     gwProductName: gw ? textOrNull(row.gw_product_name) : null,
     gwProductUrl: gw ? textOrNull(row.gw_product_url) : null,
     cover_photo_id: row.cover_photo_id,
