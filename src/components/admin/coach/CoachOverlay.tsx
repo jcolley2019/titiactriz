@@ -16,13 +16,31 @@ import type { CoachTour } from "./tours";
  * The rect is recomputed on resize, scroll and page changes (a list that loads
  * under the tip; rAF-throttled), and each step scrolls its target into view
  * before it shows.
+ *
+ * ADMIN.FIXES.1 — that scroll clears the header as it actually is: the fixed
+ * chrome is measured (the site header, which on a phone pads itself by the
+ * notch's inset, plus the events banner under it when it shows), not assumed
+ * to be 112px, and the target's top lands BREATH below it. A target with no
+ * room for itself and the card under the header is aligned by its top, never
+ * centred: centring a tall one pushed its top back under the header.
  */
 
 const PAD = 8; // around the target
 const GAP = 12; // between the cut-out and the card
 const EDGE = 16; // the card never comes closer to the viewport edge
-const HEADER = 112; // the site header is fixed; the admin shell clears it with pt-28
+const BREATH = 16; // between the fixed header and a target scrolled up to it
 const CARD_W = 360;
+
+/** Where the fixed chrome at the top of the page ends: the site header, and the events banner when it shows. */
+function chromeBottom(): number {
+  let bottom = 0;
+  document.querySelectorAll<HTMLElement>('[data-site-header], [data-qa="events-banner"]').forEach((el) => {
+    if (el.closest('[data-yielded="true"]')) return;
+    const r = el.getBoundingClientRect();
+    if (r.height > 0 && r.top < window.innerHeight / 2) bottom = Math.max(bottom, r.bottom);
+  });
+  return bottom;
+}
 
 /** The viewport without its scrollbar (the site reserves a scrollbar gutter). */
 const viewport = () => ({ w: document.documentElement.clientWidth, h: document.documentElement.clientHeight });
@@ -51,24 +69,21 @@ const shownSteps = (tour: CoachTour, index: number) =>
 
 const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 
-/** Scroll so the target sits clear of the header with room for the card, unless it already does. */
+/**
+ * Scroll so the target sits clear of the header with room for the card, unless
+ * it already does: its top BREATH under the header — the card below it when the
+ * two fit, and otherwise still its top (the card then rides over it).
+ */
 function reveal(id: string, cardH: number) {
   const r = targetRect(id);
   if (!r) return;
   const vh = viewport().h;
-  const top = HEADER + PAD;
+  const top = chromeBottom() + BREATH;
   const bottom = vh - EDGE - PAD;
   const inView = r.top >= top && r.top + r.height <= bottom;
   const cardFits = r.top + r.height + PAD + GAP + cardH <= vh - EDGE || r.top - PAD - GAP - cardH >= EDGE;
   if (inView && cardFits) return;
-  const room = bottom - top;
-  const dy =
-    r.height + PAD + GAP + cardH <= room
-      ? r.top - top // under the header, the card below it
-      : r.height <= room
-        ? r.top - top - (room - r.height) / 2 // centred
-        : r.top - top; // taller than the view: its top under the header
-  window.scrollBy({ top: dy, behavior: "instant" });
+  window.scrollBy({ top: r.top - top, behavior: "instant" });
 }
 
 const CoachOverlay = ({ tourId, tour, index, onNext, onBack, onSkip }: Props) => {

@@ -26,6 +26,14 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  *      works while collapsed — toast, checks cleared, still collapsed; opened,
  *      a reload keeps it open (screenshots collapsed and open)
  *   grid: 3 columns at 1440, 2 at 1024, 1 at 820 (screenshots)
+ *   C-clip (ADMIN.FIXES.1) 390×844 under the phone's top inset (the header pads
+ *      itself by it; headless Chromium reports 0, so the spec adds it): a step's
+ *      target lands ≥ 8px under the measured header and its spotlight ring
+ *      clears the header — Estudio step 1 (the ring wholly on screen), the two
+ *      tallest targets elsewhere, Medios' slots (914px) and Portafolio's credit
+ *      (842px), both taller than the screen and so aligned by their top (top and
+ *      sides clear, the bottom running past the fold), and the tallest that
+ *      fits, Eventos' banner (582px), wholly on screen
  *
  * Each test runs in a fresh browser context, so the seen-state starts empty;
  * the tours this spec is not about start seen, so only these ones can fire.
@@ -429,6 +437,112 @@ test("C9: Consejos folds under a chevron — open by default, remembered, and Re
   await openSection(page, "guide");
   await expectOpen();
   await expectResetInRow();
+});
+
+/* ---------------- ADMIN.FIXES.1 — C-clip ---------------- */
+
+/** The iPhone's top inset (Dynamic Island), which headless Chromium reports as 0: the header pads itself by it. */
+const PHONE_INSET = "[data-site-header]{padding-top:calc(0.75rem + 59px) !important}";
+
+const CLIP_CREDIT = {
+  id: "c1",
+  kind: "film",
+  title_es: "El Casting",
+  title_en: "The Casting",
+  role_es: null,
+  role_en: null,
+  production: null,
+  year: 2025,
+  url: "https://example.com/el-casting",
+  video_id: null,
+  order_index: 1,
+  enabled: true,
+};
+
+/**
+ * The step's target clears the fixed header (top ≥ its bottom + 8) and so does
+ * its spotlight ring (`ring-2`, 2px outside the cut-out), side to side on
+ * screen; `fits`: the ring's bottom too, else it runs past the fold.
+ */
+async function expectClearOfHeader(page: Page, step: string, fits: boolean) {
+  let last = "";
+  await expect
+    .poll(
+      async () => {
+        const m = await page.evaluate((id) => {
+          const header = Math.max(
+            0,
+            ...[...document.querySelectorAll('[data-site-header], [data-qa="events-banner"]')].map(
+              (e) => e.getBoundingClientRect().bottom,
+            ),
+          );
+          const tops = [...document.querySelectorAll(`[data-coach="${id}"]`)]
+            .map((e) => e.getBoundingClientRect())
+            .filter((r) => r.width > 0 || r.height > 0)
+            .map((r) => r.top);
+          const ring = document.querySelector('[data-qa="coach-spotlight"]')!.getBoundingClientRect();
+          return {
+            header,
+            top: Math.min(...tops),
+            ring: { top: ring.top, left: ring.left, right: ring.right, bottom: ring.bottom },
+            vw: document.documentElement.clientWidth,
+            vh: document.documentElement.clientHeight,
+          };
+        }, step);
+        last = JSON.stringify(m);
+        const ok =
+          m.top >= m.header + 8 &&
+          m.ring.top - 2 >= m.header &&
+          m.ring.left - 2 >= 0 &&
+          m.ring.right + 2 <= m.vw &&
+          (fits ? m.ring.bottom + 2 <= m.vh : m.ring.bottom >= m.vh);
+        return ok ? "clear" : last;
+      },
+      { message: `${step} clears the header` },
+    )
+    .toBe("clear");
+  test.info().annotations.push({ type: "clip", description: `${step} ${last}` });
+}
+
+test("C-clip: 390×844 with the phone's top inset, Estudio step 1 and the tallest targets clear the header", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.addInitScript((css) => {
+    document.addEventListener("DOMContentLoaded", () => {
+      const s = document.createElement("style");
+      s.textContent = css;
+      document.head.appendChild(s);
+    });
+  }, PHONE_INSET);
+  await routeSupabase(page, { actingCredits: [CLIP_CREDIT] });
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  // Estudio step 1, on the first open: wholly on screen under the header.
+  await openSection(page, "studio");
+  await expect(overlay(page)).toHaveAttribute("data-step", "studio.brainDump");
+  expect(await page.evaluate(() => document.querySelector("[data-site-header]")!.getBoundingClientRect().bottom)).toBeGreaterThan(112);
+  await expectClearOfHeader(page, "studio.brainDump", true);
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}/clip-estudio-step1-390x844.png` });
+  await page.locator('[data-qa="coach-skip"]').click();
+  await expect(overlay(page)).toHaveCount(0);
+
+  // The two tallest targets elsewhere (replayed from Consejos), taller than the
+  // screen: aligned by their top, not centred. Then the tallest that fits.
+  for (const [tour, step, fits] of [
+    ["media", "media.slots", false],
+    ["portfolio", "portfolio.credit", false],
+    ["events", "events.banner", true],
+  ] as const) {
+    await page.locator('[data-qa="admin-nav-guide"]').click();
+    await page.locator(`[data-qa="coach-replay-${tour}"]`).click();
+    await expect(overlay(page)).toHaveAttribute("data-tour", tour);
+    while ((await overlay(page).getAttribute("data-step")) !== step) await next(page).click();
+    await expectClearOfHeader(page, step, fits);
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${SHOTS}/clip-${tour}-390x844.png` });
+    await page.locator('[data-qa="coach-skip"]').click();
+    await expect(overlay(page)).toHaveCount(0);
+  }
 });
 
 const gridColumns = (page: Page) =>
