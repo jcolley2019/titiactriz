@@ -24,13 +24,6 @@
 // KNOWN RESIDUAL (v1, accepted): the range check does not fully close DNS
 // rebinding (the host could resolve to a public IP at validation time and a
 // private IP at fetch time). Hardened later by pinning the validated IP.
-//
-// NOT DEPLOYED YET. Law 5 — deployed state is not repo state — so this file
-// existing proves nothing about the live project. Deploying it is a supervised
-// step: deploy, then add the slug to supabase/functions/deploy-ledger.json with
-// its ezbr_sha256 in the SAME commit, then `npm run drift` must go green. The
-// ledger deliberately carries no `unfurl` entry until that happens, because the
-// drift gate fails on a ledgered function that is not deployed.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
