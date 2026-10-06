@@ -64,8 +64,12 @@ const BANNER_H = 38;
  *
  * The ground is skipped on Green World and Titans, whose headers are opaque by
  * design and would hide it anyway.
+ *
+ * SITE.THEME.2 — it is the room's ground: `--room-ground` IS #0b0a08 on the
+ * dark, and on a light page (a reading page, or the editorial or classic home)
+ * it is the paper, where a charcoal band would put the header's ink on black.
  */
-const CHROME_GROUND = "#0b0a08";
+const CHROME_GROUND = "var(--room-ground)";
 
 /**
  * MARQUEE.1 STEP 3 — the track runs at a CONSTANT speed, in pixels per second,

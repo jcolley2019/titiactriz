@@ -161,6 +161,11 @@ const Header = () => {
 
   const isTitansPage = location.pathname === "/titans-agency";
   const isGreenWorldPage = location.pathname === "/green-world";
+  // SITE.THEME.1 — on a reading page in the light theme the bar sits on paper.
+  // Its type already follows the room (ink is --room-ink-dim, gold the shadcn
+  // gold the light set retunes); this flag only swaps what CSS cannot reach:
+  // the monogram, the language trigger and the coming-soon panel's ground.
+  const lightRoom = useRoomTheme() === "light";
   // NAV.CLEAR.1, amended by REVIEW.2b — on the cinematic surface the header is
   // transparent only over the HERO, where a bar would cut a lid across the
   // opening picture. Past ~80vh (the pastHero threshold) it grounds on the
@@ -168,12 +173,11 @@ const Header = () => {
   // of colliding with the glyphs; the 700ms header transition makes the switch
   // a fade, not a pop. Scoped to this route on purpose — the ordinary pages
   // keep their own scrolled fill.
-  const isCinematicHome = location.pathname === "/" || location.pathname === "/cinematic";
-  // SITE.THEME.1 — on a reading page in the light theme the bar sits on paper.
-  // Its type already follows the room (ink is --room-ink-dim, gold the shadcn
-  // gold the light set retunes); this flag only swaps what CSS cannot reach:
-  // the monogram, the language trigger and the coming-soon panel's ground.
-  const lightRoom = useRoomTheme() === "light";
+  // SITE.THEME.2 — a home in the light room (editorial or classic, never the
+  // cinematic) is paper, not that surface: the near-black bar would put ink on
+  // charcoal and the dark halo would smudge ink glyphs, so it takes the
+  // reading pages' bar. A dark home keeps the cinematic chrome exactly.
+  const isCinematicHome = !lightRoom && (location.pathname === "/" || location.pathname === "/cinematic");
 
   useEffect(() => {
     const handleScroll = () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BUILT_HOME_VARIANT } from "@/generated/homeVariant";
 
@@ -68,6 +68,44 @@ export const setHomeVariant = async (variant: HomeVariant): Promise<void> => {
 };
 
 /**
+ * SITE.THEME.2 — the variant `/` shows, held once for everyone who asks.
+ *
+ * The site theme reaches `/` only while the home is editorial or classic, so
+ * the room (SiteFrame, the header) must know the variant Home renders — the
+ * same one, in the same render, or the page and its theme would disagree for a
+ * frame. It cannot call useHomeVariant to find out: that hook owns the fetch
+ * and the realtime channel, and a second channel on one topic errors
+ * (BANNER.TOGGLE.1). So the value lives here: useHomeVariant, Home's, publishes
+ * into it, and useShownHomeVariant reads it without touching the network.
+ *
+ * Read lazily, so the first read sees what Home's first render always saw —
+ * the cache, else the built variant.
+ */
+let shownVariant: HomeVariant | null = null;
+const shownListeners = new Set<() => void>();
+
+const getShownVariant = (): HomeVariant => {
+  if (shownVariant === null) shownVariant = readCachedVariant() ?? HOME_VARIANT_DEFAULT;
+  return shownVariant;
+};
+
+const publishVariant = (v: HomeVariant) => {
+  // Only a real change notifies, so a matching revalidation never re-renders.
+  if (getShownVariant() === v) return;
+  shownVariant = v;
+  shownListeners.forEach((l) => l());
+};
+
+const subscribeShown = (listener: () => void) => {
+  shownListeners.add(listener);
+  return () => shownListeners.delete(listener);
+};
+
+/** The variant `/` renders, read-only: no fetch, no channel, safe in any number of places. */
+export const useShownHomeVariant = (): HomeVariant =>
+  useSyncExternalStore(subscribeShown, getShownVariant, getShownVariant);
+
+/**
  * Resolve the active home variant without a variant flash — and without a hold.
  *
  * - Repeat visitor (cache present): the cached variant is the initial render.
@@ -79,9 +117,12 @@ export const setHomeVariant = async (variant: HomeVariant): Promise<void> => {
  * written to the cache. `variant` is never null, so nothing waits on the
  * network; Home.tsx's neutral hold survives only as the cinematic chunk's
  * Suspense fallback.
+ *
+ * Call it from ONE place (Home): it opens the channel. Anything else that
+ * needs the variant reads useShownHomeVariant.
  */
 export const useHomeVariant = (): { variant: HomeVariant; loading: boolean } => {
-  const [variant, setVariant] = useState<HomeVariant>(() => readCachedVariant() ?? HOME_VARIANT_DEFAULT);
+  const variant = useShownHomeVariant();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -94,8 +135,7 @@ export const useHomeVariant = (): { variant: HomeVariant; loading: boolean } => 
     const applyVariant = (v: HomeVariant) => {
       writeCachedVariant(v);
       if (v === "cinematic") preloadHomeCinematic();
-      // Update only on a real change so a matching revalidation never re-renders.
-      setVariant((cur) => (cur === v ? cur : v));
+      publishVariant(v);
     };
 
     fetchHomeVariant()

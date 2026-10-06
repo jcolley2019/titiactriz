@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BUILT_SITE_THEME } from "@/generated/siteTheme";
+import type { HomeVariant } from "@/hooks/useHomeVariant";
 
 /**
  * SITE.THEME.1 — the public reading pages' light/dark theme.
@@ -8,8 +9,11 @@ import { BUILT_SITE_THEME } from "@/generated/siteTheme";
  * `site_theme` is a preference: dark, light, or auto (the reader's
  * prefers-color-scheme). It reaches only the pages that paint from the room's
  * variables — /blog, /blog/<slug>, /events and /book — plus the header and
- * footer while one of them is open. The three homes are dark by DESIGN.md,
- * /green-world keeps its own bright grammar, and /admin has ADMIN.THEME.1.
+ * footer while one of them is open. /green-world keeps its own bright grammar,
+ * and /admin has ADMIN.THEME.1.
+ *
+ * SITE.THEME.2 — and `/` while it shows the editorial or classic home. The
+ * cinematic home is dark-only (DESIGN.md), whatever the setting says.
  */
 export type SiteTheme = "dark" | "light" | "auto";
 /** What a page actually wears once auto has asked the device. */
@@ -126,12 +130,18 @@ export const useSiteThemePreference = (): { theme: SiteTheme; adopt: (theme: Sit
   return { theme, adopt };
 };
 
-/** The routes the setting reaches. Everything else is untouched by it. */
-export const isSiteThemeRoute = (pathname: string): boolean =>
+/**
+ * The routes the setting reaches. Everything else is untouched by it.
+ *
+ * SITE.THEME.2 — `/` is one of them only while the home it shows is editorial
+ * or classic (`homeVariant`, the variant Home is rendering): never cinematic.
+ */
+export const isSiteThemeRoute = (pathname: string, homeVariant: HomeVariant): boolean =>
   pathname === "/blog" ||
   pathname.startsWith("/blog/") ||
   pathname === "/events" ||
-  pathname === "/book";
+  pathname === "/book" ||
+  (pathname === "/" && (homeVariant === "editorial" || homeVariant === "classic"));
 
 const LIGHT_QUERY = "(prefers-color-scheme: light)";
 

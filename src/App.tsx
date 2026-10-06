@@ -24,7 +24,8 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           {/* SITE.THEME.1 — SiteFrame is the root wrapper; on a reading page it
-              carries data-site-theme, which the header and footer follow too. */}
+              carries data-site-theme, which the header and footer follow too.
+              SITE.THEME.2 — so does the editorial or classic home. */}
           <SiteThemeProvider>
             <SiteFrame>
               <Header />

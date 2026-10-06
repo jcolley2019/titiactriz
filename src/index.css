@@ -222,9 +222,11 @@
   /**
    * SITE.THEME.1 — the reading room's light set. The app's root wrapper carries
    * `data-site-theme` only on /blog, /blog/<slug>, /events and /book (SiteFrame,
-   * src/components/SiteTheme.tsx), and only "light" is declared here: the dark
-   * set is :root, so the three homes, /green-world, /admin and every other page
-   * can never match. Default stays dark — site_settings `site_theme` decides.
+   * src/components/SiteTheme.tsx) — and, since SITE.THEME.2, on `/` while it
+   * shows the editorial or classic home — and only "light" is declared here:
+   * the dark set is :root, so the cinematic home, /green-world, /admin and every
+   * other page can never match. Default stays dark — site_settings `site_theme`
+   * decides.
    *
    * Paper is the Luxe paper (#faf6f0), ink a warm charcoal. Gold as text or
    * line is #835f07 (Joey's ruling: #C9A55C is 2.16:1 on this paper and

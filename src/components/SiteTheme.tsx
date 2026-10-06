@@ -9,6 +9,7 @@ import {
   type RoomTheme,
   type SiteTheme,
 } from "@/hooks/useSiteTheme";
+import { useShownHomeVariant } from "@/hooks/useHomeVariant";
 
 type SiteThemeState = {
   /** The preference as stored: dark | light | auto. */
@@ -65,19 +66,28 @@ const FALLBACK: SiteThemeState = {
 
 export const useSiteTheme = (): SiteThemeState => useContext(SiteThemeContext) ?? FALLBACK;
 
-/** The theme the page ON SCREEN wears, or null where the setting does not reach. */
+/**
+ * The theme the page ON SCREEN wears, or null where the setting does not reach.
+ *
+ * SITE.THEME.2 — on `/` that turns on the variant the home is rendering, read
+ * from the one shared value Home publishes, so the room and the home agree in
+ * every render: a live swap to cinematic leaves the room in the same render
+ * the cinematic home arrives in.
+ */
 export const useRoomTheme = (): RoomTheme | null => {
   const { pathname } = useLocation();
   const { resolved, shownPath } = useSiteTheme();
-  return isSiteThemeRoute(shownPath ?? pathname) ? resolved : null;
+  const homeVariant = useShownHomeVariant();
+  return isSiteThemeRoute(shownPath ?? pathname, homeVariant) ? resolved : null;
 };
 
 /**
- * The app's root wrapper. On a reading page it carries `data-site-theme`, and
- * index.css hangs the light set on that attribute — so the header, the page
- * and the footer below it all take the room's ink and gold together. Off the
- * reading pages there is no attribute at all, and nothing can change. It
- * changes hands only once the outgoing page has faded out (useRoomTheme).
+ * The app's root wrapper. On a reading page — and on the editorial or classic
+ * home (SITE.THEME.2) — it carries `data-site-theme`, and index.css hangs the
+ * light set on that attribute — so the header, the page and the footer below
+ * it all take the room's ink and gold together. Elsewhere there is no
+ * attribute at all, and nothing can change. It changes hands only once the
+ * outgoing page has faded out (useRoomTheme).
  */
 export const SiteFrame = ({ children }: { children: ReactNode }) => {
   const room = useRoomTheme();
