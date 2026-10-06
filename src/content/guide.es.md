@@ -23,9 +23,10 @@ Esta guía explica, paso a paso, cada pestaña del admin de titiactriz.com. Lée
 4. El orden de la lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla.
 5. Si una foto ya no va, ábrela con los tres puntos y elige **Archivar** (se puede **Restaurar** después) o **Eliminar** (para siempre).
 6. **Texto alternativo** es la descripción de la foto que leen Google y las personas con lector de pantalla. **Completar todo el texto alternativo** las escribe de una vez; puedes corregirlas.
-7. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
-8. El video de fondo del **Hero** (**Subir video**) se sube tal como lo grabaste, de cualquier tamaño hasta 200 MB y de unos 15 segundos; el sitio prepara los tamaños para cada pantalla.
-9. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
+7. La chispa ✨ de cada foto (**Generar texto alternativo**) escribe la suya sola: es la descripción de una línea con la que Google muestra tus fotos en la búsqueda de imágenes y la que escuchan quienes usan lector de pantalla. Léela y corrige lo que esté mal; nunca toca la foto.
+8. En **Medios** eliges qué foto abre la portada (**Hero**), cuáles van en el reel y cuál acompaña **Sobre mí**. **Cambiar foto** escoge otra de la Galería; **Editar encuadre** te deja mover y acercar la foto para cada tipo de pantalla, y **Guardar encuadre** lo aplica.
+9. El video de fondo del **Hero** (**Subir video**) se sube tal como lo grabaste, de cualquier tamaño hasta 200 MB y de unos 15 segundos; el sitio prepara los tamaños para cada pantalla.
+10. Regla de la casa: las fotos se suben como salen de la cámara. Nada de retoques de cara con inteligencia artificial, ni aquí ni en ninguna otra parte del sitio.
 
 ## Portafolio
 

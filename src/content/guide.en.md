@@ -23,9 +23,10 @@ Use it when… you want to upload photos, change their order or decide which one
 4. The order of the list is the order on the site. Drag a photo by the handle on the left to move it.
 5. If a photo no longer belongs, open it with the three dots and choose **Archive** (you can **Restore** it later) or **Delete** (for good).
 6. **Alt text** is the description of the photo that Google and people using a screen reader read. **Fill all missing alt text** writes them in one go; you can correct them.
-7. In **Media** you choose which photo opens the home page (**Hero**), which ones go in the reel and which one sits beside **About**. **Change photo** picks another from the Gallery; **Edit framing** lets you move and zoom the photo for each kind of screen, and **Save framing** applies it.
-8. The **Hero** background video (**Upload video**) goes up as you filmed it, any size up to 200 MB and about 15 seconds long; the site makes the sizes for each screen.
-9. House rule: photos go up as they come out of the camera. No AI face retouching, here or anywhere else on the site.
+7. The sparkle ✨ on each photo (**Generate alt text**) writes its own automatically: the one-line description Google reads so your photos show up in image search, and what people using a screen reader hear. Read it and fix anything that's wrong; it never touches the photo itself.
+8. In **Media** you choose which photo opens the home page (**Hero**), which ones go in the reel and which one sits beside **About**. **Change photo** picks another from the Gallery; **Edit framing** lets you move and zoom the photo for each kind of screen, and **Save framing** applies it.
+9. The **Hero** background video (**Upload video**) goes up as you filmed it, any size up to 200 MB and about 15 seconds long; the site makes the sizes for each screen.
+10. House rule: photos go up as they come out of the camera. No AI face retouching, here or anywhere else on the site.
 
 ## Portfolio
 

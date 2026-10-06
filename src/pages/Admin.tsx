@@ -350,7 +350,7 @@ const SortableRow = memo(({
           className="w-28 h-28 md:w-[88px] md:h-[88px] object-cover rounded-md border border-border shrink-0 md:order-4"
           loading="lazy"
         />
-        <div className="space-y-2 min-w-0 flex-1 md:order-5">
+        <div className="space-y-2 min-w-0 flex-1 md:order-5" data-coach={isFirst ? "gallery.altText" : undefined}>
           <div className="flex items-center gap-2">
             <Label className="text-xs text-muted-foreground">{t("admin.photos.altText")}</Label>
             {missingAlt && (

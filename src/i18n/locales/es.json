@@ -1140,6 +1140,10 @@
           "title": "Subir fotos",
           "body": "Arrastra tus fotos a este recuadro o toca Seleccionar archivos. Súbelas como salen de la cámara: nada de retoques de cara con inteligencia artificial."
         },
+        "altText": {
+          "title": "Texto alternativo",
+          "body": "Es la descripción de una línea que Google lee para que tus fotos salgan en la búsqueda de imágenes, y la que escuchan quienes usan lector de pantalla. Toca la chispa ✨ de cada foto para que se escriba sola; después léela y corrige lo que esté mal. Nunca toca la foto."
+        },
         "list": {
           "title": "El orden del sitio",
           "body": "El orden de esta lista es el orden del sitio. Arrastra una foto por el asa de la izquierda para moverla; en el celular, usa las flechas."

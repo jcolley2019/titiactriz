@@ -10,6 +10,10 @@ import { TOUR_IDS } from "../src/components/admin/coach/tours";
  * control with the card inside the viewport, Siguiente walks it in order, and
  * Listo marks it seen — without a page error. Step 1 of each, at 1440×900,
  * lands in _qa/admin-coach/.
+ *
+ * ADMIN.FIXES.1 — the Galería tour gains its second step, Texto alternativo:
+ * T1b checks it spotlights the first row's field and its sparkle and says, in
+ * Spanish and in English, what alt text is for (screenshots at 1440 and 390).
  */
 
 const SHOTS = "_qa/admin-coach";
@@ -46,8 +50,8 @@ const LINK = {
 };
 
 const TABS: { id: string; steps: string[]; route?: Parameters<typeof routeSupabase>[1] }[] = [
-  // Four published mock photos; the first row carries the list and switch targets.
-  { id: "gallery", steps: ["gallery.upload", "gallery.list", "gallery.published"] },
+  // Four published mock photos; the first row carries the alt-text, list and switch targets.
+  { id: "gallery", steps: ["gallery.upload", "gallery.altText", "gallery.list", "gallery.published"] },
   { id: "media", steps: ["media.video", "media.slots", "media.slotActions"] },
   { id: "portfolio", steps: ["portfolio.add", "portfolio.credit"], route: { actingCredits: [CREDIT] } },
   { id: "links", steps: ["links.add", "links.order", "links.visible"], route: { socialLinks: [LINK] } },
@@ -135,5 +139,74 @@ for (const [n, tab] of TABS.entries()) {
     const seen = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "[]") as string[], KEY);
     expect(seen).toContain(tab.id);
     expect(errors).toEqual([]);
+  });
+}
+
+for (const [lang, size] of [
+  ["es", { width: 1440, height: 900 }],
+  ["es", { width: 390, height: 844 }],
+  ["en", { width: 1440, height: 900 }],
+] as const) {
+  test(`T1b ${lang} ${size.width}: the gallery's alt-text step spotlights the first row's field and sparkle, and says what alt text is for`, async ({
+    page,
+  }) => {
+    await forceLanguage(page, lang);
+    await injectAdminSession(page, { coachSeen: false });
+    await markCoachSeen(page, TOUR_IDS.filter((id) => id !== "gallery"));
+    await routeSupabase(page);
+    await page.setViewportSize(size);
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+
+    const overlay = page.locator('[data-qa="coach-overlay"]');
+    await expect(overlay).toHaveAttribute("data-step", "gallery.upload");
+    await page.locator('[data-qa="coach-next"]').click();
+    // Right after the upload step: Paso 2 de 4.
+    await expect(overlay).toHaveAttribute("data-step", "gallery.altText");
+    await expect(page.locator('[data-qa="coach-progress"]')).toHaveText(lang === "es" ? "Paso 2 de 4" : "Step 2 of 4");
+
+    // The first row's alt-text block — its label, the field and the sparkle — is what the ring surrounds.
+    const row = page.locator('[data-qa="admin-section-gallery"] ul.list-none > li').first();
+    const parts = [
+      row.getByText(lang === "es" ? "Texto alternativo" : "Alt text", { exact: true }),
+      row.locator("input").first(),
+      row.getByRole("button", { name: lang === "es" ? "Generar texto alternativo" : "Generate alt text" }),
+    ];
+    await expect
+      .poll(async () => {
+        const hole = await page.locator('[data-qa="coach-spotlight"]').boundingBox();
+        if (!hole) return false;
+        for (const part of parts) {
+          const b = await part.boundingBox();
+          if (!b) return false;
+          const inside =
+            b.x >= hole.x - 1 && b.y >= hole.y - 1 && b.x + b.width <= hole.x + hole.width + 1 && b.y + b.height <= hole.y + hole.height + 1;
+          if (!inside) return false;
+        }
+        return true;
+      })
+      .toBe(true);
+    await expectCardInside(page);
+
+    // What it says: what alt text is for, the sparkle, check it, the photo untouched.
+    const title = page.locator('[data-qa="coach-title"]');
+    const body = page.locator('[data-qa="coach-body"]');
+    if (lang === "es") {
+      await expect(title).toHaveText("Texto alternativo");
+      for (const phrase of ["descripción de una línea", "Google", "búsqueda de imágenes", "lector de pantalla", "chispa ✨", "corrige lo que esté mal", "Nunca toca la foto"]) {
+        await expect(body).toContainText(phrase);
+      }
+    } else {
+      await expect(title).toHaveText("Alt text");
+      for (const phrase of ["one-line description", "Google", "image search", "screen reader", "sparkle ✨", "fix anything that's wrong", "never touches the photo itself"]) {
+        await expect(body).toContainText(phrase);
+      }
+    }
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: `${SHOTS}/tour-gallery-alttext-${lang}-${size.width}.png` });
+
+    // Then the list and the switch, as before.
+    await page.locator('[data-qa="coach-next"]').click();
+    await expect(overlay).toHaveAttribute("data-step", "gallery.list");
   });
 }

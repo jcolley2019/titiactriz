@@ -1140,6 +1140,10 @@
           "title": "Upload photos",
           "body": "Drag your photos into this box or tap Select files. Upload them as they come out of the camera: no AI face retouching."
         },
+        "altText": {
+          "title": "Alt text",
+          "body": "It's the one-line description Google reads so your photos show up in image search, and what people using a screen reader hear. Tap the sparkle ✨ on each photo to write it automatically, then read it and fix anything that's wrong. It never touches the photo itself."
+        },
         "list": {
           "title": "The order on the site",
           "body": "The order of this list is the order on the site. Drag a photo by the handle on the left to move it; on your phone, use the arrows."

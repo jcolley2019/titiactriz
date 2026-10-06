@@ -36,7 +36,13 @@ const step = (tour: string, key: string, emoji: string): CoachStep => ({
 
 export const TOURS: Record<string, CoachTour> = {
   gallery: {
-    steps: [step("gallery", "upload", "📤"), step("gallery", "list", "↕️"), step("gallery", "published", "👁️")],
+    steps: [
+      step("gallery", "upload", "📤"),
+      // ADMIN.FIXES.1 — the first row's Texto alternativo field and its sparkle.
+      step("gallery", "altText", "✨"),
+      step("gallery", "list", "↕️"),
+      step("gallery", "published", "👁️"),
+    ],
   },
   media: {
     steps: [step("media", "video", "🎬"), step("media", "slots", "🖼️"), step("media", "slotActions", "📷")],

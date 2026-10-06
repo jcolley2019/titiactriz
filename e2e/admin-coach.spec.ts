@@ -218,6 +218,8 @@ test("C4: Guía › Consejos cards: the Estudio card shows the tour again; Reini
   await expect(studioCard).toContainText("Cuenta lo que tienes en la cabeza y conviértelo en artículo y posts");
   await expect(studioCard.locator("svg").first()).toHaveClass(/lucide-sparkles/);
   await expect(page.locator('[data-qa="coach-steps-studio"]')).toHaveText("11 pasos");
+  // ADMIN.FIXES.1 — Galería gained Texto alternativo.
+  await expect(page.locator('[data-qa="coach-steps-gallery"]')).toHaveText("4 pasos");
   await expect(page.locator('[data-qa="coach-steps-blogEditor"]')).toHaveText("6 pasos");
   await expect(page.locator('[data-qa="coach-replay-blogEditor"]').locator("svg").first()).toHaveClass(/lucide-pen-line/);
   await expect(page.locator('[data-qa="coach-steps-submissions"]')).toHaveText("1 paso");
