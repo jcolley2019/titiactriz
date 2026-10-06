@@ -768,6 +768,20 @@
       "updateFailed": "Error al actualizar",
       "failedFallback": "No se pudo actualizar"
     },
+    "siteTheme": {
+      "title": "Tema de las páginas de lectura",
+      "subtitle": "Blog, Eventos y Libro, con el encabezado y el pie de página. Las portadas y Green World no cambian.",
+      "dark": "Oscuro",
+      "light": "Claro",
+      "auto": "Automático",
+      "darkDesc": "El salón oscuro de siempre.",
+      "lightDesc": "Papel cálido, tinta carbón y dorado.",
+      "autoDesc": "Sigue el modo claro u oscuro del dispositivo de cada visitante.",
+      "updated": "Tema actualizado",
+      "updatedDesc": "Las páginas de lectura ya usan el tema {{theme}}.",
+      "updateFailed": "Error al actualizar",
+      "failedFallback": "No se pudo actualizar"
+    },
     "heroCopy": {
       "title": "Portada — textos",
       "subtitle": "Lo que se lee bajo tu nombre en la portada y en los resultados de búsqueda.",

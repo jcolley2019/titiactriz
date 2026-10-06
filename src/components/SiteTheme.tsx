@@ -1,12 +1,11 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import {
   SITE_THEME_DEFAULT,
   isSiteThemeRoute,
-  readCachedSiteTheme,
   resolveSiteTheme,
   usePrefersLight,
-  writeCachedSiteTheme,
+  useSiteThemePreference,
   type RoomTheme,
   type SiteTheme,
 } from "@/hooks/useSiteTheme";
@@ -24,18 +23,15 @@ const SiteThemeContext = createContext<SiteThemeState | null>(null);
 
 /**
  * SITE.THEME.1 — one owner for the site theme, mounted once in App, so the
- * header, the footer and the page under them can never disagree.
+ * header, the footer and the page under them can never disagree, and so the
+ * site_settings channel is opened exactly once.
  */
 export const SiteThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setThemeState] = useState<SiteTheme>(() => readCachedSiteTheme() ?? SITE_THEME_DEFAULT);
+  const { theme, adopt } = useSiteThemePreference();
   const prefersLight = usePrefersLight();
-  const setTheme = useCallback((next: SiteTheme) => {
-    writeCachedSiteTheme(next);
-    setThemeState(next);
-  }, []);
   const value = useMemo(
-    () => ({ theme, resolved: resolveSiteTheme(theme, prefersLight), setTheme }),
-    [theme, prefersLight, setTheme],
+    () => ({ theme, resolved: resolveSiteTheme(theme, prefersLight), setTheme: adopt }),
+    [theme, prefersLight, adopt],
   );
   return <SiteThemeContext.Provider value={value}>{children}</SiteThemeContext.Provider>;
 };

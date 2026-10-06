@@ -768,6 +768,20 @@
       "updateFailed": "Update failed",
       "failedFallback": "Failed to update"
     },
+    "siteTheme": {
+      "title": "Reading pages theme",
+      "subtitle": "Blog, Events and Book, with the header and footer. The home pages and Green World don't change.",
+      "dark": "Dark",
+      "light": "Light",
+      "auto": "Automatic",
+      "darkDesc": "The dark room, as always.",
+      "lightDesc": "Warm paper, charcoal ink and gold.",
+      "autoDesc": "Follows each visitor's device light or dark mode.",
+      "updated": "Theme updated",
+      "updatedDesc": "The reading pages now use the {{theme}} theme.",
+      "updateFailed": "Update failed",
+      "failedFallback": "Failed to update"
+    },
     "heroCopy": {
       "title": "Hero — copy",
       "subtitle": "What reads under your name on the home page and in search results.",
