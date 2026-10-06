@@ -218,6 +218,69 @@
     backdrop-filter: blur(24px);
     border-bottom: 1px solid hsl(var(--border) / 0.5);
   }
+
+  /**
+   * SITE.THEME.1 — the reading room's light set. The app's root wrapper carries
+   * `data-site-theme` only on /blog, /blog/<slug>, /events and /book (SiteFrame,
+   * src/components/SiteTheme.tsx), and only "light" is declared here: the dark
+   * set is :root, so the three homes, /green-world, /admin and every other page
+   * can never match. Default stays dark — site_settings `site_theme` decides.
+   *
+   * Paper is the Luxe paper (#faf6f0), ink a warm charcoal. Gold as text or
+   * line is #835f07 (Joey's ruling: #C9A55C is 2.16:1 on this paper and
+   * --gold-dark 2.90:1; this is 5.41:1, ADMIN.THEME.1's accent-ink), and its
+   * hairline and wash sit on the ladder's 0.55 and 0.1 steps, which read on
+   * paper about as the dark's 0.4 and 0.08 read on the ground. The lane is Deep
+   * Green (7.46:1). The shadcn tokens below dress the header and footer — and
+   * Radix portals opened over a light page — in the same palette.
+   */
+  [data-site-theme="light"],
+  body:has([data-site-theme="light"]) > :not(#root) {
+    color-scheme: light;
+    color: hsl(var(--foreground));
+
+    --room-ground: #faf6f0;
+    --room-light: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.12) 42%, rgba(255,255,255,0) 62%, rgba(61,43,31,0.06) 100%);
+    --room-ink: #1d1a16; /* 16.1:1 */
+    --room-ink-dim: #2e2a25; /* 13.2:1 */
+    --room-ink-faint: #5c554b; /* 6.8:1 */
+    --room-gold: #835f07; /* 5.41:1 */
+    --room-gold-rule: rgba(131,95,7,0.55);
+    --room-gold-air: rgba(131,95,7,0.1);
+    --room-lane: #0B5D2A;
+    --room-code: #efe7da;
+    --room-ground-events: #faf6f0;
+
+    --background: 36 50% 96.1%; /* #faf6f0 */
+    --foreground: 34.3 13.7% 10%; /* #1d1a16 */
+    --card: 36 42.9% 93.1%; /* #f5efe6 */
+    --card-foreground: 34.3 13.7% 10%;
+    --popover: 36 42.9% 93.1%;
+    --popover-foreground: 34.3 13.7% 10%;
+    --primary: 42.6 89.9% 27.1%; /* #835f07 */
+    --primary-foreground: 36 50% 96.1%;
+    --secondary: 38.4 43.9% 88.8%; /* #efe6d6 */
+    --secondary-foreground: 34.3 13.7% 10%;
+    --muted: 37.1 39.6% 89.6%; /* #efe7da */
+    --muted-foreground: 32.7 11.3% 19%; /* #36312b — 4.8:1 even at the footer's /70 */
+    --accent: 42.6 89.9% 27.1%;
+    --accent-foreground: 36 50% 96.1%;
+    --border: 39.1 33.3% 74.7%; /* #d4c5a9 */
+    --input: 39.1 33.3% 74.7%;
+    --ring: 42.6 89.9% 27.1%;
+    --gold: 42.6 89.9% 27.1%;
+    --gold-light: 42.6 89.9% 27.1%; /* hover and active read as text, so they take the ink gold */
+    --gold-dark: 42.6 89.9% 27.1%;
+    --highlight: 42.6 89.9% 27.1%;
+    --shadow-glow: 0 0 60px hsl(42.6 89.9% 27.1% / 0.12);
+  }
+
+  /* The page behind the wrapper: paper to the edges and under Safari's
+     overscroll, instead of the site's charcoal and its gold radial washes. */
+  body:has([data-site-theme="light"]) {
+    background-color: #faf6f0;
+    background-image: none;
+  }
 }
 
 @layer base {

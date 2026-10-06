@@ -6,6 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { setLanguage } from "@/i18n";
 import LanguageToggle from "./LanguageToggle";
+import { useRoomTheme } from "./SiteTheme";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
 import { TITANS_ENABLED, TITILINKS_URL } from "@/lib/ventures";
 import monogram from "@/assets/cp-monogram-transparent.png";
@@ -168,6 +169,11 @@ const Header = () => {
   // a fade, not a pop. Scoped to this route on purpose — the ordinary pages
   // keep their own scrolled fill.
   const isCinematicHome = location.pathname === "/" || location.pathname === "/cinematic";
+  // SITE.THEME.1 — on a reading page in the light theme the bar sits on paper.
+  // Its type already follows the room (ink is --room-ink-dim, gold the shadcn
+  // gold the light set retunes); this flag only swaps what CSS cannot reach:
+  // the monogram, the language trigger and the coming-soon panel's ground.
+  const lightRoom = useRoomTheme() === "light";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -245,7 +251,7 @@ const Header = () => {
         : "text-gw-green-dark hover:text-gw-green"
       : active
         ? "text-gold-light"
-        : "text-[#f0e9da] hover:text-gold-light";
+        : "text-[color:var(--room-ink-dim)] hover:text-gold-light";
 
   const renderLink = (link: NavLink) => {
     const active = location.pathname === link.path;
@@ -359,7 +365,9 @@ const Header = () => {
               className={`absolute left-0 top-full mt-3 min-w-[11rem] border transition-all duration-300 ${
                 isGreenWorldPage
                   ? "bg-white border-gw-green/20"
-                  : "bg-[#0b0a08]/95 backdrop-blur-xl border-[#C9A55C]/30"
+                  : lightRoom
+                    ? "bg-background/95 backdrop-blur-xl border-[color:var(--room-gold-rule)]"
+                    : "bg-[#0b0a08]/95 backdrop-blur-xl border-[#C9A55C]/30"
               } ${
                 soonOpen
                   ? "opacity-100 visible translate-y-0"
@@ -368,7 +376,7 @@ const Header = () => {
             >
               {soonItems.map((item) => {
                 const cls = `notranslate block px-4 py-3 text-xs uppercase tracking-[0.16em] transition-colors ${
-                  isGreenWorldPage ? "text-gw-green-dark" : "text-[#f0e9da]"
+                  isGreenWorldPage ? "text-gw-green-dark" : "text-[color:var(--room-ink-dim)]"
                 }`;
                 return (
                   <li key={item.name}>
@@ -402,7 +410,7 @@ const Header = () => {
         <div className="justify-self-center">
           <Link to="/" aria-label="Cristyna Polentino — Home" className="inline-flex">
             <img
-              src={isGreenWorldPage ? monogramTwoTone : monogram}
+              src={isGreenWorldPage || lightRoom ? monogramTwoTone : monogram}
               alt="Cristyna Polentino CP monogram"
               className="h-9 md:h-11 w-auto select-none"
               draggable={false}
@@ -416,7 +424,7 @@ const Header = () => {
           ))}
 
           <li>
-            <LanguageToggle variant={isGreenWorldPage ? "greenworld" : "light"} />
+            <LanguageToggle variant={isGreenWorldPage ? "greenworld" : lightRoom ? "default" : "light"} />
           </li>
         </ul>
       </nav>
@@ -434,7 +442,7 @@ const Header = () => {
           className="inline-flex min-h-11 shrink-0 items-center"
         >
           <img
-            src={isGreenWorldPage ? monogramTwoTone : monogram}
+            src={isGreenWorldPage || lightRoom ? monogramTwoTone : monogram}
             alt="Cristyna Polentino CP monogram"
             className="h-7 xs:h-8 w-auto select-none"
             draggable={false}
@@ -451,7 +459,7 @@ const Header = () => {
                   : "text-gw-green-dark hover:text-gw-green"
                 : active
                   ? "text-gold-light"
-                  : "text-[#f0e9da] hover:text-gold-light"
+                  : "text-[color:var(--room-ink-dim)] hover:text-gold-light"
             }`;
             return (
               <li key={link.path} className="min-w-0">

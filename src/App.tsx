@@ -11,6 +11,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import EventsBanner from "./components/events/EventsBanner";
+import { SiteFrame, SiteThemeProvider } from "./components/SiteTheme";
 
 const queryClient = new QueryClient();
 
@@ -22,15 +23,19 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <EventsBanner />
-            <ScrollToTopButton />
-            <main className="flex-1">
-              <AnimatedRoutes />
-            </main>
-            <Footer />
-          </div>
+          {/* SITE.THEME.1 — SiteFrame is the root wrapper; on a reading page it
+              carries data-site-theme, which the header and footer follow too. */}
+          <SiteThemeProvider>
+            <SiteFrame>
+              <Header />
+              <EventsBanner />
+              <ScrollToTopButton />
+              <main className="flex-1">
+                <AnimatedRoutes />
+              </main>
+              <Footer />
+            </SiteFrame>
+          </SiteThemeProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
