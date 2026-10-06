@@ -87,7 +87,7 @@ const post = (
 const ROWS = [
   post("g1", "te-verde-en-casa", "greenworld", "24", "Té verde en casa", {
     gw_kind: "producto",
-    gw_product_name: "Té verde",
+    gw_products: [{ name: "Té verde", url: "" }],
     cover_photo_id: "c2",
     cover: COVER,
   }),

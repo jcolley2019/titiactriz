@@ -45,9 +45,11 @@ import { YOUTUBE_INPUT_ENABLED } from "../src/lib/ventures";
  *   screenshot of the confirm state, light, 1440×900, in _qa/studio-history/
  *
  * BLOG.GW.2 — Tipo (Producto / Capacitación / Negocio) for a Green World press:
- *   K-S a Green World press sends gw_kind (and the product) on every call, the row stores the kind,
- *       Publicar's draft carries kind + product; a bad link holds Generate; another kind sends no
- *       product; a personal press sends no gw_* at all. Screenshots land in _qa/blog-gw-2/.
+ *   K-S a Green World press sends gw_kind and (ADMIN.FIXES.1) gw_products on every call, the row
+ *       stores both, Publicar's draft carries both (never the old gw_product_name/url); a bad link
+ *       holds Generate; Capacitación starts with none and sends none, then sends the one it mentions;
+ *       a personal press sends no gw_* at all. Screenshots land in _qa/blog-gw-2/.
+ *   K-S2 Reopen brings a Green World row's products back: Publicar inserts them.
  *
  * Screenshots (light and dark, 1440×900 and 820×1180) land in _qa/blog-2/.
  */
@@ -1087,8 +1089,12 @@ test.describe("BLOG.2 Content Studio", () => {
 
 test.describe("BLOG.GW.2 Tipo", () => {
   const PRODUCT_URL = "https://shop.example.com/te-verde";
+  const TWO = [
+    { name: "Té verde orgánico", url: PRODUCT_URL },
+    { name: "Batido de la mañana", url: "" },
+  ];
 
-  test("K-S a Green World press sends gw_kind on every call, the row stores it, and the draft carries it", async ({ page }) => {
+  test("K-S a Green World press sends gw_kind and gw_products on every call, the row stores them, and the draft carries them", async ({ page }) => {
     await page.addInitScript(() => localStorage.removeItem("admin.theme"));
     const mock = await setup(page);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -1096,12 +1102,19 @@ test.describe("BLOG.GW.2 Tipo", () => {
     const kindBtn = (k: string) => page.locator(`[data-qa="studio-kind-${k}"]`);
     const generate = page.locator('[data-qa="studio-generate"]');
     const usage = page.locator('[data-qa="studio-usage"]');
+    const products = page.locator('[data-qa="studio-products"]');
+    const groupLabel = products.locator("p").first();
+    const productRows = page.locator('[data-qa="studio-product-row"]');
+    const nameAt = (i: number) => page.locator('[data-qa="studio-product-name"]').nth(i);
+    const urlAt = (i: number) => page.locator('[data-qa="studio-product-url"]').nth(i);
+    const add = page.locator('[data-qa="studio-product-add"]');
 
-    // Personal: no Tipo, no product.
+    // Personal: no Tipo, no products.
     await expect(page.locator('[data-qa="studio-voice-personal"]')).toHaveAttribute("aria-checked", "true");
     await expect(page.locator('[data-qa="studio-kind"]')).toHaveCount(0);
+    await expect(products).toHaveCount(0);
 
-    // Green World: Tipo beside Voz (or under it in a narrow column), Producto by default, and the product fields.
+    // Green World: Tipo beside Voz (or under it in a narrow column), Producto by default, and "Productos" with one row.
     await page.locator('[data-qa="studio-voice-greenworld"]').click();
     await expect(page.locator('[data-qa="studio-kind"] .st-field-label')).toHaveText("Tipo");
     expect(await page.locator('[data-qa="studio-kind"] [role="radio"]').allTextContents()).toEqual([
@@ -1115,60 +1128,64 @@ test.describe("BLOG.GW.2 Tipo", () => {
     const language = (await page.locator('[data-coach="studio.language"]').boundingBox())!;
     expect(kindBox.y + kindBox.height).toBeLessThanOrEqual(language.y); // still above Idioma
     expect(kindBox.y >= voiceBox.y + voiceBox.height || Math.abs(kindBox.y - voiceBox.y) < 2).toBe(true);
-    await expect(page.locator('[data-qa="studio-product"]')).toBeVisible();
+    await expect(groupLabel).toHaveText("Productos");
+    await expect(productRows).toHaveCount(1);
+    const productsBox = (await products.boundingBox())!;
+    expect(productsBox.y + productsBox.height).toBeLessThanOrEqual(language.y); // the rows sit above Idioma too
 
-    // A link that is not http(s) holds Generate and says why.
+    // A link that is not http(s) holds Generate and says why, under its row.
     await page.locator('[data-qa="studio-brain-dump"]').fill("Les cuento cómo tomo mi té verde por la tarde.");
     await choose(page, ["blog", "social"], ["tiktok"]);
-    await page.locator('[data-qa="studio-product-name"]').fill("Té verde orgánico");
-    await page.locator('[data-qa="studio-product-url"]').fill("ftp://tienda.example.com/te");
+    await nameAt(0).fill("Té verde orgánico");
+    await urlAt(0).fill("ftp://tienda.example.com/te");
     await expect(page.locator('[data-qa="studio-product-url-error"]')).toHaveText(
       "El enlace debe empezar por http:// o https://",
     );
+    await expect(urlAt(0)).toHaveAttribute("aria-invalid", "true");
     await expect(generate).toBeDisabled();
-    await page.locator('[data-qa="studio-product-url"]').fill(PRODUCT_URL);
+    await urlAt(0).fill(PRODUCT_URL);
     await expect(page.locator('[data-qa="studio-product-url-error"]')).toHaveCount(0);
     await expect(generate).toBeEnabled();
+    // A second product, with no link of its own (the shop's).
+    await add.click();
+    await nameAt(1).fill("Batido de la mañana");
+    await expect(productRows).toHaveCount(2);
     await page.mouse.move(0, 0);
     await page.screenshot({ path: "_qa/blog-gw-2/studio-tipo-producto-1440x900.png", fullPage: true });
 
-    // Every call of the press names the kind and the product; the row keeps the kind.
+    // Every call of the press names the kind and both products; the row keeps both.
     await generate.click();
     await expect(usage).toBeVisible();
     expect(mock.genCalls).toHaveLength(2); // the blog, then the TikTok derivative
     for (const call of mock.genCalls) {
-      expect(call).toMatchObject({
-        voice: "greenworld",
-        gw_kind: "producto",
-        gw_product_name: "Té verde orgánico",
-        gw_product_url: PRODUCT_URL,
-      });
+      expect(call).toMatchObject({ voice: "greenworld", gw_kind: "producto", gw_products: TWO });
+      expect(call).not.toHaveProperty("gw_product_name");
+      expect(call).not.toHaveProperty("gw_product_url");
     }
     expect(inserts(mock, "studio_generations")).toEqual([
-      expect.objectContaining({ voice: "greenworld", gw_kind: "producto" }),
+      expect.objectContaining({ voice: "greenworld", gw_kind: "producto", gw_products: TWO }),
     ]);
 
-    // Publicar: the draft carries the kind and the product, and the editor opens on them.
+    // Publicar: the draft carries the kind and the products, and the editor opens on them.
     await page.locator('[data-qa="studio-publish"]').click();
     await expect(page.locator('[data-qa="admin-nav-blog"]')).toHaveAttribute("aria-current", "page");
     const [post] = inserts(mock, "blog_posts");
-    expect(post).toMatchObject({
-      category: "greenworld",
-      gw_kind: "producto",
-      gw_product_name: "Té verde orgánico",
-      gw_product_url: PRODUCT_URL,
-      status: "draft",
-    });
+    expect(post).toMatchObject({ category: "greenworld", gw_kind: "producto", gw_products: TWO, status: "draft" });
+    expect(post).not.toHaveProperty("gw_product_name");
+    expect(post).not.toHaveProperty("gw_product_url");
     await expect(page.locator('[data-qa="blog-kind-producto"]')).toHaveAttribute("aria-checked", "true");
-    await expect(page.locator('[data-qa="blog-product-name"]')).toHaveValue("Té verde orgánico");
-    await expect(page.locator('[data-qa="blog-product-url"]')).toHaveValue(PRODUCT_URL);
+    await expect(page.locator('[data-qa="blog-product-name"]').nth(0)).toHaveValue("Té verde orgánico");
+    await expect(page.locator('[data-qa="blog-product-url"]').nth(0)).toHaveValue(PRODUCT_URL);
+    await expect(page.locator('[data-qa="blog-product-name"]').nth(1)).toHaveValue("Batido de la mañana");
+    await expect(page.locator('[data-qa="blog-product-url"]').nth(1)).toHaveValue("");
 
-    // Capacitación: the kind on every call, no product (the fields are gone).
+    // Capacitación: "Productos mencionados", none on a fresh mount — and a press with none sends none.
     await page.locator('[data-qa="admin-nav-studio"]').click();
     await expect(page.locator('[data-qa="studio"]')).toBeVisible();
     await expect(kindBtn("producto")).toHaveAttribute("aria-checked", "true"); // Producto again on a fresh mount
     await kindBtn("capacitacion").click();
-    await expect(page.locator('[data-qa="studio-product"]')).toHaveCount(0);
+    await expect(groupLabel).toHaveText("Productos mencionados");
+    await expect(productRows).toHaveCount(0);
     await page.locator('[data-qa="studio-brain-dump"]').fill("Así hago un pedido paso a paso.");
     await choose(page, ["social"], ["tiktok", "instagram"]);
     mock.genCalls.length = 0;
@@ -1178,28 +1195,73 @@ test.describe("BLOG.GW.2 Tipo", () => {
     expect(mock.genCalls).toHaveLength(2);
     for (const call of mock.genCalls) {
       expect(call).toMatchObject({ voice: "greenworld", gw_kind: "capacitacion" });
-      expect(call).not.toHaveProperty("gw_product_name");
-      expect(call).not.toHaveProperty("gw_product_url");
+      expect(call).not.toHaveProperty("gw_products");
     }
-    expect(inserts(mock, "studio_generations").map((r) => r.gw_kind)).toEqual(["producto", "capacitacion"]);
+    // …then the one product it mentions rides on every call.
+    await add.click();
+    await nameAt(0).fill("Té verde orgánico");
+    await urlAt(0).fill(PRODUCT_URL);
+    mock.genCalls.length = 0;
+    await generate.click();
+    await expect(usage).toBeVisible();
+    await expect.poll(() => mock.genCalls.length).toBe(2);
+    for (const call of mock.genCalls) {
+      expect(call).toMatchObject({ gw_kind: "capacitacion", gw_products: [{ name: "Té verde orgánico", url: PRODUCT_URL }] });
+    }
+    await expect
+      .poll(() => inserts(mock, "studio_generations").map((r) => r.gw_kind))
+      .toEqual(["producto", "capacitacion", "capacitacion"]);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator('[data-qa="studio-kind"]').scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
     await page.screenshot({ path: "_qa/blog-gw-2/studio-tipo-capacitacion-390x844.png" });
     await page.setViewportSize({ width: 1440, height: 900 });
 
-    // A personal press sends no gw_* at all, and its row has no kind.
+    // A personal press sends no gw_* at all, and its row has no kind and no products.
     await page.locator('[data-qa="studio-voice-personal"]').click();
     await expect(page.locator('[data-qa="studio-kind"]')).toHaveCount(0);
+    await expect(products).toHaveCount(0);
     mock.genCalls.length = 0;
     await generate.click();
     await expect(page.locator('[data-qa^="studio-tab-"]')).toHaveCount(2);
     await expect(usage).toBeVisible();
-    expect(mock.genCalls).toHaveLength(2);
+    await expect.poll(() => mock.genCalls.length).toBe(2);
     for (const call of mock.genCalls) {
       expect(call).toHaveProperty("voice", "personal");
       expect(Object.keys(call).filter((k) => k.startsWith("gw_"))).toEqual([]);
     }
-    expect(inserts(mock, "studio_generations")[2]).toMatchObject({ voice: "personal", gw_kind: null });
+    await expect.poll(() => inserts(mock, "studio_generations").length).toBe(4);
+    expect(inserts(mock, "studio_generations")[3]).toMatchObject({ voice: "personal", gw_kind: null, gw_products: [] });
+  });
+
+  test("K-S2 Reopen brings a Green World row's products back: Publicar inserts them", async ({ page }) => {
+    const mock = await setup(page, {
+      generations: [
+        {
+          id: "old-1",
+          created_at: "2026-10-05T15:00:00Z",
+          input_kind: "brain_dump",
+          input_text: "Mi té de la tarde",
+          source_url: null,
+          language: "es",
+          voice: "greenworld",
+          gw_kind: "producto",
+          gw_products: TWO,
+          formats: ["blog"],
+          platforms: [],
+          outputs: { blog: ARTICLE },
+          usage: null,
+          blog_post_id: null,
+        },
+      ],
+    });
+    await openStudio(page);
+    // The pick on screen is Personal: what Publicar uses is the row's.
+    await expect(page.locator('[data-qa="studio-voice-personal"]')).toHaveAttribute("aria-checked", "true");
+    await page.locator('[data-qa="studio-history-item"] button').first().click();
+    await page.locator('[data-qa="studio-history-reopen"]').click();
+    await page.locator('[data-qa="studio-publish"]').click();
+    await expect(page.locator('[data-qa="admin-nav-blog"]')).toHaveAttribute("aria-current", "page");
+    expect(inserts(mock, "blog_posts")[0]).toMatchObject({ category: "greenworld", gw_kind: "producto", gw_products: TWO });
   });
 });
