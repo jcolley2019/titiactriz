@@ -15,9 +15,9 @@
       "verifiedInSync": "2026-07-31 — deployed source downloaded and diffed content-identical against repo (CRLF-only difference)"
     },
     "unfurl": {
-      "ezbr_sha256": "37b359b9cbc99df985f6edf6032a0efff8f227002ec476e31bb820a6f18ff1bb",
-      "version": 1,
-      "verifiedInSync": "2026-08-03 — first deploy (UNFURL.DEPLOY.1), supervised by Joey; sha read from `npx supabase functions list` immediately after `supabase functions deploy unfurl`. Live verify_jwt=true, i.e. the UNFURL-JWT invariant holds on the deployed function, not just in config.toml."
+      "ezbr_sha256": "6a502d771548ad5c246a7e1ceb53a23330385ea4f5ba26d2c53af0dd8f005290",
+      "version": 2,
+      "verifiedInSync": "2026-10-05 — MAINT.LEFTOVERS.1 redeploy (v2, platform version 4): the USER_AGENT's +URL names https://www.titiactriz.com (the canonical host since SEO.HOST.1) instead of the apex; nothing else in index.ts changed. Deployed with `supabase functions deploy unfurl --use-api`; sha read from `npx supabase functions list` immediately after, ledgered in the SAME commit. Live verify_jwt=true, so the UNFURL-JWT invariant still holds on the deployed function. Previous v1 sha 37b359b9cbc99df985f6edf6032a0efff8f227002ec476e31bb820a6f18ff1bb (UNFURL.DEPLOY.1, 2026-08-03)."
     },
     "translate-text": {
       "ezbr_sha256": "cf551a9950c0dc10c6b531c3227afc737b6a5261d28ae500835dab0f94486d1f",

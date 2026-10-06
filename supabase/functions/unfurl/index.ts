@@ -44,7 +44,7 @@ const MAX_BYTES = 1.5 * 1024 * 1024; // ~1.5MB hard cap on streamed body
 const HEAD_PARSE_LIMIT = 512 * 1024; // only scan the first ~512KB for <head>
 const MAX_REDIRECTS = 5;
 const USER_AGENT =
-  "Mozilla/5.0 (compatible; TitiActrizUnfurl/1.0; +https://titiactriz.com)";
+  "Mozilla/5.0 (compatible; TitiActrizUnfurl/1.0; +https://www.titiactriz.com)";
 
 interface UnfurlResult {
   title: string | null;
