@@ -235,6 +235,15 @@
    * paper about as the dark's 0.4 and 0.08 read on the ground. The lane is Deep
    * Green (7.46:1). The shadcn tokens below dress the header and footer — and
    * Radix portals opened over a light page — in the same palette.
+   *
+   * SITE.THEME.2 — the classic home paints from nothing but those shadcn
+   * tokens (Index.tsx, Section, Cards, Gallery), so this block is its light
+   * set too: ADMIN.THEME.1's paper values for --background, --card, --popover,
+   * --secondary, --muted, --border and --input, THEME.1's ink, and the gold
+   * family on #835f07, whose bg-gold/10 wash and border-gold/60 line land on
+   * the room's own air and rule (1.15:1 and 2.49:1 on the paper). One block,
+   * so `/` and /blog are the same room and a walk between them never changes
+   * its ink.
    */
   [data-site-theme="light"],
   body:has([data-site-theme="light"]) > :not(#root) {
@@ -282,6 +291,27 @@
   body:has([data-site-theme="light"]) {
     background-color: #faf6f0;
     background-image: none;
+  }
+
+  /* SITE.THEME.2 — CosmicBackground (the classic and editorial homes) on
+     paper. Its stars, constellations, eye and orbs already draw in --gold and
+     --gold-light, which this set retunes to #835f07; the constellation line's
+     one literal tan follows them, so nothing pale is left on the paper; and
+     the whole layer drops to half its alpha, because ink-gold dust on paper
+     reads far heavier than the dark's pale dust on charcoal. */
+  [data-site-theme="light"] [data-cosmic] {
+    opacity: 0.5;
+  }
+
+  [data-site-theme="light"] [data-cosmic] .cosmic-line {
+    stop-color: hsl(var(--gold));
+  }
+
+  /* SITE.THEME.2 — a plate keeps its own ground in both rooms: a LinkCard's
+     dark image well (Cards.tsx, the Featured marks) stays the charcoal it is
+     on the dark, opaque, because its 80% would let the paper lift it to grey. */
+  [data-site-theme="light"] [data-plate] {
+    background-color: hsl(var(--charcoal));
   }
 }
 

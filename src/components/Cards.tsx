@@ -75,13 +75,19 @@ const LinkCard = ({
       )}
     >
       {image && (
-        <div className={cn(
-          "aspect-[4/3] overflow-hidden flex items-center justify-center relative",
-          imageBackground === "white" && "bg-white",
-          imageBackground === "dark" && "bg-background/80 border-b border-accent/30",
-          imageBackground === "transparent" && "bg-background/50",
-          imageFit === "contain" && "p-8"
-        )}>
+        // SITE.THEME.2 — a "dark" well is a plate, and a plate keeps its own
+        // ground in both rooms (DESIGN.md): `data-plate` is how the light set
+        // (index.css) keeps it the dark the mark was set on.
+        <div
+          data-plate={imageBackground === "dark" ? "" : undefined}
+          className={cn(
+            "aspect-[4/3] overflow-hidden flex items-center justify-center relative",
+            imageBackground === "white" && "bg-white",
+            imageBackground === "dark" && "bg-background/80 border-b border-accent/30",
+            imageBackground === "transparent" && "bg-background/50",
+            imageFit === "contain" && "p-8"
+          )}
+        >
 
           {/* Default image */}
           <img

@@ -32,7 +32,9 @@ const CosmicBackground = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    // SITE.THEME.2 — `data-cosmic` is the light room's hook in index.css: on
+    // paper the layer draws in the retuned gold, at a lower alpha.
+    <div data-cosmic className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/50" />
       
@@ -59,7 +61,7 @@ const CosmicBackground = () => {
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="transparent" />
-            <stop offset="50%" stopColor="hsl(35 40% 65%)" />
+            <stop offset="50%" stopColor="hsl(35 40% 65%)" className="cosmic-line" />
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
         </defs>
