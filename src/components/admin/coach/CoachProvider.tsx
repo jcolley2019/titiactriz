@@ -20,6 +20,9 @@ import { TOURS, TOUR_IDS, tourSection } from "./tours";
  *
  * A section can hold the coach (`useCoachHold`): while held, no tour starts,
  * automatic or asked for — the Studio holds it while a generation runs.
+ *
+ * ADMIN.FIXES.1 — `active` says a tip is on screen (its dim covers the page),
+ * so the Galería's live-preview pulse can wait for it to close.
  */
 
 type CoachApi = {
@@ -30,6 +33,7 @@ type CoachApi = {
   seen: (tourId: string) => boolean;
   resetAll: () => void;
   hold: () => () => void;
+  active: boolean;
 };
 
 const CoachContext = createContext<CoachApi>({
@@ -40,6 +44,7 @@ const CoachContext = createContext<CoachApi>({
   seen: () => false,
   resetAll: () => {},
   hold: () => () => {},
+  active: false,
 });
 
 export const useCoach = () => useContext(CoachContext);
@@ -177,9 +182,10 @@ export const CoachProvider = ({ userId, section, goTo, children }: Props) => {
     if (running && tourSection(running.id) !== section) setRunning(null);
   }, [running, section]);
 
+  const active = !!running;
   const api = useMemo<CoachApi>(
-    () => ({ start, skip: close, next, back, seen, resetAll, hold }),
-    [start, close, next, back, seen, resetAll, hold],
+    () => ({ start, skip: close, next, back, seen, resetAll, hold, active }),
+    [start, close, next, back, seen, resetAll, hold, active],
   );
 
   return (

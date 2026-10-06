@@ -1485,9 +1485,7 @@
       "count_other": "· {{count}} photos",
       "empty": "No published photos to preview.",
       "expand": "Expand",
-      "collapse": "Collapse",
-      "expandAria": "Expand preview",
-      "collapseAria": "Collapse preview"
+      "collapse": "Collapse"
     },
     "stream": {
       "uploading": "Uploading video… {{pct}}%",

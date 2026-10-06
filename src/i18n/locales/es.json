@@ -1485,9 +1485,7 @@
       "count_other": "· {{count}} fotos",
       "empty": "No hay fotos publicadas para previsualizar.",
       "expand": "Expandir",
-      "collapse": "Colapsar",
-      "expandAria": "Expandir vista previa",
-      "collapseAria": "Colapsar vista previa"
+      "collapse": "Colapsar"
     },
     "stream": {
       "uploading": "Subiendo video… {{pct}}%",

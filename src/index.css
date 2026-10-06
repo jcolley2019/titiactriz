@@ -706,6 +706,14 @@
     to { transform: translate3d(-50%, 0, 0); }
   }
 
+  /* ADMIN.FIXES.1 — the Galería live-preview bar's one-time pulse: a soft gold
+     wash breathes in under its hairline and out again. LivePreviewDock runs it
+     twice, then the bar stays still. */
+  @keyframes live-preview-pulse {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
   /* GALLERY.TOUCH.1 — lightbox plate entrances. A subtle slide in the swipe
      direction; the reduced-motion branch uses the plain crossfade instead. */
   @keyframes lightbox-fade-in {
