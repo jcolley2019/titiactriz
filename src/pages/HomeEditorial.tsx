@@ -14,6 +14,8 @@ import CosmicBackground from "@/components/CosmicBackground";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
 import ParallaxImage from "@/components/ParallaxImage";
 import Gallery from "@/components/Gallery";
+import { useRoomTheme } from "@/components/SiteTheme";
+import { GOLD, IVORY_DIM } from "@/components/blog/tokens";
 
 import aboutImage from "@/assets/cristyna-meet.webp";
 import titansLogo from "@/assets/titans-logo.webp";
@@ -21,6 +23,7 @@ import titansLogoRed from "@/assets/titans-logo-red.webp";
 import { TITANS_ENABLED } from "@/lib/ventures";
 import greenworldLogo from "@/assets/greenworld-logo-hd.webp";
 import cpMonogram from "@/assets/cp-monogram-transparent.png";
+import cpMonogramTwoTone from "@/assets/cp-monogram-twotone.png";
 import cornerOrn from "@/assets/cp-corner-ornament-v2.png";
 
 
@@ -44,13 +47,20 @@ const editorialFontVars: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
 };
 
-const GOLD = "#C9A55C";
-const CREAM = "#ffffff";
+// SITE.THEME.2 — the room's variables (index.css), the Events.tsx way, so the
+// editorial home follows the site theme. Dark: the filament (GOLD is tokens.ts's
+// var(--room-gold)), pure white type and the Adjacent Ground #0e0c09, exactly as
+// before. Light: #835f07, the room's ink and the paper.
+const CREAM = "var(--room-ink-editorial)";
+const GROUND = "var(--room-ground-editorial)";
 
 const HomeEditorial = () => {
   const { t } = useTranslation();
   // HERO.EDIT.1 — the same resolved copy the cinematic and classic heroes read.
   const copy = useHeroCopy();
+  // SITE.THEME.2 — on paper the monogram is the brand's two-tone mark (charcoal
+  // C, gold P), as the header's is: the white C would vanish into the paper.
+  const lightRoom = useRoomTheme() === "light";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
@@ -183,7 +193,7 @@ const HomeEditorial = () => {
           (introStarted ? "editorial-intro " : "") +
           (framePlay ? "editorial-hero-play" : "")
         }
-        style={{ backgroundColor: "#0e0c09" }}
+        style={{ backgroundColor: GROUND }}
       >
         {/* Contained, centered hero box */}
         <div className="relative mx-auto w-full max-w-6xl flex flex-col justify-center min-h-[calc(100svh-122px)] md:min-h-0 px-5 pt-4 pb-5 md:p-14 min-[2200px]:max-w-[1500px] min-[2800px]:max-w-[1850px] min-[3400px]:max-w-[2200px] min-[2200px]:p-20 min-[3400px]:p-28">
@@ -275,7 +285,7 @@ const HomeEditorial = () => {
                       width="10"
                       height="10"
                       transform="rotate(45 8 8)"
-                      fill={GOLD}
+                      style={{ fill: GOLD }}
                     />
                   </svg>
                   <span className="editorial-divider-half editorial-divider-right flex-1" />
@@ -309,7 +319,7 @@ const HomeEditorial = () => {
                 <p
                   className="leading-relaxed hidden sm:block"
                   style={{
-                    color: "rgba(240, 233, 218, 0.72)",
+                    color: `color-mix(in srgb, ${IVORY_DIM} 72%, transparent)`,
                     fontFamily: "var(--font-sans)",
                     fontWeight: 300,
                     fontSize: "clamp(0.8rem, 1.4vw, 0.95rem)",
@@ -327,7 +337,7 @@ const HomeEditorial = () => {
                   className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                 >
                   <img
-                    src={cpMonogram}
+                    src={lightRoom ? cpMonogramTwoTone : cpMonogram}
                     alt="CP monogram"
                     draggable={false}
                     className="editorial-monogram block h-auto w-[90px] md:w-[120px] select-none"

@@ -116,6 +116,11 @@
     --room-code: #12100c;
     /* /events stands on the Adjacent Ground, one step up from the room's. */
     --room-ground-events: #0e0c09;
+    /* SITE.THEME.2 — the editorial home's hero (HomeEditorial.tsx): the
+       Adjacent Ground too, and its type in pure white, both exactly as they
+       always were. */
+    --room-ground-editorial: #0e0c09;
+    --room-ink-editorial: #ffffff;
   }
 
   .dark {
@@ -261,6 +266,9 @@
     --room-lane: #0B5D2A;
     --room-code: #efe7da;
     --room-ground-events: #faf6f0;
+    --room-ground-editorial: #faf6f0;
+    /* On paper the editorial's white type is the room's ink. */
+    --room-ink-editorial: var(--room-ink);
 
     --background: 36 50% 96.1%; /* #faf6f0 */
     --foreground: 34.3 13.7% 10%; /* #1d1a16 */
@@ -848,7 +856,8 @@
 @keyframes editorial-corner-fade { from { opacity:0;} to { opacity:1;} }
 
 .editorial-title, .editorial-roles, .editorial-subtitle, .editorial-cta { opacity:0; }
-.editorial-divider-half { display:block; height:1px; background:#C9A55C; transform:scaleX(0); }
+/* SITE.THEME.2 — the room's gold: #C9A55C on the dark, #835f07 on paper. */
+.editorial-divider-half { display:block; height:1px; background:var(--room-gold); transform:scaleX(0); }
 .editorial-divider-left  { transform-origin:right center; }
 .editorial-divider-right { transform-origin:left center; }
 .editorial-divider-diamond, .editorial-monogram { opacity:0; }
