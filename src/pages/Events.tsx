@@ -5,10 +5,13 @@ import { ArrowLeft } from "lucide-react";
 import SEO from "@/components/SEO";
 import EventsGrid from "@/components/events/EventsGrid";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
+import { GOLD, IVORY_DIM } from "@/components/blog/tokens";
 
-const CREAM = "#f0e9da";
-const DARK = "#0e0c09";
-const GOLD = "#C9A55C";
+// SITE.THEME.1 — the room's variables (index.css), so the page follows the
+// site theme. Dark: #f0e9da, the Adjacent Ground #0e0c09 and the filament,
+// exactly as before. The event cards are framed plates and keep their own dark.
+const CREAM = IVORY_DIM;
+const DARK = "var(--room-ground-events)";
 
 const editorialFontVars: React.CSSProperties = {
   ["--font-display" as never]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",
@@ -272,7 +275,7 @@ const Events = () => {
         <p
           data-qa="events-intro"
           className="hidden md:block text-sm md:text-base"
-          style={{ color: `${CREAM}cc`, fontFamily: "var(--font-sans)" }}
+          style={{ color: `color-mix(in srgb, ${CREAM} 80%, transparent)`, fontFamily: "var(--font-sans)" }}
         >
           {t("events.intro")}
         </p>
@@ -321,11 +324,11 @@ const Events = () => {
           style={
             armed
               ? ({
-                  color: `${CREAM}80`,
+                  color: "var(--room-ink-faint)",
                   fontFamily: "var(--font-sans)",
                   ["--events-snap-top" as never]: `${snapTop}px`,
                 } as React.CSSProperties)
-              : { color: `${CREAM}80`, fontFamily: "var(--font-sans)" }
+              : { color: "var(--room-ink-faint)", fontFamily: "var(--font-sans)" }
           }
         >
           {t("events.more")}

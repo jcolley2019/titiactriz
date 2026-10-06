@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import SEO from "@/components/SEO";
+import { GOLD, IVORY } from "@/components/blog/tokens";
 
 /**
  * BOOK.0 — the placeholder that holds the URL.
@@ -16,9 +17,9 @@ import SEO from "@/components/SEO";
  * work now; a `Book` entity joins it the day there is a title and an ISBN.
  */
 
-const GROUND = "#0b0a08";
-const IVORY = "#f4ecdb";
-const GOLD = "#C9A55C";
+// SITE.THEME.1 — the room's variables (index.css): the bare ground (no luminance
+// gradient here), ivory and the filament on the dark, exactly as before.
+const GROUND = "var(--room-ground)";
 
 const fontVars: React.CSSProperties = {
   ["--font-display" as never]: "'Cinzel', 'Cormorant Garamond', Georgia, serif",
@@ -86,7 +87,7 @@ const Book = () => {
       <p
         data-qa="book-body"
         className="mt-8 max-w-md text-sm leading-relaxed md:text-base"
-        style={{ color: `${IVORY}b3` }}
+        style={{ color: `color-mix(in srgb, ${IVORY} 70.2%, transparent)` }}
       >
         {t("book.body")}
       </p>

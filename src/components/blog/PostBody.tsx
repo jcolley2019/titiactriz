@@ -1,7 +1,7 @@
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Link } from "react-router-dom";
-import { BODY_TEXT, GOLD, GOLD_RULE, IVORY } from "./tokens";
+import { BODY_TEXT, CODE_GROUND, GOLD, GOLD_RULE, IVORY } from "./tokens";
 
 /**
  * BLOG.1 — a post's markdown in the site's grammar. react-markdown + remark-gfm,
@@ -63,12 +63,12 @@ const components: Components = {
       </a>
     ),
   ul: ({ children }) => (
-    <ul className="my-5 list-disc space-y-2 pl-5 marker:text-[#C9A55C]" style={BODY}>
+    <ul className="my-5 list-disc space-y-2 pl-5 marker:text-[color:var(--room-gold)]" style={BODY}>
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="my-5 list-decimal space-y-2 pl-5 marker:text-[#C9A55C]" style={BODY}>
+    <ol className="my-5 list-decimal space-y-2 pl-5 marker:text-[color:var(--room-gold)]" style={BODY}>
       {children}
     </ol>
   ),
@@ -83,7 +83,7 @@ const components: Components = {
     <img src={src} alt={alt ?? ""} loading="lazy" decoding="async" className="my-8 block h-auto max-w-full" />
   ),
   code: ({ children }) => (
-    <code className="px-1 font-mono" style={{ fontSize: "0.75rem", backgroundColor: "#12100c", color: IVORY }}>
+    <code className="px-1 font-mono" style={{ fontSize: "0.75rem", backgroundColor: CODE_GROUND, color: IVORY }}>
       {children}
     </code>
   ),

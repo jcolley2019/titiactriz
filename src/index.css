@@ -93,6 +93,29 @@
     --sidebar-accent-foreground: 45 30% 96%;
     --sidebar-border: 0 0% 18%;
     --sidebar-ring: 35 40% 65%;
+
+    /* SITE.THEME.1 — the reading room: /blog, /blog/<slug>, /events and /book
+       paint from these (src/components/blog/tokens.ts, Events.tsx, Book.tsx).
+       This is the dark set, today's values exactly: FIELD_GROUND and
+       FIELD_LIGHT (cinematic/FramedVideo.tsx), the ivory pair, the filament
+       and the gold ladder's structure (0.4) and atmosphere (0.08) bands. The
+       light set is [data-site-theme="light"] below; DESIGN.md › Colors ›
+       The reading room records both. */
+    --room-ground: #0b0a08;
+    --room-light: linear-gradient(180deg, rgba(244,236,219,0.05) 0%, rgba(244,236,219,0.015) 42%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.24) 100%);
+    --room-ink: #f4ecdb;
+    --room-ink-dim: #f0e9da;
+    /* The /events closing line: ink-dim at the 0x80 alpha it has always worn. */
+    --room-ink-faint: rgba(240,233,218,0.502);
+    --room-gold: #C9A55C;
+    --room-gold-rule: rgba(201,165,92,0.4);
+    --room-gold-air: rgba(201,165,92,0.08);
+    /* BLOG.GW.1's lane green — the logo green on the dark. */
+    --room-lane: hsl(var(--gw-lane));
+    /* An inline `code` chip in a post: the Field-Input Ground. */
+    --room-code: #12100c;
+    /* /events stands on the Adjacent Ground, one step up from the room's. */
+    --room-ground-events: #0e0c09;
   }
 
   .dark {
