@@ -149,8 +149,10 @@ const Index = () => {
 
       <CosmicBackground />
 
-      {/* Hero Section - Side-by-Side Split */}
-      <section className="min-h-[110vh] relative flex items-center overflow-hidden">
+      {/* Hero Section - Side-by-Side Split. SITE.THEME.2 — `home-classic` is
+          the classic home's spec hook: the editorial and cinematic homes carry
+          theirs on their roots, and this one's root is a fragment. */}
+      <section data-qa="home-classic" className="min-h-[110vh] relative flex items-center overflow-hidden">
         {/* Subtle background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20 z-0" />
         

@@ -13,6 +13,8 @@ const OPTIONS: SiteTheme[] = ["dark", "light", "auto"];
  * `site_theme` and, at once, this browser's cache through the site theme's own
  * `setTheme`, so the next page Titi opens already wears it — no reload, no
  * wait on the realtime echo. Visitors follow on their next fetch or live.
+ * SITE.THEME.2 — it reaches the editorial and classic homes too, never the
+ * cinematic one, and the copy says so.
  */
 const SiteThemeToggle = () => {
   const { t } = useTranslation();
@@ -57,6 +59,10 @@ const SiteThemeToggle = () => {
             {t("admin.siteTheme.title")}
           </h2>
           <p className="text-xs text-muted-foreground">{t("admin.siteTheme.subtitle")}</p>
+          {/* SITE.THEME.2 — the setting reaches two of the three homes. */}
+          <p data-qa="site-theme-homes" className="text-xs text-muted-foreground">
+            {t("admin.siteTheme.homes")}
+          </p>
         </div>
         {saving && <Loader2 className="w-4 h-4 animate-spin text-accent-ink shrink-0" aria-hidden />}
       </div>

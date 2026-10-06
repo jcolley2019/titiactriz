@@ -329,11 +329,13 @@ beside the home variant) picks the set; `auto` follows the reader's
 `prefers-color-scheme`, live. **Default dark** — the room exactly as it was.
 
 **Scope.** App's root wrapper (`SiteFrame`) carries `data-site-theme` on those
-four routes only, so the header and the footer change with the page under them
-and with nothing else. The three homes stay dark (this document), `/green-world`
-keeps its own bright grammar, `/admin` has ADMIN.THEME.1. Framed plates keep
-their own ground in both sets: a cover (`CoverPlate`), a framed image, an event
-card (`#13110d` inside its gold frame) are dark pictures hung on either wall.
+four routes — and, since SITE.THEME.2, on `/` while it shows the editorial or
+classic home — so the header and the footer change with the page under them and
+with nothing else. **site_theme: reading pages + editorial and classic homes;
+the cinematic home is dark-only.** `/green-world` keeps its own bright grammar,
+`/admin` has ADMIN.THEME.1. Framed plates keep their own ground in both sets: a
+cover (`CoverPlate`), a framed image, an event card (`#13110d` inside its gold
+frame) are dark pictures hung on either wall.
 
 | Variable | Dark (`:root`) | Light (`[data-site-theme="light"]`) |
 | --- | --- | --- |
@@ -348,6 +350,8 @@ card (`#13110d` inside its gold frame) are dark pictures hung on either wall.
 | `--room-lane` | `hsl(var(--gw-lane))` (`#12A03B`) | `#0B5D2A` Deep Green (`7.46:1`) |
 | `--room-code` | `#12100c` | `#efe7da` |
 | `--room-ground-events` | `#0e0c09` (Adjacent Ground) | `#faf6f0` |
+| `--room-ground-editorial` | `#0e0c09` (Adjacent Ground) | `#faf6f0` — the editorial home's hero |
+| `--room-ink-editorial` | `#ffffff` — the editorial hero's white type | `var(--room-ink)` |
 
 Ratios are against the paper; at the foot of its gradient the gold is still `4.86:1`. The light set also retunes the shadcn tokens
 (`--background` paper, `--foreground` ink, `--accent`/`--gold-light` `#835f07`,
@@ -364,6 +368,30 @@ accent-ink). Its hairline and wash sit on existing ladder steps, `0.55` and
 `0.1`, because on paper they read about as the dark's `0.4` and `0.08` read on
 the ground (`2.29:1` and `1.14:1` against `2.23:1` and `1.10:1`). The One
 Filament Rule holds in both rooms: one gold, as line and letter.
+
+**The editorial and classic homes (SITE.THEME.2, 2026-10-06).** `/` is in the
+room while the variant Home renders is editorial or classic — read from the one
+value Home publishes (`useShownHomeVariant`), so a live swap to cinematic leaves
+the room in the render the cinematic home arrives in, and no second realtime
+channel is opened. The cinematic home is dark-only, whatever the setting says.
+- **Classic** paints from nothing but the shadcn tokens, so the light block
+  above is its light set: one block, so `/` and /blog are the same room and a
+  walk between them never changes the ink. Its gold CTA is `#835f07` letters on
+  their own `bg-gold/10` wash (`4.73:1`); the wash and the `border-gold/60`
+  line land on the room's air and rule.
+- **Editorial** reads the room's variables the Events.tsx way: its gold is
+  `--room-gold`, its hero ground `--room-ground-editorial`, its white type
+  `--room-ink-editorial`, its subtitle `--room-ink-dim` at 72% (`color-mix`),
+  and the divider `.editorial-divider-half` the room's gold. On paper its hero
+  monogram is the brand's two-tone mark, as the header's is.
+- **CosmicBackground** on paper draws in the retuned gold — its one literal tan
+  (the constellation line) follows — at half the dark's alpha.
+- **Plates.** A LinkCard's dark image well (the Featured marks) stays an opaque
+  charcoal plate on paper; photographs are never washed or recoloured.
+- **Chrome.** On a light home the header takes the reading pages' bar (paper
+  once scrolled, no dark halo under ink); the events banner's nav ground is the
+  room's ground (`--room-ground`), so a live banner never stands the header's
+  ink on charcoal.
 
 ### Admin-exempt (not normative)
 

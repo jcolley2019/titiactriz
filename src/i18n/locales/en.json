@@ -770,7 +770,8 @@
     },
     "siteTheme": {
       "title": "Reading pages theme",
-      "subtitle": "Blog, Events and Book, with the header and footer. The home pages and Green World don't change.",
+      "subtitle": "Blog, Events and Book, with the header and footer. Green World doesn't change.",
+      "homes": "Also the Editorial and Classic home pages; the Cinematic home is always dark.",
       "dark": "Dark",
       "light": "Light",
       "auto": "Automatic",

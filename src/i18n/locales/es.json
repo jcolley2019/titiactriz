@@ -770,7 +770,8 @@
     },
     "siteTheme": {
       "title": "Tema de las páginas de lectura",
-      "subtitle": "Blog, Eventos y Libro, con el encabezado y el pie de página. Las portadas y Green World no cambian.",
+      "subtitle": "Blog, Eventos y Libro, con el encabezado y el pie de página. Green World no cambia.",
+      "homes": "También las portadas Editorial y Clásica; la portada Cinemática es siempre oscura.",
       "dark": "Oscuro",
       "light": "Claro",
       "auto": "Automático",
