@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import PageTransition from "./PageTransition";
+import { useSiteTheme } from "./SiteTheme";
 import Home from "@/pages/Home";
 import { TITANS_ENABLED } from "@/lib/ventures";
 
@@ -40,9 +41,12 @@ const RouteFallback = () => (
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const { settle } = useSiteTheme();
 
   return (
-    <AnimatePresence mode="wait">
+    // SITE.THEME.1a — the site theme moves to the new page only once the old
+    // one has finished fading out (SiteTheme.tsx).
+    <AnimatePresence mode="wait" onExitComplete={settle}>
       <Routes location={location} key={location.pathname}>
         <Route
           path="/"

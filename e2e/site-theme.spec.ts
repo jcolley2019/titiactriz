@@ -23,6 +23,9 @@ import { BUILT_SITE_THEME } from "../src/generated/siteTheme";
  *  T6  390×844 light /blog: contrast of a title, an excerpt, a date and a Green
  *      World lane label against the paper (both ends of its gradient)
  *  T7  one half-scale screenshot pair, /blog dark vs light at 1440×900
+ *  T8  SITE.THEME.1a — leaving a light /blog for /, the outgoing page fades
+ *      out on paper (sampled every frame; ≈150ms is mid-fade), header and body
+ *      with it, and the home arrives dark; /blog → /events is light throughout
  *
  * Screenshots land in _qa/site-theme/.
  */
@@ -233,6 +236,67 @@ const chrome = (page: Page) =>
       main: all("main > * > *:first-child, main h1, main h2").slice(0, 40),
     };
   });
+
+/** One animation frame of a route change, as the reader sees it. */
+type Frame = {
+  t: number;
+  /** The outgoing / incoming page: its effective opacity (PageTransition's fade) and its ground. */
+  from: { opacity: number; ground: string } | null;
+  to: { opacity: number; ground: string } | null;
+  attr: string | null;
+  body: string;
+  twoTone: boolean;
+  footer: string;
+};
+
+/**
+ * SITE.THEME.1a — leave a page in-app, by clicking `click` or by pushing `push`
+ * the way the router hears a back/forward (popstate), and record every frame
+ * until the outgoing `from` has gone and `to` (when given) has stood 400ms.
+ * In-page, so the sampling owes nothing to Playwright's round trips.
+ */
+const watchRouteChange = (page: Page, opts: { click?: string; push?: string; from: string; to?: string }) =>
+  page.evaluate(
+    ({ click, push, from, to }) =>
+      new Promise<Frame[]>((resolve) => {
+        const look = (sel: string) => {
+          const el = document.querySelector<HTMLElement>(sel);
+          if (!el) return null;
+          let opacity = 1;
+          for (let n: HTMLElement | null = el; n; n = n.parentElement) opacity *= Number(getComputedStyle(n).opacity);
+          return { opacity, ground: getComputedStyle(el).backgroundColor };
+        };
+        const frames: Frame[] = [];
+        const t0 = performance.now();
+        let arrivedAt = 0;
+        const tick = () => {
+          const t = performance.now() - t0;
+          const footer = document.querySelector("footer");
+          const f: Frame = {
+            t,
+            from: look(from),
+            to: to ? look(to) : null,
+            attr: document.querySelector("[data-site-theme]")?.getAttribute("data-site-theme") ?? null,
+            body: getComputedStyle(document.body).backgroundColor,
+            twoTone: /twotone/.test(document.querySelector<HTMLImageElement>('header img[alt*="monogram"]')?.src ?? ""),
+            footer: footer ? getComputedStyle(footer).backgroundColor : "",
+          };
+          frames.push(f);
+          if (!arrivedAt && !f.from && (!to || f.to)) arrivedAt = t;
+          if ((arrivedAt && t - arrivedAt > 400) || t > 8000) resolve(frames);
+          else requestAnimationFrame(tick);
+        };
+        if (click) document.querySelector<HTMLElement>(click)!.click();
+        else {
+          history.pushState(null, "", push);
+          dispatchEvent(new PopStateEvent("popstate"));
+        }
+        requestAnimationFrame(tick);
+      }),
+    opts,
+  );
+
+const FOOTER_PAPER = "rgba(250, 246, 240, 0.8)";
 
 /* ---------------- specs ---------------- */
 
@@ -445,5 +509,67 @@ test.describe("SITE.THEME.1", () => {
       expect(png.readUInt32BE(20)).toBe(450);
       await context.close();
     }
+  });
+
+  test("T8 leaving a light /blog, the page fades out on paper; /blog → /events stays light", async ({ page }) => {
+    await seedCache(page, "light");
+    await open(page, "/blog", { theme: "light" });
+    expect((await blogRoom(page)).attr).toBe("light");
+    // Let the arrival fade finish, so the only motion sampled is the exit.
+    await page.waitForTimeout(600);
+
+    // /blog → / by the header's own link.
+    const home = await watchRouteChange(page, { click: 'header a[href="/"]', from: '[data-qa="blog-page"]' });
+    const leaving = home.filter((f) => f.from);
+    expect(leaving.length, "frames with /blog still on screen").toBeGreaterThan(3);
+    // Mid-fade (≈150ms of the 300ms exit): the page is half gone, and still on paper.
+    const mid = leaving.reduce((a, b) => (Math.abs(b.t - 150) < Math.abs(a.t - 150) ? b : a));
+    const at = `${mid.t.toFixed(0)}ms`;
+    expect(Math.abs(mid.t - 150), `nearest frame to 150ms is ${at}`).toBeLessThan(50);
+    expect(mid.from!.opacity, `opacity at ${at}`).toBeGreaterThan(0.05);
+    expect(mid.from!.opacity, `opacity at ${at}`).toBeLessThan(0.95);
+    expect(mid.from!.ground, `ground at ${at}`).toBe(LIGHT.ground);
+    // Every frame of the exit, header, body and footer included.
+    for (const f of leaving) {
+      const when = `${f.t.toFixed(0)}ms, opacity ${f.from!.opacity.toFixed(2)}`;
+      expect(f.from!.ground, `ground ${when}`).toBe(LIGHT.ground);
+      expect(f.attr, `data-site-theme ${when}`).toBe("light");
+      expect(f.body, `body ${when}`).toBe(LIGHT.ground);
+      expect(f.twoTone, `two-tone monogram ${when}`).toBe(true);
+      expect(f.footer, `footer ${when}`).toBe(FOOTER_PAPER);
+    }
+    // Then the home arrives in the dark, as ever.
+    const last = home[home.length - 1];
+    expect(last.from).toBeNull();
+    expect(last.attr).toBeNull();
+    expect(last.body).toBe(DARK.body);
+    expect(last.twoTone).toBe(false);
+    test.info().annotations.push({
+      type: "exit",
+      description: `${leaving.length} frames on paper over ${leaving[leaving.length - 1].t.toFixed(0)}ms; at ${at} opacity ${mid.from!.opacity.toFixed(2)}`,
+    });
+
+    // /blog → /events: room to room, light from the first frame to the last.
+    await page.goto("/blog", { waitUntil: "domcontentloaded" });
+    expect((await blogRoom(page)).attr).toBe("light");
+    await page.waitForTimeout(600);
+    const events = await watchRouteChange(page, {
+      push: "/events",
+      from: '[data-qa="blog-page"]',
+      to: '[data-qa="events-page"]',
+    });
+    expect(events.filter((f) => f.from).length, "frames with /blog still on screen").toBeGreaterThan(3);
+    for (const f of events) {
+      const when = `${f.t.toFixed(0)}ms`;
+      expect(f.attr, `data-site-theme ${when}`).toBe("light");
+      expect(f.body, `body ${when}`).toBe(LIGHT.ground);
+      expect(f.twoTone, `two-tone monogram ${when}`).toBe(true);
+      expect(f.footer, `footer ${when}`).toBe(FOOTER_PAPER);
+      if (f.from) expect(f.from.ground, `/blog ground ${when}`).toBe(LIGHT.ground);
+      if (f.to) expect(f.to.ground, `/events ground ${when}`).toBe(LIGHT.ground);
+    }
+    const arrived = events[events.length - 1];
+    expect(arrived.to, "/events on screen").not.toBeNull();
+    expect(arrived.to!.opacity).toBeGreaterThan(0.99);
   });
 });
