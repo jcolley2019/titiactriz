@@ -105,29 +105,36 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
       # A hit already has the browsers, so only the system libraries install.
-      # Three attempts with a short backoff ride out a failed download. Each
-      # attempt runs under `timeout -k 15 170`: 3 × 170 s + 3 × 15 s kill grace
-      # + 30 s backoff = 585 s, inside the step's 10 minutes, so a hung attempt
-      # (exit 124) is just another failed attempt and the loop still retries.
+      # Attempts with a short backoff ride out a failed download; each attempt
+      # runs under `timeout -k 15 <cap>` so a hung attempt (exit 124) is just
+      # another failed attempt and the loop still retries. CI.INSTALL.2a sizes
+      # the cap and the step budget to the cache state (run 37678255789 shard 1
+      # took 162 s on a HIT against a 170 s cap; a MISS downloads the browsers
+      # too): hit → 3 × 240 s + 30 s backoff = 750 s < 13 min; miss → 2 × 420 s
+      # + 10 s backoff = 850 s < 15 min.
       - name: Install Playwright (system deps only on a cache hit)
-        timeout-minutes: 10
+        timeout-minutes: ${{ steps.pw-cache.outputs.cache-hit == 'true' && 13 || 15 }}
         env:
           CACHE_HIT: ${{ steps.pw-cache.outputs.cache-hit }}
         run: |
           if [ "$CACHE_HIT" = "true" ]; then
             set -- npx playwright install-deps chromium webkit
+            attempts=3; cap=240
           else
             set -- npx playwright install --with-deps chromium webkit
+            attempts=2; cap=420
           fi
-          for attempt in 1 2 3; do
-            if timeout -k 15 170 "$@"; then exit 0; else code=$?; fi
-            echo "::warning::'$*' failed with exit $code (attempt $attempt of 3; 124 = timed out)"
-            if [ "$attempt" -lt 3 ]; then
+          attempt=0
+          while [ "$attempt" -lt "$attempts" ]; do
+            attempt=$((attempt + 1))
+            if timeout -k 15 "$cap" "$@"; then exit 0; else code=$?; fi
+            echo "::warning::'$*' failed with exit $code (attempt $attempt of $attempts, cap ${cap} s; 124 = timed out)"
+            if [ "$attempt" -lt "$attempts" ]; then
               echo "retrying in $((attempt * 10)) s"
               sleep $((attempt * 10))
             fi
           done
-          echo "::error::'$*' failed 3 times (last exit $code)"
+          echo "::error::'$*' failed $attempts times (last exit $code)"
           exit 1
 
       # apt wrote the .deb files as root; hand them back so the cache can save.
