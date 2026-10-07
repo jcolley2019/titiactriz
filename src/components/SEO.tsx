@@ -51,8 +51,9 @@ const SEO = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={absImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      {/* og-image.png and index.html's og-image-v7.jpg are both 1376×768 PNGs. */}
+      <meta property="og:image:width" content="1376" />
+      <meta property="og:image:height" content="768" />
       <meta property="og:locale" content={ogLocale} />
       <meta property="og:locale:alternate" content={ogLocaleAlt} />
 

@@ -191,11 +191,13 @@ test.describe("SEO.BING.1", () => {
     expect(h1s.length, "exactly one <h1 in the served HTML").toBe(1);
     expect(html.match(/<h1>([^<]*)<\/h1>/)?.[1]).toBe("Cristyna Polentino");
 
-    const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? "";
+    // SEO.HEADDUP.1 — the static head tags carry data-rh, so match by name, not literal markup.
+    const title = html.match(/<title[^>]*>([^<]*)<\/title>/)?.[1] ?? "";
     expect(title).toBe("Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín");
     expect(chars(title), `title length: ${title}`).toBeLessThanOrEqual(62);
 
-    const description = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
+    const description =
+      html.match(/<meta[^>]*\bname="description"[^>]*\bcontent="([^"]*)"/)?.[1] ?? "";
     expect(chars(description), `description length: ${description}`).toBeGreaterThanOrEqual(150);
     expect(chars(description), `description length: ${description}`).toBeLessThanOrEqual(160);
 

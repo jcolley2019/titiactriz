@@ -31,9 +31,16 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
 
-    <!-- Default SEO -->
-    <title>Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín</title>
-    <meta name="description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World.">
+    <!--
+      Default SEO — SEO.HEADDUP.1. These static tags are what no-JS scrapers
+      (Facebook, WhatsApp) read, so they stay. Every one that src/components/SEO.tsx
+      also emits carries data-rh="true": react-helmet-async manages exactly the
+      `meta[data-rh]` set, so on its first commit it adopts an identical tag and
+      removes a stale one instead of appending a second copy after it. A tag
+      without the marker (author, keywords, geo, og:image:alt) is left alone.
+    -->
+    <title data-rh="true">Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín</title>
+    <meta data-rh="true" name="description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World.">
     <meta name="author" content="Cristyna Polentino" />
     <!-- TITANS.OFF.1 — "Titans Agency" dropped from keywords; restore it with the flag. -->
     <meta name="keywords" content="Cristyna Polentino, actriz colombiana, Colombian actress, streamer, creadora de contenido, empresaria, entrepreneur, Medellín, Colombia, Green World, TikTok, content creator" />
@@ -48,26 +55,27 @@
 
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Cristyna Polentino" />
-    <meta property="og:url" content="https://www.titiactriz.com" />
-    <meta property="og:locale" content="es_CO" />
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:locale:alternate" content="es_ES" />
-    <meta property="og:locale:alternate" content="es_MX" />
-    <meta property="og:locale:alternate" content="es_AR" />
-    <meta property="og:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
-    <meta property="og:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
-    <meta property="og:image" content="https://www.titiactriz.com/og-image-v7.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="670" />
+    <meta data-rh="true" property="og:type" content="website" />
+    <meta data-rh="true" property="og:site_name" content="Cristyna Polentino" />
+    <meta data-rh="true" property="og:url" content="https://www.titiactriz.com" />
+    <meta data-rh="true" property="og:locale" content="es_CO" />
+    <meta data-rh="true" property="og:locale:alternate" content="en_US" />
+    <meta data-rh="true" property="og:locale:alternate" content="es_ES" />
+    <meta data-rh="true" property="og:locale:alternate" content="es_MX" />
+    <meta data-rh="true" property="og:locale:alternate" content="es_AR" />
+    <meta data-rh="true" property="og:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
+    <meta data-rh="true" property="og:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
+    <meta data-rh="true" property="og:image" content="https://www.titiactriz.com/og-image-v7.jpg" />
+    <!-- The file is a 1376×768 PNG despite its .jpg name. -->
+    <meta data-rh="true" property="og:image:width" content="1376" />
+    <meta data-rh="true" property="og:image:height" content="768" />
     <meta property="og:image:alt" content="Cristyna Polentino — Actriz, Streamer y Empresaria" />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
-    <meta name="twitter:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
-    <meta name="twitter:image" content="https://www.titiactriz.com/og-image-v7.jpg" />
+    <meta data-rh="true" name="twitter:card" content="summary_large_image" />
+    <meta data-rh="true" name="twitter:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
+    <meta data-rh="true" name="twitter:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
+    <meta data-rh="true" name="twitter:image" content="https://www.titiactriz.com/og-image-v7.jpg" />
 
     <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
