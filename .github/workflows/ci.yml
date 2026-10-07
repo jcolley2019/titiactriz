@@ -83,6 +83,10 @@ jobs:
       # (apt-get install -s under the hood) gives the verdict: "All system
       # dependencies are installed." means apt is skipped outright; otherwise
       # its missing list is echoed and the apt loop runs with the real retry.
+      # CI.INSTALL.2c: `dpkg -i -G` (--refuse-downgrade) leaves alone anything
+      # the runner image already has newer — run 37686777505 shards 3, 6, 7
+      # downgraded seven mesa/gstreamer packages .4 → cached .3, so the dry-run
+      # listed them as upgrades and apt ran anyway.
       - name: Read the locked Playwright version
         id: pw
         run: |
@@ -153,7 +157,7 @@ jobs:
             # is still missing. Only a miss there touches apt.
             if ls "$HOME"/.cache/apt-archives/*.deb >/dev/null 2>&1; then
               echo "installing $(ls "$HOME"/.cache/apt-archives/*.deb | wc -l) cached .deb files with dpkg"
-              sudo dpkg -i "$HOME"/.cache/apt-archives/*.deb || echo "dpkg -i exited $? (not fatal; checking what is still missing)"
+              sudo dpkg -i -G "$HOME"/.cache/apt-archives/*.deb || echo "dpkg -i exited $? (not fatal; checking what is still missing)"
             fi
             dry=$(npx playwright install-deps --dry-run chromium webkit 2>&1) || true
             if printf '%s\n' "$dry" | grep -q '^All system dependencies are installed\.$'; then
