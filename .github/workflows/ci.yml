@@ -72,6 +72,17 @@ jobs:
       # Now apt itself drops a silent connection after 30 s (see the apt conf
       # step) and each attempt is capped at 170 s, so three attempts plus
       # backoff fit inside the step's 10 minutes and a stall costs one retry.
+      #
+      # CI.INSTALL.2b — run 37680734832 shard 7 showed the retry was never
+      # real: `timeout` killed npx, but the `sudo apt-get` beneath it survived
+      # as root holding /var/lib/apt/lists/lock, so attempts 2 and 3 died in
+      # under a second on the lock. A failed attempt now kills orphaned
+      # apt-get/dpkg and waits for the locks before retrying. And on a cache
+      # hit the mirror is not consulted at all when nothing is missing: the
+      # cached .debs install with `dpkg -i`, then `install-deps --dry-run`
+      # (apt-get install -s under the hood) gives the verdict: "All system
+      # dependencies are installed." means apt is skipped outright; otherwise
+      # its missing list is echoed and the apt loop runs with the real retry.
       - name: Read the locked Playwright version
         id: pw
         run: |
@@ -117,7 +128,40 @@ jobs:
         env:
           CACHE_HIT: ${{ steps.pw-cache.outputs.cache-hit }}
         run: |
+          # CI.INSTALL.2b: `timeout` kills npx, not the root apt-get beneath it,
+          # which then holds the apt/dpkg locks and makes every retry fail in
+          # <1 s (run 37680734832 shard 7). Clear the orphans before retrying.
+          clear_apt() {
+            local pids
+            echo "clearing orphaned apt/dpkg and waiting for their locks"
+            pids=$(pgrep -f '[a]pt-get|[d]pkg' || true)
+            if [ -n "$pids" ]; then
+              echo "killing orphaned apt/dpkg: $(echo "$pids" | tr '\n' ' ')"
+              sudo pkill -TERM -f '[a]pt-get|[d]pkg' || true
+            fi
+            for _ in $(seq 1 30); do
+              sudo fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock >/dev/null 2>&1 || return 0
+              sleep 1
+            done
+            echo "apt/dpkg locks still held after 30 s; SIGKILL and dpkg --configure -a"
+            sudo pkill -KILL -f '[a]pt-get|[d]pkg' || true
+            sudo dpkg --configure -a || true
+          }
           if [ "$CACHE_HIT" = "true" ]; then
+            # Mirror-free path: the cached .debs install with dpkg, then the
+            # dry-run (apt-get install -s under the hood) says whether anything
+            # is still missing. Only a miss there touches apt.
+            if ls "$HOME"/.cache/apt-archives/*.deb >/dev/null 2>&1; then
+              echo "installing $(ls "$HOME"/.cache/apt-archives/*.deb | wc -l) cached .deb files with dpkg"
+              sudo dpkg -i "$HOME"/.cache/apt-archives/*.deb || echo "dpkg -i exited $? (not fatal; checking what is still missing)"
+            fi
+            dry=$(npx playwright install-deps --dry-run chromium webkit 2>&1) || true
+            if printf '%s\n' "$dry" | grep -q '^All system dependencies are installed\.$'; then
+              echo "deps satisfied from cache, apt skipped"
+              exit 0
+            fi
+            echo "dry-run did not report all deps installed; falling through to apt:"
+            printf '%s\n' "$dry" | sed 's/^/  | /'
             set -- npx playwright install-deps chromium webkit
             attempts=3; cap=240
           else
@@ -129,6 +173,7 @@ jobs:
             attempt=$((attempt + 1))
             if timeout -k 15 "$cap" "$@"; then exit 0; else code=$?; fi
             echo "::warning::'$*' failed with exit $code (attempt $attempt of $attempts, cap ${cap} s; 124 = timed out)"
+            clear_apt
             if [ "$attempt" -lt "$attempts" ]; then
               echo "retrying in $((attempt * 10)) s"
               sleep $((attempt * 10))
