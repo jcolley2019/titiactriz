@@ -31,6 +31,9 @@ const SEO = ({
   const ogLocale = lang === "en" ? "en_US" : "es_CO";
   const ogLocaleAlt = lang === "en" ? "es_CO" : "en_US";
   const absImage = image.startsWith("http") ? image : `${SITE}${image}`;
+  // Only the default og-image.png has a known size (1376×768, like index.html's
+  // og-image-v7.jpg); any other image (a blog cover) gets no dimension claim.
+  const knownSize = absImage === DEFAULT_IMAGE;
 
   return (
     <Helmet>
@@ -51,9 +54,10 @@ const SEO = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={absImage} />
-      {/* og-image.png and index.html's og-image-v7.jpg are both 1376×768 PNGs. */}
-      <meta property="og:image:width" content="1376" />
-      <meta property="og:image:height" content="768" />
+      {/* Two plain conditionals, not a fragment: Helmet drops a fragment's <meta>
+          children when more <meta> tags follow it. */}
+      {knownSize && <meta property="og:image:width" content="1376" />}
+      {knownSize && <meta property="og:image:height" content="768" />}
       <meta property="og:locale" content={ogLocale} />
       <meta property="og:locale:alternate" content={ogLocaleAlt} />
 

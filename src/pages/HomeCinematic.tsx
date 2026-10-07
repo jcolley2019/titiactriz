@@ -168,7 +168,7 @@ const HomeCinematic = () => {
       className="relative w-full overflow-x-clip text-[#f0e9da]"
     >
       <SEO
-        path="/cinematic"
+        path="/"
         title={copy.title}
         description={copy.description}
       />

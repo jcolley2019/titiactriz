@@ -29,6 +29,8 @@ import { forceLanguage, routeSupabase } from "./_admin";
  *      STREAMER ENTREPRENEUR in EN. There is no /editorial or /classic route:
  *      all three are `/`, chosen by the `home_variant` setting, so each layout
  *      is driven by serving that setting.
+ *      SEO.HOMECANON.1 — so each layout's head names `/`: the canonical and
+ *      og:url are exactly HOME_URL, and no SEO tag points at /cinematic (a 301).
  *  B6  The footer on `/` names her a streamer, and never a dancer.
  */
 
@@ -164,6 +166,12 @@ const ROLES_LINE = {
 } as const;
 
 /**
+ * B5 — every layout is served at `/`. The static og:url has no trailing slash
+ * and there is no static canonical, so only Helmet's tags can match this.
+ */
+const HOME_URL = "https://www.titiactriz.com/";
+
+/**
  * Each layout's roles element, found by the markup the layout already has:
  * cinematic's is the <p> right above the intro, editorial's carries its own
  * class, classic's is the one holding the gold `|` separators.
@@ -296,6 +304,19 @@ test.describe("SEO.BING.1", () => {
           });
           await expect(roles).toBeVisible();
           expect(normalizeRoles((await roles.textContent()) ?? "")).toBe(ROLES_LINE[lng]);
+
+          await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", HOME_URL);
+          await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", HOME_URL);
+          const seoTags = await page.evaluate(() =>
+            [
+              ...document.head.querySelectorAll(
+                'link[rel="canonical"], link[rel="alternate"], meta, script[type="application/ld+json"]',
+              ),
+            ]
+              .map((el) => el.outerHTML)
+              .join("\n"),
+          );
+          expect(seoTags, "no head tag names the /cinematic redirect").not.toContain("/cinematic");
         });
       }
     }
