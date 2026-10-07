@@ -27,6 +27,14 @@ import { masterSources, type MasterFields } from "@/lib/photo-srcset";
  * swipe-down closes; desktop gets arrow keys, Esc, and click-on-ground close.
  * Body scroll locks while open; focus is trapped and restored on close. Under
  * prefers-reduced-motion the slide becomes a plain crossfade.
+ *
+ * LIGHTBOX.AXISLOCK.1 — the lightbox owns the touch. iOS Safari does not
+ * honour the body's overflow:hidden for touch scrolling, so a swipe that was
+ * not perfectly level rubber-banded the page underneath and this fixed overlay
+ * rode with it. The root takes no browser panning (touch-action none, its
+ * overscroll contained), and while open a native, non-passive touchmove
+ * listener cancels every move — React's onTouchMove is passive and cannot.
+ * The swipe grammar reads start and end only, so it is unchanged.
  */
 
 /** The w2 plate hairline — gold #C9A55C at the ratified frame opacity. */
@@ -93,6 +101,16 @@ const PhotoLightbox = ({ photos, open, initialIndex, onClose }: Props) => {
       document.body.style.overflow = prevOverflow;
       (openerRef.current as HTMLElement | null)?.focus?.();
     };
+  }, [open]);
+
+  // LIGHTBOX.AXISLOCK.1 — no move on the lightbox scrolls the page under it.
+  useEffect(() => {
+    if (!open) return;
+    const root = overlayRef.current;
+    if (!root) return;
+    const hold = (e: TouchEvent) => e.preventDefault();
+    root.addEventListener("touchmove", hold, { passive: false });
+    return () => root.removeEventListener("touchmove", hold);
   }, [open]);
 
   const count = photos.length;
@@ -189,7 +207,7 @@ const PhotoLightbox = ({ photos, open, initialIndex, onClose }: Props) => {
       onKeyDown={onKeyDown}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      className="fixed inset-0 z-[100] outline-none"
+      className="fixed inset-0 z-[100] touch-none overscroll-contain outline-none"
       style={{ backgroundColor: GROUND }}
     >
       {/* Click on the dark ground closes; clicks on plate/chrome do not. */}

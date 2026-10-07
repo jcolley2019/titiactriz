@@ -11,6 +11,10 @@ import { routeSupabase, MOCK_PHOTOS } from "./_admin";
  * closes. Touch: horizontal swipe advances/retreats, swipe-down closes. Body
  * scroll locks while open and is restored on close. The plate's geometry is
  * the hero-framing resolver's (asserted on the data-hero-framing contract).
+ *
+ * LIGHTBOX.AXISLOCK.1 — the lightbox owns the touch: its root takes no browser
+ * panning (touch-action none) and cancels every touchmove while open, so a
+ * swipe that is not perfectly level cannot bounce the page under it on iPhone.
  */
 const CINE = "/cinematic";
 const TILE = '[data-qa="gallery-photo"]';
@@ -156,6 +160,39 @@ test.describe("GALLERY.TOUCH.1 — touch behavior", () => {
     await openAt(page, 1);
     await page.screenshot({ path: shot("gallerytouch-open-390.png") });
     expect(diag.consoleErrors, "console errors — touch").toEqual([]);
+  });
+
+  // LIGHTBOX.AXISLOCK.1 — iOS Safari does not honour the body's overflow:hidden
+  // for touch scrolling: a sloppy swipe rubber-banded the page underneath and the
+  // fixed overlay rode with it. React's onTouchMove is passive and cannot cancel
+  // that; the root's native, non-passive touchmove listener can.
+  test("the lightbox owns the touch: touch-action none, and a touchmove on it is cancelled", async ({ page }) => {
+    await openAt(page, 0);
+
+    const style = await page.locator(BOX).evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      return { touchAction: cs.touchAction, overscroll: cs.overscrollBehaviorY };
+    });
+    expect(style.touchAction, "the root takes no browser panning").toBe("none");
+    expect(style.overscroll, "no overscroll chains from the root to the page").toBe("contain");
+
+    // swipe()'s synthesis: a real, cancelable TouchEvent on the root, here a
+    // move that is not level (down and to the left, as a thumb drifts).
+    const move = await page.evaluate(() => {
+      const el = document.querySelector('[data-qa="lightbox"]') as HTMLElement;
+      const touch = new Touch({ identifier: 1, target: el, clientX: 140, clientY: 430 });
+      const ev = new TouchEvent("touchmove", {
+        bubbles: true,
+        cancelable: true,
+        touches: [touch],
+        targetTouches: [touch],
+        changedTouches: [touch],
+      });
+      const returned = el.dispatchEvent(ev);
+      return { returned, defaultPrevented: ev.defaultPrevented };
+    });
+    expect(move.returned, "dispatchEvent returns false: the move was cancelled").toBe(false);
+    expect(move.defaultPrevented, "the move's default, the page scroll, is prevented").toBe(true);
   });
 });
 
