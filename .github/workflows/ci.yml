@@ -65,6 +65,13 @@ jobs:
       # on a hit, `install-deps` finds every package already downloaded and asks
       # the mirror for nothing but the index. The key follows the locked
       # @playwright/test version, so a Playwright bump re-downloads both.
+      #
+      # CI.INSTALL.2 — runs 37662048967 (shard 3) and 37671721592 (shards 1, 2)
+      # hit the 10-minute cap before any test ran: one attempt hung on the mirror
+      # and ate the whole step budget, so the three-attempt loop never retried.
+      # Now apt itself drops a silent connection after 30 s (see the apt conf
+      # step) and each attempt is capped at 170 s, so three attempts plus
+      # backoff fit inside the step's 10 minutes and a stall costs one retry.
       - name: Read the locked Playwright version
         id: pw
         run: |
@@ -73,7 +80,9 @@ jobs:
       # apt keeps what it downloads in a directory the cache can save. apt
       # normally downloads as its sandbox user `_apt`, which may not be able to
       # reach a directory under /home/runner; downloading as root sidesteps that
-      # on a throwaway runner.
+      # on a throwaway runner. CI.INSTALL.2: apt's connection timeout and fetch
+      # retries are unset by default, so a mirror that stops answering holds a
+      # fetch open forever; 30 s and three retries make apt re-ask instead.
       - name: Point apt's download directory at the cache
         run: |
           mkdir -p "$HOME/.cache/apt-archives/partial"
@@ -81,6 +90,9 @@ jobs:
             "Dir::Cache::Archives \"$HOME/.cache/apt-archives/\";" \
             'APT::Keep-Downloaded-Packages "true";' \
             'APT::Sandbox::User "root";' \
+            'Acquire::http::Timeout "30";' \
+            'Acquire::https::Timeout "30";' \
+            'Acquire::Retries "3";' \
             | sudo tee /etc/apt/apt.conf.d/99ci-archives
 
       - name: Cache Playwright browsers and their apt packages
@@ -93,9 +105,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
       # A hit already has the browsers, so only the system libraries install.
-      # Three attempts with a short backoff ride out a failed download; the
-      # 10-minute cap makes a stalled mirror fail the shard fast instead of
-      # spending the job's 30.
+      # Three attempts with a short backoff ride out a failed download. Each
+      # attempt runs under `timeout -k 15 170`: 3 × 170 s + 3 × 15 s kill grace
+      # + 30 s backoff = 585 s, inside the step's 10 minutes, so a hung attempt
+      # (exit 124) is just another failed attempt and the loop still retries.
       - name: Install Playwright (system deps only on a cache hit)
         timeout-minutes: 10
         env:
@@ -107,13 +120,14 @@ jobs:
             set -- npx playwright install --with-deps chromium webkit
           fi
           for attempt in 1 2 3; do
-            if "$@"; then exit 0; fi
+            if timeout -k 15 170 "$@"; then exit 0; else code=$?; fi
+            echo "::warning::'$*' failed with exit $code (attempt $attempt of 3; 124 = timed out)"
             if [ "$attempt" -lt 3 ]; then
-              echo "::warning::'$*' failed (attempt $attempt of 3); retrying in $((attempt * 10)) s"
+              echo "retrying in $((attempt * 10)) s"
               sleep $((attempt * 10))
             fi
           done
-          echo "::error::'$*' failed 3 times"
+          echo "::error::'$*' failed 3 times (last exit $code)"
           exit 1
 
       # apt wrote the .deb files as root; hand them back so the cache can save.
