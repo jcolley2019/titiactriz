@@ -1,6 +1,7 @@
 import type { Lang, Localized } from "@/hooks/useEventsBoard";
 import type { Tables } from "@/integrations/supabase/types";
 import { VOICES, asVoice, type VoiceName } from "@/lib/voices";
+import { coerceCoverFraming, type CoverFraming } from "@/lib/cover-framing";
 import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
 
 /**
@@ -105,6 +106,8 @@ export type BlogPost = {
   /** ADMIN.FIXES.1 — the products a Green World post with a kind names; [] otherwise. */
   gwProducts: GwProduct[];
   cover_photo_id: string | null;
+  /** BLOG.COVERFRAME.1 — the cover's focal point; absent when the row stores none (the default crop). */
+  coverFraming?: CoverFraming;
   status: BlogStatus;
   published_at: string | null;
   created_at: string;
@@ -132,6 +135,7 @@ export const rowToPost = (row: BlogPostRow): BlogPost => {
   const category = asCategory(row.category);
   const gw = category === "greenworld";
   const gwKind = gw ? asGwKind(row.gw_kind) : null;
+  const coverFraming = coerceCoverFraming(row.cover_framing);
   return {
     id: row.id,
     slug: row.slug,
@@ -144,6 +148,8 @@ export const rowToPost = (row: BlogPostRow): BlogPost => {
     gwKind,
     gwProducts: gwKind ? asGwProducts(row.gw_products) : [],
     cover_photo_id: row.cover_photo_id,
+    // Absent stays absent: a row without a framing parses to yesterday's object.
+    ...(coverFraming ? { coverFraming } : {}),
     status: row.status === "published" ? "published" : "draft",
     published_at: row.published_at,
     created_at: row.created_at,
