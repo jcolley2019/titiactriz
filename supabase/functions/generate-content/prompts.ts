@@ -19,6 +19,12 @@
  * format prompt (GREEN_WORLD_LAW below). The voice's own avoid-list says the
  * same thing; the law is belt and braces, so it does not depend on the text an
  * admin can edit.
+ *
+ * BLOG.FIXES.1 (v6) — the blog's callout labels are dictated in Spanish first
+ * ("Consejo:", "Punto clave:"): dictated in English only, a Green World article
+ * shipped "🔑 **Key takeaway:**" inside Spanish (STUDIO.LIVE.1). Only a social
+ * package's section labels and the meta block's field names stay English — the
+ * Studio parses them and neither reaches a published page.
  */
 
 import type { OutputFormat, Platform, Voice } from "./validate.ts";
@@ -239,11 +245,11 @@ Then write the full article below.
 
 Do not include images or image placeholders; the article's cover is chosen from her gallery separately.
 
-**Callouts** — Use blockquotes with emoji prefixes where they help:
-> 💡 **Tip:** for tips
-> 🔑 **Key takeaway:** for crucial points
+**Callouts** — Use blockquotes with emoji prefixes where they help. The label is in the output language; in Spanish it is exactly:
+> 💡 **Consejo:** for tips (in English: **Tip:**)
+> 🔑 **Punto clave:** for crucial points (in English: **Key takeaway:**)
 
-**Key Takeaways** — A short summary section with bullet points.
+**Key Takeaways** — A short summary section with bullet points, its heading in the output language (in Spanish: "Puntos clave").
 
 **FAQ Section** — A frequently-asked-questions section (heading in the output language) with 3-5 Q&As someone would really search for. Format each as:
 ### [Question]

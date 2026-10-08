@@ -179,5 +179,5 @@ export function languageBlock(language: "es" | "en"): string {
   return `## OUTPUT LANGUAGE
 
 Write every word of the output in ${target}, whatever language the input is in. That includes titles, headings, FAQ questions, captions, scripts and hashtags (a hashtag may stay in the language it trends in).
-Two things stay exactly as written: the bold section labels of a social package (e.g. **🎬 HOOK**), and the two field names inside the \`\`\`meta block ("Primary Keyword:" and "Meta Description:"). The field values are in the output language.`;
+Two things stay exactly as written: the bold section labels of a social package (e.g. **🎬 HOOK**) — a blog article's callout labels are not among them and are in the output language — and the two field names inside the \`\`\`meta block ("Primary Keyword:" and "Meta Description:"). The field values are in the output language.`;
 }
