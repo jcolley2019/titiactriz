@@ -4,16 +4,16 @@ import { FIELD_GROUND, SEAM_GOLD } from "@/components/cinematic/FramedVideo";
 import { PLATE_LANDSCAPE_ASPECT } from "@/components/cinematic/reelWide";
 import type { BlogCover } from "@/hooks/useBlogPosts";
 import type { MasterFields } from "@/lib/photo-srcset";
+import { coverObjectPosition, type CoverFraming } from "@/lib/cover-framing";
 
 /**
- * BLOG.FIXES.1 — where a cover photograph sits in its crop. Gallery photos carry
- * no focal point (framing lives per slot in site_settings, not per photo), so a
- * portrait in a 3:2 box cropped dead-centre cut her head off (the Green World
- * card, live). A portrait keeps its upper part; a landscape stays centred. A
- * per-post framing picker is a later brick (BLOG.COVERFRAME.1).
+ * BLOG.FIXES.1 — where a cover photograph sits in its crop: a portrait keeps its
+ * upper part, a landscape stays centred. BLOG.COVERFRAME.1 — unless the post
+ * stores its own focal point (cover_framing), which wins on every surface. The
+ * rule and the constants live in @/lib/cover-framing; re-exported here so no
+ * import path breaks.
  */
-export const PORTRAIT_COVER_POSITION = "50% 18%";
-export const LANDSCAPE_COVER_POSITION = "50% 50%";
+export { LANDSCAPE_COVER_POSITION, PORTRAIT_COVER_POSITION } from "@/lib/cover-framing";
 
 type CoverSource = { image_url: string; alt_text: string | null } & MasterFields;
 
@@ -26,11 +26,13 @@ export const CoverImage = ({
   className,
   eager = false,
   qa,
+  framing,
 }: {
   cover: CoverSource;
   className: string;
   eager?: boolean;
   qa?: string;
+  framing?: CoverFraming;
 }) => {
   const [decoded, setDecoded] = useState<{ src: string; portrait: boolean } | null>(null);
   const w = cover.master_width;
@@ -45,7 +47,7 @@ export const CoverImage = ({
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       className={className}
-      style={{ objectPosition: portrait ? PORTRAIT_COVER_POSITION : LANDSCAPE_COVER_POSITION }}
+      style={{ objectPosition: coverObjectPosition(framing, portrait) }}
       onLoad={(e) => {
         const img = e.currentTarget;
         setDecoded({ src: cover.image_url, portrait: img.naturalHeight > img.naturalWidth });
@@ -65,10 +67,12 @@ const CoverPlate = ({
   cover,
   qa,
   eager = false,
+  framing,
 }: {
   cover: BlogCover;
   qa: string;
   eager?: boolean;
+  framing?: CoverFraming;
 }) => (
   <div
     data-qa={qa}
@@ -78,7 +82,12 @@ const CoverPlate = ({
       backgroundColor: FIELD_GROUND,
     }}
   >
-    <CoverImage cover={cover} eager={eager} className="absolute inset-0 h-full w-full object-cover" />
+    <CoverImage
+      cover={cover}
+      eager={eager}
+      framing={framing}
+      className="absolute inset-0 h-full w-full object-cover"
+    />
     {/* The hairline rides ABOVE the photograph: on the box itself it would sit
         under an image that fills it edge to edge (and a line beneath a filling
         medium bleeds at fractional DPR). */}

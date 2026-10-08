@@ -277,9 +277,11 @@ const GreenWorld = () => {
                 >
                   {v.cover && (
                     <div className="aspect-[3/2] overflow-hidden">
-                      {/* The blog's portrait rule (CoverPlate), in this page's own card. */}
+                      {/* The blog's cover rule (CoverPlate: the post's own focal
+                          point, else the portrait rule), in this page's own card. */}
                       <CoverImage
                         cover={v.cover}
+                        framing={v.post.coverFraming}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                     </div>

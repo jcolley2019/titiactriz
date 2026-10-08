@@ -173,7 +173,7 @@ const BlogPost = () => {
 
         {cover && (
           <div className="mb-10 md:mb-14">
-            <CoverPlate cover={cover} qa="blog-post-cover" eager />
+            <CoverPlate cover={cover} qa="blog-post-cover" eager framing={post.coverFraming} />
           </div>
         )}
 

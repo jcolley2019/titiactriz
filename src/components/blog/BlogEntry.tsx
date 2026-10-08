@@ -59,7 +59,9 @@ const BlogEntry = ({
         to={`/blog/${view.post.slug}`}
         className={lead ? "grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-center md:gap-12" : "block"}
       >
-        {view.cover && <CoverPlate cover={view.cover} qa="blog-card-cover" eager={lead} />}
+        {view.cover && (
+          <CoverPlate cover={view.cover} qa="blog-card-cover" eager={lead} framing={view.post.coverFraming} />
+        )}
         <div className={view.cover && !lead ? "mt-6" : undefined}>
           {(published || gw) && (
             <p data-qa="blog-card-date" className="text-caps" style={{ color: gw ? LANE_GREEN : GOLD }}>

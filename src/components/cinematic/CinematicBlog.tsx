@@ -305,7 +305,7 @@ const ActCard = ({ view, lang }: { view: BlogView; lang: Lang }) => {
         />
       )}
       <Link to={`/blog/${view.post.slug}`} className="block text-left">
-        {view.cover && <CoverPlate cover={view.cover} qa="blog-act-cover" />}
+        {view.cover && <CoverPlate cover={view.cover} qa="blog-act-cover" framing={view.post.coverFraming} />}
         <div className={view.cover ? "mt-5" : undefined}>
           {(view.post.published_at || gw) && (
             <p data-qa="blog-act-card-date" className="text-caps" style={{ color: gw ? LANE_GREEN : GOLD }}>
