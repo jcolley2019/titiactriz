@@ -2000,7 +2000,7 @@ test.describe("BLOG.GW.2 GW kinds", () => {
   });
 });
 
-/* ---------------- BLOG.FIXES.1 — portrait covers ---------------- */
+/* ---------------- BLOG.FIXES.1 — portrait covers and the not-found page ---------------- */
 
 /** An offline cover of a given size (a data-URL SVG decodes to exactly w×h). */
 const sizedCover = (id: string, w: number, h: number, color: string) => ({
@@ -2092,4 +2092,35 @@ test.describe("BLOG.FIXES.1 portrait covers", () => {
       }
     });
   }
+});
+
+test.describe("BLOG.FIXES.1 not-found", () => {
+  // An English browser, as Googlebot renders: Spanish anyway, and out of the index.
+  test.use({ locale: "en-US" });
+
+  test("F2 an unknown post is a noindex not-found in Spanish; English only by choice", async ({ page }) => {
+    await routeSupabase(page, { writes: [] });
+    await routeBlog(page, publicRows(), []);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/blog/no-existe", { waitUntil: "domcontentloaded" });
+
+    const nf = page.locator('[data-qa="not-found"]');
+    await expect(nf).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", "es");
+    await expect(nf).toContainText("Página no encontrada");
+    await expect(nf).toContainText("Esta página no existe o ya no está disponible.");
+    await expect(nf.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");
+    await expect.poll(() => page.title()).toBe("Página no encontrada | Cristyna Polentino");
+    await expect(page.locator('[data-qa="blog-post"]')).toHaveCount(0);
+
+    // The visitor's own choice of English.
+    await forceLanguage(page, "en");
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(nf).toContainText("Page not found");
+    await expect(nf).toContainText("This page doesn't exist or is no longer available.");
+    await expect(nf.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");
+    await expect.poll(() => page.title()).toBe("Page not found | Cristyna Polentino");
+  });
 });

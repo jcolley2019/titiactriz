@@ -512,6 +512,11 @@
     "productsLabel": "Products",
     "productsMentioned": "Products mentioned"
   },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page doesn't exist or is no longer available.",
+    "home": "Back to home"
+  },
   "home": {
     "blogAct": {
       "eyebrow": "Blog",

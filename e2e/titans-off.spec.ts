@@ -128,7 +128,7 @@ test.describe("TITANS.OFF.1 — the venture is hidden", () => {
 
     // The app's existing not-found behaviour, not a bespoke "gone" page.
     await expect(page.locator("h1")).toHaveText("404");
-    await expect(page.getByText("Oops! Page not found")).toBeVisible();
+    await expect(page.getByText("Página no encontrada")).toBeVisible();
 
     // And the page it 404s on must not still be advertising the venture.
     const body = (await page.locator("body").innerText()).toLowerCase();
