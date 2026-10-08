@@ -178,13 +178,14 @@ test.describe("TITANS.OFF.1 — the venture is hidden", () => {
           locale,
         });
         const p = await ctx.newPage();
-        await p.addInitScript(() => {
+        // BLOG.FIXES.1 — the language is a stored choice (the locale picks nothing).
+        await p.addInitScript((l) => {
           try {
-            localStorage.removeItem("ta_lang");
+            localStorage.setItem("ta_lang", l);
           } catch {
             /* storage may be unavailable */
           }
-        });
+        }, lang);
         await p.goto("/", { waitUntil: "domcontentloaded" });
         await p.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
         await p.waitForTimeout(700);

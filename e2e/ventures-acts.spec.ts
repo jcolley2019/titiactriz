@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { attachDiagnostics, shot, BRICK } from "./_helpers";
+import { forceLanguage } from "./_admin";
 import { TITANS_ENABLED } from "../src/lib/ventures";
 
 /**
@@ -27,8 +28,8 @@ import { TITANS_ENABLED } from "../src/lib/ventures";
  * itself is preserved, unmounted, at src/components/cinematic/CinematicGreenWorld.tsx.
  *
  * Language is resolved synchronously before first paint (src/i18n): stored
- * "ta_lang" wins, else navigator.language (es-* → ES, else EN). These specs pin
- * `locale` and clear storage so the copy assertions are deterministic.
+ * "ta_lang" wins, else Spanish (BLOG.FIXES.1 — the browser locale is not read).
+ * The English tests seed "en"; the Spanish ones clear storage and get the default.
  */
 
 const PATH = "/cinematic";
@@ -61,7 +62,7 @@ test.describe("TA.7 — Titans act (desktop, EN)", () => {
 
   test("plays once, holds the final frame; CTA + English copy", async ({ page }) => {
     const diag = attachDiagnostics(page);
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 600);
 
@@ -145,7 +146,7 @@ test.describe("TA.7 — reduced motion", () => {
 
   test("poster renders, CTA functional, zero act videos autoplay", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 500);
 

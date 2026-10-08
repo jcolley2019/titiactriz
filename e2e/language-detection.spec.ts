@@ -2,12 +2,13 @@ import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 /**
- * TA.6f — browser-language auto-detection with a persistent manual override.
+ * BLOG.FIXES.1 — Spanish is the default; English only by choice.
+ * (Was TA.6f's browser-language detection, retired: Googlebot renders with an
+ * English browser and indexed the Spanish-primary post in English.)
  *
  * Initial language (resolved synchronously in src/i18n before first paint):
- *   1. localStorage "ta_lang" — explicit manual choice, always wins.
- *   2. navigator.language starting with "es" → ES, anything else → EN.
- *   3. no navigator info → ES.
+ *   1. localStorage "ta_lang" — explicit manual choice, the only way to EN.
+ *   2. else ES — navigator.language is never read.
  *
  * Discriminators: the hero roles line is UPPERCASE in the dictionaries, so its
  * exact tokens tell the languages apart with a case-sensitive substring match:
@@ -53,7 +54,7 @@ function seedStoredLang(page: Page, value: string) {
 const readStoredLang = (page: Page) =>
   page.evaluate((key) => localStorage.getItem(key), LANG_KEY);
 
-test.describe("TA.6f — es-* browser detection", () => {
+test.describe("BLOG.FIXES.1 — an es-CO browser", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "es-CO" });
 
   test("first visit on an es-CO browser renders Spanish", async ({ page }) => {
@@ -69,56 +70,77 @@ test.describe("TA.6f — es-* browser detection", () => {
   });
 });
 
-test.describe("TA.6f — non-es browser detection", () => {
+test.describe("BLOG.FIXES.1 — an en-US browser (Googlebot's case)", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
-  test("first visit on an en-US browser renders English", async ({ page }) => {
+  test("first visit on an en-US browser with no ta_lang renders Spanish", async ({ page }) => {
     await clearStoredLang(page);
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page);
 
-    await expect(page.locator("body"), "en-US → English hero line").toContainText(EN_TOKEN);
-    await expect(page.locator("body"), "no Spanish tokens leak through").not.toContainText(
+    expect(await page.evaluate(() => navigator.language), "the browser really is English").toBe(
+      "en-US",
+    );
+    await expect(page.locator("body"), "en-US → still the Spanish hero line").toContainText(
       ES_TOKEN,
     );
-    await expect(page.locator("html"), "html lang reflects English").toHaveAttribute("lang", "en");
+    await expect(page.locator("body"), "no English tokens leak through").not.toContainText(
+      EN_TOKEN,
+    );
+    await expect(page.locator("html"), "html lang stays Spanish").toHaveAttribute("lang", "es");
+    expect(await readStoredLang(page), "the default writes no choice").toBeNull();
   });
 
-  test("stored ta_lang=es overrides en-US detection", async ({ page }) => {
+  test("stored ta_lang=en renders English", async ({ page }) => {
+    await seedStoredLang(page, "en");
+    await page.goto(PATH, { waitUntil: "domcontentloaded" });
+    await settle(page);
+
+    await expect(page.locator("body"), "stored EN → English hero line").toContainText(EN_TOKEN);
+    await expect(page.locator("body")).not.toContainText(ES_TOKEN);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  });
+
+  test("stored ta_lang=es renders Spanish", async ({ page }) => {
     await seedStoredLang(page, "es");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page);
 
-    // Explicit stored choice beats the English browser locale.
-    await expect(page.locator("body"), "stored ES wins over en-US").toContainText(ES_TOKEN);
+    await expect(page.locator("body"), "stored ES → Spanish hero line").toContainText(ES_TOKEN);
     await expect(page.locator("body")).not.toContainText(EN_TOKEN);
     await expect(page.locator("html")).toHaveAttribute("lang", "es");
   });
 
-  test("toggle flips the language and the choice persists across reload", async ({ page }) => {
+  test("toggle flips to English and the choice persists across reload", async ({ page }) => {
     // NOTE: no clearStoredLang here on purpose — a fresh context already starts
     // with empty storage, and an addInitScript clear would re-run on reload and
     // wipe the very choice this test is proving persists.
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page);
 
-    // Detection starts English (en-US, no stored choice).
-    await expect(page.locator("body")).toContainText(EN_TOKEN);
+    // The default is Spanish (en-US browser, no stored choice).
+    await expect(page.locator("body")).toContainText(ES_TOKEN);
     expect(await readStoredLang(page), "no stored choice before toggling").toBeNull();
 
-    // Manually switch to Spanish via the header language control.
+    // Manually switch to English via the header language control.
     await page.locator('[data-qa="lang-menu-trigger"]').click();
-    await page.locator('[data-qa="lang-es"]').click();
+    await page.locator('[data-qa="lang-en"]').click();
 
-    await expect(page.locator("body"), "toggle switches to Spanish").toContainText(ES_TOKEN);
-    await expect(page.locator("html")).toHaveAttribute("lang", "es");
-    expect(await readStoredLang(page), "choice persisted to ta_lang").toBe("es");
+    await expect(page.locator("body"), "toggle switches to English").toContainText(EN_TOKEN);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    expect(await readStoredLang(page), "choice persisted to ta_lang").toBe("en");
 
-    // Reload: the persisted choice must survive despite the en-US browser locale.
+    // Reload: the persisted choice must survive the Spanish default.
     await page.reload({ waitUntil: "domcontentloaded" });
     await settle(page);
-    await expect(page.locator("body"), "Spanish persists across reload").toContainText(ES_TOKEN);
-    await expect(page.locator("body")).not.toContainText(EN_TOKEN);
-    expect(await readStoredLang(page), "ta_lang still es after reload").toBe("es");
+    await expect(page.locator("body"), "English persists across reload").toContainText(EN_TOKEN);
+    await expect(page.locator("body")).not.toContainText(ES_TOKEN);
+    expect(await readStoredLang(page), "ta_lang still en after reload").toBe("en");
+
+    // And back: the toggle returns to Spanish and stores that too.
+    await page.locator('[data-qa="lang-menu-trigger"]').click();
+    await page.locator('[data-qa="lang-es"]').click();
+    await expect(page.locator("body"), "toggle switches back to Spanish").toContainText(ES_TOKEN);
+    expect(await readStoredLang(page), "choice persisted to ta_lang").toBe("es");
   });
 });

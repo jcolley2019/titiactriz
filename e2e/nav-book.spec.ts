@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { forceLanguage } from "./_admin";
 
 /**
  * NAV.SOON.1 + BOOK.0 — smoke coverage for what shipped alongside the Green
@@ -41,7 +42,7 @@ test.describe("NAV.SOON.1 — the COMING SOON disclosure", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
   test("opens, lists Book, and no longer carries TitiLinks", async ({ page }) => {
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     // A quiet ordinary page, so the disclosure is measured without the
     // cinematic reel scrubbing underneath it.
     await page.goto("/green-world", { waitUntil: "domcontentloaded" });
@@ -108,7 +109,7 @@ test.describe("BOOK.0 — /book in English", () => {
   test.use({ viewport: { width: 1440, height: 900 }, locale: "en-US" });
 
   test("renders the English coming-soon copy with a real title tag", async ({ page }) => {
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     await page.goto("/book", { waitUntil: "domcontentloaded" });
     await expect(page.locator('[data-qa="book-page"]')).toBeVisible();
 

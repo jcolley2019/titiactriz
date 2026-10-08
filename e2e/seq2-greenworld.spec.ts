@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { attachDiagnostics, shot } from "./_helpers";
+import { forceLanguage } from "./_admin";
 import { GW_LOGO_READY, GW_LOGO_SRC } from "../src/lib/ventures";
 
 /**
@@ -110,8 +111,13 @@ function clearStoredLang(page: Page) {
   }, LANG_KEY);
 }
 
-async function openHome(page: Page) {
-  await clearStoredLang(page);
+/**
+ * Open the home page in `lang` (a stored choice), or with no stored choice —
+ * the Spanish default (BLOG.FIXES.1: the browser locale no longer picks it).
+ */
+async function openHome(page: Page, lang?: "en" | "es") {
+  if (lang) await forceLanguage(page, lang);
+  else await clearStoredLang(page);
   await page.goto(PATH, { waitUntil: "domcontentloaded" });
   // The act publishes its resolved pin bounds as soon as the trigger exists.
   await page.locator(`${SEQ_ACT}[data-seq-start]`).waitFor({ timeout: 20_000 });
@@ -560,7 +566,7 @@ test.describe("SEQ.2 — the act on the home page", () => {
   });
 
   test("renders the English lockup", async ({ page }) => {
-    await openHome(page);
+    await openHome(page, "en");
     const act = page.locator(ACT);
     // The name is drawn by the brand's wordmark; the heading is sr-only and
     // carries it for the outline only.
@@ -640,7 +646,7 @@ test.describe("SEQ.2 — reduced motion", () => {
     // The `reducedMotion` fixture is not honoured in this Playwright build (see
     // the same note in cinematic.spec.ts) — emulate it on the page instead.
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await page.locator(SEQ_ACT).waitFor({ timeout: 20_000 });
 
@@ -866,9 +872,9 @@ test.describe("SEQ.2 — evidence", () => {
           locale,
         });
         const page = await context.newPage();
-        await openHome(page);
-
         const lang = locale === "en-US" ? "en" : "es";
+        await openHome(page, lang);
+
         for (const [label, t] of [
           ["first", 0],
           ["mid", 0.5],

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { attachDiagnostics, shot, BRICK } from "./_helpers";
+import { forceLanguage } from "./_admin";
 
 /**
  * TA.8 / TA.8a — TitiLinks act. A pinned product tour (browser-frame arrival →
@@ -136,7 +137,7 @@ test.describe("TA.8 — TitiLinks act (desktop, EN)", () => {
 
   test("pinned tour → launch card → clean fade release → About", async ({ page }) => {
     const diag = attachDiagnostics(page);
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 800);
 
@@ -293,7 +294,7 @@ test.describe("TA.8 — reduced motion (static fallback)", () => {
   test("no pin, no mask; frame + callouts + launch card all functional", async ({ page }) => {
     const diag = attachDiagnostics(page);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await clearStoredLang(page);
+    await forceLanguage(page, "en");
     await page.goto(PATH, { waitUntil: "domcontentloaded" });
     await settle(page, 500);
 

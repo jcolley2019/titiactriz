@@ -13,15 +13,18 @@ import es from './locales/es.json';
  * language. There is no effect-based detection and therefore no flash of the
  * wrong language.
  *
- * Priority:
+ * Priority (BLOG.FIXES.1):
  *   1. localStorage "ta_lang" ("es" | "en") — an explicit manual choice. It is
- *      written by the toggle (setLanguage) and ALWAYS outranks detection.
- *   2. else navigator.language (navigator.languages[0] as fallback): a value
- *      starting with "es" (case-insensitive: es, es-CO, es-MX, es-US, …) → ES;
- *      anything else → EN. Spanish-speaking followers and Titans creators land
- *      in Spanish; everyone else in English — neither needs the toggle.
- *   3. else (no navigator info at all) → ES (her primary market is Spanish-
- *      speaking South America, and crawlers get the indexed Spanish version).
+ *      written by the toggle (setLanguage) and is the ONLY way to get English.
+ *   2. else ES — always. The browser's language is deliberately NOT read.
+ *
+ * Why not navigator.language: Googlebot renders with an English browser. With
+ * browser detection, the Spanish-primary blog post was indexed with its ENGLISH
+ * title and description under its Spanish canonical URL (STUDIO.LIVE.1,
+ * 2026-10-07). Spanish is the site's language — her market is Spanish-speaking
+ * South America — so every visitor and every crawler gets it first, and an
+ * English reader picks EN once with the toggle; that choice persists. The admin
+ * follows the same rule.
  */
 
 export const LANG_STORAGE_KEY = 'ta_lang';
@@ -42,16 +45,8 @@ function readStoredLang(): AppLanguage | null {
   return null;
 }
 
-/** es-* browser → ES, anything else → EN, no navigator info → ES. */
-function detectBrowserLang(): AppLanguage {
-  const nav = typeof navigator !== 'undefined' ? navigator : undefined;
-  const primary = nav?.language || nav?.languages?.[0];
-  if (!primary) return 'es';
-  return primary.toLowerCase().startsWith('es') ? 'es' : 'en';
-}
-
 function resolveInitialLang(): AppLanguage {
-  return readStoredLang() ?? detectBrowserLang();
+  return readStoredLang() ?? 'es';
 }
 
 // Keep <html lang> truthful (TA.6e) so the browser stops offering a
@@ -69,7 +64,7 @@ i18n
       en: { translation: en },
       es: { translation: es },
     },
-    // Resolved synchronously from storage/navigator — see resolveInitialLang.
+    // Resolved synchronously from storage, else ES — see resolveInitialLang.
     lng: resolveInitialLang(),
     supportedLngs: ['en', 'es'],
     fallbackLng: 'es',
@@ -86,7 +81,7 @@ i18n.on('languageChanged', syncHtmlLang);
 
 /**
  * Switch the app language from a manual control (the ES/EN toggle).
- * Persists "ta_lang" so the choice outranks browser detection on every later
+ * Persists "ta_lang" so the choice outranks the Spanish default on every later
  * visit, then updates i18next (which syncs <html lang> via the listener above).
  * Call this instead of i18n.changeLanguage directly so persistence never drifts
  * from the switch.
@@ -98,7 +93,7 @@ export function setLanguage(lng: AppLanguage) {
     /* ignore storage failures; the in-memory switch still applies */
   }
   if (i18n.language?.startsWith(lng)) {
-    // Already active (e.g. confirming the detected language): make sure the
+    // Already active (e.g. confirming the default language): make sure the
     // html tag is right; no languageChanged event will fire on a no-op change.
     syncHtmlLang(lng);
   } else {
