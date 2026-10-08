@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import type { Lang } from "@/hooks/useEventsBoard";
 import { pickLocalized, rowToPost, type BlogPost, type BlogPostRow } from "@/lib/blog";
+import type { MasterFields } from "@/lib/photo-srcset";
 
 /**
  * BLOG.1 — the public side of the blog. Published posts only (RLS says the same
@@ -13,7 +14,8 @@ import { pickLocalized, rowToPost, type BlogPost, type BlogPostRow } from "@/lib
  * side when that one is blank — the site never shows an empty title.
  */
 
-export type BlogCover = { id: string; image_url: string; alt_text: string | null };
+/** The master's size, when the photo has one, tells a portrait before it loads (CoverPlate). */
+export type BlogCover = { id: string; image_url: string; alt_text: string | null } & MasterFields;
 
 type Joined = BlogPostRow & { cover: BlogCover | null };
 
@@ -27,7 +29,7 @@ export type BlogView = {
   metaDescription: string;
 };
 
-const SELECT = "*, cover:gallery_photos(id, image_url, alt_text)";
+const SELECT = "*, cover:gallery_photos(id, image_url, alt_text, master_width, master_height)";
 
 export const toView = (row: Joined, lang: Lang): BlogView => {
   const post = rowToPost(row);

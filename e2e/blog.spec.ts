@@ -1999,3 +1999,97 @@ test.describe("BLOG.GW.2 GW kinds", () => {
     await page.screenshot({ path: `${KIND_SHOTS}/admin-editor-producto-390x844.png` });
   });
 });
+
+/* ---------------- BLOG.FIXES.1 — portrait covers ---------------- */
+
+/** An offline cover of a given size (a data-URL SVG decodes to exactly w×h). */
+const sizedCover = (id: string, w: number, h: number, color: string) => ({
+  id,
+  image_url: `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='${color}'/></svg>`,
+  )}`,
+  alt_text: id,
+});
+
+/**
+ * A portrait decoded on load, a landscape, and a portrait known only from its
+ * photo row's master size — its file never loads (an unresolvable host), so
+ * the crop can only have come from the columns.
+ */
+const frameRows = (): Row[] => [
+  {
+    ...lanePost("f1", "retrato-verde", "greenworld", "24", "Retrato verde", "Green portrait"),
+    cover_photo_id: "fp",
+    cover: sizedCover("fp", 400, 600, "seagreen"),
+  },
+  {
+    ...lanePost("f2", "paisaje-personal", "personal", "20", "Paisaje", "Landscape"),
+    cover_photo_id: "fl",
+    cover: sizedCover("fl", 600, 400, "slateblue"),
+  },
+  {
+    ...lanePost("f3", "retrato-sin-cargar", "greenworld", "16", "Retrato sin cargar", "Unloaded portrait"),
+    cover_photo_id: "fm",
+    cover: {
+      id: "fm",
+      image_url: "https://never-loads.invalid/portrait.webp",
+      alt_text: "fm",
+      master_width: 3024,
+      master_height: 4032,
+    },
+  },
+];
+
+const FRAMES: [string, string][] = [
+  ["retrato-verde", "50% 18%"],
+  ["paisaje-personal", "50% 50%"],
+  ["retrato-sin-cargar", "50% 18%"],
+];
+
+const objectPosition = (page: Page, selector: string) =>
+  page.locator(selector).evaluate((el) => getComputedStyle(el).objectPosition);
+
+test.describe("BLOG.FIXES.1 portrait covers", () => {
+  for (const size of [
+    { width: 440, height: 792 },
+    { width: 1440, height: 900 },
+  ]) {
+    test(`F1 ${size.width}x${size.height}: a portrait cover crops from 18% down, a landscape one stays centred`, async ({
+      page,
+    }) => {
+      await openPublic(page, "/blog", "es", size, frameRows());
+      await expect(page.locator('[data-qa="blog-card"]')).toHaveCount(3);
+
+      // /blog cards — the plate, through CoverPlate.
+      for (const [slug, want] of FRAMES) {
+        const img = `[data-qa="blog-card"][data-slug="${slug}"] [data-qa="blog-card-cover"] img`;
+        await page.locator(img).scrollIntoViewIfNeeded();
+        await expect.poll(() => objectPosition(page, img), `/blog ${slug}`).toBe(want);
+      }
+      expect(
+        await page
+          .locator('[data-qa="blog-card"][data-slug="retrato-sin-cargar"] img')
+          .evaluate((el: HTMLImageElement) => el.naturalWidth),
+        "the master-sized portrait never decoded",
+      ).toBe(0);
+
+      // The post page's plate.
+      await page.goto("/blog/retrato-verde", { waitUntil: "domcontentloaded" });
+      await expect
+        .poll(() => objectPosition(page, '[data-qa="blog-post-cover"] img'), "post page portrait")
+        .toBe("50% 18%");
+      await page.goto("/blog/paisaje-personal", { waitUntil: "domcontentloaded" });
+      await expect
+        .poll(() => objectPosition(page, '[data-qa="blog-post-cover"] img'), "post page landscape")
+        .toBe("50% 50%");
+
+      // The Green World page's latest-posts strip: its own card, the same rule.
+      await page.goto("/green-world", { waitUntil: "domcontentloaded" });
+      for (const slug of ["retrato-verde", "retrato-sin-cargar"]) {
+        const img = `[data-qa="gw-latest-card"][data-slug="${slug}"] img`;
+        await page.locator(img).scrollIntoViewIfNeeded();
+        await expect.poll(() => objectPosition(page, img), `/green-world ${slug}`).toBe("50% 18%");
+      }
+    });
+  }
+});

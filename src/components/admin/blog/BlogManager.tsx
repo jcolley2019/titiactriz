@@ -51,6 +51,7 @@ import {
 import { SITE } from "@/lib/blog/schema";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import ImagePicker from "@/components/admin/media/ImagePicker";
+import { CoverImage } from "@/components/blog/CoverPlate";
 import GwProductRows from "@/components/admin/GwProductRows";
 import { useAdminIntent } from "@/components/admin/AdminShell";
 
@@ -1110,10 +1111,11 @@ const BlogEditor = ({
           <p className="text-xs text-muted-foreground">{t("admin.blog.coverHelp")}</p>
           <div className="flex flex-wrap items-center gap-3">
             {coverPhoto ? (
-              <img
-                data-qa="blog-cover-thumb"
-                src={coverPhoto.image_url}
-                alt={coverPhoto.alt_text ?? ""}
+              // The crop the public plate shows (CoverPlate's portrait rule).
+              <CoverImage
+                qa="blog-cover-thumb"
+                cover={coverPhoto}
+                eager
                 className="h-24 w-36 rounded-md border border-border object-cover"
               />
             ) : (

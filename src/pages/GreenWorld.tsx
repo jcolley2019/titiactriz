@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { formatPostDate } from "@/lib/blog";
+import { CoverImage } from "@/components/blog/CoverPlate";
 import ParallaxImage from "@/components/ParallaxImage";
 import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
 import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
@@ -276,11 +277,9 @@ const GreenWorld = () => {
                 >
                   {v.cover && (
                     <div className="aspect-[3/2] overflow-hidden">
-                      <img
-                        src={v.cover.image_url}
-                        alt={v.cover.alt_text ?? ""}
-                        loading="lazy"
-                        decoding="async"
+                      {/* The blog's portrait rule (CoverPlate), in this page's own card. */}
+                      <CoverImage
+                        cover={v.cover}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                     </div>
