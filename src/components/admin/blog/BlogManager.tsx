@@ -52,6 +52,8 @@ import { SITE } from "@/lib/blog/schema";
 import type { CinematicPhoto } from "@/components/cinematic/useCinematicData";
 import ImagePicker from "@/components/admin/media/ImagePicker";
 import { CoverImage } from "@/components/blog/CoverPlate";
+import CoverFrameDialog from "@/components/admin/blog/CoverFrameDialog";
+import type { CoverFraming } from "@/lib/cover-framing";
 import GwProductRows from "@/components/admin/GwProductRows";
 import { useAdminIntent } from "@/components/admin/AdminShell";
 
@@ -93,6 +95,12 @@ import { useAdminIntent } from "@/components/admin/AdminShell";
  * Titi adds the products the post mentions. Save writes them as gw_products —
  * blank rows dropped — and [] for Personal or a Green World post with no kind;
  * gw_product_name / gw_product_url are no longer read or written.
+ *
+ * BLOG.COVERFRAME.1 — Encuadrar, beside the cover, opens the cover's focal-point
+ * picker (CoverFrameDialog). Aplicar sets the draft's cover_framing and the
+ * thumbnail shows the framed crop; Guardar writes it with the text, null when
+ * reset. A focal point belongs to one photograph: changing or removing the cover
+ * clears it.
  */
 
 const FLASH_MS = 1800;
@@ -114,6 +122,8 @@ type Draft = {
   gw_kind: GwKind | null;
   gw_products: GwProduct[];
   cover_photo_id: string | null;
+  /** BLOG.COVERFRAME.1 — null is the default crop (and what a reset saves). */
+  cover_framing: CoverFraming | null;
 };
 
 const EMPTY_DRAFT: Draft = {
@@ -127,6 +137,7 @@ const EMPTY_DRAFT: Draft = {
   gw_kind: null,
   gw_products: [],
   cover_photo_id: null,
+  cover_framing: null,
 };
 
 const postToDraft = (p: BlogPost): Draft => ({
@@ -140,6 +151,7 @@ const postToDraft = (p: BlogPost): Draft => ({
   gw_kind: p.gwKind,
   gw_products: p.gwProducts,
   cover_photo_id: p.cover_photo_id,
+  cover_framing: p.coverFraming ?? null,
 });
 
 /**
@@ -585,6 +597,7 @@ const BlogEditor = ({
   const [statusBusy, setStatusBusy] = useState(false);
   const [bodyTab, setBodyTab] = useState<"write" | "preview">("write");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [frameOpen, setFrameOpen] = useState(false);
   const [coverPhoto, setCoverPhoto] = useState<CinematicPhoto | null>(null);
   const [confirm, setConfirm] = useState<"delete" | "leave" | null>(null);
   const flashTimer = useRef<number | undefined>(undefined);
@@ -669,6 +682,12 @@ const BlogEditor = ({
   const setField = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setFields((prev) => ({ ...prev, [key]: value }));
 
+  /** A focal point belongs to one photograph: a different cover, or none, starts unframed. */
+  const setCover = (id: string | null) =>
+    setFields((prev) =>
+      prev.cover_photo_id === id ? prev : { ...prev, cover_photo_id: id, cover_framing: null },
+    );
+
   const discard = () => {
     setFields(committed);
     setAttempted(false);
@@ -729,6 +748,7 @@ const BlogEditor = ({
         category: translated.category,
         ...gwColumns(translated),
         cover_photo_id: translated.cover_photo_id,
+        cover_framing: translated.cover_framing,
       };
       const res = postId
         ? await supabase.from("blog_posts").update(row as never).eq("id", postId).select("*").single()
@@ -1111,11 +1131,12 @@ const BlogEditor = ({
           <p className="text-xs text-muted-foreground">{t("admin.blog.coverHelp")}</p>
           <div className="flex flex-wrap items-center gap-3">
             {coverPhoto ? (
-              // The crop the public plate shows (CoverPlate's portrait rule).
+              // The crop the public plate shows (CoverPlate's rule, this post's framing).
               <CoverImage
                 qa="blog-cover-thumb"
                 cover={coverPhoto}
                 eager
+                framing={fields.cover_framing ?? undefined}
                 className="h-24 w-36 rounded-md border border-border object-cover"
               />
             ) : (
@@ -1134,13 +1155,24 @@ const BlogEditor = ({
               >
                 {fields.cover_photo_id ? t("admin.blog.coverChange") : t("admin.blog.coverPick")}
               </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-qa="blog-cover-frame"
+                data-framed={fields.cover_framing ? "true" : "false"}
+                onClick={() => setFrameOpen(true)}
+                disabled={busy || !fields.cover_photo_id || !coverPhoto}
+              >
+                {t("admin.blog.coverFrame")}
+              </Button>
               {fields.cover_photo_id && (
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
                   data-qa="blog-cover-remove"
-                  onClick={() => setField("cover_photo_id", null)}
+                  onClick={() => setCover(null)}
                   disabled={busy}
                 >
                   {t("admin.blog.coverRemove")}
@@ -1237,11 +1269,24 @@ const BlogEditor = ({
           currentPhotoId={fields.cover_photo_id}
           allowUpload={false}
           onSelect={(photo) => {
-            setField("cover_photo_id", photo.id);
+            setCover(photo.id);
             setCoverPhoto(photo);
             setPickerOpen(false);
           }}
           onClose={() => setPickerOpen(false)}
+        />
+      )}
+
+      {frameOpen && coverPhoto && (
+        <CoverFrameDialog
+          open={frameOpen}
+          cover={coverPhoto}
+          framing={fields.cover_framing}
+          onApply={(framing) => {
+            setField("cover_framing", framing);
+            setFrameOpen(false);
+          }}
+          onCancel={() => setFrameOpen(false)}
         />
       )}
 
