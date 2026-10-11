@@ -112,9 +112,9 @@ test.describe("ADMIN.MEDIA — media manager flow", () => {
 
     // Logged-in shell with every section (PORT.ACT.3 added portfolio, PORT.SOC.8
     // added links, BLOG.1 added blog, BLOG.2 added studio, ADMIN.GUIDE.1 added
-    // guide: ten now).
+    // guide, GW.GUIDE.1 added greenworld: eleven now).
     await expect(page.locator('[data-qa="admin-shell"]')).toBeVisible();
-    await expect(page.locator('[data-qa="admin-nav"] button')).toHaveCount(10);
+    await expect(page.locator('[data-qa="admin-nav"] button')).toHaveCount(11);
     await page.screenshot({ path: shot("ADMIN.MEDIA-shell.png"), fullPage: true });
 
     // Media section → five slots (Hero, Reel 1–3, About — ABOUT.MEDIA.1).
