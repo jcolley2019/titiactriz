@@ -113,16 +113,18 @@ const GuideSection = ({ guide, loading, lang }: Props) => {
               <ExternalLink className="w-4 h-4 ml-2" aria-hidden />
             </a>
           </Button>
-          <a
-            href={GREEN_WORLD_WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-qa="gw-guide-whatsapp"
-            className="inline-flex min-h-11 items-center gap-2 text-gw-green font-bold text-sm uppercase tracking-wider hover:text-gw-green-dark transition-colors"
-          >
-            <MessageCircle className="w-4 h-4" aria-hidden />
-            {t("greenWorld.guide.whatsapp")}
-          </a>
+          {signup.kind === "signup" && (
+            <a
+              href={GREEN_WORLD_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-qa="gw-guide-whatsapp"
+              className="inline-flex min-h-11 items-center gap-2 text-gw-green font-bold text-sm uppercase tracking-wider hover:text-gw-green-dark transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" aria-hidden />
+              {t("greenWorld.guide.whatsapp")}
+            </a>
+          )}
         </div>
       </div>
     </section>

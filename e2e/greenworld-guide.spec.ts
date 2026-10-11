@@ -34,6 +34,7 @@ const NOTE = '[data-qa="gw-guide-video-note"]';
 const STEPS = '[data-qa="gw-guide-steps"]';
 const STEP = '[data-qa="gw-guide-step"]';
 const CTA = '[data-qa="gw-guide-cta"]';
+const WA_LINK = '[data-qa="gw-guide-whatsapp"]';
 const HOWTO = 'script[type="application/ld+json"][data-qa="gw-guide-howto"]';
 
 const ES_UID = "a".repeat(32);
@@ -102,6 +103,7 @@ test.describe("GW.GUIDE.1 public", () => {
     await expect(page.locator(CTA)).toHaveText("Quiero registrarme");
     await expect(page.locator(CTA)).toHaveAttribute("target", "_blank");
     expect((await page.locator(CTA).getAttribute("rel")) ?? "").toContain("noopener");
+    await expect(page.locator(WA_LINK), "one WhatsApp button, not two").toHaveCount(0);
     await expect(page.locator(VIDEO)).toHaveCount(0);
     await expect(page.locator(NOTE)).toHaveCount(0);
     await expect(page.locator(STEPS)).toHaveCount(0);
@@ -129,6 +131,7 @@ test.describe("GW.GUIDE.1 public", () => {
     await expect(page.locator(CTA)).toHaveText("I want to register");
     await expect(page.locator(CTA)).toHaveAttribute("target", "_blank");
     expect((await page.locator(CTA).getAttribute("rel")) ?? "").toContain("noopener");
+    await expect(page.locator(WA_LINK), "one WhatsApp button, not two").toHaveCount(0);
     expect(diag.consoleErrors, "no console errors").toEqual([]);
   });
 
@@ -152,6 +155,7 @@ test.describe("GW.GUIDE.1 public", () => {
     await expect(steps.nth(0).locator("img")).toHaveCount(0);
 
     await expect(page.locator(CTA)).toHaveAttribute("href", SIGNUP);
+    await expect(page.locator(WA_LINK), "a configured signup keeps the secondary WhatsApp link").toHaveCount(1);
 
     const howTo = JSON.parse((await page.locator(HOWTO).textContent()) ?? "{}");
     expect(howTo["@type"]).toBe("HowTo");
@@ -172,6 +176,7 @@ test.describe("GW.GUIDE.1 public", () => {
     await expect(page.locator(NOTE)).toHaveCount(0);
     await expect(page.locator(CTA)).toHaveAttribute("href", SIGNUP);
     await expect(page.locator(CTA)).toHaveText("Registrarme en Green World");
+    await expect(page.locator(WA_LINK)).toHaveCount(1);
     await expect(page.locator(STEP).nth(0).locator("h3")).toHaveText("Abre la tienda");
     const howTo = JSON.parse((await page.locator(HOWTO).textContent()) ?? "{}");
     expect(howTo.name).toBe("Cómo comprar");
