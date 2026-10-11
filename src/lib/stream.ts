@@ -78,7 +78,8 @@ export const getStreamCustomerCode = (): Promise<string> => {
 
 /* ─────────────────────────── the edge function ─────────────────────────── */
 
-export type StreamKind = "hero" | "event";
+/** GW.GUIDE.1 adds "guide": the /green-world tutorial clips (up to 20 min). */
+export type StreamKind = "hero" | "event" | "guide";
 
 type StreamStatus = {
   ready: boolean;

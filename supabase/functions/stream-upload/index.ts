@@ -6,8 +6,8 @@
 // file itself, straight to the one-time uploadURL that `create` hands back.
 //
 // Contract: POST JSON with the caller's Supabase auth ->
-//   { action: "create", kind: "hero" | "event", maxDurationSeconds?: number }
-//     -> { uid, uploadURL }            (maxDurationSeconds default 600, hero 20)
+//   { action: "create", kind: "hero" | "event" | "guide", maxDurationSeconds?: number }
+//     -> { uid, uploadURL }            (maxDurationSeconds default 600, hero 20, guide 1200)
 //   { action: "status", uid }
 //     -> { ready, state, errorReason, duration, width, height, customerCode }
 //        duration/width/height are null until Stream knows them (it reports -1);
@@ -24,7 +24,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const DEFAULT_MAX_DURATION = { hero: 20, event: 600 } as const;
+// GW.GUIDE.1 — "guide" is the /green-world "Cómo comprar" tutorial (one per language).
+const DEFAULT_MAX_DURATION = { hero: 20, event: 600, guide: 1200 } as const;
 // Cloudflare's own bounds for maxDurationSeconds.
 const MAX_DURATION_CEILING = 21600;
 // A Stream video uid is 32 hex characters. Anything else never reaches the
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
 
     if (action === "create") {
       const kind = body.kind as Kind;
-      if (kind !== "hero" && kind !== "event") return json({ error: "Invalid kind" }, 400);
+      if (kind !== "hero" && kind !== "event" && kind !== "guide") return json({ error: "Invalid kind" }, 400);
       let maxDurationSeconds: number = DEFAULT_MAX_DURATION[kind];
       if (body.maxDurationSeconds !== undefined && body.maxDurationSeconds !== null) {
         const m = body.maxDurationSeconds;
