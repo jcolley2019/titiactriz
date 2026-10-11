@@ -1,3 +1,4 @@
+import i18n from "i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { isStreamRef } from "@/lib/stream";
 import type { Lang } from "@/hooks/useEventsBoard";
@@ -29,7 +30,7 @@ export type GuideStep = {
 
 export type GreenWorldGuide = {
   video: { es: string | null; en: string | null };
-  /** null → GREEN_WORLD_SHOP_URL from src/lib/ventures.ts. */
+  /** null → the page's WhatsApp line, see guideSignupHref. */
   signupUrl: string | null;
   steps: GuideStep[];
 };
@@ -90,6 +91,25 @@ export const pickGuideVideo = (
   if (own) return { ref: own, fallbackFromEs: false };
   if (lang === "en" && guide.video.es) return { ref: guide.video.es, fallbackFromEs: true };
   return null;
+};
+
+/** The page's WhatsApp line — the same number the hero badge and the JSON-LD name. */
+export const GREEN_WORLD_WHATSAPP_URL = "https://wa.me/17866277567";
+
+/**
+ * Where the register button goes. The admin's personal register link when it is
+ * set; otherwise WhatsApp with the sentence pre-filled, so an empty guide never
+ * sends a visitor anywhere but to Cristyna. It must NOT fall back to
+ * GREEN_WORLD_SHOP_URL: that is a shareLoginIn link, which opens the visitor
+ * inside the owner's own account.
+ */
+export const guideSignupHref = (
+  guide: GreenWorldGuide,
+  lang: Lang,
+): { href: string; external: boolean; kind: "signup" | "whatsapp" } => {
+  if (guide.signupUrl) return { href: guide.signupUrl, external: true, kind: "signup" };
+  const text = i18n.getFixedT(lang)("greenWorld.guide.whatsappText");
+  return { href: `${GREEN_WORLD_WHATSAPP_URL}?text=${encodeURIComponent(text)}`, external: true, kind: "whatsapp" };
 };
 
 /** A localized field in the viewer's language, else Spanish — no blank cells. */

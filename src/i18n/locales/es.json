@@ -447,6 +447,8 @@
       "videoLabel": "Video: cómo comprar en Green World",
       "videoEsOnly": "Video en español",
       "cta": "Registrarme en Green World",
+      "ctaWhatsapp": "Quiero registrarme",
+      "whatsappText": "Hola Cristyna, quiero registrarme en Green World.",
       "whatsapp": "Escríbeme por WhatsApp"
     },
     "cta": {
@@ -944,7 +946,7 @@
       "flashSaved": "guardado",
       "flashFailed": "no se guardó",
       "signupUrl": "Enlace de registro",
-      "signupUrlHelp": "Déjalo vacío para usar la tienda de Green World por defecto.",
+      "signupUrlHint": "Pega aquí el enlace de registro personal de Green World. Si está vacío, el botón abre WhatsApp.",
       "signupUrlInvalid": "El enlace debe empezar por http:// o https://",
       "videoUploadFailed": "No se pudo subir el video. Intenta de nuevo.",
       "imageUploadFailed": "No se pudo subir la captura. Intenta de nuevo.",

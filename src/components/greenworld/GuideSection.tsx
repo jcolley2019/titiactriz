@@ -5,11 +5,14 @@ import { ExternalLink, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Lang } from "@/hooks/useEventsBoard";
 import { useStreamVideo } from "@/hooks/useStreamVideo";
-import { guideText, pickGuideVideo, type GreenWorldGuide } from "@/lib/greenworld-guide";
-import { GREEN_WORLD_GUIDE_ANCHOR, GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
-
-/** The page's WhatsApp line — the same number the hero badge and the JSON-LD name. */
-const WHATSAPP_URL = "https://wa.me/17866277567";
+import {
+  GREEN_WORLD_WHATSAPP_URL,
+  guideSignupHref,
+  guideText,
+  pickGuideVideo,
+  type GreenWorldGuide,
+} from "@/lib/greenworld-guide";
+import { GREEN_WORLD_GUIDE_ANCHOR } from "@/lib/ventures";
 
 /** How long the route's entrance (PageTransition: 300 ms, y 20→0) needs before a hash scroll lands true. */
 const ENTRANCE_MS = 350;
@@ -64,7 +67,7 @@ const GuideSection = ({ guide, loading, lang }: Props) => {
   }, [loading, hash]);
 
   const video = pickGuideVideo(guide, lang);
-  const signupUrl = guide.signupUrl ?? GREEN_WORLD_SHOP_URL;
+  const signup = guideSignupHref(guide, lang);
 
   return (
     <section
@@ -105,13 +108,13 @@ const GuideSection = ({ guide, loading, lang }: Props) => {
             className="bg-gw-green hover:bg-gw-green-dark text-gw-white font-bold h-14 px-10 rounded-lg shadow-lg hover:shadow-xl transition-all"
             asChild
           >
-            <a href={signupUrl} target="_blank" rel="noopener noreferrer" data-qa="gw-guide-cta">
-              {t("greenWorld.guide.cta")}
+            <a href={signup.href} target="_blank" rel="noopener noreferrer" data-qa="gw-guide-cta">
+              {t(signup.kind === "signup" ? "greenWorld.guide.cta" : "greenWorld.guide.ctaWhatsapp")}
               <ExternalLink className="w-4 h-4 ml-2" aria-hidden />
             </a>
           </Button>
           <a
-            href={WHATSAPP_URL}
+            href={GREEN_WORLD_WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
             data-qa="gw-guide-whatsapp"

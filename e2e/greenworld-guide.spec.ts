@@ -8,15 +8,15 @@ import {
   type Write,
 } from "./_admin";
 import { attachDiagnostics } from "./_helpers";
-import { GREEN_WORLD_SHOP_URL } from "../src/lib/ventures";
 
 /**
  * GW.GUIDE.1 — "Cómo comprar" lives ON /green-world, under the hero, edited
  * from the admin's Green World section.
  *
- *  GG1  Empty config: the section renders its H2 and the CTA (→ the shop) and
+ *  GG1  Empty config: the section renders its H2 and the CTA (→ WhatsApp with
+ *       the Spanish sentence pre-filled, never the shop's shareLoginIn link) and
  *       nothing else — no video, no steps, no HowTo — and the rest of the page
- *       is unchanged.
+ *       is unchanged. GG1b is the English viewer's sentence.
  *  GG2  Full config: the EN clip for an English viewer, the ES clip for a
  *       Spanish one; three steps in order, the screenshot with its alt; the CTA
  *       is the configured signup URL; the head carries a 3-step HowTo.
@@ -39,6 +39,9 @@ const HOWTO = 'script[type="application/ld+json"][data-qa="gw-guide-howto"]';
 const ES_UID = "a".repeat(32);
 const EN_UID = "b".repeat(32);
 const SIGNUP = "https://example.com/registro";
+const WHATSAPP = "https://wa.me/17866277567?text=";
+const WA_TEXT_ES = "Hola Cristyna, quiero registrarme en Green World.";
+const WA_TEXT_EN = "Hi Cristyna, I'd like to register with Green World.";
 const SHOT = `data:image/svg+xml;base64,${Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="#2b7a4b"/></svg>',
 ).toString("base64")}`;
@@ -92,7 +95,11 @@ test.describe("GW.GUIDE.1 public", () => {
     const diag = await openGuide(page, undefined, "es");
     const section = page.locator(SECTION);
     await expect(section.locator("h2")).toHaveText("Cómo comprar");
-    await expect(page.locator(CTA)).toHaveAttribute("href", GREEN_WORLD_SHOP_URL);
+    const href = (await page.locator(CTA).getAttribute("href")) ?? "";
+    expect(href.startsWith(WHATSAPP), "an empty guide registers over WhatsApp").toBe(true);
+    expect(href).toContain(encodeURIComponent(WA_TEXT_ES));
+    expect(href, "never the shop's shareLoginIn link").not.toContain("world-food.com");
+    await expect(page.locator(CTA)).toHaveText("Quiero registrarme");
     await expect(page.locator(CTA)).toHaveAttribute("target", "_blank");
     expect((await page.locator(CTA).getAttribute("rel")) ?? "").toContain("noopener");
     await expect(page.locator(VIDEO)).toHaveCount(0);
@@ -110,6 +117,18 @@ test.describe("GW.GUIDE.1 public", () => {
     await expect(page.getByText(/Disclaimer:/)).toBeVisible();
     await expect(page.locator('[data-qa="gw-latest"]')).toHaveCount(0);
 
+    expect(diag.consoleErrors, "no console errors").toEqual([]);
+  });
+
+  test("GG1b empty config, English viewer: WhatsApp with the English sentence pre-filled", async ({ page }) => {
+    const diag = await openGuide(page, undefined, "en");
+    const href = (await page.locator(CTA).getAttribute("href")) ?? "";
+    expect(href.startsWith(WHATSAPP), "an empty guide registers over WhatsApp").toBe(true);
+    expect(href).toContain(encodeURIComponent(WA_TEXT_EN));
+    expect(href, "never the shop's shareLoginIn link").not.toContain("world-food.com");
+    await expect(page.locator(CTA)).toHaveText("I want to register");
+    await expect(page.locator(CTA)).toHaveAttribute("target", "_blank");
+    expect((await page.locator(CTA).getAttribute("rel")) ?? "").toContain("noopener");
     expect(diag.consoleErrors, "no console errors").toEqual([]);
   });
 
@@ -151,6 +170,8 @@ test.describe("GW.GUIDE.1 public", () => {
     await openGuide(page, fullGuide, "es");
     await expect(page.locator(VIDEO)).toHaveAttribute("data-stream-src", streamTestUrls(ES_UID).manifest);
     await expect(page.locator(NOTE)).toHaveCount(0);
+    await expect(page.locator(CTA)).toHaveAttribute("href", SIGNUP);
+    await expect(page.locator(CTA)).toHaveText("Registrarme en Green World");
     await expect(page.locator(STEP).nth(0).locator("h3")).toHaveText("Abre la tienda");
     const howTo = JSON.parse((await page.locator(HOWTO).textContent()) ?? "{}");
     expect(howTo.name).toBe("Cómo comprar");

@@ -617,7 +617,7 @@ const GreenWorldGuideManager = () => {
               {t("admin.greenworld.signupUrlInvalid")}
             </p>
           ) : (
-            <p className="text-xs text-muted-foreground">{t("admin.greenworld.signupUrlHelp")}</p>
+            <p className="text-xs text-muted-foreground">{t("admin.greenworld.signupUrlHint")}</p>
           )}
         </div>
 

@@ -447,6 +447,8 @@
       "videoLabel": "Video: how to order from Green World",
       "videoEsOnly": "Video in Spanish",
       "cta": "Register with Green World",
+      "ctaWhatsapp": "I want to register",
+      "whatsappText": "Hi Cristyna, I'd like to register with Green World.",
       "whatsapp": "Message me on WhatsApp"
     },
     "cta": {
@@ -944,7 +946,7 @@
       "flashSaved": "saved",
       "flashFailed": "not saved",
       "signupUrl": "Register link",
-      "signupUrlHelp": "Leave empty to use the Green World shop by default.",
+      "signupUrlHint": "Paste your personal Green World register link here. If it's empty, the button opens WhatsApp.",
       "signupUrlInvalid": "The link must start with http:// or https://",
       "videoUploadFailed": "Could not upload the video. Try again.",
       "imageUploadFailed": "Could not upload the screenshot. Try again.",
