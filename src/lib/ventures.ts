@@ -33,6 +33,14 @@ export const TITILINKS_URL = "https://titilinks.com";
 export const GREEN_WORLD_ROUTE = "/green-world";
 
 /**
+ * GW.GUIDE.1 — the id of the "Cómo comprar" guide section on that page. The
+ * act's CTA promises "paso a paso", so it lands on the guide itself:
+ * `${GREEN_WORLD_ROUTE}#${GREEN_WORLD_GUIDE_ANCHOR}`.
+ */
+export const GREEN_WORLD_GUIDE_ANCHOR = "como-comprar";
+export const GREEN_WORLD_GUIDE_HREF = `${GREEN_WORLD_ROUTE}#${GREEN_WORLD_GUIDE_ANCHOR}`;
+
+/**
  * SEQ.2 (2026-07-28) — the Green World act's STATIC logo layer.
  *
  * The re-cut frame packs are logo-free by design (SEQ.1b): the mark is no longer

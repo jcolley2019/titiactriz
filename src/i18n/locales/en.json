@@ -440,6 +440,15 @@
       "title": "Latest articles",
       "viewAll": "View all"
     },
+    "guide": {
+      "eyebrow": "Step by step",
+      "title": "How to order",
+      "intro": "Here is how to order your Green World products and register with me, step by step. Any questions, message me on WhatsApp.",
+      "videoLabel": "Video: how to order from Green World",
+      "videoEsOnly": "Video in Spanish",
+      "cta": "Register with Green World",
+      "whatsapp": "Message me on WhatsApp"
+    },
     "cta": {
       "title": "Ready to Start Your Wellness Journey?",
       "subtitle": "Contact Cristyna Polentino for personalized product recommendations and business opportunities.",

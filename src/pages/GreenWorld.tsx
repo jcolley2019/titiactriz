@@ -8,6 +8,9 @@ import { formatPostDate } from "@/lib/blog";
 import { CoverImage } from "@/components/blog/CoverPlate";
 import ParallaxImage from "@/components/ParallaxImage";
 import GreenWorldSwoosh from "@/components/greenworld/GreenWorldSwoosh";
+import GuideSection from "@/components/greenworld/GuideSection";
+import { useGreenWorldGuide } from "@/hooks/useGreenWorldGuide";
+import { guideText } from "@/lib/greenworld-guide";
 import { GREEN_WORLD_SHOP_URL } from "@/lib/ventures";
 
 import GreenWorldFeatureCard from "@/components/greenworld/GreenWorldFeatureCard";
@@ -28,6 +31,26 @@ const GreenWorld = () => {
   const { t } = useTranslation();
   const { posts, lang } = useBlogPosts();
   const latest = posts.filter((v) => v.post.category === "greenworld").slice(0, LATEST_COUNT);
+  // GW.GUIDE.1 — the "Cómo comprar" guide: the section under the hero and the
+  // head's HowTo read the same row, fetched once here.
+  const guideState = useGreenWorldGuide();
+  const guide = guideState.guide;
+  const howTo =
+    guide.steps.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          name: t("greenWorld.guide.title"),
+          description: t("greenWorld.guide.intro"),
+          step: guide.steps.map((s, i) => ({
+            "@type": "HowToStep",
+            position: i + 1,
+            name: guideText(s.title, lang),
+            text: guideText(s.body, lang) || guideText(s.title, lang),
+            ...(s.image ? { image: s.image.url } : {}),
+          })),
+        }
+      : null;
 
   const employeeInfo = {
     name: "Cristyna Polentino",
@@ -90,6 +113,8 @@ const GreenWorld = () => {
             }
           ]
         })}</script>
+        {/* One plain conditional, not a fragment (Helmet drops fragment children). */}
+        {howTo && <script type="application/ld+json" data-qa="gw-guide-howto">{JSON.stringify(howTo)}</script>}
       </SEO>
 
       {/* Hero Section - Two Column Layout */}
@@ -173,7 +198,9 @@ const GreenWorld = () => {
         </div>
       </section>
 
-
+      {/* GW.GUIDE.1 — "Cómo comprar", directly under the hero: what the home
+          act's CTA promises, on this page. */}
+      <GuideSection guide={guide} loading={guideState.loading} lang={lang} />
 
       {/* Features Section - with swoosh decoration */}
       <section className="py-16 sm:py-24 bg-gradient-to-br from-gw-green via-gw-green to-gw-green-dark text-gw-white relative overflow-hidden">

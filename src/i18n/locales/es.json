@@ -440,6 +440,15 @@
       "title": "Últimos artículos",
       "viewAll": "Ver todos"
     },
+    "guide": {
+      "eyebrow": "Paso a paso",
+      "title": "Cómo comprar",
+      "intro": "Te muestro cómo pedir tus productos Green World y registrarte conmigo, paso a paso. Si tienes dudas, escríbeme por WhatsApp.",
+      "videoLabel": "Video: cómo comprar en Green World",
+      "videoEsOnly": "Video en español",
+      "cta": "Registrarme en Green World",
+      "whatsapp": "Escríbeme por WhatsApp"
+    },
     "cta": {
       "title": "¿Listo para Comenzar tu Viaje de Bienestar?",
       "subtitle": "Contacta a Cristyna Polentino para recomendaciones personalizadas de productos y oportunidades de negocio.",

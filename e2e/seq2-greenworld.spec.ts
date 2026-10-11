@@ -304,9 +304,10 @@ test.describe("SEQ.2 — the act on the home page", () => {
       "the CTA label is AA against its own fill",
     ).toBeGreaterThan(4.5);
 
-    // It goes to the existing Green World page, internally.
+    // It goes to the existing Green World page, internally — straight to the
+    // "Cómo comprar" guide section (GW.GUIDE.1).
     const href = await page.locator(CTA).getAttribute("href");
-    expect(href ?? "", "CTA routes to /green-world").toBe("/green-world");
+    expect(href ?? "", "CTA routes to the guide on /green-world").toBe("/green-world#como-comprar");
     expect(href ?? "", "CTA is not external").not.toContain("http");
 
     // Scrolling back above the latch puts it away again — the latch reverses.
@@ -386,7 +387,7 @@ test.describe("SEQ.2 — the act on the home page", () => {
     expect(await paintedFrame(page), "still on the final frame").toBe(FRAME_COUNT - 1);
 
     await page.locator(CTA).click();
-    await expect(page).toHaveURL(/\/green-world$/);
+    await expect(page).toHaveURL(/\/green-world#como-comprar$/);
   });
 
   test("one centred stack: logo, body and CTA share a centre and a gap", async ({ page }) => {
