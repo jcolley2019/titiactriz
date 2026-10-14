@@ -113,6 +113,16 @@
   .cine-act-vh { min-height: 100vh; min-height: 100svh; }
 }
 
+/* SEO.TITIACTRIZ.NAME.1a — the bio paragraph under the hero (CinematicBio).
+   The fluid Body step bottoms out at 0.7rem (11.2px) on a phone: right for a
+   caption, wrong for a hundred-word paragraph. Below 768 it reads at the Body
+   step's ceiling held fixed — the blog body's rule (PostBody); from 768 up it
+   keeps the Body step. */
+.cine-bio-text { font-size: 0.95rem; }
+@media (min-width: 768px) {
+  .cine-bio-text { font-size: clamp(0.7rem, 1.5vw, 0.95rem); }
+}
+
 /* ===== MOBILE.EDGE.3 — the seam skirt =====
    DESIGN.md (veil grammar): "Seam skirt: a short (~110px) #0b0a08→transparent
    fade at the top edge of an act, permitted solely where the successor's bright

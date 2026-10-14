@@ -13,8 +13,9 @@ import { GOLD, IVORY } from "@/components/blog/tokens";
  * It exists as a real route rather than a dead nav item because the URL starts
  * earning the day it ships: it is crawlable, it can be linked from her socials,
  * and when the real page replaces it the address already has history instead of
- * starting from zero. The `Person` JSON-LD below is the part that does that
- * work now; a `Book` entity joins it the day there is a title and an ISBN.
+ * starting from zero. The JSON-LD below is the part that does that work now:
+ * it ties the page to her one `Person`; a `Book` entity joins it the day there
+ * is a title and an ISBN.
  */
 
 // SITE.THEME.1 — the room's variables (index.css): the bare ground (no luminance
@@ -40,15 +41,17 @@ const Book = () => {
       ? "Cristyna Polentino's book is being published. The release date and where to order it are coming soon."
       : "El libro de Cristyna Polentino está en proceso de publicación. Pronto compartiremos la fecha de lanzamiento y dónde conseguirlo.";
 
-  // Only what is actually known. No `Book` entity yet: an entity with no title
-  // and no ISBN is worse than no entity at all — it teaches the crawlers a
-  // half-fact they will have to unlearn.
-  const personLd = {
+  // SEO.TITIACTRIZ.NAME.1a — the site describes one person. index.html's
+  // static head defines her once, as `#person`, on every route (this one
+  // included), so the page names her by reference only, never as a second
+  // Person. No `Book` entity yet: an entity with no title and no ISBN is worse
+  // than no entity at all — it teaches the crawlers a half-fact they will have
+  // to unlearn.
+  const pageLd = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    name: "Cristyna Polentino",
-    url: "https://www.titiactriz.com",
-    jobTitle: lang === "en" ? "Actress, streamer, entrepreneur" : "Actriz, streamer y empresaria",
+    "@type": "WebPage",
+    url: "https://www.titiactriz.com/book",
+    about: { "@id": "https://www.titiactriz.com/#person" },
   };
 
   return (
@@ -58,7 +61,7 @@ const Book = () => {
       style={{ ...fontVars, backgroundColor: GROUND, color: IVORY }}
     >
       <SEO path="/book" title={title} description={description}>
-        <script type="application/ld+json">{JSON.stringify(personLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(pageLd)}</script>
       </SEO>
 
       <p

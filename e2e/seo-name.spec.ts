@@ -20,6 +20,15 @@ import { forceLanguage, routeSupabase } from "./_admin";
  *  N3  Phone 440×792: the hero still owns the fold (the bio starts at or below
  *      the hero's bottom), and scrolled into view the bio sits inside the
  *      viewport's width.
+ *
+ * NAME.1a —
+ *  N4  /book, ES and EN: the site describes one person. The served HTML is the
+ *      same static shell (one Person, `#person`); mounted, the page adds no
+ *      Person of its own — only a WebPage whose `about` is `#person` — so the
+ *      document holds exactly one Person, jobTitle "Actriz".
+ *  N5  The bio is readable on a phone: 390 wide it sits at the Body step's
+ *      ceiling (0.95rem = 15.2px, ≥ 14px) in both languages; from 768 up it is
+ *      still the fluid Body step (800 wide → 1.5vw = 12px).
  */
 
 type Hero = { bio: string; seoTitle: string; seoDescription: string };
@@ -108,7 +117,7 @@ test.describe("SEO.TITIACTRIZ.NAME.1", () => {
       "@context": "https://schema.org",
       "@id": `${SITE}/#person`,
       name: "Cristyna Polentino",
-      jobTitle: "Actress",
+      jobTitle: "Actriz",
       url: `${SITE}/`,
       image: `${SITE}/hero-portrait.webp`,
       sameAs: SAME_AS,
@@ -192,5 +201,71 @@ test.describe("SEO.TITIACTRIZ.NAME.1", () => {
       expect(box.x, "bio left inside the viewport").toBeGreaterThanOrEqual(0);
       expect(box.x + box.width, "bio right inside the viewport").toBeLessThanOrEqual(440);
     });
+  });
+
+  test.describe("N4 — /book names her by reference", () => {
+    test("the served /book carries the one Person and nothing else of hers", async ({ request }) => {
+      const html = await (await request.get("/book")).text();
+      const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(
+        (m) => JSON.parse(m[1]),
+      );
+      const persons = blocks.filter((b) => b["@type"] === "Person");
+      expect(persons, "one Person in the served /book").toHaveLength(1);
+      expect(persons[0]).toMatchObject({ "@id": `${SITE}/#person`, jobTitle: "Actriz" });
+    });
+
+    for (const lng of ["es", "en"] as const) {
+      test(`mounted, one Person and a WebPage about #person (${lng.toUpperCase()})`, async ({ page }) => {
+        await forceLanguage(page, lng);
+        await routeSupabase(page, { eventsBoard: BOARD_NO_BANNER });
+        await page.goto("/book", { waitUntil: "domcontentloaded" });
+        await expect(page.locator('[data-qa="book-page"]')).toBeVisible({ timeout: 15_000 });
+
+        const readBlocks = () =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('script[type="application/ld+json"]')].map((s) =>
+              JSON.parse(s.textContent ?? "null"),
+            ),
+          );
+        await expect
+          .poll(async () => (await readBlocks()).some((b) => b?.["@type"] === "WebPage"), {
+            message: "the helmet's WebPage block lands",
+          })
+          .toBe(true);
+
+        const blocks = await readBlocks();
+        const persons = blocks.filter((b) => b?.["@type"] === "Person");
+        expect(persons, "exactly one Person on /book").toHaveLength(1);
+        expect(persons[0]).toMatchObject({ "@id": `${SITE}/#person`, jobTitle: "Actriz" });
+        expect(blocks.find((b) => b?.["@type"] === "WebPage")).toEqual({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          url: `${SITE}/book`,
+          about: { "@id": `${SITE}/#person` },
+        });
+      });
+    }
+  });
+
+  test.describe("N5 — the bio is readable on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    for (const lng of ["es", "en"] as const) {
+      test(`390 wide it reads at 15.2px; from 768 up the Body step (${lng.toUpperCase()})`, async ({
+        page,
+      }) => {
+        await openHome(page, lng);
+        const bio = page.locator(BIO);
+        const fontPx = () => bio.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+
+        const phone = await fontPx();
+        console.log(`[N5] ${lng} 390x844 bio font-size ${phone}px`);
+        expect(phone, "at least 14px on a phone").toBeGreaterThanOrEqual(14);
+        expect(phone, "the Body step's ceiling, 0.95rem").toBeCloseTo(15.2, 1);
+
+        await page.setViewportSize({ width: 800, height: 900 });
+        await expect.poll(fontPx, { message: "800 wide keeps the fluid Body step (1.5vw)" }).toBeCloseTo(12, 1);
+      });
+    }
   });
 });
