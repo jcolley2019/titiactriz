@@ -144,7 +144,8 @@ const BlogPost = () => {
     articleSection: categorySection(post.category),
     ...(kindLabel ? { keywords: kindLabel } : {}),
     mainEntityOfPage: `${SITE}${path}`,
-    author: { "@type": "Person", name: "Cristyna Polentino", url: SITE },
+    // NAME.1b — the one Person, by reference: index.html defines #person on every route.
+    author: { "@id": `${SITE}/#person` },
     ...(cover ? { image: [cover.image_url] } : {}),
   };
   const faq = extractFaq(body);

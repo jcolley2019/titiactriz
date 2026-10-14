@@ -29,6 +29,14 @@ import { forceLanguage, routeSupabase } from "./_admin";
  *  N5  The bio is readable on a phone: 390 wide it sits at the Body step's
  *      ceiling (0.95rem = 15.2px, ≥ 14px) in both languages; from 768 up it is
  *      still the fluid Body step (800 wide → 1.5vw = 12px).
+ *
+ * NAME.1b —
+ *  N6  /green-world and /titans-agency, ES and EN, mounted: every JSON-LD node
+ *      on the page holds exactly one Person definition — the home `#person` —
+ *      and every Person slot (provider, founder, author, about) is a bare
+ *      `{"@id": "#person"}` reference. /titans-agency is gated off
+ *      (TITANS_ENABLED) and falls through to the 404, so it carries the home
+ *      Person alone. The blog post's author is held in blog.spec (P6).
  */
 
 type Hero = { bio: string; seoTitle: string; seoDescription: string };
@@ -60,6 +68,33 @@ const words = (s: string) => s.trim().split(/\s+/).length;
 /** The HTML parser's view of an attribute or text node: the four entities index.html could carry. */
 const unescape = (s: string) =>
   s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+
+type Node = Record<string, unknown>;
+const PERSON_SLOTS = ["provider", "founder", "author", "about"];
+
+/** Every JSON-LD node in the document: its Person definitions and its Person-slot values. */
+async function personAudit(page: Page) {
+  const blocks: unknown[] = await page.evaluate(() =>
+    [...document.querySelectorAll('script[type="application/ld+json"]')].map((s) =>
+      JSON.parse(s.textContent ?? "null"),
+    ),
+  );
+  const definitions: Node[] = [];
+  const slots: { key: string; value: unknown }[] = [];
+  const walk = (v: unknown) => {
+    if (Array.isArray(v)) return v.forEach(walk);
+    if (!v || typeof v !== "object") return;
+    const o = v as Node;
+    const type = o["@type"];
+    if (type === "Person" || (Array.isArray(type) && type.includes("Person"))) definitions.push(o);
+    for (const [k, child] of Object.entries(o)) {
+      if (PERSON_SLOTS.includes(k)) slots.push({ key: k, value: child });
+      walk(child);
+    }
+  };
+  blocks.forEach(walk);
+  return { types: blocks.map((b) => (b as Node)?.["@type"] ?? "@graph"), definitions, slots };
+}
 
 async function openHome(page: Page, lng: "es" | "en") {
   await forceLanguage(page, lng);
@@ -265,6 +300,40 @@ test.describe("SEO.TITIACTRIZ.NAME.1", () => {
 
         await page.setViewportSize({ width: 800, height: 900 });
         await expect.poll(fontPx, { message: "800 wide keeps the fluid Body step (1.5vw)" }).toBeCloseTo(12, 1);
+      });
+    }
+  });
+
+  test.describe("N6 — every page references the single #person", () => {
+    const PERSON_REF = { "@id": `${SITE}/#person` };
+
+    for (const lng of ["es", "en"] as const) {
+      test(`/green-world: one Person, the Service's provider is #person (${lng.toUpperCase()})`, async ({
+        page,
+      }) => {
+        await forceLanguage(page, lng);
+        await routeSupabase(page, { eventsBoard: BOARD_NO_BANNER });
+        await page.goto("/green-world", { waitUntil: "domcontentloaded" });
+        await expect
+          .poll(async () => (await personAudit(page)).slots.length, { message: "the Service block lands" })
+          .toBeGreaterThan(0);
+
+        const { definitions, slots } = await personAudit(page);
+        expect(definitions, "exactly one Person definition").toHaveLength(1);
+        expect(definitions[0]).toMatchObject({ "@id": `${SITE}/#person`, jobTitle: "Actriz" });
+        expect(slots).toEqual([{ key: "provider", value: PERSON_REF }]);
+      });
+
+      test(`/titans-agency: gated to the 404, the home Person alone (${lng.toUpperCase()})`, async ({ page }) => {
+        await forceLanguage(page, lng);
+        await routeSupabase(page, { eventsBoard: BOARD_NO_BANNER });
+        await page.goto("/titans-agency", { waitUntil: "domcontentloaded" });
+        await expect(page.getByText("404", { exact: true })).toBeVisible({ timeout: 15_000 });
+
+        const { definitions, slots } = await personAudit(page);
+        expect(definitions, "exactly one Person definition").toHaveLength(1);
+        expect(definitions[0]).toMatchObject({ "@id": `${SITE}/#person` });
+        for (const s of slots) expect(s.value, `${s.key} is a reference`).toEqual(PERSON_REF);
       });
     }
   });

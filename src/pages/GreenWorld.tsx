@@ -95,19 +95,13 @@ const GreenWorld = () => {
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@graph": [
-            {
-              "@type": "Person",
-              "@id": "https://www.titiactriz.com/#cristyna",
-              "name": "Cristyna Polentino",
-              "url": "https://www.titiactriz.com",
-              "sameAs": ["https://wa.me/17866277567"]
-            },
+            // NAME.1b — no Person of its own: the provider is index.html's #person.
             {
               "@type": "Service",
               "name": "Green World — Distribuidora Independiente Cristyna Polentino",
               "serviceType": "Suplementos naturales y oportunidad de negocio Green World",
               "url": "https://www.titiactriz.com/green-world",
-              "provider": { "@id": "https://www.titiactriz.com/#cristyna" },
+              "provider": { "@id": "https://www.titiactriz.com/#person" },
               "areaServed": ["United States", "Latin America", "Colombia"],
               "description": "Compra de productos Green World y registro como distribuidor independiente con Cristyna Polentino. Green World natural supplements and independent distributor enrollment, serving the US and Latin America."
             }

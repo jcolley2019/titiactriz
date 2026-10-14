@@ -331,15 +331,8 @@ const TitansAgency = () => {
           "name": "Titans Agency Latam",
           "url": "https://www.titiactriz.com/titans-agency",
           "description": "Agencia de crecimiento en TikTok para creadores latinoamericanos. TikTok growth agency for Latin American creators.",
-          "founder": {
-            "@type": "Person",
-            "name": "Cristyna Polentino",
-            "sameAs": [
-              "https://www.tiktok.com/@titina_polen",
-              "https://www.instagram.com/cristinapolentino_actriz",
-              "https://www.youtube.com/@mimundoderoles6875"
-            ]
-          },
+          // NAME.1b — the one Person, by reference: index.html defines #person.
+          "founder": { "@id": "https://www.titiactriz.com/#person" },
           "areaServed": ["Latin America", "Spain", "United States"],
           "knowsAbout": ["TikTok growth", "Creator monetization", "Brand partnerships", "Content strategy"],
           "address": {

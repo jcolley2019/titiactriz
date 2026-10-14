@@ -518,9 +518,13 @@ test.describe("BLOG.1 public", () => {
       headline: "Un día en el set",
       datePublished: iso("2026-09-20T15:00:00Z"),
       dateModified: iso("2026-09-21T10:00:00Z"),
-      author: { "@type": "Person", name: "Cristyna Polentino" },
       image: [COVER_SET.image_url],
     });
+    // NAME.1b — the author is the one Person, by reference, never a second definition.
+    expect(article.author).toEqual({ "@id": "https://www.titiactriz.com/#person" });
+    expect(h.ld.filter((l) => l?.["@type"] === "Person").map((l) => l["@id"])).toEqual([
+      "https://www.titiactriz.com/#person",
+    ]);
 
     // A post with its own meta description uses it.
     await page.goto("/blog/bailar-en-medellin", { waitUntil: "domcontentloaded" });
@@ -759,6 +763,11 @@ test.describe("BLOG.SEO.1 structured data", () => {
     expect(crumbs(breadcrumb).map((c) => c.name)).toEqual(["Home", "Blog", "Shoot questions"]);
     const faq = ld.find((l) => l["@type"] === "FAQPage")!;
     expect((faq.mainEntity as Ld[]).map((q) => q.name)).toEqual(["How long is a shoot day?", "What do you bring to set?"]);
+    // NAME.1b — in English too, the author is the one #person by reference.
+    expect(ld.find((l) => l["@type"] === "Article")!.author).toEqual({ "@id": "https://www.titiactriz.com/#person" });
+    expect((await head(page)).ld.filter((l) => l?.["@type"] === "Person").map((l) => l["@id"])).toEqual([
+      "https://www.titiactriz.com/#person",
+    ]);
   });
 
   test("S4 extractFaq: fences, lone questions and question-less H3s are not an FAQ", () => {
