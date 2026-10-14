@@ -9,9 +9,9 @@ import { forceLanguage, routeSupabase } from "./_admin";
  * server sends had an empty #root.
  *
  *  B1  Raw HTML from `/` (no JS): exactly one <h1>, reading "Cristyna
- *      Polentino"; <title> ≤ 62 chars; meta description 150–160 chars; the
- *      static shell is present; no retired role (TikToker, bailarina, dancer)
- *      anywhere in it.
+ *      Polentino"; <title> ≤ 62 chars; meta description 150–154 chars
+ *      (SEO.TITIACTRIZ.NAME.1 caps it under 155); the static shell is present;
+ *      no retired role (TikToker, bailarina, dancer) anywhere in it.
  *  B2  Mounted page, Chromium AND WebKit at Joey's iPhone truth: React replaced
  *      the shell (exactly one h1, no [data-static-shell]); the boot cover is
  *      gone within 4s and lifted over React's output, never over the shell;
@@ -201,13 +201,13 @@ test.describe("SEO.BING.1", () => {
 
     // SEO.HEADDUP.1 — the static head tags carry data-rh, so match by name, not literal markup.
     const title = html.match(/<title[^>]*>([^<]*)<\/title>/)?.[1] ?? "";
-    expect(title).toBe("Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín");
+    expect(title).toBe("Cristyna Polentino — Actriz | Sitio Oficial");
     expect(chars(title), `title length: ${title}`).toBeLessThanOrEqual(62);
 
     const description =
       html.match(/<meta[^>]*\bname="description"[^>]*\bcontent="([^"]*)"/)?.[1] ?? "";
     expect(chars(description), `description length: ${description}`).toBeGreaterThanOrEqual(150);
-    expect(chars(description), `description length: ${description}`).toBeLessThanOrEqual(160);
+    expect(chars(description), `description length: ${description}`).toBeLessThan(155);
 
     expect(html).toContain("data-static-shell");
     expect(html).toContain(INTRO_ES);

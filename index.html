@@ -38,9 +38,13 @@
       `meta[data-rh]` set, so on its first commit it adopts an identical tag and
       removes a stale one instead of appending a second copy after it. A tag
       without the marker (author, keywords, geo, og:image:alt) is left alone.
+
+      SEO.TITIACTRIZ.NAME.1 — the title and description are es.json's
+      hero.seoTitle / hero.seoDescription, verbatim: the helmet reads the same
+      keys, and e2e/seo-name.spec.ts holds the two copies equal.
     -->
-    <title data-rh="true">Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín</title>
-    <meta data-rh="true" name="description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World.">
+    <title data-rh="true">Cristyna Polentino — Actriz | Sitio Oficial</title>
+    <meta data-rh="true" name="description" content="Sitio oficial de Cristyna Polentino (Titi Polentino), actriz colombiana con base en Medellín: actuación, streaming en vivo, emprendimiento y su comunidad.">
     <meta name="author" content="Cristyna Polentino" />
     <!-- TITANS.OFF.1 — "Titans Agency" dropped from keywords; restore it with the flag. -->
     <meta name="keywords" content="Cristyna Polentino, actriz colombiana, Colombian actress, streamer, creadora de contenido, empresaria, entrepreneur, Medellín, Colombia, Green World, TikTok, content creator" />
@@ -63,8 +67,8 @@
     <meta data-rh="true" property="og:locale:alternate" content="es_ES" />
     <meta data-rh="true" property="og:locale:alternate" content="es_MX" />
     <meta data-rh="true" property="og:locale:alternate" content="es_AR" />
-    <meta data-rh="true" property="og:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
-    <meta data-rh="true" property="og:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
+    <meta data-rh="true" property="og:title" content="Cristyna Polentino — Actriz | Sitio Oficial" />
+    <meta data-rh="true" property="og:description" content="Sitio oficial de Cristyna Polentino (Titi Polentino), actriz colombiana con base en Medellín: actuación, streaming en vivo, emprendimiento y su comunidad." />
     <meta data-rh="true" property="og:image" content="https://www.titiactriz.com/og-image-v7.jpg" />
     <!-- The file is a 1376×768 PNG despite its .jpg name. -->
     <meta data-rh="true" property="og:image:width" content="1376" />
@@ -73,8 +77,8 @@
 
     <!-- Twitter -->
     <meta data-rh="true" name="twitter:card" content="summary_large_image" />
-    <meta data-rh="true" name="twitter:title" content="Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín" />
-    <meta data-rh="true" name="twitter:description" content="Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World." />
+    <meta data-rh="true" name="twitter:title" content="Cristyna Polentino — Actriz | Sitio Oficial" />
+    <meta data-rh="true" name="twitter:description" content="Sitio oficial de Cristyna Polentino (Titi Polentino), actriz colombiana con base en Medellín: actuación, streaming en vivo, emprendimiento y su comunidad." />
     <meta data-rh="true" name="twitter:image" content="https://www.titiactriz.com/og-image-v7.jpg" />
 
     <!-- Preconnect to Google Fonts -->
@@ -112,12 +116,13 @@
     {
       "@context": "https://schema.org",
       "@type": "Person",
+      "@id": "https://www.titiactriz.com/#person",
       "name": "Cristyna Polentino",
-      "alternateName": ["Cristina Polentino", "Cris Polentino", "Cristyna", "Cristina", "Cris", "Titi", "TitiActriz"],
-      "url": "https://www.titiactriz.com",
-      "image": "https://www.titiactriz.com/og-image.png",
+      "alternateName": ["Titi Polentino", "Cristina Polentino", "Cristina Polentino Vanegas", "Titi Actriz", "Titina Polen", "Titi"],
+      "jobTitle": "Actress",
+      "url": "https://www.titiactriz.com/",
+      "image": "https://www.titiactriz.com/hero-portrait.webp",
       "description": "Actriz colombiana, streamer y empresaria en Medellín. Colombian actress, streamer and entrepreneur.",
-      "jobTitle": ["Actriz", "Streamer", "Empresaria", "Actress", "Entrepreneur"],
       "nationality": {
         "@type": "Country",
         "name": "Colombia"
@@ -145,6 +150,20 @@
       ]
     }
     </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://www.titiactriz.com/#website",
+      "name": "Cristyna Polentino",
+      "alternateName": "TitiActriz",
+      "url": "https://www.titiactriz.com/",
+      "inLanguage": ["es", "en"],
+      "publisher": {
+        "@id": "https://www.titiactriz.com/#person"
+      }
+    }
+    </script>
   </head>
 
   <body>
@@ -170,13 +189,16 @@
       the boot cover above, and createRoot().render clears #root on its first
       commit, so the mounted page carries exactly one h1 (the hero's). No
       styles of its own — it must not fight the app stylesheet if the 4s safety
-      net ever lifts the cover over it.
+      net ever lifts the cover over it. SEO.TITIACTRIZ.NAME.1 adds the bio
+      paragraph (hero.bio, both languages), the twin of CinematicBio.
     -->
     <div id="root"><div data-static-shell>
       <h1>Cristyna Polentino</h1>
       <p>Actriz · Streamer · Empresaria</p>
       <p lang="es">Actriz colombiana, streamer y empresaria en Medellín. Su historia, su comunidad y sus proyectos.</p>
       <p lang="en">Colombian actress, streamer and entrepreneur in Medellín. Her story, her community and her projects.</p>
+      <p lang="es">Cristyna Polentino, conocida por su comunidad como Titi Polentino, es una actriz colombiana con base en Medellín. Su camino comenzó en el escenario, donde descubrió que el movimiento y la emoción son lenguajes que todos entienden, y hoy lo continúa frente a la cámara. Entre sus créditos está El Casting, de Mi Mundo de Roles, su canal de YouTube. Además de actuar, es streamer y empresaria: reúne en vivo a su comunidad y construye sus propios proyectos con la misma disciplina que lleva a cada papel. Este es su sitio oficial, con su trabajo de actuación, su comunidad y sus proyectos en un solo lugar.</p>
+      <p lang="en">Cristyna Polentino, known to her community as Titi Polentino, is a Colombian actress based in Medellín. Her journey began on stage, where she discovered that movement and emotion are languages everyone understands, and today she carries it in front of the camera. Her credits include El Casting, from Mi Mundo de Roles, her YouTube channel. Beyond acting, she is a streamer and an entrepreneur: she gathers her community live and builds her own projects with the same discipline she brings to every role. This is her official site, with her acting work, her community and her projects in one place.</p>
     </div></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>

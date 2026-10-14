@@ -20,7 +20,7 @@ import type { Lang, Localized } from "@/hooks/useEventsBoard";
  *
  * Partial documents are legal and are the common case: any field absent or blank
  * falls back, field by field, to what the site shipped before this brick — the
- * i18n roles line and intro, and SEO.BING.1's helmet title and description
+ * i18n roles line and intro, and the i18n helmet title and description
  * (reelChapters.ts's fallback law). A missing row is therefore today's site,
  * exactly. `meta` is admin bookkeeping (which slot the owner typed, which still
  * waits on a translation) and no public reader looks at it.
@@ -48,20 +48,19 @@ export type HeroCopyDoc = {
 };
 
 /**
- * SEO.BING.1's helmet strings — the default search listing. The helmet was never
- * localized (SEO.tsx builds no EN variant), so an English visitor has always read
- * these same two lines; the default keeps it that way in both locales.
+ * What each field reads when the row does not say, for one locale's `t`.
+ *
+ * SEO.TITIACTRIZ.NAME.1 — the default search listing is the name pass's
+ * "Cristyna Polentino — Actriz | Sitio Oficial" and its Actress twin, now a
+ * locale pair (hero.seoTitle / hero.seoDescription). SEO.BING.1's helmet was
+ * never localized; an English visitor now reads the English listing. index.html
+ * carries the Spanish pair verbatim for crawlers that run no JS.
  */
-export const HERO_TITLE_DEFAULT = "Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín";
-export const HERO_DESCRIPTION_DEFAULT =
-  "Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World.";
-
-/** What each field reads when the row does not say, for one locale's `t`. */
 export const heroCopyDefaults = (t: (key: string) => string): HeroCopy => ({
   roles: t("hero.rolesLine"),
   intro: t("hero.intro"),
-  title: HERO_TITLE_DEFAULT,
-  description: HERO_DESCRIPTION_DEFAULT,
+  title: t("hero.seoTitle"),
+  description: t("hero.seoDescription"),
 });
 
 const isObj = (v: unknown): v is Record<string, unknown> =>

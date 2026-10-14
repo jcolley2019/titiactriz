@@ -15,6 +15,7 @@ import {
   type ResolvedReelSlot,
 } from "@/hooks/useCinematicMedia";
 import CinematicHero from "@/components/cinematic/CinematicHero";
+import CinematicBio from "@/components/cinematic/CinematicBio";
 import CinematicReel from "@/components/cinematic/CinematicReel";
 import { resolveReelChapter } from "@/components/cinematic/reelChapters";
 import CinematicEvents from "@/components/cinematic/CinematicEvents";
@@ -114,10 +115,12 @@ const HomeCinematic = () => {
   }, [prefersReduced]);
 
   // Keep ScrollTrigger measurements correct once async photos change layout.
+  // SEO.TITIACTRIZ.NAME.1 — and once a language switch re-flows the bio
+  // paragraph under the hero, which sits above every pinned act.
   useEffect(() => {
     if (prefersReduced) return;
     ScrollTrigger.refresh();
-  }, [photos, prefersReduced]);
+  }, [photos, prefersReduced, i18n.language]);
 
   // TA.7d: own the scroll position for this cinematic route. Disable the
   // browser's automatic scroll restoration — on a refresh it could otherwise
@@ -185,6 +188,13 @@ const HomeCinematic = () => {
         videoLandscape={hero.videoLandscape}
         videoPortrait={hero.videoPortrait}
       />
+
+      {/* SEO.TITIACTRIZ.NAME.1 — the bio paragraph: name, city, credit, as
+          plain visible text directly under the hero. The Events act below it
+          still sits under the hero and above 01, which is all the EVENTS.2
+          ruling asks; it is no longer the hero's immediate neighbour. See
+          CinematicBio. */}
+      <CinematicBio />
 
       {/* EVENTS.2 — the Events act, DIRECTLY AFTER THE HERO and before act 01.
           Owner ruling (supersedes the EVENTS.1 slot-5 placement), verbatim:

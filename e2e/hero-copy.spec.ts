@@ -12,7 +12,7 @@ import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./
  * One site_settings row, `hero.copy`, read by every layout through useHeroCopy.
  *
  *  H1  Row absent → all three layouts read today's ACTRIZ STREAMER EMPRESARIA,
- *      and the helmet title is SEO.BING.1's.
+ *      and the helmet title is the default (SEO.TITIACTRIZ.NAME.1's).
  *  H2  Row present → all three layouts render ITS roles line (classic as three
  *      words between gold "|"), the cinematic intro reads its sentence, and EN
  *      renders the en.* values.
@@ -36,9 +36,10 @@ import { forceLanguage, injectAdminSession, routeSupabase, type Write } from "./
  */
 
 const HERO_COPY_KEY = "hero.copy";
-const SEO_TITLE = "Cristyna Polentino | Actriz, Streamer y Empresaria · Medellín";
+// SEO.TITIACTRIZ.NAME.1 — es.json's hero.seoTitle / hero.seoDescription.
+const SEO_TITLE = "Cristyna Polentino — Actriz | Sitio Oficial";
 const SEO_DESCRIPTION =
-  "Cristyna Polentino (Titi): actriz colombiana, streamer y empresaria en Medellín. Su portafolio de actuación, su comunidad en vivo y su proyecto con Green World.";
+  "Sitio oficial de Cristyna Polentino (Titi Polentino), actriz colombiana con base en Medellín: actuación, streaming en vivo, emprendimiento y su comunidad.";
 const INTRO_ES_DEFAULT =
   "Actriz colombiana, streamer y empresaria en Medellín. Su historia, su comunidad y sus proyectos.";
 
