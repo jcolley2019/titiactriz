@@ -396,7 +396,21 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
           />
           <div className="relative z-10 mx-auto flex h-full max-w-6xl items-center px-6">
             <div className="grid w-full items-center gap-8 lg:grid-cols-[1.15fr_0.6fr] lg:gap-10">
-              <BrowserFrame frameRef={frameRef} innerRef={innerRef} domain={t("cinematic.titilinks.domain")} />
+              {/* SC.AUDIT.1a — the frame's cell is the announcement card's
+                  containing block from lg up, so the card irises in over the
+                  frame it replaces and the chips keep their column. Centred on
+                  the stage, it reached 53px into that column at 1440×900 (the
+                  container is capped, so 1280 and 1920 were the same) and sat
+                  over every chip through the whole of scene 3.
+
+                  Below lg the cell is static, so the card's containing block
+                  falls through to the full-height column above — the stage,
+                  as it always was. The phone's card does not move. */}
+              <div className="lg:relative">
+                <BrowserFrame frameRef={frameRef} innerRef={innerRef} domain={t("cinematic.titilinks.domain")} />
+                {/* Announcement card irises in over the frame during scene 3. */}
+                <LaunchCard cardRef={cardRef} clipped />
+              </div>
               <div className="hidden lg:block">
                 <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: GOLD }}>
                   {t("cinematic.titilinks.eyebrow")}
@@ -426,9 +440,6 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
               </div>
             </div>
           </div>
-
-          {/* Announcement card irises in over the whole stage during scene 3. */}
-          <LaunchCard cardRef={cardRef} clipped />
         </div>
 
         {/* Release sweep — a single thin gold line, wiped once across on exit.
