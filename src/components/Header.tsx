@@ -8,6 +8,7 @@ import { setLanguage } from "@/i18n";
 import LanguageToggle from "./LanguageToggle";
 import { useRoomTheme } from "./SiteTheme";
 import { useEventsBoard } from "@/hooks/useEventsBoard";
+import { useShownHomeVariant } from "@/hooks/useHomeVariant";
 import { TITANS_ENABLED, TITILINKS_URL } from "@/lib/ventures";
 import monogram from "@/assets/cp-monogram-transparent.png";
 import monogramTwoTone from "@/assets/cp-monogram-twotone.png";
@@ -26,6 +27,24 @@ type NavLink = {
   /** Stable spec hook, so a test names the destination rather than its position. */
   qa?: string;
 };
+
+/**
+ * SC.AUDIT.1a — the halo over the cinematic hero's VIDEO: tight, on the glyphs
+ * and the monogram only, never a ground under the bar (nothing is shaded over
+ * photos or video). Zero offset, no layer blurred past 3px, stacked so the
+ * darkening lands in the first pixel or two around each stroke — the ring the
+ * eye actually reads a letter against. NAV.CLEAR.1's halo spent its weight in a
+ * 10px glow and left that ring nearly bare: on the hero's worst frame its labels
+ * measured 3.14:1 (the gold "¡Próximamente!!!") and the monogram 1.74:1.
+ * The monogram is an <img>, so it takes drop-shadow links; each link shadows the
+ * one before, so three 1px links reach about 3px.
+ */
+const HERO_VIDEO_HALO = [
+  ...Array<string>(4).fill("0 0 1px #0b0a08"),
+  ...Array<string>(4).fill("0 0 2px #0b0a08"),
+  "0 0 3px #0b0a08",
+].join(", ");
+const HERO_VIDEO_LOGO_HALO = Array<string>(3).fill("drop-shadow(0 0 1px #0b0a08)").join(" ");
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -178,6 +197,12 @@ const Header = () => {
   // charcoal and the dark halo would smudge ink glyphs, so it takes the
   // reading pages' bar. A dark home keeps the cinematic chrome exactly.
   const isCinematicHome = !lightRoom && (location.pathname === "/" || location.pathname === "/cinematic");
+  // SC.AUDIT.1a — of those, the one whose bar sits on video: the cinematic
+  // variant's hero. A dark classic or editorial home wears the same chrome over
+  // no video, and keeps NAV.CLEAR.1's halo exactly.
+  const homeVariant = useShownHomeVariant();
+  const overHeroVideo =
+    isCinematicHome && (location.pathname === "/cinematic" || homeVariant === "cinematic");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -239,10 +264,14 @@ const Header = () => {
   // under it: near-black at the hero, near-WHITE at Green World. A halo on the
   // glyphs does that at zero cost to the picture, where any panel or fill would
   // be the very lid the transparent header exists to remove. Applied only where
-  // the header is transparent over moving art.
-  const navHalo = isCinematicHome
-    ? { textShadow: "0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)" }
-    : undefined;
+  // the header is transparent over moving art — and over the hero's video, the
+  // tight one (HERO_VIDEO_HALO), the monogram included.
+  const navHalo = overHeroVideo
+    ? { textShadow: HERO_VIDEO_HALO }
+    : isCinematicHome
+      ? { textShadow: "0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)" }
+      : undefined;
+  const logoHalo = overHeroVideo ? { filter: HERO_VIDEO_LOGO_HALO } : undefined;
 
   // 13px at lg is the ratified Nav-label step (DESIGN.md Typography), not an
   // off-ramp literal: the nav must stay legible with no bar behind it.
@@ -417,6 +446,7 @@ const Header = () => {
               src={isGreenWorldPage || lightRoom ? monogramTwoTone : monogram}
               alt="Cristyna Polentino CP monogram"
               className="h-9 md:h-11 w-auto select-none"
+              style={logoHalo}
               draggable={false}
             />
           </Link>
@@ -449,6 +479,7 @@ const Header = () => {
             src={isGreenWorldPage || lightRoom ? monogramTwoTone : monogram}
             alt="Cristyna Polentino CP monogram"
             className="h-7 xs:h-8 w-auto select-none"
+            style={logoHalo}
             draggable={false}
           />
         </Link>

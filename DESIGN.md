@@ -1045,11 +1045,23 @@ across the opening picture. Past `~80vh` (`scrollY > innerHeight * 0.8`) it
 grounds on the site's near-black — `#0b0a08` at 95% with backdrop blur — so
 the acts' type and ornaments pass beneath it instead of colliding with the
 glyphs; the header's `700ms` transition makes the switch a fade, not a pop.
-While transparent over moving art, legibility comes from a per-glyph halo
-(`text-shadow: 0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)`),
+While transparent over moving art, legibility comes from a per-glyph halo,
 never from a panel — the panel would be the very lid the transparent header
 exists to remove. Scoped to the cinematic routes; ordinary pages keep their
 own scrolled fill.
+
+- **Over the hero's video the halo is tight** (SC.AUDIT.1a): on the nav labels,
+  `text-shadow` of four `0 0 1px`, four `0 0 2px` and one `0 0 3px` layer of
+  `#0b0a08`; on the monogram, three chained `drop-shadow(0 0 1px #0b0a08)`.
+  Zero offset, nothing blurred past 3px, nothing shaded over the video itself.
+  The darkening lands in the first pixel or two around each stroke, where the
+  eye reads the letter: every label holds ≥ 4.5:1 against that ring on the
+  hero's worst frame (5.25:1 at 1440×900, every frame of the loop). Applied
+  wherever the bar sits on the cinematic variant's hero (`/` showing cinematic,
+  and `/cinematic`), in either site theme — the cinematic home is dark-only.
+- **The dark classic and editorial homes** wear the same chrome over no video
+  and keep NAV.CLEAR.1's original halo,
+  `text-shadow: 0 1px 2px rgba(11,10,8,0.75), 0 2px 10px rgba(11,10,8,0.65)`.
 
 ### Signature — the framed media resolver
 
