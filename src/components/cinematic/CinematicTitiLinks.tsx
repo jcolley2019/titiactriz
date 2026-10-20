@@ -32,13 +32,29 @@ gsap.registerPlugin(ScrollTrigger);
  *      ever exist outside the act at any scroll position.
  *
  * NO code sharing / iframe / embed with the real product — everything here is a
- * static, hand-built recreation. Under reduced motion the whole thing degrades
- * to a static, fully-functional stacked composition (no pin, no release anim).
+ * static, hand-built recreation.
+ *
+ * SC.AUDIT.1a — under reduced motion the act is its own SETTLED frame, the way
+ * the reel and Green World are: the same stage, unpinned and untweened, at the
+ * last frame scene 3 holds before the release — the tour scrolled through to the
+ * phones, the frame receded, every chip in, the card open with a live CTA. One
+ * scene and one heading. It used to be a separate stacked composition (headline
+ * block, frame, chips, card), which set the headline, eyebrow and sub twice:
+ * once above the frame and once inside it.
  */
 
 const TL_BG = "#0e0c09"; // warm near-black (TitiLinks landing background)
 const GOLD = "#C9A55C";
 const SURFACE = "hsl(30 12% 12%)";
+
+/**
+ * Where the scrubbed scenes end, in one place: the timeline tweens to these, and
+ * reduced motion paints them as the act's settled frame. TOUR_END is scene 2 —
+ * how far the mini-landing has scrolled inside the frame, and each phone's
+ * parallax (yPercent); FRAME_RECEDED is scene 3's frame behind the card.
+ */
+const TOUR_END = { landing: -42, phones: [-8, -20, -13] } as const;
+const FRAME_RECEDED = { scale: 0.92, filter: "blur(4px)", opacity: 0.6 } as const;
 
 const CALLOUT_KEYS = [
   "fullscreen",
@@ -52,10 +68,25 @@ const CALLOUT_KEYS = [
 /* ---------------- Mini phone mockup ---------------- */
 type PhoneVariant = { name: string; handle: string; accent: string; cover: string };
 
-const MiniPhone = ({ v, className = "", w = 150 }: { v: PhoneVariant; className?: string; w?: number }) => {
+const MiniPhone = ({
+  v,
+  className = "",
+  w = 150,
+  settledY,
+}: {
+  v: PhoneVariant;
+  className?: string;
+  w?: number;
+  /** Reduced motion: the phone's parallax where the tour ends (yPercent). */
+  settledY?: number;
+}) => {
   const scale = w / 300;
   return (
-    <div className={className} style={{ width: w, height: 620 * scale }} aria-hidden>
+    <div
+      className={className}
+      style={{ width: w, height: 620 * scale, transform: settledY === undefined ? undefined : `translateY(${settledY}%)` }}
+      aria-hidden
+    >
       <div style={{ width: 300, transformOrigin: "top left", transform: `scale(${scale})` }}>
         <div
           className="relative rounded-[44px] p-2.5"
@@ -117,10 +148,15 @@ const PHONES: PhoneVariant[] = [
 ];
 
 /* ---------------- Mini landing (inside the browser frame) ---------------- */
-const MiniLanding = ({ innerRef }: { innerRef?: React.Ref<HTMLDivElement> }) => {
+const MiniLanding = ({ innerRef, settled = false }: { innerRef?: React.Ref<HTMLDivElement>; settled?: boolean }) => {
   const { t } = useTranslation();
   return (
-    <div ref={innerRef} data-qa="tl-landing" className="tl-landing absolute inset-x-0 top-0 px-6 pt-10 pb-16" style={{ backgroundColor: TL_BG }}>
+    <div
+      ref={innerRef}
+      data-qa="tl-landing"
+      className="tl-landing absolute inset-x-0 top-0 px-6 pt-10 pb-16"
+      style={{ backgroundColor: TL_BG, transform: settled ? `translateY(${TOUR_END.landing}%)` : undefined }}
+    >
       {/* soft gold spotlight */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -155,9 +191,9 @@ const MiniLanding = ({ innerRef }: { innerRef?: React.Ref<HTMLDivElement> }) => 
       </div>
       {/* Phones */}
       <div className="relative z-10 mt-10 flex items-start justify-center gap-5">
-        <MiniPhone v={PHONES[0]} w={150} className="tl-phone tl-phone-1 mt-6" />
-        <MiniPhone v={PHONES[1]} w={168} className="tl-phone tl-phone-2" />
-        <MiniPhone v={PHONES[2]} w={150} className="tl-phone tl-phone-3 mt-10 hidden sm:block" />
+        <MiniPhone v={PHONES[0]} w={150} className="tl-phone tl-phone-1 mt-6" settledY={settled ? TOUR_END.phones[0] : undefined} />
+        <MiniPhone v={PHONES[1]} w={168} className="tl-phone tl-phone-2" settledY={settled ? TOUR_END.phones[1] : undefined} />
+        <MiniPhone v={PHONES[2]} w={150} className="tl-phone tl-phone-3 mt-10 hidden sm:block" settledY={settled ? TOUR_END.phones[2] : undefined} />
       </div>
     </div>
   );
@@ -207,10 +243,13 @@ const BrowserFrame = ({
   frameRef,
   innerRef,
   domain,
+  settled = false,
 }: {
   frameRef?: React.Ref<HTMLDivElement>;
   innerRef?: React.Ref<HTMLDivElement>;
   domain: string;
+  /** Reduced motion: paint the frame where the scrub leaves it (TOUR_END, FRAME_RECEDED). */
+  settled?: boolean;
 }) => (
   <div
     ref={frameRef}
@@ -219,6 +258,9 @@ const BrowserFrame = ({
     style={{
       border: "1px solid rgba(255,255,255,0.1)",
       boxShadow: "0 40px 90px -30px rgba(0,0,0,0.85), 0 0 70px -30px rgba(201,165,92,0.35)",
+      ...(settled
+        ? { transform: `scale(${FRAME_RECEDED.scale})`, filter: FRAME_RECEDED.filter, opacity: FRAME_RECEDED.opacity }
+        : {}),
     }}
   >
     {/* Chrome */}
@@ -238,7 +280,7 @@ const BrowserFrame = ({
     </div>
     {/* Viewport (clips the translating mini-landing) */}
     <div className="tl-frame-viewport relative overflow-hidden" style={{ height: "clamp(320px, 56vh, 560px)", backgroundColor: TL_BG }}>
-      <MiniLanding innerRef={innerRef} />
+      <MiniLanding innerRef={innerRef} settled={settled} />
     </div>
   </div>
 );
@@ -308,10 +350,8 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
 
       // Scene 2 — tour: the mini-landing translates up inside the frame; phones
       // parallax at different rates; callouts fly in staggered.
-      tl.to(innerRef.current, { yPercent: -42, ease: "none", duration: 1.9 }, 0.8);
-      tl.to(".tl-phone-1", { yPercent: -8, ease: "none", duration: 1.9 }, 0.8);
-      tl.to(".tl-phone-2", { yPercent: -20, ease: "none", duration: 1.9 }, 0.8);
-      tl.to(".tl-phone-3", { yPercent: -13, ease: "none", duration: 1.9 }, 0.8);
+      tl.to(innerRef.current, { yPercent: TOUR_END.landing, ease: "none", duration: 1.9 }, 0.8);
+      TOUR_END.phones.forEach((y, i) => tl.to(`.tl-phone-${i + 1}`, { yPercent: y, ease: "none", duration: 1.9 }, 0.8));
       calloutRefs.current.forEach((el, i) => {
         if (el) tl.from(el, { x: 60, opacity: 0, duration: 0.4, ease: "power3.out" }, 1.0 + i * 0.22);
       });
@@ -320,7 +360,7 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
       // an expanding circular clip-path. GSAP tweens a plain number and writes
       // the clip-path in onUpdate (reliable across engines, unlike interpolating
       // the clip-path string directly).
-      tl.to(frameRef.current, { scale: 0.92, filter: "blur(4px)", opacity: 0.6, duration: 0.5, ease: "power2.inOut" }, 2.9);
+      tl.to(frameRef.current, { ...FRAME_RECEDED, duration: 0.5, ease: "power2.inOut" }, 2.9);
       const iris = { r: 0 };
       tl.to(
         iris,
@@ -350,37 +390,8 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
     return () => ctx.revert();
   }, [reduced]);
 
-  /* ----- Reduced motion: static, fully-functional stacked composition ----- */
-  if (reduced) {
-    return (
-      <section
-        ref={sectionRef}
-        data-qa="cinematic-titilinks"
-        className="relative w-full overflow-hidden px-6 py-24"
-        style={{ backgroundColor: TL_BG }}
-      >
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: GOLD }}>
-            {t("cinematic.titilinks.eyebrow")}
-          </p>
-          <h2 data-qa="section-heading" className="font-semibold text-white" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.9rem,4.4vw,3.2rem)" }}>
-            {t("cinematic.titilinks.headline")}
-          </h2>
-          <p className="mx-auto mt-4 max-w-md text-white/60">{t("cinematic.titilinks.sub")}</p>
-        </div>
-        <div className="mx-auto mt-10 max-w-[560px]">
-          <BrowserFrame domain={t("cinematic.titilinks.domain")} />
-        </div>
-        <div className="mx-auto mt-10 max-w-2xl">
-          <Callouts />
-        </div>
-        <div className="relative mx-auto mt-12 h-[22rem] max-w-3xl">
-          <LaunchCard clipped={false} />
-        </div>
-      </section>
-    );
-  }
-
+  // Reduced motion builds no timeline (above) and renders the same stage at its
+  // settled frame: the frame painted where the scrub leaves it, the card open.
   return (
     <section ref={sectionRef} data-qa="cinematic-titilinks" className="relative w-full" style={{ backgroundColor: TL_BG }}>
       <div ref={stageRef} className="cine-vh-full relative w-full overflow-hidden" style={{ backgroundColor: TL_BG }}>
@@ -407,9 +418,9 @@ const CinematicTitiLinks = ({ reduced }: Props) => {
                   falls through to the full-height column above — the stage,
                   as it always was. The phone's card does not move. */}
               <div className="lg:relative">
-                <BrowserFrame frameRef={frameRef} innerRef={innerRef} domain={t("cinematic.titilinks.domain")} />
+                <BrowserFrame frameRef={frameRef} innerRef={innerRef} domain={t("cinematic.titilinks.domain")} settled={reduced} />
                 {/* Announcement card irises in over the frame during scene 3. */}
-                <LaunchCard cardRef={cardRef} clipped />
+                <LaunchCard cardRef={cardRef} clipped={!reduced} />
               </div>
               <div className="hidden lg:block">
                 <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: GOLD }}>
