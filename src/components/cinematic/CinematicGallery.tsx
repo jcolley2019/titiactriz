@@ -55,7 +55,7 @@ const CinematicGallery = ({ photos, reduced }: Props) => {
       tweenRef.current = gsap.to(track, {
         xPercent: -50,
         ease: "none",
-        duration: photos.length * 4,
+        duration: photos.length * 8,
         repeat: -1,
       });
 
