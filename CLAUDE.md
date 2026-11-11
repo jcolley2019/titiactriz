@@ -8,7 +8,10 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 ## Laws
 
 1. **Verbatim acceptance.** Joey's total instructions, quoted verbatim, are the acceptance
-   criteria. Any deviation = stop and ask.
+   criteria. If they cannot be met as written (a premise in the brief is false, they conflict
+   with a law, or a gate would fail), stop and ask before doing something else instead. Small
+   implementation choices the instructions leave open are not deviations: make them and list
+   them under Departures in the REPORT.
 2. **Visual work is never "done" from a report.** Produce rendered side-by-side evidence;
    Joey's on-screen confirmation is the FINAL gate. Two misses in a row = stop and inspect
    the rendered state directly instead of theorizing.
@@ -39,6 +42,17 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
    (Precedent: the nav halo, reverted in 0cbcaf6; the phone reel halo, rejected 10/20 and
    its stash dropped 11/11.)
 
+## Working rules
+
+- Finish the whole task. Do not stop to ask whether to continue while work remains that does
+  not need my answer. Work through ordinary errors; stop only for a real blocker or before a
+  risky or destructive action.
+- Stop when the requested work is done and checked. Do not add unrequested features, tests,
+  docs or refactors; mention useful extras at the end instead.
+- On long runs, give a one-line status update every few tool calls.
+- Before reporting done, run a real check (tests, typecheck, build, or the changed command).
+  Say plainly what you could not verify.
+
 ## Environment
 
 - Dev: `npm run dev` — PC at localhost:8080, phone at 192.168.4.53:8080. The physical test
@@ -55,8 +69,9 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
   webkit events-snap-phone "phone-440x792", webkit events-snap-phone tablet-portrait 820×1180
   "every card comes to rest in card 1's arrival frame", admin-coach C9 "Consejos folds under a
   chevron…", socials-act "the act dwells on the uniform +=120%…".
-- CI install cap: after a Playwright version bump the first CI run is a cache miss and can lose
-  shards to the 10-minute install cap; `gh run rerun <id> --failed` once a shard has saved the cache.
+- CI install cache: after a Playwright version bump or a GitHub runner-image rollout the first CI
+  run is a cache miss on every shard and can lose shards in the install step;
+  `gh run rerun <id> --failed` once a shard has saved the cache.
 - Supabase: live project ref `nsmstwkjbjicpdclgecq` ("TitiActriz"). Deploys: Vercel →
   titiactriz.com. Everything under `public/` deploys publicly — no stray files.
 
