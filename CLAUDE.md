@@ -1,6 +1,6 @@
 # CLAUDE.md — TitiActriz working laws
 
-Portfolio site for Cristyna "Titi" Polentino (actress/dancer, ES-primary). Claude Code leads
+Portfolio site for Cristyna "Titi" Polentino (actress, streamer, entrepreneur; ES-primary). Claude Code leads
 implementation: Joey gives plain intent (often via screenshots or voice). The architect seat
 (claude.ai) issues design rulings and specs for big features — housekeeping gets one-sentence
 GOAL prompts. Large product features arrive as STEP-format bricks; everything else does not.
@@ -58,7 +58,7 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 - Dev: `npm run dev` — PC at localhost:8080, phone at 192.168.4.53:8080. The physical test
   device is Joey's iPhone 17 Pro Max; phone-rendered truth outranks any emulator.
 - Gates before commit: `npm run typecheck`, `npm run guard`, and
-  `npx impeccable detect src --json` — 0 new vs 40 (baseline, .impeccable/config.json).
+  `npx impeccable detect src --json` — 0 new findings compared with main (39 as of 11/11).
   When edge functions are in play, also `npm run drift` (compares deployed function shas
   against `supabase/functions/deploy-ledger.json`; needs an authenticated Supabase CLI).
 - Known flakes (pass on retry; treat as a regression only if they repeat): framesplit capture,
