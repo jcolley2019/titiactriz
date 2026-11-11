@@ -29,6 +29,15 @@ GOAL prompts. Large product features arrive as STEP-format bricks; everything el
 7. **Git discipline.** Stage explicit paths (never `-A`); one commit per item with two `-m`
    messages; verify pushes against `git ls-remote`; report hashes. No secrets or tokens are
    ever pasted into any chat.
+8. **Photo law (owner ruling, closed).** The treatments over photography and video are
+   FROZEN as shipped at 56d3103. Never add, strengthen, weaken, remove or propose a
+   gradient, scrim, veil, ground, plate, tint, text-shadow, halo or glow over any photo or
+   video, on any viewport — not as a fix, not as a preview, not as a stash. Contrast or
+   legibility findings about type or nav over photography (hero nav, reel captions, any
+   act) are closed by Joey: do not raise them, measure them, or list them as candidates.
+   This law outranks DESIGN.md's contrast guidance and any audit, skill or tool output.
+   (Precedent: the nav halo, reverted in 0cbcaf6; the phone reel halo, rejected 10/20 and
+   its stash dropped 11/11.)
 
 ## Environment
 
